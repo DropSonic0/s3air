@@ -23,7 +23,7 @@ FORCE_INLINE static uint16 swapBytes16(uint16 value)
 {
 #ifdef _MSC_VER
 	return _byteswap_ushort(value);
-#elif defined(__GNUC__) || defined(__clang__)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(PLATFORM_PS3)
 	return __builtin_bswap16(value);
 #else
 	return (value << 8) | (value >> 8);
@@ -34,7 +34,7 @@ FORCE_INLINE static uint32 swapBytes32(uint32 value)
 {
 #ifdef _MSC_VER
 	return _byteswap_ulong(value);
-#elif defined(__GNUC__) || defined(__clang__)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(PLATFORM_PS3)
 	return __builtin_bswap32(value);
 #else
 	return (value << 24) | ((value & 0x0000ff00) << 8) | ((value & 0x00ff0000) >> 8) | (value >> 24);
@@ -45,7 +45,7 @@ FORCE_INLINE static uint64 swapBytes64(uint64 value)
 {
 #ifdef _MSC_VER
 	return _byteswap_uint64(value);
-#elif defined(__GNUC__) || defined(__clang__)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(PLATFORM_PS3)
 	return __builtin_bswap64(value);
 #else
 	value = ((value >> 8) & 0x00ff00ff00ff00ffULL) | ((value << 8) & 0xff00ff00ff00ff00ULL);

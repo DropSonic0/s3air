@@ -35,6 +35,14 @@
 #endif
 
 
+// System types
+#if defined(PLATFORM_PS3)
+	#include <stdint.h>
+#else
+	#include <cstdint>
+#endif
+
+
 // Data types
 typedef signed char		int8;
 typedef unsigned char	uint8;

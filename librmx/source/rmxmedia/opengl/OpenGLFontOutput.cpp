@@ -53,12 +53,12 @@ void OpenGLFontOutput::buildVertexGroups(VertexGroups& outVertexGroups, const st
 
 	checkCacheValidity();
 
-	Texture* currentTexture = nullptr;
+	Texture* currentTexture = 0;
 	SpriteAtlas::Sprite sprite;
 
 	for (const Font::TypeInfo& info : infos)
 	{
-		if (nullptr == info.mBitmap)
+		if (0 == info.mBitmap)
 			continue;
 
 		const uint32 character = info.mUnicode;
@@ -114,7 +114,7 @@ void OpenGLFontOutput::buildVertexGroups(VertexGroups& outVertexGroups, const st
 bool OpenGLFontOutput::loadTexture(const Font::TypeInfo& typeInfo)
 {
 	// Load characters as texture
-	if (nullptr == typeInfo.mBitmap)
+	if (0 == typeInfo.mBitmap)
 		return false;
 
 	const uint32 character = typeInfo.mUnicode;

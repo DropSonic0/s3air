@@ -21,12 +21,12 @@ public:
 
 	static bool valid()
 	{
-		return (nullptr != mInstance);
+		return (0 != mInstance);
 	}
 
 	static CLASS& instance()
 	{
-		if (nullptr == mInstance)
+		if (0 == mInstance)
 			mInstance = new CLASS();
 		return *mInstance;
 	}
@@ -35,7 +35,7 @@ private:
 	static CLASS* mInstance;
 };
 
-template <typename CLASS> CLASS* Singleton<CLASS>::mInstance = nullptr;
+template <typename CLASS> CLASS* Singleton<CLASS>::mInstance = 0;
 
 
 
@@ -44,7 +44,7 @@ template <typename CLASS> CLASS* Singleton<CLASS>::mInstance = nullptr;
 template<class CLASS> class SingletonPtr
 {
 public:
-//	void create()		{ if (nullptr == mObject) mObject = new CLASS(); }
+//	void create()		{ if (0 == mObject) mObject = new CLASS(); }
 //	void destroy()		{ SAFE_DELETE(mObject); }
 
 	bool valid()		{ return Singleton<CLASS>::valid(); }

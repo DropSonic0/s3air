@@ -15,19 +15,19 @@ namespace Json {
 template <typename T> class SecureAllocator {
 public:
   // Type definitions
-  using value_type = T;
-  using pointer = T*;
-  using const_pointer = const T*;
-  using reference = T&;
-  using const_reference = const T&;
-  using size_type = std::size_t;
-  using difference_type = std::ptrdiff_t;
+  typedef value_type = T;
+  typedef pointer = T*;
+  typedef const_pointer = const T*;
+  typedef reference = T&;
+  typedef const_reference = const T&;
+  typedef size_type = std::size_t;
+  typedef difference_type = std::ptrdiff_t;
 
   /**
-   * Allocate memory for N items using the standard allocator.
+   * Allocate memory for N items typedef the standard allocator.
    */
   pointer allocate(size_type n) {
-    // allocate using "global operator new"
+    // allocate typedef "global operator new"
     return static_cast<pointer>(::operator new(n * sizeof(T)));
   }
 
@@ -39,7 +39,7 @@ public:
   void deallocate(pointer p, size_type n) {
     // memset_s is used because memset may be optimized away by the compiler
     memset_s(p, n * sizeof(T), 0, n * sizeof(T));
-    // free using "global operator delete"
+    // free typedef "global operator delete"
     ::operator delete(p);
   }
 
@@ -47,7 +47,7 @@ public:
    * Construct an item in-place at pointer P.
    */
   template <typename... Args> void construct(pointer p, Args&&... args) {
-    // construct using "placement new" and "perfect forwarding"
+    // construct typedef "placement new" and "perfect forwarding"
     ::new (static_cast<void*>(p)) T(std::forward<Args>(args)...);
   }
 
@@ -61,14 +61,14 @@ public:
    * Destroy an item in-place at pointer P.
    */
   void destroy(pointer p) {
-    // destroy using "explicit destructor"
+    // destroy typedef "explicit destructor"
     p->~T();
   }
 
   // Boilerplate
   SecureAllocator() {}
   template <typename U> SecureAllocator(const SecureAllocator<U>&) {}
-  template <typename U> struct rebind { using other = SecureAllocator<U>; };
+  template <typename U> struct rebind { typedef other = SecureAllocator<U>; };
 };
 
 template <typename T, typename U>

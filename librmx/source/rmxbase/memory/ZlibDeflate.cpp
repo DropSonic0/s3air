@@ -26,7 +26,7 @@ bool ZlibDeflate::decode(std::vector<uint8>& output, const void* inputData, size
 	if (zlibResult != Z_OK)
 		return false;
 
-	const constexpr size_t CHUNK_SIZE = 0x4000;
+	static const size_t CHUNK_SIZE = 0x4000;
 	strm.next_in = (Bytef*)inputData;
 	strm.avail_in = (uInt)inputSize;
 

@@ -17,10 +17,119 @@
 //  - PLATFORM_IOS		-> iOS
 //  - PLATFORM_WEB		-> Web version (via emscripten)
 //  - PLATFORM_SWITCH	-> Nintendo Switch (homebrew)
+//  - PLATFORM_PS3		-> PlayStation 3
 
 
 // Platform specific
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+	#define PLATFORM_PS3
+	#define NO_UNORDERED_CONTAINERS
+	#include <stddef.h>
+	#include <math.h>
+
+	#ifndef nullptr
+		#define nullptr 0
+	#endif
+	#ifndef override
+		#define override
+	#endif
+	#ifndef noexcept
+		#define noexcept
+	#endif
+	#ifndef constexpr
+		#define constexpr const
+	#endif
+	#ifndef static_assert
+		#define static_assert(cond, msg)
+	#endif
+
+#ifdef __cplusplus
+	#include <map>
+	#include <set>
+	#include <memory>
+	#include <string>
+	#include <limits>
+
+	// Global namespace fix for missing functions
+	using std::floor;
+	using std::ceil;
+
+	// Compatibility shims for C++11 features in older compilers
+	namespace std {
+		template<bool B, typename T, typename F> struct conditional { typedef T type; };
+		template<typename T, typename F> struct conditional<false, T, F> { typedef F type; };
+
+		template <typename T, size_t N>
+		struct array {
+			T elems[N];
+			T& operator[](size_t i) { return elems[i]; }
+			const T& operator[](size_t i) const { return elems[i]; }
+			T* data() { return elems; }
+			const T* data() const { return elems; }
+			size_t size() const { return N; }
+			bool empty() const { return N == 0; }
+			T* begin() { return elems; }
+			T* end() { return elems + N; }
+			const T* begin() const { return elems; }
+			const T* end() const { return elems + N; }
+		};
+
+		template <typename T>
+		struct unique_ptr {
+			T* ptr;
+			explicit unique_ptr(T* p = 0) : ptr(p) {}
+			~unique_ptr() { delete ptr; }
+			T& operator*() const { return *ptr; }
+			T* operator->() const { return ptr; }
+			operator bool() const { return ptr != 0; }
+			T* get() const { return ptr; }
+			T* release() { T* p = ptr; ptr = 0; return p; }
+			void reset(T* p = 0) { if (ptr != p) { delete ptr; ptr = p; } }
+		private:
+			unique_ptr(const unique_ptr&);
+			unique_ptr& operator=(const unique_ptr&);
+		};
+
+		template <typename T> T& move(T& t) { return t; }
+		template <typename T> const T& move(const T& t) { return t; }
+		template <typename T> T& forward(T& t) { return t; }
+
+		template<typename K, typename V, typename H = void, typename E = void, typename A = void>
+		class unordered_map : public map<K, V> {
+		public:
+			unordered_map() {}
+			template<typename Iter> unordered_map(Iter f, Iter l) : map<K, V>(f, l) {}
+		};
+
+		template<typename T, typename H = void, typename E = void, typename A = void>
+		class unordered_set : public set<T> {
+		public:
+			unordered_set() {}
+			template<typename Iter> unordered_set(Iter f, Iter l) : set<T>(f, l) {}
+		};
+
+		template<typename CHAR>
+		class basic_string_view {
+		public:
+			basic_string_view() : mData(0), mLength(0) {}
+			basic_string_view(const CHAR* s) : mData(s), mLength(0) { if (s) while (s[mLength]) ++mLength; }
+			basic_string_view(const CHAR* s, size_t l) : mData(s), mLength(l) {}
+			basic_string_view(const std::basic_string<CHAR>& s) : mData(s.data()), mLength(s.length()) {}
+			const CHAR* data() const { return mData; }
+			size_t length() const { return mLength; }
+			size_t size() const { return mLength; }
+			bool empty() const { return mLength == 0; }
+			const CHAR& operator[](size_t i) const { return mData[i]; }
+		private:
+			const CHAR* mData;
+			size_t mLength;
+		};
+		typedef basic_string_view<char> string_view;
+		typedef basic_string_view<wchar_t> wstring_view;
+	}
+#endif
+
+#elif defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
 	#define PLATFORM_WINDOWS
 	#if defined(__GNUC__)
 		#define USE_UTF8_PATHS

@@ -36,7 +36,7 @@ namespace
 
 #ifdef PLATFORM_WINDOWS
 #ifdef USE_VISTA_STYLE
-	static void* mTaskDialogIndirectProcPointer = nullptr;
+	static void* mTaskDialogIndirectProcPointer = 0;
 	static bool mLoadedProcPointers = false;
 
 	bool canShowVistaStyleMessageBox()
@@ -46,12 +46,12 @@ namespace
 		{
 			const wchar_t* unicodeFilenameName = L"comctl32.dll";
 			HMODULE module = GetModuleHandleW(unicodeFilenameName);
-			if (nullptr == module)
+			if (0 == module)
 			{
 				module = LoadLibraryW(unicodeFilenameName);
 			}
 
-			if (nullptr != module)
+			if (0 != module)
 			{
 				// Try to get the "TaskDialogIndirect()" function pointer
 				mTaskDialogIndirectProcPointer = GetProcAddress(module, "TaskDialogIndirect");
@@ -60,7 +60,7 @@ namespace
 			mLoadedProcPointers = true;
 		}
 
-		return (nullptr != mTaskDialogIndirectProcPointer);
+		return (0 != mTaskDialogIndirectProcPointer);
 	}
 
 	int showVistaStyleMessageBox(const std::wstring& message)
@@ -68,11 +68,11 @@ namespace
 		int result = IDRETRY;
 
 		// Sanity check (for obvious reason, we don't use RMX_CHECK here)
-		if (nullptr == mTaskDialogIndirectProcPointer)
+		if (0 == mTaskDialogIndirectProcPointer)
 			return result;
 
 		// Dialog button definition
-		const TASKDIALOG_BUTTON* buttons = nullptr;
+		const TASKDIALOG_BUTTON* buttons = 0;
 		uint32 numButtons = 0;
 
 		static const TASKDIALOG_BUTTON buttonArray[] =
@@ -92,17 +92,17 @@ namespace
 		config.pszMainIcon = TD_ERROR_ICON;
 		config.pszMainInstruction = message.c_str();
 		config.pszContent = L"Asset break";
-		config.pszFooter = nullptr;
+		config.pszFooter = 0;
 		config.pButtons = buttons;
 		config.cButtons = numButtons;
 		config.nDefaultButton = buttons[0].nButtonID;
 		config.cxWidth = 250;
-		config.pfCallback = nullptr;
+		config.pfCallback = 0;
 		config.lpCallbackData = 0;
 
 		// Call "::TaskDialogIndirect" now
 		typedef HRESULT(WINAPI* TaskDialogIndirectProc)(const TASKDIALOGCONFIG* pTaskConfig, int* pnButton, int* pnRadioButton, BOOL* pfVerificationFlagChecked);
-		reinterpret_cast<TaskDialogIndirectProc>(mTaskDialogIndirectProcPointer)(&config, &result, nullptr, nullptr);
+		reinterpret_cast<TaskDialogIndirectProc>(mTaskDialogIndirectProcPointer)(&config, &result, 0, 0);
 
 		return result;
 	}
@@ -130,7 +130,7 @@ namespace
 		}
 
 		// Show the message box
-		return MessageBoxA(nullptr, stringBuilder.str().c_str(), caption.c_str(), type | icon);
+		return MessageBoxA(0, stringBuilder.str().c_str(), caption.c_str(), type | icon);
 	}
 
 	int showWindowsMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message)
@@ -139,7 +139,7 @@ namespace
 	#ifdef USE_VISTA_STYLE
 		if (canShowVistaStyleMessageBox())
 		{
-			const auto size_needed = MultiByteToWideChar(CP_UTF8, 0, &message.at(0), (int)message.size(), nullptr, 0);
+			const  size_needed = MultiByteToWideChar(CP_UTF8, 0, &message.at(0), (int)message.size(), 0, 0);
 			if (size_needed <= 0)
 				return 0;
 
@@ -174,7 +174,7 @@ namespace rmx
 
 	void ErrorHandling::printToLog(ErrorSeverity errorSeverity, const std::string& message)
 	{
-		if (nullptr != mLogger)
+		if (0 != mLogger)
 		{
 			mLogger->logMessage(errorSeverity, message);
 		}
@@ -202,7 +202,7 @@ namespace rmx
 		}
 
 		MessageBoxInterface::Result result = MessageBoxInterface::Result::ABORT;
-		if (nullptr != mMessageBoxImplementation)
+		if (0 != mMessageBoxImplementation)
 		{
 			result = mMessageBoxImplementation->showMessageBox(dialogType, errorSeverity, message, filename, line);
 		}

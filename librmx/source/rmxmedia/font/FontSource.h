@@ -67,8 +67,13 @@ protected:
 	virtual bool fillGlyphInfo(GlyphInfo& info);
 
 private:
+#if defined(NO_UNORDERED_CONTAINERS)
+	std::map<wchar_t, Bitmap>  mCharacterBitmaps;
+	std::map<wchar_t, wchar_t> mCharacterRedirects;
+#else
 	std::unordered_map<wchar_t, Bitmap>  mCharacterBitmaps;
 	std::unordered_map<wchar_t, wchar_t> mCharacterRedirects;
+#endif
 	int mSpaceBetweenCharacters = 0;
 	bool mLoadingSucceeded = false;
 };

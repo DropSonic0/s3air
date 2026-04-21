@@ -109,7 +109,7 @@ namespace rmx
 		{
 			const std::wstring basePath(basePath_);
 			std::vector<std::wstring> subDirectoriesBuffer;
-			std::vector<std::wstring>& subDirectories = (nullptr != outSubDirectories) ? *outSubDirectories : subDirectoriesBuffer;
+			std::vector<std::wstring>& subDirectories = (0 != outSubDirectories) ? *outSubDirectories : subDirectoriesBuffer;
 
 		#ifdef PLATFORM_WINDOWS
 
@@ -127,7 +127,7 @@ namespace rmx
 					if (isDirectory)
 					{
 						// Directory
-						if (recursive || nullptr != outSubDirectories)
+						if (recursive || 0 != outSubDirectories)
 						{
 							subDirectories.push_back(name);
 						}
@@ -135,7 +135,7 @@ namespace rmx
 					else
 					{
 						// File
-						if (nullptr != outFileEntries)
+						if (0 != outFileEntries)
 						{
 							// Check for wildcard match
 							const WString filename = fileinfo.name;
@@ -159,13 +159,13 @@ namespace rmx
 
 			const std::string basePathUTF8 = *WString(basePath).toUTF8();
 			DIR* dp = opendir(basePathUTF8.c_str());
-			if (nullptr == dp)
+			if (0 == dp)
 				return;
 
 			while (true)
 			{
 				struct dirent* dirp = readdir(dp);
-				if (nullptr == dirp)
+				if (0 == dirp)
 					break;
 
 				// Ignore "." and ".." entries
@@ -180,7 +180,7 @@ namespace rmx
 				if (S_ISDIR(fileinfo.st_mode))
 				{
 					// Directory
-					if (recursive || nullptr != outSubDirectories)
+					if (recursive || 0 != outSubDirectories)
 					{
 						subDirectories.emplace_back(*String(name).toWString());
 					}
@@ -188,7 +188,7 @@ namespace rmx
 				else
 				{
 					// File
-					if (nullptr != outFileEntries)
+					if (0 != outFileEntries)
 					{
 						// Check for wildcard match
 						const WString filename = String(name).toWString();
@@ -310,7 +310,7 @@ namespace rmx
 		if (!stream.good())
 			return false;
 
-		if (size != 0 && nullptr != data)
+		if (size != 0 && 0 != data)
 		{
 			stream.write((char*)data, size);
 		}
@@ -324,7 +324,7 @@ namespace rmx
 		if (!inputStream->valid())
 		{
 			delete inputStream;
-			return nullptr;
+			return 0;
 		}
 		return inputStream;
 	}
@@ -365,7 +365,7 @@ namespace rmx
 	{
 		std::wstring basePath = std::wstring(path);
 		normalizePath(basePath, true);
-		listDirectoryContentInternal(&outFileEntries, nullptr, basePath, L"", recursive);
+		listDirectoryContentInternal(&outFileEntries, 0, basePath, L"", recursive);
 	}
 
 	void FileIO::listFilesByMask(std::wstring_view filemask_, bool recursive, std::vector<FileEntry>& outFileEntries)
@@ -390,14 +390,14 @@ namespace rmx
 			}
 		}
 
-		listDirectoryContentInternal(&outFileEntries, nullptr, basePath, mask, recursive);
+		listDirectoryContentInternal(&outFileEntries, 0, basePath, mask, recursive);
 	}
 
 	void FileIO::listDirectories(std::wstring_view path, std::vector<std::wstring>& outDirectories)
 	{
 		std::wstring basePath = std::wstring(path);
 		normalizePath(basePath, true);
-		listDirectoryContentInternal(nullptr, &outDirectories, basePath, L"", false);
+		listDirectoryContentInternal(0, &outDirectories, basePath, L"", false);
 	}
 
 	void FileIO::normalizePath(std::wstring& path, bool isDirectory)
@@ -538,7 +538,7 @@ namespace rmx
 	void FileIO::splitPath(std::string_view path, std::string* directory, std::string* name, std::string* extension)
 	{
 		const std::size_t slash = path.find_last_of("/\\");
-		if (nullptr != directory)
+		if (0 != directory)
 		{
 			if (slash != std::wstring::npos)
 				*directory = path.substr(0, slash);
@@ -549,16 +549,16 @@ namespace rmx
 		const std::size_t dot = path.find_last_of('.');
 		if (dot != std::wstring::npos && dot > slash)
 		{
-			if (nullptr != name)
+			if (0 != name)
 				*name = path.substr(slash + 1, dot - slash - 1);
-			if (nullptr != extension)
+			if (0 != extension)
 				*extension = path.substr(dot + 1);
 		}
 		else
 		{
-			if (nullptr != name)
+			if (0 != name)
 				*name = path.substr(slash + 1);
-			if (nullptr != extension)
+			if (0 != extension)
 				extension->clear();
 		}
 	}
@@ -566,7 +566,7 @@ namespace rmx
 	void FileIO::splitPath(std::wstring_view path, std::wstring* directory, std::wstring* name, std::wstring* extension)
 	{
 		const std::size_t slash = path.find_last_of(L"/\\");
-		if (nullptr != directory)
+		if (0 != directory)
 		{
 			if (slash != std::wstring::npos)
 				*directory = path.substr(0, slash);
@@ -577,16 +577,16 @@ namespace rmx
 		const std::size_t dot = path.find_last_of(L'.');
 		if (dot != std::wstring::npos && (dot > slash || slash == std::wstring::npos))
 		{
-			if (nullptr != name)
+			if (0 != name)
 				*name = path.substr(slash + 1, dot - slash - 1);
-			if (nullptr != extension)
+			if (0 != extension)
 				*extension = path.substr(dot + 1);
 		}
 		else
 		{
-			if (nullptr != name)
+			if (0 != name)
 				*name = path.substr(slash + 1);
-			if (nullptr != extension)
+			if (0 != extension)
 				extension->clear();
 		}
 	}

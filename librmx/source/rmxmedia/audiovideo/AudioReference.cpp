@@ -12,7 +12,7 @@
 void AudioReference::setInstanceID(int ID)
 {
 	mInstanceID = ID;
-	mInstance = nullptr;
+	mInstance = 0;
 	mChangeCounter = -1;
 }
 
@@ -28,7 +28,7 @@ void AudioReference::updateInstance()
 bool AudioReference::valid()
 {
 	updateInstance();
-	return (nullptr != mInstance);
+	return (0 != mInstance);
 }
 
 float AudioReference::getPosition()

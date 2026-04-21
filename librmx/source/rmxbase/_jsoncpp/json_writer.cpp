@@ -143,7 +143,7 @@ String valueToString(double value, bool useSpecialFloats,
         (precisionType == PrecisionType::significantDigits) ? "%.*g" : "%.*f",
         precision, value);
     assert(len >= 0);
-    auto wouldPrint = static_cast<size_t>(len);
+     wouldPrint = static_cast<size_t>(len);
     if (wouldPrint >= buffer.size()) {
       buffer.resize(wouldPrint + 1);
       continue;
@@ -274,7 +274,7 @@ static void appendHex(String& result, unsigned ch) {
 
 static String valueToQuotedStringN(const char* value, size_t length,
                                    bool emitUTF8 = false) {
-  if (value == nullptr)
+  if (value == 0)
     return "";
 
   if (!doesAnyCharRequireEscaping(value, length))
@@ -418,7 +418,7 @@ void FastWriter::writeValue(const Value& value) {
   case objectValue: {
     Value::Members members(value.getMemberNames());
     document_ += '{';
-    for (auto it = members.begin(); it != members.end(); ++it) {
+    for ( it = members.begin(); it != members.end(); ++it) {
       const String& name = *it;
       if (it != members.begin())
         document_ += ',';
@@ -485,7 +485,7 @@ void StyledWriter::writeValue(const Value& value) {
     else {
       writeWithIndent("{");
       indent();
-      auto it = members.begin();
+       it = members.begin();
       for (;;) {
         const String& name = *it;
         const Value& childValue = value[name];
@@ -647,7 +647,7 @@ bool StyledWriter::hasCommentForValue(const Value& value) {
 // //////////////////////////////////////////////////////////////////
 
 StyledStreamWriter::StyledStreamWriter(String indentation)
-    : document_(nullptr), indentation_(std::move(indentation)),
+    : document_(0), indentation_(std::move(indentation)),
       addChildValues_(), indented_(false) {}
 
 void StyledStreamWriter::write(OStream& out, const Value& root) {
@@ -662,7 +662,7 @@ void StyledStreamWriter::write(OStream& out, const Value& root) {
   writeValue(root);
   writeCommentAfterValueOnSameLine(root);
   *document_ << "\n";
-  document_ = nullptr; // Forget the stream, for safety.
+  document_ = 0; // Forget the stream, for safety.
 }
 
 void StyledStreamWriter::writeValue(const Value& value) {
@@ -703,7 +703,7 @@ void StyledStreamWriter::writeValue(const Value& value) {
     else {
       writeWithIndent("{");
       indent();
-      auto it = members.begin();
+       it = members.begin();
       for (;;) {
         const String& name = *it;
         const Value& childValue = value[name];
@@ -935,7 +935,7 @@ int BuiltStyledStreamWriter::write(Value const& root, OStream* sout) {
   writeValue(root);
   writeCommentAfterValueOnSameLine(root);
   *sout_ << endingLineFeedSymbol_;
-  sout_ = nullptr;
+  sout_ = 0;
   return 0;
 }
 void BuiltStyledStreamWriter::writeValue(Value const& value) {
@@ -978,7 +978,7 @@ void BuiltStyledStreamWriter::writeValue(Value const& value) {
     else {
       writeWithIndent("{");
       indent();
-      auto it = members.begin();
+       it = members.begin();
       for (;;) {
         String const& name = *it;
         Value const& childValue = value[name];
@@ -1154,7 +1154,7 @@ bool BuiltStyledStreamWriter::hasCommentForValue(const Value& value) {
 ///////////////
 // StreamWriter
 
-StreamWriter::StreamWriter() : sout_(nullptr) {}
+StreamWriter::StreamWriter() : sout_(0) {}
 StreamWriter::~StreamWriter() = default;
 StreamWriter::Factory::~Factory() = default;
 StreamWriterBuilder::StreamWriterBuilder() { setDefaults(&settings_); }
@@ -1213,8 +1213,8 @@ bool StreamWriterBuilder::validate(Json::Value* invalid) const {
       "precision",
       "precisionType",
   };
-  for (auto si = settings_.begin(); si != settings_.end(); ++si) {
-    auto key = si.name();
+  for ( si = settings_.begin(); si != settings_.end(); ++si) {
+     key = si.name();
     if (valid_keys.count(key))
       continue;
     if (invalid)

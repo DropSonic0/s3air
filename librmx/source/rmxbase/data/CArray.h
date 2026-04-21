@@ -18,8 +18,8 @@ public:
 	size_t count;		// Number of elements
 
 public:
-	CArray() : list(nullptr), size(0), count(0)  {}
-	CArray(TYPE* ptr, size_t cnt) : list(nullptr), count(0), size(0)  { add(ptr, cnt); }
+	CArray() : list(0), size(0), count(0)  {}
+	CArray(TYPE* ptr, size_t cnt) : list(0), count(0), size(0)  { add(ptr, cnt); }
 	~CArray()  { SAFE_DELETE_ARRAY(list); }
 
 	void clear()
@@ -76,7 +76,7 @@ public:
 		list = source.list;
 		size = source.size;
 		count = source.count;
-		source.list = nullptr;
+		source.list = 0;
 		source.size = 0;
 		source.count = 0;
 	}

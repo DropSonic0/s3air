@@ -119,7 +119,7 @@ void Texture::create(int width, int height, GLint format)
 	glBindTexture(mType, mHandle);
 	setFilterLinear();
 	setWrapRepeat();
-	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, 0);
 }
 
 void Texture::createCubemap(GLint format)
@@ -155,13 +155,13 @@ void Texture::createCubemap(int width, int height, GLint format)
 
 	for (int side = 0; side < 6; ++side)
 	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, 0);
 	}
 }
 
 void Texture::load(const void* data, int width, int height)
 {
-	if (nullptr == data)
+	if (0 == data)
 		return;
 
 	create(width, height, rmx::OpenGLHelper::FORMAT_RGBA);
@@ -207,7 +207,7 @@ void Texture::loadCubemap(const String& filename)
 
 void Texture::updateRect(const void* data, const Recti& rect)
 {
-	if (nullptr == data || rect.empty())
+	if (0 == data || rect.empty())
 		return;
 
 	glBindTexture(mType, mHandle);

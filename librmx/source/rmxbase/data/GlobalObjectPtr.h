@@ -18,7 +18,7 @@ public:
 		clear();
 	}
 
-	inline bool hasInstance() const { return (nullptr != mInstance); }
+	inline bool hasInstance() const { return (0 != mInstance); }
 	inline CLASS& instance() const  { return *mInstance; }
 
 	void clear()
@@ -41,5 +41,5 @@ public:
 	CLASS* operator->()  { return mInstance; }
 
 private:
-	CLASS* mInstance = nullptr;
+	CLASS* mInstance = 0;
 };

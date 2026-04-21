@@ -60,7 +60,11 @@ namespace rmx
 		static void log(LogLevel logLevel, const std::string& string);
 
 	private:
-		static inline std::vector<LoggerBase*> mLoggers;
+		#if defined(PLATFORM_PS3)
+		static std::vector<LoggerBase*> mLoggers;
+		#else
+		static std::vector<LoggerBase*> mLoggers;
+		#endif
 	};
 
 }

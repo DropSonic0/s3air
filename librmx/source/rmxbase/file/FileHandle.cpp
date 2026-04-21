@@ -53,13 +53,13 @@ FileHandle::FileHandle(const WString& filename, uint32 flags)
 
 FileHandle::~FileHandle()
 {
-	if (nullptr != mFile)
+	if (0 != mFile)
 		close();
 }
 
 bool FileHandle::open(const String& filename, uint32 flags)
 {
-	if (nullptr != mFile)
+	if (0 != mFile)
 		close();
 
 #if defined(PLATFORM_WINDOWS)
@@ -70,7 +70,7 @@ bool FileHandle::open(const String& filename, uint32 flags)
 	mFile = fopen(*filename, ::getModeString(flags));
 #endif
 
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return false;
 
 	mFilename = filename.toWString();
@@ -80,7 +80,7 @@ bool FileHandle::open(const String& filename, uint32 flags)
 
 bool FileHandle::open(const WString& filename, uint32 flags)
 {
-	if (nullptr != mFile)
+	if (0 != mFile)
 		close();
 
 	const bool isWrite = (flags & 0x0f) != FILE_ACCESS_READ;
@@ -102,7 +102,7 @@ bool FileHandle::open(const WString& filename, uint32 flags)
 	mFile = fopen(*filename.toString(), ::getModeString(flags));
 #endif
 
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return false;
 
 	mFilename = filename;
@@ -112,15 +112,15 @@ bool FileHandle::open(const WString& filename, uint32 flags)
 
 void FileHandle::close()
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return;
 	fclose(mFile);
-	mFile = nullptr;
+	mFile = 0;
 }
 
 int64 FileHandle::getSize() const
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return 0;
 
 	if (mFileSize < 0)
@@ -142,7 +142,7 @@ int64 FileHandle::getSize() const
 
 void FileHandle::seek(int64 position)
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return;
 #ifdef _MSC_VER
 	_fseeki64(mFile, position, SEEK_SET);
@@ -153,7 +153,7 @@ void FileHandle::seek(int64 position)
 
 int64 FileHandle::tell() const
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return 0;
 #ifdef _MSC_VER
 	return _ftelli64(mFile);
@@ -164,21 +164,21 @@ int64 FileHandle::tell() const
 
 size_t FileHandle::read(void* output, size_t bytes) const
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return 0;
 	return fread(output, 1, bytes, mFile);
 }
 
 size_t FileHandle::write(const void* input, size_t bytes)
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return 0;
 	return fwrite(input, 1, bytes, mFile);
 }
 
 void FileHandle::flush()
 {
-	if (nullptr == mFile)
+	if (0 == mFile)
 		return;
 	fflush(mFile);
 }

@@ -65,7 +65,7 @@ namespace rmx
 
 		// Open audio device
 		SDL_AudioSpec requested = mFormat;
-		mAudioDeviceID = SDL_OpenAudioDevice(nullptr, 0, &requested, &mFormat, 0);
+		mAudioDeviceID = SDL_OpenAudioDevice(0, 0, &requested, &mFormat, 0);
 		if (mAudioDeviceID == 0)
 		{
 			const int numAudioDevices = SDL_GetNumAudioDevices(0);
@@ -154,7 +154,7 @@ namespace rmx
 			{
 				const AudioInstance& instance = instancePair.second;
 				AudioBuffer* audioBuffer = instance.mAudioBuffer;
-				if (nullptr != audioBuffer && !audioBuffer->isPersistent())
+				if (0 != audioBuffer && !audioBuffer->isPersistent())
 				{
 					// Already had this one before?
 					bool found = false;
@@ -197,7 +197,7 @@ namespace rmx
 	AudioMixer* AudioManager::getAudioMixerByID(int mixerId) const
 	{
 		const auto it = mAudioMixers.find(mixerId);
-		return (it == mAudioMixers.end()) ? nullptr : it->second;
+		return (it == mAudioMixers.end()) ? 0 : it->second;
 	}
 
 	void AudioManager::deleteAudioMixerByID(int mixerId)
@@ -209,13 +209,13 @@ namespace rmx
 	float AudioManager::getAudioMixerVolumeByID(int mixerId) const
 	{
 		const AudioMixer* audioMixer = getAudioMixerByID(mixerId);
-		return (nullptr != audioMixer) ? audioMixer->getVolume() : 0.0f;
+		return (0 != audioMixer) ? audioMixer->getVolume() : 0.0f;
 	}
 
 	void AudioManager::setAudioMixerVolumeByID(int mixerId, float relativeVolume)
 	{
 		AudioMixer* audioMixer = getAudioMixerByID(mixerId);
-		if (nullptr != audioMixer)
+		if (0 != audioMixer)
 		{
 			audioMixer->setVolume(relativeVolume);
 		}
@@ -223,11 +223,11 @@ namespace rmx
 
 	bool AudioManager::addSound(const PlaybackOptions& playbackOptions, AudioReference& ref)
 	{
-		if (nullptr == playbackOptions.mAudioBuffer)
+		if (0 == playbackOptions.mAudioBuffer)
 			return false;
 
 		AudioMixer* audioMixer = getAudioMixerByID(playbackOptions.mAudioMixerId);
-		if (nullptr == audioMixer)
+		if (0 == audioMixer)
 			return false;
 
 		AudioInstance& instance = mInstances[mNextFreeID];
@@ -288,14 +288,14 @@ namespace rmx
 	AudioManager::AudioInstance* AudioManager::findInstance(int ID)
 	{
 		if (ID <= 0 || ID >= mNextFreeID)
-			return nullptr;
+			return 0;
 
 		// This seems like a good place to do some cleanup if needed
 		processRemoveIDs();
 
 		const auto it = mInstances.find(ID);
 		if (it == mInstances.end())
-			return nullptr;
+			return 0;
 
 		return &it->second;
 	}
@@ -307,7 +307,7 @@ namespace rmx
 		if (it != mInstances.end())
 		{
 			AudioInstance& audioInstance = it->second;
-			if (nullptr != audioInstance.mAudioMixer)
+			if (0 != audioInstance.mAudioMixer)
 			{
 				lockAudio();
 				audioInstance.mAudioMixer->removeAudioInstance(audioInstance);
@@ -330,7 +330,7 @@ namespace rmx
 				if (it != mInstances.end())
 				{
 					AudioInstance& audioInstance = it->second;
-					if (nullptr != audioInstance.mAudioMixer)
+					if (0 != audioInstance.mAudioMixer)
 					{
 						audioInstance.mAudioMixer->removeAudioInstance(audioInstance);
 					}
@@ -377,7 +377,7 @@ namespace rmx
 
 		// Register at (new) parent
 		AudioMixer* parent = getAudioMixerByID(parentMixerId);
-		if (nullptr == parent)
+		if (0 == parent)
 			parent = &mRootMixer;
 		parent->addChild(audioMixer);
 	}
@@ -454,7 +454,7 @@ namespace rmx
 	bool WavLoader::load(AudioBuffer* buffer, const String& source, const String& params)
 	{
 		// Load WAV file
-		if (nullptr == buffer || source.empty())
+		if (0 == buffer || source.empty())
 			return false;
 		if (!source.endsWith(".wav"))
 			return false;

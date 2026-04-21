@@ -75,7 +75,7 @@ TEMPLATE STRING::StringTemplate(const STRING& str)
 TEMPLATE STRING::StringTemplate(const CHAR* str)
 {
 	init();
-	if (nullptr == str || str[0] == 0)
+	if (0 == str || str[0] == 0)
 		return;
 
 	size_t len = 0;
@@ -91,7 +91,7 @@ TEMPLATE STRING::StringTemplate(const CHAR* str)
 TEMPLATE STRING::StringTemplate(const CHAR* str, size_t length)
 {
 	init();
-	if (nullptr == str || str[0] == 0)
+	if (0 == str || str[0] == 0)
 		return;
 
 	expand((int)length);
@@ -128,7 +128,7 @@ TEMPLATE STRING::StringTemplate(int ignoreMe, const CHAR* format, ...)
 {
 	// Create from format string
 	init();
-	if (nullptr == format || format[0] == 0)
+	if (0 == format || format[0] == 0)
 		return;
 
 	va_list argv;
@@ -156,7 +156,7 @@ TEMPLATE void STRING::fromConst(const CHAR* str)
 {
 	if (mDynamic)
 		delete[] mData;
-	if (nullptr == str)
+	if (0 == str)
 		str = _empty<CHAR>();
 	mData = (CHAR*)str;
 	recount();
@@ -303,7 +303,7 @@ TEMPLATE void STRING::copy(const STRING& str)
 TEMPLATE void STRING::copy(const CHAR* str)
 {
 	// Copy string
-	if (nullptr == str)
+	if (0 == str)
 	{
 		clear();
 		return;
@@ -1235,7 +1235,7 @@ TEMPLATE void STRING::writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding e
 
 	if (encoding == UnicodeEncoding::AUTO)
 	{
-		if constexpr (sizeof(CHAR) == 1)
+		if (sizeof(CHAR) == 1)
 			encoding = UnicodeEncoding::ASCII;
 		else
 			encoding = UnicodeEncoding::UTF8;

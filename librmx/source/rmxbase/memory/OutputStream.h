@@ -77,9 +77,9 @@ public:
 	bool saveToFile(const String& filename);
 
 protected:
-	uint8* mBuffer = nullptr;
-	uint8* mBufferEnd = nullptr;
-	uint8* mCursor = nullptr;
+	uint8* mBuffer = 0;
+	uint8* mBufferEnd = 0;
+	uint8* mCursor = 0;
 };
 
 
@@ -94,7 +94,7 @@ public:
 
 	void setPosition(int pos);
 	int getPosition() const;
-	int getCapacity() const  { return std::numeric_limits<int>::max(); }
+	int getCapacity() const  { return 0x7fffffff; }
 
 	int write(const void* ptr, int len);
 	bool saveTo(OutputStream& stream);
@@ -106,6 +106,6 @@ protected:
 	std::vector<uint8*> mPages;
 	int mPageSize = 1024;
 	int mCurrPage = 0;
-	uint8* mCursor = nullptr;
-	uint8* mPageEnd = nullptr;
+	uint8* mCursor = 0;
+	uint8* mPageEnd = 0;
 };

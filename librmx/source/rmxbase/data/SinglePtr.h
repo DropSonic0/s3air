@@ -13,8 +13,13 @@
 template<class CLASS> class SinglePtr
 {
 private:
-	static inline CLASS* mPointer = nullptr;
-	static inline int mRefCounter = 0;
+	#if defined(PLATFORM_PS3)
+	static CLASS* mPointer;
+	static int mRefCounter;
+	#else
+	static CLASS* mPointer;
+	static int mRefCounter;
+	#endif
 	bool mIsWeak;
 
 public:
@@ -24,7 +29,7 @@ public:
 		if (mIsWeak)
 			return;
 
-		if (nullptr == mPointer)
+		if (0 == mPointer)
 		{
 			mPointer = new CLASS();
 			assert(mRefCounter == 0);
@@ -43,12 +48,17 @@ public:
 			SAFE_DELETE(mPointer);
 	}
 
-	bool valid() const			{ return nullptr != mPointer; }
+	bool valid() const			{ return 0 != mPointer; }
 
 	CLASS& operator*() const	{ return *mPointer; }
 	operator CLASS*() const		{ return mPointer; }
 	CLASS* operator->() const	{ return mPointer; }
 };
+
+#if defined(PLATFORM_PS3)
+template<class CLASS> CLASS* SinglePtr<CLASS>::mPointer = 0;
+template<class CLASS> int SinglePtr<CLASS>::mRefCounter = 0;
+#endif
 
 
 // WeakSinglePtr

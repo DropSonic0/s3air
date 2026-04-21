@@ -51,7 +51,7 @@ namespace rmx
 
 	void InputContext::applyEvent(const KeyboardEvent& ev)
 	{
-		static_assert(SDL_NUM_SCANCODES == 0x0200);		// That's actually only partially relevant, as we're using keycodes, not scancodes
+		 //static_assert(SDL_NUM_SCANCODES == 0x0200);		// That's actually only partially relevant, as we're using keycodes, not scancodes
 		const size_t bitIndex = getBitIndex(ev.key);
 
 		const bool oldState = mKeyState.isBitSet(bitIndex);

@@ -10,7 +10,9 @@
 
 #include <vector>
 #include <map>
-#include <unordered_map>
+#if !defined(NO_UNORDERED_CONTAINERS)
+	#include <unordered_map>
+#endif
 
 
 // Check if an std::vector, std::list, etc. contains a certain element
@@ -72,27 +74,31 @@ int vectorIndexOf(const std::vector<T>& vec, T element)
 template<typename K, typename V>
 V* mapFind(std::map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	const  it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 
 template<typename K, typename V>
 const V* mapFind(const std::map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	const  it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 
+#if !defined(NO_UNORDERED_CONTAINERS)
 template<typename K, typename V>
 V* mapFind(std::unordered_map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	const  it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
+#endif
 
+#if !defined(NO_UNORDERED_CONTAINERS)
 template<typename K, typename V>
 const V* mapFind(const std::unordered_map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	const  it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
+#endif

@@ -26,18 +26,18 @@ private:
 template<class CLASS> class SmartPtr
 {
 public:
-	SmartPtr() : mPtr(nullptr) {}
-	SmartPtr(CLASS* ptr) : mPtr(nullptr) { set(ptr); }
-	SmartPtr(const SmartPtr<CLASS>& ptr) : mPtr(nullptr) { set(*ptr); }
+	SmartPtr() : mPtr(0) {}
+	SmartPtr(CLASS* ptr) : mPtr(0) { set(ptr); }
+	SmartPtr(const SmartPtr<CLASS>& ptr) : mPtr(0) { set(*ptr); }
 	~SmartPtr()  { clear(); }
 
 	void clear()
 	{
-		if (nullptr == mPtr)
+		if (0 == mPtr)
 			return;
 		if (!mPtr->refDec())
 			delete mPtr;
-		mPtr = nullptr;
+		mPtr = 0;
 	}
 
 	void set(CLASS* ptr)

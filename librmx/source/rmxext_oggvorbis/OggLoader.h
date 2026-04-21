@@ -55,7 +55,7 @@ public:
 	float getFilePosition();
 
 	inline bool isStreaming() const        { return mIsStreaming; }
-	inline bool isStreamingVorbis() const  { return (nullptr != mAudioBuffer); }
+	inline bool isStreamingVorbis() const  { return (0 != mAudioBuffer); }
 	inline OggLoaderState getAudioState() const  { return mAudioState; }
 
 	inline OggLoaderError getError() const  { return mError; }
@@ -67,8 +67,8 @@ private:
 
 private:
 	bool mIsStreaming = false;
-	AudioBuffer* mAudioBuffer = nullptr;
-	InputStream* mInputStream = nullptr;
+	AudioBuffer* mAudioBuffer = 0;
+	InputStream* mInputStream = 0;
 	OggLoaderError mError = OggLoaderError::OK;
 	ogg_int64_t mVorbisGranulePos = 0;
 	OggLoaderState mAudioState = OggLoaderState::INACTIVE;

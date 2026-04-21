@@ -37,8 +37,8 @@ inline float deg2rad(float degrees)  { return degrees * (PI_FLOAT / 180.0f); }
 
 namespace math
 {
-	FUNCTION_EXPORT bool intersectRayWithPlane(const Ray& ray, const Plane& plane, Vec3f* outIntersectionPoint = nullptr, float* outIntersectionT = nullptr);
-	FUNCTION_EXPORT bool intersectLineWithPlane(const Line& line, const Plane& plane, Vec3f* outIntersectionPoint = nullptr, float* outIntersectionT = nullptr);
-	FUNCTION_EXPORT bool nearestPointBetweenLines(const Line& line1, const Line& line2, Vec3f* outPoint = nullptr, float* outT = nullptr);
+	FUNCTION_EXPORT bool intersectRayWithPlane(const Ray& ray, const Plane& plane, Vec3f* outIntersectionPoint = 0, float* outIntersectionT = 0);
+	FUNCTION_EXPORT bool intersectLineWithPlane(const Line& line, const Plane& plane, Vec3f* outIntersectionPoint = 0, float* outIntersectionT = 0);
+	FUNCTION_EXPORT bool nearestPointBetweenLines(const Line& line1, const Line& line2, Vec3f* outPoint = 0, float* outT = 0);
 	FUNCTION_EXPORT Vec3f nearestPointOnLine(const Vec3f& point, const Line& line);
 }

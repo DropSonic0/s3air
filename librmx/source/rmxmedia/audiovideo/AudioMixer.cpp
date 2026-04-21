@@ -89,7 +89,7 @@ namespace rmx
 	{
 		// Remove from hierarchy: Insert all children into own parent
 		//  -> Except if this is the root mixer; but when that one is destroyed, all its child will get destroyed afterwards as well
-		if (nullptr != mParent)
+		if (0 != mParent)
 		{
 			for (AudioMixer* child : mChildren)
 			{
@@ -102,7 +102,7 @@ namespace rmx
 		for (const auto& [key, audioInstance] : mAudioInstances)
 		{
 			audioInstance->mPlaybackDone = true;
-			audioInstance->mAudioMixer = nullptr;
+			audioInstance->mAudioMixer = 0;
 		}
 	}
 
@@ -111,7 +111,7 @@ namespace rmx
 		if (child.mParent == this)
 			return;
 
-		if (nullptr != child.mParent)
+		if (0 != child.mParent)
 		{
 			child.mParent->removeChildInternal(child);
 		}
@@ -375,7 +375,7 @@ namespace rmx
 			if (mChildren[i] == &child)
 			{
 				mChildren.erase(mChildren.begin() + i);
-				child.mParent = nullptr;
+				child.mParent = 0;
 				return;
 			}
 		}

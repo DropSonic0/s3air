@@ -254,7 +254,7 @@ private:
   static bool hasCommentForValue(const Value& value);
   static String normalizeEOL(const String& text);
 
-  using ChildValues = std::vector<String>;
+  typedef ChildValues = std::vector<String>;
 
   ChildValues childValues_;
   String document_;
@@ -328,7 +328,7 @@ private:
   static bool hasCommentForValue(const Value& value);
   static String normalizeEOL(const String& text);
 
-  using ChildValues = std::vector<String>;
+  typedef ChildValues = std::vector<String>;
 
   ChildValues childValues_;
   OStream* document_;
@@ -354,7 +354,7 @@ String JSON_API valueToString(
 String JSON_API valueToString(bool value);
 String JSON_API valueToQuotedString(const char* value);
 
-/// \brief Output using the StyledStreamWriter.
+/// \brief Output typedef the StyledStreamWriter.
 /// \see Json::operator>>()
 JSON_API OStream& operator<<(OStream&, const Value& root);
 

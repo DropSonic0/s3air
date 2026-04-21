@@ -30,7 +30,7 @@ namespace rmx
 		virtual bool listFiles(const std::wstring& path, bool recursive, std::vector<FileIO::FileEntry>& outFileEntries)  { return false; }
 		virtual bool listFilesByMask(const std::wstring& filemask, bool recursive, std::vector<FileIO::FileEntry>& outFileEntries)  { return false; }
 		virtual bool listDirectories(const std::wstring& path, std::vector<std::wstring>& outDirectories)  { return false; }
-		virtual InputStream* createInputStream(const std::wstring& filename)  { return nullptr; }
+		virtual InputStream* createInputStream(const std::wstring& filename)  { return 0; }
 
 	protected:
 		std::set<FileSystem*> mRegisteredMountPointFileSystems;		// Usually just one

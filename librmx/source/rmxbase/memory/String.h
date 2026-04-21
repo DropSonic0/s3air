@@ -38,8 +38,8 @@ friend class WString;
 public:
 	static const StringTemplate EMPTY;
 
-	typedef typename std::basic_string<CHAR, std::char_traits<CHAR>, std::allocator<CHAR>> StdString;
-	typedef typename std::basic_string_view<CHAR> StdStringView;
+	typedef std::basic_string<CHAR, std::char_traits<CHAR>, std::allocator<CHAR> > StdString;
+	typedef std::string_view StdStringView;
 
 public:
 	StringTemplate();
@@ -200,7 +200,7 @@ private:
 	int sprintf(CHAR* dst, size_t dstSize, const CHAR* format, ...);
 
 protected:
-	CHAR* mData = nullptr;		// Pointer to the actual data
+	CHAR* mData = 0;		// Pointer to the actual data
 	size_t mLength = 0;			// Length of the string, without the terminating zero
 	size_t mSize = 0;			// Size of dynamically allocated memory including terminating zero, in characters (not bytes!); note that this is 0 for constant strings
 	bool mDynamic = false;		// true if memory was dynamically allocated
@@ -248,8 +248,8 @@ public:
 	WString(const StdStringView& str) : BASE(str) {}
 	explicit WString(const String& str) : BASE(str.toWString()) {}
 	explicit WString(const char* str) : WString(String(str)) {}
-	explicit WString(const std::basic_string<char, std::char_traits<char>, std::allocator<char>>& str) : WString(String(str)) {}
-	explicit WString(const std::basic_string_view<char>& str) : WString(String(str)) {}
+	explicit WString(const std::basic_string<char, std::char_traits<char>, std::allocator<char> >& str) : WString(String(str)) {}
+	explicit WString(const StdStringView& str) : WString(String(str)) {}
 	WString(int ignoreMe, const wchar_t* format, ...);
 
 	WString& operator=(const WString& str) { copy(str); return *this; }

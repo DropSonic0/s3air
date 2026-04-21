@@ -11,10 +11,19 @@
 // Version number
 #define RMXBASE_VERSION 0x00040100
 
+// RMX modules
+#include "PlatformDefinitions.h"
+
+#if defined(PLATFORM_PS3)
+	#include <stdint.h>
+#endif
+
 // General includes
 #include <cmath>
 #include <float.h>
-#include <memory.h>
+#if !defined(PLATFORM_PS3)
+	#include <memory.h>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -25,16 +34,18 @@
 #include <stack>
 #include <list>
 #include <set>
-#include <unordered_set>
+#if !defined(NO_UNORDERED_CONTAINERS)
+	#include <unordered_set>
+#endif
 #include <map>
-#include <unordered_map>
+#if !defined(NO_UNORDERED_CONTAINERS)
+	#include <unordered_map>
+#endif
 #include <algorithm>
+
 
 // Libraries
 #include "rmxbase/_jsoncpp/json/json.h"	// Uses its own namespace "Json"
-
-// RMX modules
-#include "PlatformDefinitions.h"
 #include "export.h"
 #include "rmxbase/base/Types.h"
 #include "rmxbase/base/Basics.h"
@@ -91,6 +102,8 @@ namespace FTX
 
 // This include depends on FTX::FileSystem, so add it afterwards
 #include "rmxbase/memory/StringImpl.h"
+
+
 
 
 // Initialization

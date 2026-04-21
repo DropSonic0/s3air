@@ -17,7 +17,7 @@ namespace rmx
 		static Json::Value loadFile(const std::string& filename);
 		static Json::Value loadFile(const std::wstring& filename);
 		static Json::Value loadFromStream(std::istream& stream);
-		static Json::Value loadFromMemory(const std::vector<uint8>& content, std::string* outErrors = nullptr);
+		static Json::Value loadFromMemory(const std::vector<uint8>& content, std::string* outErrors = 0);
 		static bool saveFile(const std::wstring& filename, const Json::Value& value);
 
 	public:

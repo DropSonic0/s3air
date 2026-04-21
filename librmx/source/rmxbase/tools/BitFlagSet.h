@@ -11,7 +11,7 @@
 #include "rmxbase/base/Types.h"
 
 
-namespace rmx::detail
+namespace rmx { namespace detail
 {
 	template<int BYTES> struct TypeBySize
 	{
@@ -33,7 +33,7 @@ namespace rmx::detail
 	{
 		typedef uint64 Type;
 	};
-}
+}}
 
 
 template<typename ENUM>
@@ -41,7 +41,11 @@ class BitFlagSet
 {
 public:
 	typedef ENUM Enum;
+	#if defined(PLATFORM_PS3)
 	typedef typename rmx::detail::TypeBySize<sizeof(ENUM)>::Type Storage;
+	#else
+	typedef typename rmx::detail::TypeBySize<sizeof(ENUM)>::Type Storage;
+	#endif
 
 public:
 	inline BitFlagSet() : mFlags(0) {}
@@ -64,7 +68,7 @@ public:
 
 	inline bool allSet(BitFlagSet bitmask) const
 	{
-		return (mFlags & bitmask.mFlags) == bitmask;
+		return (mFlags & bitmask.mFlags) == bitmask.mFlags;
 	}
 
 	inline bool anySet(BitFlagSet bitmask) const
@@ -151,7 +155,7 @@ public:
 	}
 
 private:
-	Storage mFlags = 0;   // Bitmask of the currently set flags, composed using bitwise OR
+	Storage mFlags;
 };
 
 

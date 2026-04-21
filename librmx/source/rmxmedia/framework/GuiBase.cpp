@@ -16,7 +16,7 @@ GuiBase::GuiBase()
 GuiBase::~GuiBase()
 {
 	deleteAllChildren();
-	if (nullptr != mParent)
+	if (0 != mParent)
 		mParent->removeChild(this);
 }
 
@@ -49,7 +49,7 @@ void GuiBase::removeChild(GuiBase* child)
 		return;
 
 	child->deinitialize();
-	child->mParent = nullptr;
+	child->mParent = 0;
 
 	if (mIteratingChildren)
 	{
@@ -71,7 +71,7 @@ void GuiBase::deleteAllChildren()
 {
 	for (GuiBase* child : mChildren)
 	{
-		child->mParent = nullptr;
+		child->mParent = 0;
 		delete child;
 	}
 	mChildren.clear();
@@ -110,7 +110,7 @@ void GuiBase::setAlpha(float alpha)
 void GuiBase::updateRealAlpha()
 {
 	mRealAlpha = mAlpha;
-	if (nullptr != mParent)
+	if (0 != mParent)
 		mRealAlpha *= mParent->mRealAlpha;
 
 	mIteratingChildren = true;

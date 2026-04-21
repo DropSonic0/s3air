@@ -118,8 +118,8 @@ static inline char* duplicateStringValue(const char* value, size_t length) {
   if (length >= static_cast<size_t>(Value::maxInt))
     length = Value::maxInt - 1;
 
-  auto newString = static_cast<char*>(malloc(length + 1));
-  if (newString == nullptr) {
+   newString = static_cast<char*>(malloc(length + 1));
+  if (newString == 0) {
     throwRuntimeError("in Json::Value::duplicateStringValue(): "
                       "Failed to allocate string value buffer");
   }
@@ -139,8 +139,8 @@ static inline char* duplicateAndPrefixStringValue(const char* value,
                       "in Json::Value::duplicateAndPrefixStringValue(): "
                       "length too big for prefixing");
   size_t actualLength = sizeof(length) + length + 1;
-  auto newString = static_cast<char*>(malloc(actualLength));
-  if (newString == nullptr) {
+   newString = static_cast<char*>(malloc(actualLength));
+  if (newString == 0) {
     throwRuntimeError("in Json::Value::duplicateAndPrefixStringValue(): "
                       "Failed to allocate string value buffer");
   }
@@ -201,8 +201,8 @@ namespace Json {
 
 #if JSON_USE_EXCEPTION
 Exception::Exception(String msg) : msg_(std::move(msg)) {}
-Exception::~Exception() noexcept = default;
-char const* Exception::what() const noexcept { return msg_.c_str(); }
+Exception::~Exception() throw() = default;
+char const* Exception::what() const throw() { return msg_.c_str(); }
 RuntimeError::RuntimeError(String const& msg) : Exception(msg) {}
 LogicError::LogicError(String const& msg) : Exception(msg) {}
 JSONCPP_NORETURN void throwRuntimeError(String const& msg) {
@@ -233,7 +233,7 @@ JSONCPP_NORETURN void throwLogicError(String const& msg) {
 // Notes: policy_ indicates if the string was allocated when
 // a string is stored.
 
-Value::CZString::CZString(ArrayIndex index) : cstr_(nullptr), index_(index) {}
+Value::CZString::CZString(ArrayIndex index) : cstr_(0), index_(index) {}
 
 Value::CZString::CZString(char const* str, unsigned length,
                           DuplicationPolicy allocate)
@@ -244,7 +244,7 @@ Value::CZString::CZString(char const* str, unsigned length,
 }
 
 Value::CZString::CZString(const CZString& other) {
-  cstr_ = (other.storage_.policy_ != noDuplication && other.cstr_ != nullptr
+  cstr_ = (other.storage_.policy_ != noDuplication && other.cstr_ != 0
                ? duplicateStringValue(other.cstr_, other.storage_.length_)
                : other.cstr_);
   storage_.policy_ =
@@ -259,9 +259,9 @@ Value::CZString::CZString(const CZString& other) {
   storage_.length_ = other.storage_.length_;
 }
 
-Value::CZString::CZString(CZString&& other) noexcept
+Value::CZString::CZString(CZString&& other) throw()
     : cstr_(other.cstr_), index_(other.index_) {
-  other.cstr_ = nullptr;
+  other.cstr_ = 0;
 }
 
 Value::CZString::~CZString() {
@@ -285,10 +285,10 @@ Value::CZString& Value::CZString::operator=(const CZString& other) {
   return *this;
 }
 
-Value::CZString& Value::CZString::operator=(CZString&& other) noexcept {
+Value::CZString& Value::CZString::operator=(CZString&& other) throw() {
   cstr_ = other.cstr_;
   index_ = other.index_;
-  other.cstr_ = nullptr;
+  other.cstr_ = 0;
   return *this;
 }
 
@@ -400,7 +400,7 @@ Value::Value(double value) {
 
 Value::Value(const char* value) {
   initBasic(stringValue, true);
-  JSON_ASSERT_MESSAGE(value != nullptr,
+  JSON_ASSERT_MESSAGE(value != 0,
                       "Null Value Passed to Value Constructor");
   value_.string_ = duplicateAndPrefixStringValue(
       value, static_cast<unsigned>(strlen(value)));
@@ -433,7 +433,7 @@ Value::Value(const Value& other) {
   dupMeta(other);
 }
 
-Value::Value(Value&& other) noexcept {
+Value::Value(Value&& other) throw() {
   initBasic(nullValue);
   swap(other);
 }
@@ -448,7 +448,7 @@ Value& Value::operator=(const Value& other) {
   return *this;
 }
 
-Value& Value::operator=(Value&& other) noexcept {
+Value& Value::operator=(Value&& other) throw() {
   other.swap(*this);
   return *this;
 }
@@ -503,8 +503,8 @@ bool Value::operator<(const Value& other) const {
   case booleanValue:
     return value_.bool_ < other.value_.bool_;
   case stringValue: {
-    if ((value_.string_ == nullptr) || (other.value_.string_ == nullptr)) {
-      return other.value_.string_ != nullptr;
+    if ((value_.string_ == 0) || (other.value_.string_ == 0)) {
+      return other.value_.string_ != 0;
     }
     unsigned this_len;
     unsigned other_len;
@@ -525,8 +525,8 @@ bool Value::operator<(const Value& other) const {
   }
   case arrayValue:
   case objectValue: {
-    auto thisSize = value_.map_->size();
-    auto otherSize = other.value_.map_->size();
+     thisSize = value_.map_->size();
+     otherSize = other.value_.map_->size();
     if (thisSize != otherSize)
       return thisSize < otherSize;
     return (*value_.map_) < (*other.value_.map_);
@@ -558,7 +558,7 @@ bool Value::operator==(const Value& other) const {
   case booleanValue:
     return value_.bool_ == other.value_.bool_;
   case stringValue: {
-    if ((value_.string_ == nullptr) || (other.value_.string_ == nullptr)) {
+    if ((value_.string_ == 0) || (other.value_.string_ == 0)) {
       return (value_.string_ == other.value_.string_);
     }
     unsigned this_len;
@@ -590,8 +590,8 @@ bool Value::operator!=(const Value& other) const { return !(*this == other); }
 const char* Value::asCString() const {
   JSON_ASSERT_MESSAGE(type() == stringValue,
                       "in Json::Value::asCString(): requires stringValue");
-  if (value_.string_ == nullptr)
-    return nullptr;
+  if (value_.string_ == 0)
+    return 0;
   unsigned this_len;
   char const* this_str;
   decodePrefixedString(this->isAllocated(), this->value_.string_, &this_len,
@@ -616,7 +616,7 @@ unsigned Value::getCStringLength() const {
 bool Value::getString(char const** begin, char const** end) const {
   if (type() != stringValue)
     return false;
-  if (value_.string_ == nullptr)
+  if (value_.string_ == 0)
     return false;
   unsigned length;
   decodePrefixedString(this->isAllocated(), this->value_.string_, &length,
@@ -630,7 +630,7 @@ String Value::asString() const {
   case nullValue:
     return "";
   case stringValue: {
-    if (value_.string_ == nullptr)
+    if (value_.string_ == 0)
       return "";
     unsigned this_len;
     char const* this_str;
@@ -813,8 +813,12 @@ bool Value::asBool() const {
     return value_.uint_ != 0;
   case realValue: {
     // According to JavaScript language zero or NaN is regarded as false
-    const auto value_classification = std::fpclassify(value_.real_);
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+    return value_.real_ != 0.0 && value_.real_ == value_.real_;
+#else
+    const  value_classification = std::fpclassify(value_.real_);
     return value_classification != FP_ZERO && value_classification != FP_NAN;
+#endif
   }
   default:
     break;
@@ -929,7 +933,7 @@ Value& Value::operator[](ArrayIndex index) {
   if (type() == nullValue)
     *this = Value(arrayValue);
   CZString key(index);
-  auto it = value_.map_->lower_bound(key);
+   it = value_.map_->lower_bound(key);
   if (it != value_.map_->end() && (*it).first == key)
     return (*it).second;
 
@@ -1043,7 +1047,7 @@ Value& Value::resolveReference(const char* key) {
     *this = Value(objectValue);
   CZString actualKey(key, static_cast<unsigned>(strlen(key)),
                      CZString::noDuplication); // NOTE!
-  auto it = value_.map_->lower_bound(actualKey);
+   it = value_.map_->lower_bound(actualKey);
   if (it != value_.map_->end() && (*it).first == actualKey)
     return (*it).second;
 
@@ -1062,7 +1066,7 @@ Value& Value::resolveReference(char const* key, char const* end) {
     *this = Value(objectValue);
   CZString actualKey(key, static_cast<unsigned>(end - key),
                      CZString::duplicateOnCopy);
-  auto it = value_.map_->lower_bound(actualKey);
+   it = value_.map_->lower_bound(actualKey);
   if (it != value_.map_->end() && (*it).first == actualKey)
     return (*it).second;
 
@@ -1084,12 +1088,12 @@ Value const* Value::find(char const* begin, char const* end) const {
                       "in Json::Value::find(begin, end): requires "
                       "objectValue or nullValue");
   if (type() == nullValue)
-    return nullptr;
+    return 0;
   CZString actualKey(begin, static_cast<unsigned>(end - begin),
                      CZString::noDuplication);
   ObjectValues::const_iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
-    return nullptr;
+    return 0;
   return &(*it).second;
 }
 Value* Value::demand(char const* begin, char const* end) {
@@ -1170,7 +1174,7 @@ bool Value::removeMember(const char* begin, const char* end, Value* removed) {
   }
   CZString actualKey(begin, static_cast<unsigned>(end - begin),
                      CZString::noDuplication);
-  auto it = value_.map_->find(actualKey);
+   it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
     return false;
   if (removed)
@@ -1200,7 +1204,7 @@ bool Value::removeIndex(ArrayIndex index, Value* removed) {
     return false;
   }
   CZString key(index);
-  auto it = value_.map_->find(key);
+   it = value_.map_->find(key);
   if (it == value_.map_->end()) {
     return false;
   }
@@ -1214,14 +1218,14 @@ bool Value::removeIndex(ArrayIndex index, Value* removed) {
   }
   // erase the last one ("leftover")
   CZString keyLast(oldSize - 1);
-  auto itLast = value_.map_->find(keyLast);
+   itLast = value_.map_->find(keyLast);
   value_.map_->erase(itLast);
   return true;
 }
 
 bool Value::isMember(char const* begin, char const* end) const {
   Value const* value = find(begin, end);
-  return nullptr != value;
+  return 0 != value;
 }
 bool Value::isMember(char const* key) const {
   return isMember(key, key + strlen(key));
@@ -1374,7 +1378,7 @@ bool Value::isObject() const { return type() == objectValue; }
 Value::Comments::Comments(const Comments& that)
     : ptr_{cloneUnique(that.ptr_)} {}
 
-Value::Comments::Comments(Comments&& that) noexcept
+Value::Comments::Comments(Comments&& that) throw()
     : ptr_{std::move(that.ptr_)} {}
 
 Value::Comments& Value::Comments::operator=(const Comments& that) {
@@ -1382,7 +1386,7 @@ Value::Comments& Value::Comments::operator=(const Comments& that) {
   return *this;
 }
 
-Value::Comments& Value::Comments::operator=(Comments&& that) noexcept {
+Value::Comments& Value::Comments::operator=(Comments&& that) throw() {
   ptr_ = std::move(that.ptr_);
   return *this;
 }
@@ -1526,7 +1530,7 @@ Path::Path(const String& path, const PathArgument& a1, const PathArgument& a2,
 void Path::makePath(const String& path, const InArgs& in) {
   const char* current = path.c_str();
   const char* end = current + path.length();
-  auto itInArg = in.begin();
+   itInArg = in.begin();
   while (current != end) {
     if (*current == '[') {
       ++current;

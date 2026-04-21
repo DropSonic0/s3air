@@ -56,8 +56,8 @@ public:
 private:
 	struct AudioFrame
 	{
-		short* mBuffer = nullptr;				// Holds all audio data
-		short* mData[2] = { nullptr, nullptr };	// Pointers into the buffer, one for each channel
+		short* mBuffer = 0;				// Holds all audio data
+		short* mData[2] = { 0, 0 };	// Pointers into the buffer, one for each channel
 		int mLength = 0;						// Length in samples
 	};
 

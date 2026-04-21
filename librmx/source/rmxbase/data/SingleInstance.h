@@ -14,7 +14,7 @@ template<class CLASS> class SingleInstance
 public:
 	static bool hasInstance()
 	{
-		return (nullptr != mSingleInstance);
+		return (0 != mSingleInstance);
 	}
 
 	static CLASS& instance()
@@ -25,18 +25,18 @@ public:
 protected:
 	SingleInstance()
 	{
-		// TODO: Sanity check: (nullptr == mSingleInstance)
+		// TODO: Sanity check: (0 == mSingleInstance)
 		mSingleInstance = static_cast<CLASS*>(this);
 	}
 
 	virtual ~SingleInstance()
 	{
 		// TODO: Sanity check: (mSingleInstance == this)
-		mSingleInstance = nullptr;
+		mSingleInstance = 0;
 	}
 
 private:
 	static CLASS* mSingleInstance;
 };
 
-template<typename CLASS> CLASS* SingleInstance<CLASS>::mSingleInstance = nullptr;
+template<typename CLASS> CLASS* SingleInstance<CLASS>::mSingleInstance = 0;

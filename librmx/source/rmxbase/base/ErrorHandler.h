@@ -69,6 +69,7 @@ namespace rmx
 		class LoggerInterface
 		{
 		public:
+			virtual ~LoggerInterface() {}
 			virtual void logMessage(ErrorSeverity errorSeverity, const std::string& message) = 0;
 		};
 
@@ -89,6 +90,7 @@ namespace rmx
 			};
 
 		public:
+			virtual ~MessageBoxInterface() {}
 			virtual Result showMessageBox(DialogType dialogType, ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line) = 0;
 		};
 
@@ -98,7 +100,12 @@ namespace rmx
 		static bool handleAssertBreak(ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line);
 
 	public:
-		static inline LoggerInterface* mLogger = nullptr;
-		static inline MessageBoxInterface* mMessageBoxImplementation = nullptr;
+		#if defined(PLATFORM_PS3)
+		static LoggerInterface* mLogger;
+		static MessageBoxInterface* mMessageBoxImplementation;
+		#else
+		static LoggerInterface* mLogger;
+		static MessageBoxInterface* mMessageBoxImplementation;
+		#endif
 	};
 }

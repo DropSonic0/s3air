@@ -12,7 +12,7 @@
 // Static load function
 bool OggLoader::staticLoadVorbis(AudioBuffer* buffer, const String& source, const String& params)
 {
-	if (nullptr == buffer)
+	if (0 == buffer)
 		return false;
 	if (!source.endsWith(".ogg") && !source.endsWith(".oga") && !source.endsWith(".ogv"))
 		return false;
@@ -24,8 +24,8 @@ bool OggLoader::staticLoadVorbis(AudioBuffer* buffer, const String& source, cons
 OggLoader::OggLoader()
 {
 	mIsStreaming = false;
-	mInputStream = nullptr;
-	mAudioBuffer = nullptr;
+	mInputStream = 0;
+	mAudioBuffer = 0;
 	mError = OggLoaderError::OK;
 	ogg_sync_init(&mSyncState);
 }
@@ -50,8 +50,8 @@ void OggLoader::reset()
 	}
 
 	mIsStreaming = false;
-	mInputStream = nullptr;
-	mAudioBuffer = nullptr;
+	mInputStream = 0;
+	mAudioBuffer = 0;
 	mError = OggLoaderError::OK;
 
 	ogg_sync_reset(&mSyncState);
@@ -59,7 +59,7 @@ void OggLoader::reset()
 
 int OggLoader::bufferData()
 {
-	if (nullptr == mInputStream)
+	if (0 == mInputStream)
 		return 0;
 
 	const size_t bufferSize = 0x4000;
@@ -158,7 +158,7 @@ bool OggLoader::openStreams(InputStream* istream)
 	}
 
 	// Initialisation Vorbis decoder
-	if (numVorbisHeaders > 0 && nullptr != mAudioBuffer)
+	if (numVorbisHeaders > 0 && 0 != mAudioBuffer)
 	{
 		vorbis_synthesis_init(&mVorbisDspState, &mVorbisInfo);
 		vorbis_block_init(&mVorbisDspState, &mVorbisBlock);
@@ -171,11 +171,11 @@ bool OggLoader::openStreams(InputStream* istream)
 		// Empty data structures
 		vorbis_info_clear(&mVorbisInfo);
 		vorbis_comment_clear(&mVorbisComment);
-		mAudioBuffer = nullptr;
+		mAudioBuffer = 0;
 	}
 
 	// Did we get usable headers now?
-	if (nullptr == mAudioBuffer)
+	if (0 == mAudioBuffer)
 	{
 		mError = OggLoaderError::HEADERS_NOT_FOUND;
 		return false;
@@ -189,7 +189,7 @@ bool OggLoader::startVorbisStreaming(AudioBuffer* audiobuffer, InputStream* istr
 {
 	// Read from Ogg Vorbis input stream
 	reset();
-	if (nullptr == audiobuffer)
+	if (0 == audiobuffer)
 		return false;
 	mAudioBuffer = audiobuffer;
 	mAudioBuffer->clear();
@@ -207,7 +207,7 @@ bool OggLoader::updateStreaming()
 	if (!mIsStreaming)
 		return false;
 
-	if (nullptr != mAudioBuffer)
+	if (0 != mAudioBuffer)
 	{
 		// Read fully decoded data if possible
 		float** pcm;
@@ -260,7 +260,7 @@ bool OggLoader::updateStreaming()
 	if (ogg_sync_pageout(&mSyncState, &oggPage) == 1)
 	{
 		const ogg_int64_t gpos = ogg_page_granulepos(&oggPage);
-		if (nullptr != mAudioBuffer && ogg_stream_pagein(&mVorbisStreamState, &oggPage) == 0)
+		if (0 != mAudioBuffer && ogg_stream_pagein(&mVorbisStreamState, &oggPage) == 0)
 		{
 			if (gpos >= 0)
 				mVorbisGranulePos = gpos;
@@ -291,7 +291,7 @@ void OggLoader::precache(float time)
 
 	while (true)
 	{
-		const bool audioReady = (nullptr == mAudioBuffer || mAudioBuffer->getLengthInSec() >= time);
+		const bool audioReady = (0 == mAudioBuffer || mAudioBuffer->getLengthInSec() >= time);
 		if (!audioReady)
 		{
 			if (!updateStreaming())
@@ -315,7 +315,7 @@ bool OggLoader::loadVorbis(AudioBuffer* buffer, const String& source)
 void OggLoader::seek(float targetTime)
 {
 	// No stream, no fun
-	if (nullptr == mInputStream)
+	if (0 == mInputStream)
 		return;
 
 	mIsStreaming = true;
@@ -473,7 +473,7 @@ float OggLoader::getVorbisPosition()
 
 float OggLoader::getFilePosition()
 {
-	if (nullptr == mInputStream)
+	if (0 == mInputStream)
 		return 1.0f;
 	return (float)mInputStream->getPosition() / (float)mInputStream->getSize();
 }

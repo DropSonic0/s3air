@@ -167,7 +167,7 @@ namespace rmx
 	{
 		// Get or create OpenGLFontOutput instance
 		OpenGLFontOutput* fontOutput = mapFind(mFontOutputMap, &font);
-		if (nullptr != fontOutput)
+		if (0 != fontOutput)
 			return *fontOutput;
 
 		const auto pair = mFontOutputMap.emplace(&font, font);
