@@ -83,6 +83,9 @@ namespace rmx
 				return (_wmkdir(*path) == 0);
 			#elif defined(USE_UTF8_PATHS)
 				return (mkdir(*path.toUTF8(), 0777) == 0);		// Probably the only time I ever used octal notation...
+			#elif defined(PLATFORM_PS3)
+				// TODO: PS3-specific directory creation
+				return false;
 			#else
 				#error "Unsupported platform"
 			#endif
@@ -107,7 +110,7 @@ namespace rmx
 
 		void listDirectoryContentInternal(std::vector<FileIO::FileEntry>* outFileEntries, std::vector<std::wstring>* outSubDirectories, std::wstring_view basePath_, std::wstring_view filemask, bool recursive)
 		{
-			const std::wstring basePath(basePath_);
+			const std::wstring basePath(basePath_.data(), basePath_.length());
 			std::vector<std::wstring> subDirectoriesBuffer;
 			std::vector<std::wstring>& subDirectories = (0 != outSubDirectories) ? *outSubDirectories : subDirectoriesBuffer;
 
@@ -120,7 +123,7 @@ namespace rmx
 			while (success)
 			{
 				// Ignore "." and ".." entries
-				const std::wstring name = fileinfo.name;
+				const std::wstring name(fileinfo.name);
 				if (name != L"." && name != L"..")
 				{
 					const bool isDirectory = (fileinfo.attrib & 0x10) != 0;
@@ -182,7 +185,7 @@ namespace rmx
 					// Directory
 					if (recursive || 0 != outSubDirectories)
 					{
-						subDirectories.emplace_back(*String(name).toWString());
+						subDirectories.push_back(*String(name).toWString());
 					}
 				}
 				else
@@ -205,6 +208,8 @@ namespace rmx
 			}
 			closedir(dp);
 
+		#elif defined(PLATFORM_PS3)
+			// TODO: PS3-specific directory listing
 		#else
 			#error "Unsupported platform"
 		#endif
@@ -224,7 +229,7 @@ namespace rmx
 	bool FileIO::exists(std::wstring_view path)
 	{
 	#ifdef USE_STD_FILESYSTEM
-		const std_filesystem::path fspath(path.data());
+		const std_filesystem::path fspath(WString(path).toStdWString());
 		return std_filesystem::exists(fspath);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::exists");
@@ -234,8 +239,8 @@ namespace rmx
 
 	bool FileIO::getFileSize(std::wstring_view filename, uint64& outSize)
 	{
-	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
-		const std_filesystem::path fspath(filename.data());
+	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC) && !defined(PLATFORM_PS3)
+		const std_filesystem::path fspath(WString(filename).toStdWString());
 		std::error_code errorCode;
 		const std::uintmax_t size = std_filesystem::file_size(fspath, errorCode);
 		if (errorCode)
@@ -243,7 +248,7 @@ namespace rmx
 		outSize = (uint64)size;
 		return true;
 	#else
-		FileHandle file(filename, FILE_ACCESS_READ);
+		FileHandle file(WString(filename), FILE_ACCESS_READ);
 		if (!file.isOpen())
 			return false;
 		outSize = file.getSize();
@@ -254,7 +259,7 @@ namespace rmx
 	bool FileIO::getFileTime(std::wstring_view filename, time_t& outTime)
 	{
 	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
-		const std_filesystem::path fspath(filename.data());
+		const std_filesystem::path fspath(WString(filename).toStdWString());
 		std::error_code errorCode;
 		const std::filesystem::file_time_type time = std_filesystem::last_write_time(fspath, errorCode);
 		if (errorCode)
@@ -297,7 +302,7 @@ namespace rmx
 	{
 		// Create directory if needed
 		const size_t slashPosition = filename.find_last_of(L"/\\");
-		if (slashPosition != std::string::npos)
+		if (slashPosition != std::wstring_view::npos)
 		{
 			createDirectory(filename.substr(0, slashPosition));
 		}
@@ -320,7 +325,7 @@ namespace rmx
 
 	InputStream* FileIO::createInputStream(std::wstring_view filename)
 	{
-		InputStream* inputStream = new FileInputStream(filename);
+		InputStream* inputStream = new FileInputStream(WString(filename));
 		if (!inputStream->valid())
 		{
 			delete inputStream;
@@ -332,8 +337,8 @@ namespace rmx
 	bool FileIO::renameFile(const std::wstring& oldFilename, const std::wstring& newFilename)
 	{
 	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
-		const std_filesystem::path fspathOld(oldFilename.data());
-		const std_filesystem::path fspathNew(newFilename.data());
+		const std_filesystem::path fspathOld(oldFilename);
+		const std_filesystem::path fspathNew(newFilename);
 		std::error_code errorCode;
 		std_filesystem::rename(fspathOld, fspathNew, errorCode);
 		return !errorCode;
@@ -363,14 +368,14 @@ namespace rmx
 
 	void FileIO::listFiles(std::wstring_view path, bool recursive, std::vector<FileEntry>& outFileEntries)
 	{
-		std::wstring basePath = std::wstring(path);
+		std::wstring basePath(path.data(), path.length());
 		normalizePath(basePath, true);
 		listDirectoryContentInternal(&outFileEntries, 0, basePath, L"", recursive);
 	}
 
 	void FileIO::listFilesByMask(std::wstring_view filemask_, bool recursive, std::vector<FileEntry>& outFileEntries)
 	{
-		std::wstring filemask = std::wstring(filemask_);
+		std::wstring filemask(filemask_.data(), filemask_.length());
 		normalizePath(filemask, false);
 
 		std::wstring basePath;
@@ -395,7 +400,7 @@ namespace rmx
 
 	void FileIO::listDirectories(std::wstring_view path, std::vector<std::wstring>& outDirectories)
 	{
-		std::wstring basePath = std::wstring(path);
+		std::wstring basePath(path.data(), path.length());
 		normalizePath(basePath, true);
 		listDirectoryContentInternal(0, &outDirectories, basePath, L"", false);
 	}
@@ -406,7 +411,15 @@ namespace rmx
 			return;
 
 		std::wstring tempBuffer;
-		path = normalizePath(path, tempBuffer, isDirectory);
+		std::wstring_view result = normalizePath(std::wstring_view(path.data(), path.length()), tempBuffer, isDirectory);
+		if (result.data() == tempBuffer.data())
+		{
+			path = tempBuffer;
+		}
+		else
+		{
+			path.assign(result.data(), result.length());
+		}
 	}
 
 	std::wstring_view FileIO::normalizePath(std::wstring_view path, std::wstring& tempBuffer, bool isDirectory)
@@ -500,16 +513,16 @@ namespace rmx
 			if (numNames > 0)
 			{
 				tempBuffer.reserve(path.length());
-				tempBuffer += names[0];
+				tempBuffer.append(names[0].data(), names[0].length());
 				for (size_t k = 1; k < numNames; ++k)
 				{
-					tempBuffer += L'/';
-					tempBuffer += names[k];
+					tempBuffer.append(1, L'/');
+					tempBuffer.append(names[k].data(), names[k].length());
 				}
 				if (isDirectory)
-					tempBuffer += L'/';
+					tempBuffer.append(1, L'/');
 			}
-			return tempBuffer;
+			return std::wstring_view(tempBuffer.data(), tempBuffer.length());
 		}
 		else
 		{
@@ -530,7 +543,7 @@ namespace rmx
 	void FileIO::setCurrentDirectory(std::wstring_view path)
 	{
 	#ifdef USE_STD_FILESYSTEM
-		const std_filesystem::path fspath(path.data());
+		const std_filesystem::path fspath(WString(path).toStdWString());
 		std_filesystem::current_path(fspath);
 	#endif
 	}
@@ -540,24 +553,24 @@ namespace rmx
 		const std::size_t slash = path.find_last_of("/\\");
 		if (0 != directory)
 		{
-			if (slash != std::wstring::npos)
-				*directory = path.substr(0, slash);
+			if (slash != std::string_view::npos)
+				*directory = std::string(path.substr(0, slash).data(), path.substr(0, slash).length());
 			else
 				directory->clear();
 		}
 
-		const std::size_t dot = path.find_last_of('.');
-		if (dot != std::wstring::npos && dot > slash)
+		const std::size_t dot = path.find_last_of(".");
+		if (dot != std::string_view::npos && (dot > slash || slash == std::string_view::npos))
 		{
 			if (0 != name)
-				*name = path.substr(slash + 1, dot - slash - 1);
+				*name = std::string(path.substr(slash + 1, dot - slash - 1).data(), path.substr(slash + 1, dot - slash - 1).length());
 			if (0 != extension)
-				*extension = path.substr(dot + 1);
+				*extension = std::string(path.substr(dot + 1).data(), path.substr(dot + 1).length());
 		}
 		else
 		{
 			if (0 != name)
-				*name = path.substr(slash + 1);
+				*name = std::string(path.substr(slash + 1).data(), path.substr(slash + 1).length());
 			if (0 != extension)
 				extension->clear();
 		}
@@ -568,24 +581,24 @@ namespace rmx
 		const std::size_t slash = path.find_last_of(L"/\\");
 		if (0 != directory)
 		{
-			if (slash != std::wstring::npos)
-				*directory = path.substr(0, slash);
+			if (slash != std::wstring_view::npos)
+				*directory = std::wstring(path.substr(0, slash).data(), path.substr(0, slash).length());
 			else
 				directory->clear();
 		}
 
-		const std::size_t dot = path.find_last_of(L'.');
-		if (dot != std::wstring::npos && (dot > slash || slash == std::wstring::npos))
+		const std::size_t dot = path.find_last_of(L".");
+		if (dot != std::wstring_view::npos && (dot > slash || slash == std::wstring_view::npos))
 		{
 			if (0 != name)
-				*name = path.substr(slash + 1, dot - slash - 1);
+				*name = std::wstring(path.substr(slash + 1, dot - slash - 1).data(), path.substr(slash + 1, dot - slash - 1).length());
 			if (0 != extension)
-				*extension = path.substr(dot + 1);
+				*extension = std::wstring(path.substr(dot + 1).data(), path.substr(dot + 1).length());
 		}
 		else
 		{
 			if (0 != name)
-				*name = path.substr(slash + 1);
+				*name = std::wstring(path.substr(slash + 1).data(), path.substr(slash + 1).length());
 			if (0 != extension)
 				extension->clear();
 		}
@@ -621,8 +634,8 @@ namespace rmx
 		if (fileEntries.empty())
 			return;
 
-		const size_t position = filemask.find_last_of(L'/');
-		const std::wstring_view mask = (position == std::wstring::npos) ? filemask : filemask.substr(position + 1);
+		const size_t position = filemask.find_last_of(L"/");
+		const std::wstring_view mask = (position == std::wstring_view::npos) ? filemask : filemask.substr(position + 1);
 
 		size_t insertionIndex = 0;
 		for (size_t index = 0; index < fileEntries.size(); ++index)

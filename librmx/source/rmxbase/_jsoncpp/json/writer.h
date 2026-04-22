@@ -254,7 +254,11 @@ private:
   static bool hasCommentForValue(const Value& value);
   static String normalizeEOL(const String& text);
 
-  typedef ChildValues = std::vector<String>;
+#if defined(PLATFORM_PS3)
+  typedef std::vector<String> ChildValues;
+#else
+  using ChildValues = std::vector<String>;
+#endif
 
   ChildValues childValues_;
   String document_;
@@ -328,7 +332,11 @@ private:
   static bool hasCommentForValue(const Value& value);
   static String normalizeEOL(const String& text);
 
-  typedef ChildValues = std::vector<String>;
+#if defined(PLATFORM_PS3)
+  typedef std::vector<String> ChildValues;
+#else
+  using ChildValues = std::vector<String>;
+#endif
 
   ChildValues childValues_;
   OStream* document_;

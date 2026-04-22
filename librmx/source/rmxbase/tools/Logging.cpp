@@ -137,7 +137,7 @@ namespace rmx
 
 	void Logging::addLogger(LoggerBase& logger)
 	{
-		mLoggers.emplace_back(&logger);
+		mLoggers.push_back(&logger);
 	}
 
 	void Logging::log(LogLevel logLevel, const std::string& string)

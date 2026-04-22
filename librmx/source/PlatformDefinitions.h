@@ -111,6 +111,8 @@
 		template<typename CHAR>
 		class basic_string_view {
 		public:
+			static const size_t npos = (size_t)-1;
+
 			basic_string_view() : mData(0), mLength(0) {}
 			basic_string_view(const CHAR* s) : mData(s), mLength(0) { if (s) while (s[mLength]) ++mLength; }
 			basic_string_view(const CHAR* s, size_t l) : mData(s), mLength(l) {}
@@ -120,10 +122,58 @@
 			size_t size() const { return mLength; }
 			bool empty() const { return mLength == 0; }
 			const CHAR& operator[](size_t i) const { return mData[i]; }
+			const CHAR& back() const { return mData[mLength - 1]; }
+
+			bool operator==(const basic_string_view& other) const {
+				if (mLength != other.mLength) return false;
+				for (size_t i = 0; i < mLength; ++i) if (mData[i] != other.mData[i]) return false;
+				return true;
+			}
+			bool operator!=(const basic_string_view& other) const { return !(*this == other); }
+			bool operator==(const CHAR* s) const {
+				size_t i = 0;
+				for (; i < mLength && s[i]; ++i) if (mData[i] != s[i]) return false;
+				return i == mLength && !s[i];
+			}
+			bool operator!=(const CHAR* s) const { return !(*this == s); }
+
+			size_t find_last_of(const CHAR* s, size_t pos = npos) const {
+				if (mLength == 0 || s == 0) return npos;
+				if (pos == npos || pos >= mLength) pos = mLength - 1;
+				size_t slen = 0;
+				while (s[slen]) ++slen;
+				for (size_t i = pos + 1; i > 0; --i) {
+					for (size_t j = 0; j < slen; ++j) {
+						if (mData[i - 1] == s[j]) return i - 1;
+					}
+				}
+				return npos;
+			}
+
+			size_t find_last_of(CHAR c, size_t pos = npos) const {
+				if (mLength == 0) return npos;
+				if (pos == npos || pos >= mLength) pos = mLength - 1;
+				for (size_t i = pos + 1; i > 0; --i) {
+					if (mData[i - 1] == c) return i - 1;
+				}
+				return npos;
+			}
+
+			basic_string_view substr(size_t pos, size_t count = npos) const {
+				if (pos > mLength) return basic_string_view();
+				if (count == npos || pos + count > mLength) count = mLength - pos;
+				return basic_string_view(mData + pos, count);
+			}
+
 		private:
 			const CHAR* mData;
 			size_t mLength;
 		};
+
+		template<typename CHAR>
+		inline bool operator==(const CHAR* s, const basic_string_view<CHAR>& v) { return v == s; }
+		template<typename CHAR>
+		inline bool operator!=(const CHAR* s, const basic_string_view<CHAR>& v) { return v != s; }
 		typedef basic_string_view<char> string_view;
 		typedef basic_string_view<wchar_t> wstring_view;
 	}

@@ -7,7 +7,9 @@
 */
 
 #include "rmxbase.h"
+#if !defined(PLATFORM_PS3)
 #include <locale>
+#endif
 
 #ifdef PLATFORM_WINDOWS
 	#define WIN32_LEAN_AND_MEAN

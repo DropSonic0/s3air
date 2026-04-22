@@ -39,7 +39,7 @@ namespace rmx
 
 	bool FileSystem::exists(std::wstring_view path)
 	{
-		mTempPath2 = normalizePath(path, mTempPath2, false);
+		mTempPath2.assign(normalizePath(path, mTempPath2, false).data(), normalizePath(path, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -54,7 +54,7 @@ namespace rmx
 
 	uint64 FileSystem::getFileSize(std::wstring_view filename)
 	{
-		mTempPath2 = normalizePath(filename, mTempPath2, false);
+		mTempPath2.assign(normalizePath(filename, mTempPath2, false).data(), normalizePath(filename, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -71,7 +71,7 @@ namespace rmx
 	time_t FileSystem::getFileTime(std::wstring_view filename)
 	{
 		time_t time = 0;
-		mTempPath2 = normalizePath(filename, mTempPath2, false);
+		mTempPath2.assign(normalizePath(filename, mTempPath2, false).data(), normalizePath(filename, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -86,7 +86,7 @@ namespace rmx
 
 	bool FileSystem::readFile(std::wstring_view filename, std::vector<uint8>& outData)
 	{
-		mTempPath2 = normalizePath(filename, mTempPath2, false);
+		mTempPath2.assign(normalizePath(filename, mTempPath2, false).data(), normalizePath(filename, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -102,13 +102,13 @@ namespace rmx
 	bool FileSystem::saveFile(std::wstring_view filename, const void* data, size_t size)
 	{
 		// TODO: Use file providers here as well
-		mTempPath2 = normalizePath(filename, mTempPath2, false);
+		mTempPath2.assign(normalizePath(filename, mTempPath2, false).data(), normalizePath(filename, mTempPath2, false).length());
 		return FileIO::saveFile(mTempPath2, data, size);
 	}
 
 	InputStream* FileSystem::createInputStream(std::wstring_view filename)
 	{
-		mTempPath2 = normalizePath(filename, mTempPath2, false);
+		mTempPath2.assign(normalizePath(filename, mTempPath2, false).data(), normalizePath(filename, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -125,13 +125,13 @@ namespace rmx
 	void FileSystem::createDirectory(std::wstring_view path)
 	{
 		// TODO: Use file providers here as well
-		mTempPath2 = normalizePath(path, mTempPath2, true);
+		mTempPath2.assign(normalizePath(path, mTempPath2, true).data(), normalizePath(path, mTempPath2, true).length());
 		FileIO::createDirectory(mTempPath2);
 	}
 
 	void FileSystem::listFiles(std::wstring_view path, bool recursive, std::vector<rmx::FileIO::FileEntry>& outEntries)
 	{
-		mTempPath2 = normalizePath(path, mTempPath2, false);
+		mTempPath2.assign(normalizePath(path, mTempPath2, false).data(), normalizePath(path, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -152,7 +152,7 @@ namespace rmx
 
 	void FileSystem::listFilesByMask(std::wstring_view filemask, bool recursive, std::vector<rmx::FileIO::FileEntry>& outEntries)
 	{
-		mTempPath2 = normalizePath(filemask, mTempPath2, false);
+		mTempPath2.assign(normalizePath(filemask, mTempPath2, false).data(), normalizePath(filemask, mTempPath2, false).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -173,7 +173,7 @@ namespace rmx
 
 	void FileSystem::listDirectories(std::wstring_view path, std::vector<std::wstring>& outEntries)
 	{
-		mTempPath2 = normalizePath(path, mTempPath2, true);
+		mTempPath2.assign(normalizePath(path, mTempPath2, true).data(), normalizePath(path, mTempPath2, true).length());
 		for (MountPoint& mountPoint : mMountPoints)
 		{
 			const std::wstring* localPath = applyMountPoint(mountPoint, mTempPath2, mTempPath);
@@ -195,7 +195,7 @@ namespace rmx
 					}
 					if (endPos < mountPoint.mMountPoint.size())
 					{
-						outEntries.emplace_back(mountPoint.mMountPoint, startPos, endPos - startPos);
+						outEntries.push_back(mountPoint.mMountPoint.substr(startPos, endPos - startPos));
 					}
 				}
 			}
@@ -204,8 +204,8 @@ namespace rmx
 
 	bool FileSystem::renameFile(std::wstring_view oldFilename, std::wstring_view newFilename)
 	{
-		mTempPath2 = normalizePath(oldFilename, mTempPath2, false);
-		std::wstring newTempPath(newFilename);
+		mTempPath2.assign(normalizePath(oldFilename, mTempPath2, false).data(), normalizePath(oldFilename, mTempPath2, false).length());
+		std::wstring newTempPath(newFilename.data(), newFilename.length());
 		normalizePath(newTempPath, false);
 		for (MountPoint& mountPoint : mMountPoints)
 		{
@@ -289,8 +289,10 @@ namespace rmx
 		newMountPoint.mPriority = priority;
 		if (!mountPoint.empty() || !prefixReplacement.empty())
 		{
-			newMountPoint.mMountPoint = FileIO::normalizePath(mountPoint, newMountPoint.mMountPoint, true);
-			newMountPoint.mPrefixReplacement = FileIO::normalizePath(prefixReplacement, newMountPoint.mPrefixReplacement, true);
+			std::wstring_view res1 = FileIO::normalizePath(mountPoint, newMountPoint.mMountPoint, true);
+			if (res1.data() != newMountPoint.mMountPoint.data()) newMountPoint.mMountPoint.assign(res1.data(), res1.length());
+			std::wstring_view res2 = FileIO::normalizePath(prefixReplacement, newMountPoint.mPrefixReplacement, true);
+			if (res2.data() != newMountPoint.mPrefixReplacement.data()) newMountPoint.mPrefixReplacement.assign(res2.data(), res2.length());
 			newMountPoint.mNeedsPrefixConversion = (newMountPoint.mMountPoint != newMountPoint.mPrefixReplacement);
 		}
 
@@ -355,7 +357,8 @@ namespace rmx
 		if (mountPoint.mNeedsPrefixConversion)
 		{
 			tempPath = mountPoint.mPrefixReplacement;
-			tempPath.append(inPath.substr(mountPoint.mMountPoint.length()));
+			std::wstring_view sub = inPath.substr(mountPoint.mMountPoint.length());
+			tempPath.append(sub.data(), sub.length());
 			return &tempPath;
 		}
 		else
@@ -373,7 +376,10 @@ namespace rmx
 
 		if (mountPoint.mNeedsPrefixConversion)
 		{
-			path = mountPoint.mMountPoint + path.substr(mountPoint.mPrefixReplacement.length());
+			std::wstring res = mountPoint.mMountPoint;
+			std::wstring_view sub = path.substr(mountPoint.mPrefixReplacement.length());
+			res.append(sub.data(), sub.length());
+			path = res;
 		}
 	}
 

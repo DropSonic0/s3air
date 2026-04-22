@@ -87,11 +87,20 @@ bool FileHandle::open(const WString& filename, uint32 flags)
 	if (isWrite)
 	{
 		// Create directory if needed
+#if defined(PLATFORM_PS3)
+		const std::wstring_view view(*filename);
+		const size_t slashPosition = view.find_last_of(L"/\\");
+		if (slashPosition != std::wstring_view::npos)
+		{
+			rmx::FileIO::createDirectory(view.substr(0, slashPosition));
+		}
+#else
 		const size_t slashPosition = std::wstring_view(*filename).find_last_of(L"/\\");
 		if (slashPosition != std::string::npos)
 		{
 			rmx::FileIO::createDirectory(std::wstring_view(*filename).substr(0, slashPosition));
 		}
+#endif
 	}
 
 #if defined(PLATFORM_WINDOWS)

@@ -35,8 +35,13 @@ namespace Json {
 
 class JSON_API Reader {
 public:
-  typedef Char = char;
-  typedef Location = const Char*;
+#if defined(PLATFORM_PS3)
+  typedef char Char;
+  typedef const Char* Location;
+#else
+  using Char = char;
+  using Location = const Char*;
+#endif
 
   /** \brief An error tagged with where in the JSON text it was encountered.
    *
@@ -186,7 +191,11 @@ private:
     Location extra_;
   };
 
-  typedef Errors = std::deque<ErrorInfo>;
+#if defined(PLATFORM_PS3)
+  typedef std::deque<ErrorInfo> Errors;
+#else
+  using Errors = std::deque<ErrorInfo>;
+#endif
 
   bool readToken(Token& token);
   void skipSpaces();
@@ -225,7 +234,11 @@ private:
   static bool containsNewLine(Location begin, Location end);
   static String normalizeEOL(Location begin, Location end);
 
-  typedef Nodes = std::stack<Value*>;
+#if defined(PLATFORM_PS3)
+  typedef std::stack<Value*> Nodes;
+#else
+  using Nodes = std::stack<Value*>;
+#endif
   Nodes nodes_;
   Errors errors_;
   String document_;

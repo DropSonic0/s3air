@@ -34,7 +34,11 @@ bool containsByPredicate(const T& container, PRED predicate)
 template<typename T>
 T& vectorAdd(std::vector<T>& vec)
 {
+#if defined(PLATFORM_PS3)
+	vec.push_back(T());
+#else
 	vec.emplace_back();
+#endif
 	return vec.back();
 }
 

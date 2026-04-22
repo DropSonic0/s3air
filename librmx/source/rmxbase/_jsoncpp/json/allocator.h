@@ -15,13 +15,23 @@ namespace Json {
 template <typename T> class SecureAllocator {
 public:
   // Type definitions
-  typedef value_type = T;
-  typedef pointer = T*;
-  typedef const_pointer = const T*;
-  typedef reference = T&;
-  typedef const_reference = const T&;
-  typedef size_type = std::size_t;
-  typedef difference_type = std::ptrdiff_t;
+#if defined(PLATFORM_PS3)
+  typedef T value_type;
+  typedef T* pointer;
+  typedef const T* const_pointer;
+  typedef T& reference;
+  typedef const T& const_reference;
+  typedef std::size_t size_type;
+  typedef std::ptrdiff_t difference_type;
+#else
+  using value_type = T;
+  using pointer = T*;
+  using const_pointer = const T*;
+  using reference = T&;
+  using const_reference = const T&;
+  using size_type = std::size_t;
+  using difference_type = std::ptrdiff_t;
+#endif
 
   /**
    * Allocate memory for N items typedef the standard allocator.
@@ -38,7 +48,11 @@ public:
    */
   void deallocate(pointer p, size_type n) {
     // memset_s is used because memset may be optimized away by the compiler
+#if defined(PLATFORM_PS3)
+    memset(p, 0, n * sizeof(T));
+#else
     memset_s(p, n * sizeof(T), 0, n * sizeof(T));
+#endif
     // free typedef "global operator delete"
     ::operator delete(p);
   }
@@ -68,7 +82,11 @@ public:
   // Boilerplate
   SecureAllocator() {}
   template <typename U> SecureAllocator(const SecureAllocator<U>&) {}
-  template <typename U> struct rebind { typedef other = SecureAllocator<U>; };
+#if defined(PLATFORM_PS3)
+  template <typename U> struct rebind { typedef SecureAllocator<U> other; };
+#else
+  template <typename U> struct rebind { using other = SecureAllocator<U>; };
+#endif
 };
 
 template <typename T, typename U>

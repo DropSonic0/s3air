@@ -39,7 +39,7 @@ public:
 	static const StringTemplate EMPTY;
 
 	typedef std::basic_string<CHAR, std::char_traits<CHAR>, std::allocator<CHAR> > StdString;
-	typedef std::string_view StdStringView;
+	typedef std::basic_string_view<CHAR> StdStringView;
 
 public:
 	StringTemplate();
@@ -245,11 +245,19 @@ public:
 	WString(const wchar_t* str) : BASE(str) {}
 	WString(const wchar_t* str, size_t length) : BASE(str, length) {}
 	WString(const StdString& str) : BASE(str) {}
+#if defined(PLATFORM_PS3)
+	WString(const std::basic_string_view<wchar_t>& str) : BASE(str.data(), str.length()) {}
+#else
 	WString(const StdStringView& str) : BASE(str) {}
+#endif
 	explicit WString(const String& str) : BASE(str.toWString()) {}
 	explicit WString(const char* str) : WString(String(str)) {}
 	explicit WString(const std::basic_string<char, std::char_traits<char>, std::allocator<char> >& str) : WString(String(str)) {}
-	explicit WString(const StdStringView& str) : WString(String(str)) {}
+#if defined(PLATFORM_PS3)
+	explicit WString(const std::basic_string_view<char>& str) : WString(String(str.data(), str.length())) {}
+#else
+	explicit WString(const std::string_view& str) : WString(String(str)) {}
+#endif
 	WString(int ignoreMe, const wchar_t* format, ...);
 
 	WString& operator=(const WString& str) { copy(str); return *this; }
