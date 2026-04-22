@@ -309,9 +309,9 @@ void VectorBinarySerializer::write(std::wstring_view value, size_t stringLengthL
 		writeSize(encodedLength, stringLengthLimit);
 
 		char* pointer = (char*)writeAccess(encodedLength);
-		for (wchar_t ch : value)
+		for (size_t i = 0; i < value.length(); ++i)
 		{
-			const size_t encodedLength = rmx::UTF8Conversion::writeCharacterAsUTF8((uint32)ch, pointer);
+			const size_t encodedLength = rmx::UTF8Conversion::writeCharacterAsUTF8((uint32)value[i], pointer);
 			pointer += encodedLength;
 		}
 	}

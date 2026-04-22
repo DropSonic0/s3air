@@ -6,7 +6,7 @@
 #ifndef JSON_ASSERTIONS_H_INCLUDED
 #define JSON_ASSERTIONS_H_INCLUDED
 
-#include <cstdlib>
+#include <stdlib.h>
 #include <sstream>
 
 #if !defined(JSON_IS_AMALGAMATION)

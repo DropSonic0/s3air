@@ -102,9 +102,9 @@ namespace rmx
 	size_t UTF8Conversion::getLengthAsUTF8(std::wstring_view input)
 	{
 		size_t length = 0;
-		for (wchar_t ch : input)
+		for (size_t i = 0; i < input.length(); ++i)
 		{
-			length += getCharacterLengthAsUTF8((uint32)ch);
+			length += getCharacterLengthAsUTF8((uint32)input[i]);
 		}
 		return length;
 	}
@@ -146,9 +146,9 @@ namespace rmx
 		output.resize(existingLength + additionalLength);
 
 		char* writePosition = &output[existingLength];
-		for (wchar_t ch : input)
+		for (size_t i = 0; i < input.length(); ++i)
 		{
-			const size_t encodedLength = writeCharacterAsUTF8((uint32)ch, writePosition);
+			const size_t encodedLength = writeCharacterAsUTF8((uint32)input[i], writePosition);
 			writePosition += encodedLength;
 		}
 	}

@@ -171,7 +171,7 @@ class JSON_API FastWriter
     : public Writer {
 public:
   FastWriter();
-  ~FastWriter() override = default;
+  ~FastWriter() override {}
 
   void enableYAMLCompatibility();
 
@@ -231,7 +231,7 @@ class JSON_API
     StyledWriter : public Writer {
 public:
   StyledWriter();
-  ~StyledWriter() override = default;
+  ~StyledWriter() override {}
 
 public: // overridden from Writer
   /** \brief Serialize a Value in <a HREF="http://www.json.org">JSON</a> format.
@@ -307,7 +307,7 @@ public:
    * \param indentation Each level will be indented by this amount extra.
    */
   StyledStreamWriter(String indentation = "\t");
-  ~StyledStreamWriter() = default;
+  ~StyledStreamWriter() {}
 
 public:
   /** \brief Serialize a Value in <a HREF="http://www.json.org">JSON</a> format.

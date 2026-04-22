@@ -3,6 +3,8 @@
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
 
+#include "rmxbase.h"
+
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json_tool.h"
 #include "json/writer.h"
@@ -143,7 +145,7 @@ String valueToString(double value, bool useSpecialFloats,
         (precisionType == PrecisionType::significantDigits) ? "%.*g" : "%.*f",
         precision, value);
     assert(len >= 0);
-     wouldPrint = static_cast<size_t>(len);
+    size_t wouldPrint = static_cast<size_t>(len);
     if (wouldPrint >= buffer.size()) {
       buffer.resize(wouldPrint + 1);
       continue;
@@ -179,10 +181,11 @@ String valueToString(bool value) { return value ? "true" : "false"; }
 
 static bool doesAnyCharRequireEscaping(char const* s, size_t n) {
   assert(s || !n);
-
-  return std::any_of(s, s + n, [](unsigned char c) {
-    return c == '\\' || c == '"' || c < 0x20 || c > 0x7F;
-  });
+  for (size_t i = 0; i < n; ++i) {
+    unsigned char c = static_cast<unsigned char>(s[i]);
+    if (c == '\\' || c == '"' || c < 0x20 || c > 0x7F) return true;
+  }
+  return false;
 }
 
 static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
@@ -355,14 +358,12 @@ String valueToQuotedString(const char* value) {
 
 // Class Writer
 // //////////////////////////////////////////////////////////////////
-Writer::~Writer() = default;
+Writer::~Writer() {}
 
 // Class FastWriter
 // //////////////////////////////////////////////////////////////////
 
-FastWriter::FastWriter()
-
-    = default;
+FastWriter::FastWriter() : yamlCompatibilityEnabled_(false), dropNullPlaceholders_(false), omitEndingLineFeed_(false) {}
 
 void FastWriter::enableYAMLCompatibility() { yamlCompatibilityEnabled_ = true; }
 
@@ -418,7 +419,7 @@ void FastWriter::writeValue(const Value& value) {
   case objectValue: {
     Value::Members members(value.getMemberNames());
     document_ += '{';
-    for ( it = members.begin(); it != members.end(); ++it) {
+    for (Value::Members::iterator it = members.begin(); it != members.end(); ++it) {
       const String& name = *it;
       if (it != members.begin())
         document_ += ',';
@@ -434,7 +435,7 @@ void FastWriter::writeValue(const Value& value) {
 // Class StyledWriter
 // //////////////////////////////////////////////////////////////////
 
-StyledWriter::StyledWriter() = default;
+StyledWriter::StyledWriter() : addChildValues_(false), indented_(false) {}
 
 String StyledWriter::write(const Value& root) {
   document_.clear();
@@ -485,7 +486,7 @@ void StyledWriter::writeValue(const Value& value) {
     else {
       writeWithIndent("{");
       indent();
-       it = members.begin();
+      Value::Members::iterator it = members.begin();
       for (;;) {
         const String& name = *it;
         const Value& childValue = value[name];
@@ -703,7 +704,7 @@ void StyledStreamWriter::writeValue(const Value& value) {
     else {
       writeWithIndent("{");
       indent();
-       it = members.begin();
+      Value::Members::iterator it = members.begin();
       for (;;) {
         const String& name = *it;
         const Value& childValue = value[name];
@@ -978,7 +979,7 @@ void BuiltStyledStreamWriter::writeValue(Value const& value) {
     else {
       writeWithIndent("{");
       indent();
-       it = members.begin();
+      Value::Members::iterator it = members.begin();
       for (;;) {
         String const& name = *it;
         Value const& childValue = value[name];
@@ -1155,10 +1156,11 @@ bool BuiltStyledStreamWriter::hasCommentForValue(const Value& value) {
 // StreamWriter
 
 StreamWriter::StreamWriter() : sout_(0) {}
-StreamWriter::~StreamWriter() = default;
-StreamWriter::Factory::~Factory() = default;
+StreamWriter::~StreamWriter() {}
+StreamWriter::Factory::~Factory() {}
 StreamWriterBuilder::StreamWriterBuilder() { setDefaults(&settings_); }
-StreamWriterBuilder::~StreamWriterBuilder() = default;
+StreamWriterBuilder::~StreamWriterBuilder() {}
+CharReaderBuilder::~CharReaderBuilder() {}
 StreamWriter* StreamWriterBuilder::newStreamWriter() const {
   const String indentation = settings_["indentation"].asString();
   const String cs_str = settings_["commentStyle"].asString();
@@ -1203,18 +1205,19 @@ StreamWriter* StreamWriterBuilder::newStreamWriter() const {
 }
 
 bool StreamWriterBuilder::validate(Json::Value* invalid) const {
-  static const auto& valid_keys = *new std::set<String>{
-      "indentation",
-      "commentStyle",
-      "enableYAMLCompatibility",
-      "dropNullPlaceholders",
-      "useSpecialFloats",
-      "emitUTF8",
-      "precision",
-      "precisionType",
-  };
-  for ( si = settings_.begin(); si != settings_.end(); ++si) {
-     key = si.name();
+  static std::set<String> valid_keys;
+  if (valid_keys.empty()) {
+      valid_keys.insert("indentation");
+      valid_keys.insert("commentStyle");
+      valid_keys.insert("enableYAMLCompatibility");
+      valid_keys.insert("dropNullPlaceholders");
+      valid_keys.insert("useSpecialFloats");
+      valid_keys.insert("emitUTF8");
+      valid_keys.insert("precision");
+      valid_keys.insert("precisionType");
+  }
+  for (Value::const_iterator si = settings_.begin(); si != settings_.end(); ++si) {
+    String key = si.name();
     if (valid_keys.count(key))
       continue;
     if (invalid)

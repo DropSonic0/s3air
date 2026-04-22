@@ -3,16 +3,21 @@
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
 
+#include "rmxbase.h"
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json/assertions.h"
 #include "json/value.h"
 #include "json/writer.h"
 #endif // if !defined(JSON_IS_AMALGAMATION)
 #include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <cstddef>
-#include <cstring>
+#include <assert.h>
+#include <math.h>
+#include <stddef.h>
 #include <iostream>
 #include <sstream>
 #include <utility>
@@ -51,8 +56,8 @@ namespace Json {
 template <typename T>
 static std::unique_ptr<T> cloneUnique(const std::unique_ptr<T>& p) {
   std::unique_ptr<T> r;
-  if (p) {
-    r = std::unique_ptr<T>(new T(*p));
+  if (p.get()) {
+    r.reset(new T(*p.get()));
   }
   return r;
 }
@@ -118,7 +123,7 @@ static inline char* duplicateStringValue(const char* value, size_t length) {
   if (length >= static_cast<size_t>(Value::maxInt))
     length = Value::maxInt - 1;
 
-   newString = static_cast<char*>(malloc(length + 1));
+  char* newString = static_cast<char*>(malloc(length + 1));
   if (newString == 0) {
     throwRuntimeError("in Json::Value::duplicateStringValue(): "
                       "Failed to allocate string value buffer");
@@ -139,7 +144,7 @@ static inline char* duplicateAndPrefixStringValue(const char* value,
                       "in Json::Value::duplicateAndPrefixStringValue(): "
                       "length too big for prefixing");
   size_t actualLength = sizeof(length) + length + 1;
-   newString = static_cast<char*>(malloc(actualLength));
+  char* newString = static_cast<char*>(malloc(actualLength));
   if (newString == 0) {
     throwRuntimeError("in Json::Value::duplicateAndPrefixStringValue(): "
                       "Failed to allocate string value buffer");
@@ -525,8 +530,8 @@ bool Value::operator<(const Value& other) const {
   }
   case arrayValue:
   case objectValue: {
-     thisSize = value_.map_->size();
-     otherSize = other.value_.map_->size();
+    size_t thisSize = value_.map_->size();
+    size_t otherSize = other.value_.map_->size();
     if (thisSize != otherSize)
       return thisSize < otherSize;
     return (*value_.map_) < (*other.value_.map_);
@@ -649,6 +654,7 @@ String Value::asString() const {
   default:
     JSON_FAIL_MESSAGE("Type is not convertible to string");
   }
+  return "";
 }
 
 Value::Int Value::asInt() const {
@@ -671,6 +677,7 @@ Value::Int Value::asInt() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to Int.");
+  return 0;
 }
 
 Value::UInt Value::asUInt() const {
@@ -693,6 +700,7 @@ Value::UInt Value::asUInt() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to UInt.");
+  return 0;
 }
 
 #if defined(JSON_HAS_INT64)
@@ -716,6 +724,7 @@ Value::Int64 Value::asInt64() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to Int64.");
+  return 0;
 }
 
 Value::UInt64 Value::asUInt64() const {
@@ -737,6 +746,7 @@ Value::UInt64 Value::asUInt64() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to UInt64.");
+  return 0;
 }
 #endif // if defined(JSON_HAS_INT64)
 
@@ -776,6 +786,7 @@ double Value::asDouble() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to double.");
+  return 0.0;
 }
 
 float Value::asFloat() const {
@@ -799,6 +810,7 @@ float Value::asFloat() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to float.");
+  return 0.0f;
 }
 
 bool Value::asBool() const {
@@ -816,7 +828,7 @@ bool Value::asBool() const {
 #if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
     return value_.real_ != 0.0 && value_.real_ == value_.real_;
 #else
-    const  value_classification = std::fpclassify(value_.real_);
+    const int value_classification = std::fpclassify(value_.real_);
     return value_classification != FP_ZERO && value_classification != FP_NAN;
 #endif
   }
@@ -824,6 +836,7 @@ bool Value::asBool() const {
     break;
   }
   JSON_FAIL_MESSAGE("Value is not convertible to bool.");
+  return false;
 }
 
 bool Value::isConvertibleTo(ValueType other) const {
@@ -933,7 +946,7 @@ Value& Value::operator[](ArrayIndex index) {
   if (type() == nullValue)
     *this = Value(arrayValue);
   CZString key(index);
-   it = value_.map_->lower_bound(key);
+  ObjectValues::iterator it = value_.map_->lower_bound(key);
   if (it != value_.map_->end() && (*it).first == key)
     return (*it).second;
 
@@ -972,7 +985,7 @@ const Value& Value::operator[](int index) const {
 void Value::initBasic(ValueType type, bool allocated) {
   setType(type);
   setIsAllocated(allocated);
-  comments_ = Comments{};
+  comments_ = Comments();
   start_ = 0;
   limit_ = 0;
 }
@@ -1047,7 +1060,7 @@ Value& Value::resolveReference(const char* key) {
     *this = Value(objectValue);
   CZString actualKey(key, static_cast<unsigned>(strlen(key)),
                      CZString::noDuplication); // NOTE!
-   it = value_.map_->lower_bound(actualKey);
+  ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
   if (it != value_.map_->end() && (*it).first == actualKey)
     return (*it).second;
 
@@ -1066,7 +1079,7 @@ Value& Value::resolveReference(char const* key, char const* end) {
     *this = Value(objectValue);
   CZString actualKey(key, static_cast<unsigned>(end - key),
                      CZString::duplicateOnCopy);
-   it = value_.map_->lower_bound(actualKey);
+  ObjectValues::iterator it = value_.map_->lower_bound(actualKey);
   if (it != value_.map_->end() && (*it).first == actualKey)
     return (*it).second;
 
@@ -1135,7 +1148,11 @@ Value& Value::append(Value&& value) {
   if (type() == nullValue) {
     *this = Value(arrayValue);
   }
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+  return (*this->value_.map_->insert(std::make_pair(CZString(size()), std::move(value))).first).second;
+#else
   return this->value_.map_->emplace(size(), std::move(value)).first->second;
+#endif
 }
 
 bool Value::insert(ArrayIndex index, const Value& newValue) {
@@ -1174,7 +1191,7 @@ bool Value::removeMember(const char* begin, const char* end, Value* removed) {
   }
   CZString actualKey(begin, static_cast<unsigned>(end - begin),
                      CZString::noDuplication);
-   it = value_.map_->find(actualKey);
+  ObjectValues::iterator it = value_.map_->find(actualKey);
   if (it == value_.map_->end())
     return false;
   if (removed)
@@ -1204,7 +1221,7 @@ bool Value::removeIndex(ArrayIndex index, Value* removed) {
     return false;
   }
   CZString key(index);
-   it = value_.map_->find(key);
+  ObjectValues::iterator it = value_.map_->find(key);
   if (it == value_.map_->end()) {
     return false;
   }
@@ -1218,7 +1235,7 @@ bool Value::removeIndex(ArrayIndex index, Value* removed) {
   }
   // erase the last one ("leftover")
   CZString keyLast(oldSize - 1);
-   itLast = value_.map_->find(keyLast);
+  ObjectValues::iterator itLast = value_.map_->find(keyLast);
   value_.map_->erase(itLast);
   return true;
 }
@@ -1376,10 +1393,10 @@ bool Value::isArray() const { return type() == arrayValue; }
 bool Value::isObject() const { return type() == objectValue; }
 
 Value::Comments::Comments(const Comments& that)
-    : ptr_{cloneUnique(that.ptr_)} {}
+    : ptr_(cloneUnique(that.ptr_)) {}
 
 Value::Comments::Comments(Comments&& that) throw()
-    : ptr_{std::move(that.ptr_)} {}
+    : ptr_(std::move(that.ptr_)) {}
 
 Value::Comments& Value::Comments::operator=(const Comments& that) {
   ptr_ = cloneUnique(that.ptr_);
@@ -1397,7 +1414,7 @@ bool Value::Comments::has(CommentPlacement slot) const {
 
 String Value::Comments::get(CommentPlacement slot) const {
   if (!ptr_)
-    return {};
+    return String();
   return (*ptr_)[slot];
 }
 
@@ -1410,9 +1427,9 @@ void Value::Comments::set(CommentPlacement slot, String comment) {
 }
 
 void Value::setComment(String comment, CommentPlacement placement) {
-  if (!comment.empty() && (comment.back() == '\n')) {
+  if (!comment.empty() && (comment[comment.length() - 1] == '\n')) {
     // Always discard trailing newline, to aid indentation.
-    comment.pop_back();
+    comment.resize(comment.length() - 1);
   }
   JSON_ASSERT(!comment.empty());
   JSON_ASSERT_MESSAGE(
@@ -1457,7 +1474,7 @@ Value::const_iterator Value::begin() const {
   default:
     break;
   }
-  return {};
+  return const_iterator();
 }
 
 Value::const_iterator Value::end() const {
@@ -1470,7 +1487,7 @@ Value::const_iterator Value::end() const {
   default:
     break;
   }
-  return {};
+  return const_iterator();
 }
 
 Value::iterator Value::begin() {
@@ -1530,7 +1547,7 @@ Path::Path(const String& path, const PathArgument& a1, const PathArgument& a2,
 void Path::makePath(const String& path, const InArgs& in) {
   const char* current = path.c_str();
   const char* end = current + path.length();
-   itInArg = in.begin();
+  InArgs::const_iterator itInArg = in.begin();
   while (current != end) {
     if (*current == '[') {
       ++current;

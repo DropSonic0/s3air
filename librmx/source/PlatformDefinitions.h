@@ -25,6 +25,10 @@
 	#define PLATFORM_PS3
 	#define NO_UNORDERED_CONTAINERS
 	#include <stddef.h>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <string.h>
+	#include <assert.h>
 	#include <math.h>
 
 	#ifndef nullptr
@@ -78,6 +82,7 @@
 		struct unique_ptr {
 			T* ptr;
 			explicit unique_ptr(T* p = 0) : ptr(p) {}
+			unique_ptr(const unique_ptr& other) { ptr = const_cast<unique_ptr&>(other).release(); }
 			~unique_ptr() { delete ptr; }
 			T& operator*() const { return *ptr; }
 			T* operator->() const { return ptr; }
@@ -85,9 +90,7 @@
 			T* get() const { return ptr; }
 			T* release() { T* p = ptr; ptr = 0; return p; }
 			void reset(T* p = 0) { if (ptr != p) { delete ptr; ptr = p; } }
-		private:
-			unique_ptr(const unique_ptr&);
-			unique_ptr& operator=(const unique_ptr&);
+			unique_ptr& operator=(const unique_ptr& other) { reset(const_cast<unique_ptr&>(other).release()); return *this; }
 		};
 
 		template <typename T> T& move(T& t) { return t; }

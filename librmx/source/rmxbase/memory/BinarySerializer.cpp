@@ -180,7 +180,7 @@ void BinarySerializer::endDataBlock(BinarySerializer::DataBlockInfo& dataBlockIn
 
 			mOutputStream->seekp(dataBlockInfo.mBeginPosition - 4);
 
-			RMX_CHECK(dataBlockInfo.mEndPosition - dataBlockInfo.mBeginPosition < UINT32_MAX, "Defining a datablock bigger than 4 GiB is currently not supported", RMX_REACT_THROW);
+			RMX_CHECK(dataBlockInfo.mEndPosition - dataBlockInfo.mBeginPosition < 0xffffffffU, "Defining a datablock bigger than 4 GiB is currently not supported", RMX_REACT_THROW);
 			uint32 length = static_cast<uint32>(dataBlockInfo.mEndPosition - dataBlockInfo.mBeginPosition);
 			writePortable(&length, 4, true);
 

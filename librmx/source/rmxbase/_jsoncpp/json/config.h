@@ -28,7 +28,11 @@
 // If non-zero, the library uses exceptions to report bad input instead of C
 // assertion macros. The default is to use exceptions.
 #ifndef JSON_USE_EXCEPTION
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+#define JSON_USE_EXCEPTION 0
+#else
 #define JSON_USE_EXCEPTION 1
+#endif
 #endif
 
 // Temporary, tracked for removal with issue #982.

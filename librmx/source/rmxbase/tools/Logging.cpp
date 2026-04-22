@@ -15,7 +15,9 @@
 	#include <android/log.h>
 #endif
 
-#include <chrono>
+#if !defined(PLATFORM_PS3)
+	#include <chrono>
+#endif
 #include <ctime>
 #include <iomanip>
 #include <sstream>
