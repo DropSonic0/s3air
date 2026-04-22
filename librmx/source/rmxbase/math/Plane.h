@@ -15,13 +15,28 @@ namespace math
 	class Plane
 	{
 	public:
+#if defined(PLATFORM_PS3)
+		struct Side
+		{
+			enum Enum
+			{
+				NO_SIDE,
+				POSITIVE_SIDE,
+				NEGATIVE_SIDE,
+				BOTH_SIDES
+			};
+		};
+		typedef Side::Enum Side_t;
+#else
 		enum class Side
 		{
 			NO_SIDE,
 			POSITIVE_SIDE,
 			NEGATIVE_SIDE,
-			BOTH_SIDE
+			BOTH_SIDES
 		};
+		using Side_t = Side;
+#endif
 
 	public:
 		Plane()
@@ -68,10 +83,11 @@ namespace math
 			return mNormal.dot(point) + mDistance;
 		}
 
-		Side getSide(const Vec3f& point) const
+		Side_t getSide(const Vec3f& point) const
 		{
 			float fDistance = getDistance(point);
 
+#if defined(PLATFORM_PS3)
 			if (fDistance < 0.0)
 				return Side::NEGATIVE_SIDE;
 
@@ -79,6 +95,15 @@ namespace math
 				return Side::POSITIVE_SIDE;
 
 			return Side::NO_SIDE;
+#else
+			if (fDistance < 0.0)
+				return Side_t::NEGATIVE_SIDE;
+
+			if (fDistance > 0.0)
+				return Side_t::POSITIVE_SIDE;
+
+			return Side_t::NO_SIDE;
+#endif
 		}
 
 		float normalise()

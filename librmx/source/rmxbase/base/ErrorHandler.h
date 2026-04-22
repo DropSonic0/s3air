@@ -44,24 +44,44 @@
 	#define RMX_REACT_THROW
 #endif
 
+#if defined(PLATFORM_PS3)
+	#define RMX_SEVERITY_ERROR rmx::ErrorSeverity::ERROR
+#else
+	#define RMX_SEVERITY_ERROR rmx::ErrorSeverity::ERROR
+#endif
+
 #ifdef DEBUG
-	#define RMX_ASSERT(condition, message)		RMX_CONDITIONAL_ERROR(rmx::ErrorSeverity::ERROR, condition, message, )
+	#define RMX_ASSERT(condition, message)		RMX_CONDITIONAL_ERROR(RMX_SEVERITY_ERROR, condition, message, )
 #else
 	#define RMX_ASSERT(condition, message)		{}
 #endif
 
-#define RMX_CHECK(condition, message, reaction)	RMX_CONDITIONAL_ERROR(rmx::ErrorSeverity::ERROR, condition, message, reaction)
-#define RMX_ERROR(message, reaction)			RMX_CONDITIONAL_ERROR(rmx::ErrorSeverity::ERROR, false, message, reaction)
+#define RMX_CHECK(condition, message, reaction)	RMX_CONDITIONAL_ERROR(RMX_SEVERITY_ERROR, condition, message, reaction)
+#define RMX_ERROR(message, reaction)			RMX_CONDITIONAL_ERROR(RMX_SEVERITY_ERROR, false, message, reaction)
 
 
 namespace rmx
 {
+#if defined(PLATFORM_PS3)
+	struct ErrorSeverity
+	{
+		enum Enum
+		{
+			INFO,
+			WARNING,
+			ERROR
+		};
+	};
+	typedef ErrorSeverity::Enum ErrorSeverity_t;
+#else
 	enum class ErrorSeverity
 	{
 		INFO,
 		WARNING,
 		ERROR
 	};
+	using ErrorSeverity_t = ErrorSeverity;
+#endif
 
 	struct ErrorHandling
 	{
@@ -70,34 +90,61 @@ namespace rmx
 		{
 		public:
 			virtual ~LoggerInterface() {}
-			virtual void logMessage(ErrorSeverity errorSeverity, const std::string& message) = 0;
+			virtual void logMessage(ErrorSeverity_t errorSeverity, const std::string& message) = 0;
 		};
 
 		class MessageBoxInterface
 		{
 		public:
+#if defined(PLATFORM_PS3)
+			struct DialogType
+			{
+				enum Enum
+				{
+					ACCEPT_ONLY,
+					ACCEPT_OR_CANCEL,
+					ALL_OPTIONS
+				};
+			};
+			typedef DialogType::Enum DialogType_t;
+
+			struct Result
+			{
+				enum Enum
+				{
+					ACCEPT,
+					ABORT,
+					IGNORE
+				};
+			};
+			typedef Result::Enum Result_t;
+#else
 			enum class DialogType
 			{
 				ACCEPT_ONLY,
 				ACCEPT_OR_CANCEL,
 				ALL_OPTIONS
 			};
+			using DialogType_t = DialogType;
+
 			enum class Result
 			{
 				ACCEPT,
 				ABORT,
 				IGNORE
 			};
+			using Result_t = Result;
+#endif
 
 		public:
 			virtual ~MessageBoxInterface() {}
-			virtual Result showMessageBox(DialogType dialogType, ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line) = 0;
+			virtual Result_t showMessageBox(DialogType_t dialogType, ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line) = 0;
 		};
 
 	public:
 		static bool isDebuggerAttached();
-		static void printToLog(ErrorSeverity errorSeverity, const std::string& message);
-		static bool handleAssertBreak(ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line);
+		static void printToLog(ErrorSeverity_t errorSeverity, const std::string& message);
+		static bool handleAssertBreak(ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line);
 
 	public:
 		#if defined(PLATFORM_PS3)

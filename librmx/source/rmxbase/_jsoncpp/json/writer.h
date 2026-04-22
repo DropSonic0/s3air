@@ -358,7 +358,7 @@ String JSON_API valueToString(LargestInt value);
 String JSON_API valueToString(LargestUInt value);
 String JSON_API valueToString(
     double value, unsigned int precision = Value::defaultRealPrecision,
-    PrecisionType precisionType = PrecisionType::significantDigits);
+    PrecisionType precisionType = significantDigits);
 String JSON_API valueToString(bool value);
 String JSON_API valueToQuotedString(const char* value);
 

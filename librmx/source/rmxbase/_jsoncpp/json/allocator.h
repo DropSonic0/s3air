@@ -60,10 +60,17 @@ public:
   /**
    * Construct an item in-place at pointer P.
    */
+#if defined(PLATFORM_PS3)
+  void construct(pointer p, const T& val) {
+    // construct typedef "placement new"
+    ::new (static_cast<void*>(p)) T(val);
+  }
+#else
   template <typename... Args> void construct(pointer p, Args&&... args) {
     // construct typedef "placement new" and "perfect forwarding"
     ::new (static_cast<void*>(p)) T(std::forward<Args>(args)...);
   }
+#endif
 
   size_type max_size() const { return size_t(-1) / sizeof(T); }
 

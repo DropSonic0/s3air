@@ -286,10 +286,14 @@ private:
     CZString(ArrayIndex index);
     CZString(char const* str, unsigned length, DuplicationPolicy allocate);
     CZString(CZString const& other);
+#if !defined(PLATFORM_PS3)
     CZString(CZString&& other) throw();
+#endif
     ~CZString();
     CZString& operator=(const CZString& other);
+#if !defined(PLATFORM_PS3)
     CZString& operator=(CZString&& other) throw();
+#endif
 
     bool operator<(CZString const& other) const;
     bool operator==(CZString const& other) const;
@@ -369,13 +373,17 @@ public:
   Value(std::nullptr_t ptr) = delete;
 #endif
   Value(const Value& other);
+#if !defined(PLATFORM_PS3)
   Value(Value&& other) throw();
+#endif
   ~Value();
 
   /// \note Overwrite existing comments. To preserve comments, use
   /// #swapPayload().
   Value& operator=(const Value& other);
+#if !defined(PLATFORM_PS3)
   Value& operator=(Value&& other) throw();
+#endif
 
   /// Swap everything.
   void swap(Value& other);
@@ -447,7 +455,11 @@ public:
   bool empty() const;
 
   /// Return !isNull()
+#if defined(PLATFORM_PS3)
+  operator bool() const;
+#else
   explicit operator bool() const;
+#endif
 
   /// Remove all object members and array elements.
   /// \pre type() is arrayValue, objectValue, or nullValue
@@ -488,11 +500,15 @@ public:
   ///
   /// Equivalent to jsonvalue[jsonvalue.size()] = value;
   Value& append(const Value& value);
+#if !defined(PLATFORM_PS3)
   Value& append(Value&& value);
+#endif
 
   /// \brief Insert value in array at specific index
   bool insert(ArrayIndex index, const Value& newValue);
+#if !defined(PLATFORM_PS3)
   bool insert(ArrayIndex index, Value&& newValue);
+#endif
 
   /// Access an object value by name, create a null member if it does not exist.
   /// \note Because of our implementation, keys are limited to 2^30 -1 chars.
@@ -660,9 +676,13 @@ private:
   public:
     Comments() throw();
     Comments(const Comments& that);
+#if !defined(PLATFORM_PS3)
     Comments(Comments&& that) throw();
+#endif
     Comments& operator=(const Comments& that);
+#if !defined(PLATFORM_PS3)
     Comments& operator=(Comments&& that) throw();
+#endif
     bool has(CommentPlacement slot) const;
     String get(CommentPlacement slot) const;
     void set(CommentPlacement slot, String comment);

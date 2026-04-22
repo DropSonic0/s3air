@@ -242,14 +242,14 @@ private:
   Nodes nodes_;
   Errors errors_;
   String document_;
-  Location begin_{};
-  Location end_{};
-  Location current_{};
-  Location lastValueEnd_{};
-  Value* lastValue_{};
+  Location begin_;
+  Location end_;
+  Location current_;
+  Location lastValueEnd_;
+  Value* lastValue_;
   String commentsBefore_;
   Features features_;
-  bool collectComments_{};
+  bool collectComments_;
 }; // Reader
 
 /** Interface for reading JSON from a char array.

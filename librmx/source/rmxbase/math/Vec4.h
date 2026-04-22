@@ -25,12 +25,29 @@ public:
 		struct { TYPE r, g, b, a; };
 	};
 
+#if defined(PLATFORM_PS3)
+	struct Initialization
+	{
+		enum Enum
+		{
+			NONE
+		};
+	};
+	typedef Initialization::Enum Initialization_t;
+	static const Initialization_t Uninitialized = Initialization::NONE;
+#else
 	enum class Initialization { NONE };
-	static const Initialization Uninitialized = Initialization::NONE;
+	using Initialization_t = Initialization;
+	static const Initialization_t Uninitialized = Initialization::NONE;
+#endif
 
 public:
 	Vec4() : x(0), y(0), z(0), w(0)	{}
-	explicit Vec4(Initialization)	{}
+#if defined(PLATFORM_PS3)
+	Vec4(Initialization_t)			{}
+#else
+	explicit Vec4(Initialization_t)	{}
+#endif
 	explicit Vec4(TYPE value)		{ FORi(data[i] = value); }
 	explicit Vec4(const TYPE* vec)	{ FORi(data[i] = vec[i]); }
 
@@ -282,11 +299,13 @@ public:
 };
 
 
+#if !defined(PLATFORM_PS3)
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::ZERO(0, 0, 0, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_X(1, 0, 0, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_Y(0, 1, 0, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_Z(0, 0, 1, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_W(0, 0, 0, 1);
+#endif
 
 #undef FORi
 

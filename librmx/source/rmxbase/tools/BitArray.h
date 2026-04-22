@@ -18,6 +18,13 @@ public:
 	static const size_t NUM_CHUNKS = (NUM_BITS + 63) / 64;
 
 public:
+	BitArray()
+	{
+		for (size_t i = 0; i < NUM_CHUNKS; ++i)
+			mChunks[i] = 0;
+	}
+
+public:
 	void clearAllBits()
 	{
 		memset(mChunks, 0, sizeof(mChunks));
@@ -157,5 +164,9 @@ public:
 	}
 
 private:
+#if defined(PLATFORM_PS3)
+	uint64 mChunks[NUM_CHUNKS];
+#else
 	uint64 mChunks[NUM_CHUNKS] = { 0 };
+#endif
 };

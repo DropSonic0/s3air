@@ -21,8 +21,8 @@
 #endif
 
 // General includes
-#include <vorbis/codec.h>
 #include <rmxmedia.h>
+#include <vorbis/codec.h>
 
 // RMX modules
 #include "rmxext_oggvorbis/OggLoader.h"

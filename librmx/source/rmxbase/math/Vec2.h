@@ -24,12 +24,29 @@ public:
 		struct { TYPE x, y; };
 	};
 
+#if defined(PLATFORM_PS3)
+	struct Initialization
+	{
+		enum Enum
+		{
+			NONE
+		};
+	};
+	typedef Initialization::Enum Initialization_t;
+	static const Initialization_t Uninitialized = Initialization::NONE;
+#else
 	enum class Initialization { NONE };
-	static const Initialization Uninitialized = Initialization::NONE;
+	using Initialization_t = Initialization;
+	static const Initialization_t Uninitialized = Initialization::NONE;
+#endif
 
 public:
 	Vec2() : x(0), y(0)				{}
-	explicit Vec2(Initialization)	{}
+#if defined(PLATFORM_PS3)
+	Vec2(Initialization_t)			{}
+#else
+	explicit Vec2(Initialization_t)	{}
+#endif
 	explicit Vec2(TYPE value)		{ FORi(data[i] = value); }
 	explicit Vec2(const TYPE* vec)	{ FORi(data[i] = vec[i]); }
 
@@ -201,9 +218,11 @@ public:
 };
 
 
+#if !defined(PLATFORM_PS3)
 template<typename TYPE> const Vec2<TYPE> Vec2<TYPE>::ZERO(0, 0);
 template<typename TYPE> const Vec2<TYPE> Vec2<TYPE>::UNIT_X(1, 0);
 template<typename TYPE> const Vec2<TYPE> Vec2<TYPE>::UNIT_Y(0, 1);
+#endif
 
 #undef FORi
 
