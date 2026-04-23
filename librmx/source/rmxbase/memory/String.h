@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "rmxbase.h"
 #include "rmxbase/base/Basics.h"
 
 #include <vector>
@@ -16,6 +17,22 @@
 template<typename CHAR, typename CLASS> class StringTemplate;
 
 
+#if defined(PLATFORM_PS3)
+struct UnicodeEncoding
+{
+	enum Enum
+	{
+		AUTO = -1,
+		ASCII,
+		UTF8,
+		UTF16BE,
+		UTF16LE,
+		UTF32BE,
+		UTF32LE
+	};
+};
+typedef UnicodeEncoding::Enum UnicodeEncoding_t;
+#else
 enum class UnicodeEncoding
 {
 	AUTO = -1,
@@ -26,6 +43,8 @@ enum class UnicodeEncoding
 	UTF32BE,
 	UTF32LE
 };
+using UnicodeEncoding_t = UnicodeEncoding;
+#endif
 
 
 // Template for concrete classes
@@ -157,13 +176,13 @@ public:
 
 	uint8* extractData(size_t& datasize);
 
-	bool readUnicode(const uint8* data, size_t datasize, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
-	void writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding encoding = UnicodeEncoding::AUTO, bool addBOM = true) const;
+	bool readUnicode(const uint8* data, size_t datasize, UnicodeEncoding_t encoding = (UnicodeEncoding_t)UnicodeEncoding::AUTO);
+	void writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding_t encoding = (UnicodeEncoding_t)UnicodeEncoding::AUTO, bool addBOM = true) const;
 
-	bool loadFile(std::string_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
-	bool loadFile(std::wstring_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
-	bool saveFile(std::string_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;
-	bool saveFile(std::wstring_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;
+	bool loadFile(std::string_view filename, UnicodeEncoding_t encoding = (UnicodeEncoding_t)UnicodeEncoding::AUTO);
+	bool loadFile(std::wstring_view filename, UnicodeEncoding_t encoding = (UnicodeEncoding_t)UnicodeEncoding::AUTO);
+	bool saveFile(std::string_view filename, UnicodeEncoding_t encoding = (UnicodeEncoding_t)UnicodeEncoding::AUTO) const;
+	bool saveFile(std::wstring_view filename, UnicodeEncoding_t encoding = (UnicodeEncoding_t)UnicodeEncoding::AUTO) const;
 
 	CLASS& operator=(const CLASS& str)			{ copy(str); return (CLASS&)*this; }
 	CLASS& operator=(const CHAR* str)			{ copy(str); return (CLASS&)*this; }
@@ -200,10 +219,10 @@ private:
 	int sprintf(CHAR* dst, size_t dstSize, const CHAR* format, ...);
 
 protected:
-	CHAR* mData = 0;		// Pointer to the actual data
-	size_t mLength = 0;			// Length of the string, without the terminating zero
-	size_t mSize = 0;			// Size of dynamically allocated memory including terminating zero, in characters (not bytes!); note that this is 0 for constant strings
-	bool mDynamic = false;		// true if memory was dynamically allocated
+	CHAR* mData;		// Pointer to the actual data
+	size_t mLength;			// Length of the string, without the terminating zero
+	size_t mSize;			// Size of dynamically allocated memory including terminating zero, in characters (not bytes!); note that this is 0 for constant strings
+	bool mDynamic;		// true if memory was dynamically allocated
 };
 
 
@@ -286,3 +305,5 @@ namespace rmx
 		static int buildFormatted(CHAR* dst, size_t dstSize, const CHAR* format, va_list argv);
 	};
 }
+
+#include "StringImpl.h"

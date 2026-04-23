@@ -16,6 +16,7 @@ namespace rmx
 	class OneTimeAllocPool
 	{
 	public:
+		OneTimeAllocPool();
 		~OneTimeAllocPool();
 
 		inline void setPageSize(size_t pageSize)  { mPageSize = pageSize; }
@@ -26,14 +27,14 @@ namespace rmx
 	private:
 		struct Page
 		{
-			uint8* mData = nullptr;
-			size_t mSize = 0;
+			uint8* mData;
+			size_t mSize;
 		};
 		std::vector<Page> mPages;
 
-		size_t mPageSize = 0x10000;
-		uint8* mNextAllocationPointer = nullptr;
-		size_t mRemainingSize = 0;
+		size_t mPageSize;
+		uint8* mNextAllocationPointer;
+		size_t mRemainingSize;
 	};
 
 }

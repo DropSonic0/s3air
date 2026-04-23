@@ -8,10 +8,24 @@
 
 #pragma once
 
+#include "rmxbase.h"
 
 namespace rmx
 {
 
+#if defined(PLATFORM_PS3)
+	struct LogLevel
+	{
+		enum Enum
+		{
+			TRACE,
+			INFO,
+			WARNING,
+			ERROR
+		};
+	};
+	typedef LogLevel::Enum LogLevel_t;
+#else
 	enum class LogLevel
 	{
 		TRACE,
@@ -19,36 +33,46 @@ namespace rmx
 		WARNING,
 		ERROR
 	};
+	typedef LogLevel LogLevel_t;
+#endif
 
 
 	class LoggerBase
 	{
 	public:
 		virtual ~LoggerBase() {}
-		virtual void log(LogLevel logLevel, const std::string& string) = 0;
+		virtual void log(LogLevel_t logLevel, const std::string& string) = 0;
 	};
 
 
+#if defined(PLATFORM_PS3)
+	class StdCoutLogger : public LoggerBase
+#else
 	class StdCoutLogger final : public LoggerBase
+#endif
 	{
 	public:
 		explicit StdCoutLogger(bool addTimestamp = false);
-		void log(LogLevel logLevel, const std::string& string) override;
+		void log(LogLevel_t logLevel, const std::string& string) override;
 
 	private:
-		bool mAddTimestamp = false;
+		bool mAddTimestamp;
 	};
 
 
+#if defined(PLATFORM_PS3)
+	class FileLogger : public LoggerBase
+#else
 	class FileLogger final : public LoggerBase
+#endif
 	{
 	public:
 		FileLogger(const std::wstring& filename, bool addTimestamp = false, bool renameExisting = false);
-		void log(LogLevel logLevel, const std::string& string) override;
+		void log(LogLevel_t logLevel, const std::string& string) override;
 
 	private:
 		FileHandle mFileHandle;
-		bool mAddTimestamp = false;
+		bool mAddTimestamp;
 	};
 
 
@@ -57,7 +81,7 @@ namespace rmx
 	public:
 		static void clear();
 		static void addLogger(LoggerBase& logger);
-		static void log(LogLevel logLevel, const std::string& string);
+		static void log(LogLevel_t logLevel, const std::string& string);
 
 	private:
 		#if defined(PLATFORM_PS3)
@@ -70,6 +94,35 @@ namespace rmx
 }
 
 
+#if defined(PLATFORM_PS3)
+#define RMX_LOG_TRACE(_message_) \
+{ \
+	std::ostringstream stream; \
+	stream << _message_; \
+	rmx::Logging::log((rmx::LogLevel_t)rmx::LogLevel::TRACE, stream.str()); \
+}
+
+#define RMX_LOG_INFO(_message_) \
+{ \
+	std::ostringstream stream; \
+	stream << _message_; \
+	rmx::Logging::log((rmx::LogLevel_t)rmx::LogLevel::INFO, stream.str()); \
+}
+
+#define RMX_LOG_WARNING(_message_) \
+{ \
+	std::ostringstream stream; \
+	stream << _message_; \
+	rmx::Logging::log((rmx::LogLevel_t)rmx::LogLevel::WARNING, stream.str()); \
+}
+
+#define RMX_LOG_ERROR(_message_) \
+{ \
+	std::ostringstream stream; \
+	stream << _message_; \
+	rmx::Logging::log((rmx::LogLevel_t)rmx::LogLevel::ERROR, stream.str()); \
+}
+#else
 #define RMX_LOG_TRACE(_message_) \
 { \
 	std::ostringstream stream; \
@@ -97,3 +150,4 @@ namespace rmx
 	stream << _message_; \
 	rmx::Logging::log(rmx::LogLevel::ERROR, stream.str()); \
 }
+#endif

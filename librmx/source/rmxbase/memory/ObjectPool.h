@@ -120,15 +120,17 @@ protected:
 	struct Item
 	{
 		T mObject;
-		bool mIsUsed = false;			// Set if object is currently used
-		bool mIsConstructed = false;	// Set if constructor was called in the object
+		bool mIsUsed;			// Set if object is currently used
+		bool mIsConstructed;	// Set if constructor was called in the object
+
+		Item() : mIsUsed(false), mIsConstructed(false) {}
 	};
 
 	// A page is basically an array of items that all get allocated as one chunk of memory
 	struct Page
 	{
-		size_t mSize = 0;
-		Item* mItems = nullptr;
+		size_t mSize;
+		Item* mItems;
 	};
 
 protected:
@@ -145,6 +147,7 @@ protected:
 			// Create a new page
 			Page page;
 			page.mSize = mPageSize;
+				page.mItems = nullptr;
 
 			const size_t memorySize = sizeof(Item) * page.mSize;
 			page.mItems = static_cast<Item*>(malloc(memorySize));
@@ -152,7 +155,7 @@ protected:
 			// Initialize items
 			for (size_t i = 0; i < page.mSize; ++i)
 			{
-				Item& item = page.mItems[i];
+				Item& item = *new (&page.mItems[i]) Item();
 				item.mIsUsed = false;
 				item.mIsConstructed = AUTOCONSTRUCT;
 				rmx::detail::AutoConstruct<AUTOCONSTRUCT>::template construct<T>(static_cast<void*>(&item.mObject));
@@ -203,7 +206,7 @@ protected:
 		Item& item = allocItem();
 
 		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T();
+		new (static_cast<void*>(&item.mObject)) T;
 		item.mIsConstructed = true;
 
 		// Done
@@ -211,7 +214,7 @@ protected:
 	}
 
 	template<typename A>
-	T& createObject(A&& a)
+	T& createObject(const A& a)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -225,7 +228,7 @@ protected:
 	}
 
 	template<typename A, typename B>
-	T& createObject(A&& a, B&& b)
+	T& createObject(const A& a, const B& b)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -239,7 +242,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C>
-	T& createObject(A&& a, B&& b, C&& c)
+	T& createObject(const A& a, const B& b, const C& c)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -253,7 +256,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C, typename D>
-	T& createObject(A&& a, B&& b, C&& c, D&& d)
+	T& createObject(const A& a, const B& b, const C& c, const D& d)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -267,7 +270,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C, typename D, typename E>
-	T& createObject(A&& a, B&& b, C&& c, D&& d, E&& e)
+	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -281,7 +284,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C, typename D, typename E, typename F>
-	T& createObject(A&& a, B&& b, C&& c, D&& d, E&& e, F&& f)
+	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e, const F& f)
 	{
 		// Get an unused item
 		Item& item = allocItem();

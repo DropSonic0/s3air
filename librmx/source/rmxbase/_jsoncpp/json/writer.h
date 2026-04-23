@@ -191,9 +191,9 @@ private:
   void writeValue(const Value& value);
 
   String document_;
-  bool yamlCompatibilityEnabled_{false};
-  bool dropNullPlaceholders_{false};
-  bool omitEndingLineFeed_{false};
+  bool yamlCompatibilityEnabled_;
+  bool dropNullPlaceholders_;
+  bool omitEndingLineFeed_;
 };
 #if defined(_MSC_VER)
 #pragma warning(pop)
@@ -263,9 +263,9 @@ private:
   ChildValues childValues_;
   String document_;
   String indentString_;
-  unsigned int rightMargin_{74};
-  unsigned int indentSize_{3};
-  bool addChildValues_{false};
+  unsigned int rightMargin_;
+  unsigned int indentSize_;
+  bool addChildValues_;
 };
 #if defined(_MSC_VER)
 #pragma warning(pop)
@@ -341,7 +341,7 @@ private:
   ChildValues childValues_;
   OStream* document_;
   String indentString_;
-  unsigned int rightMargin_{74};
+  unsigned int rightMargin_;
   String indentation_;
   bool addChildValues_ : 1;
   bool indented_ : 1;

@@ -156,6 +156,6 @@ private:
 private:
 	bool mReading;
 	std::vector<uint8>& mBuffer;
-	size_t mReadPosition = 0;
-	bool mHasError = false;
+		size_t mReadPosition;
+		bool mHasError;
 };

@@ -70,11 +70,13 @@ namespace rmx
 	private:
 		struct MountPoint
 		{
-			FileProvider* mFileProvider = nullptr;
-			int mPriority = 0;
+				FileProvider* mFileProvider;
+				int mPriority;
 			std::wstring mMountPoint;
 			std::wstring mPrefixReplacement;
-			bool mNeedsPrefixConversion = false;	// Set if mount point and prefix replacement are different
+				bool mNeedsPrefixConversion;	// Set if mount point and prefix replacement are different
+
+				MountPoint() : mFileProvider(nullptr), mPriority(0), mNeedsPrefixConversion(false) {}
 		};
 
 	private:

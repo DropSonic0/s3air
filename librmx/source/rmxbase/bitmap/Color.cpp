@@ -53,13 +53,18 @@ uint32 Color::getABGR32() const
 		 + ((uint32)(::saturate(a) * 255) << 24);
 }
 
-void Color::setByEncoding(uint32 color, Encoding encoding)
+Color::Color(uint32 color, Encoding_t encoding) : Vec4f(Uninitialized)
+{
+	setByEncoding(color, encoding);
+}
+
+void Color::setByEncoding(uint32 color, Encoding_t encoding)
 {
 	switch (encoding)
 	{
-		case Encoding::RGBA_32:  setRGBA32(color);  break;
-		case Encoding::ARGB_32:  setARGB32(color);  break;
-		case Encoding::ABGR_32:  setABGR32(color);  break;
+		case (Encoding_t)Encoding::RGBA_32:  setRGBA32(color);  break;
+		case (Encoding_t)Encoding::ARGB_32:  setARGB32(color);  break;
+		case (Encoding_t)Encoding::ABGR_32:  setABGR32(color);  break;
 	}
 }
 

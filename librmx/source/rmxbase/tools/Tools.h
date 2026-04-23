@@ -12,8 +12,8 @@
 namespace rmx
 {
 
-	static const uint64 FNV1a_32_START_VALUE = 0xcbf29ce4u;
-	static const uint64 FNV1a_32_MAGIC_PRIME = 0x1000193u;
+	static const uint32 FNV1a_32_START_VALUE = 0xcbf29ce4u;
+	static const uint32 FNV1a_32_MAGIC_PRIME = 0x1000193u;
 	static const uint64 FNV1a_64_START_VALUE = 0xcbf29ce484222325;
 	static const uint64 FNV1a_64_MAGIC_PRIME = 0x00000100000001b3;
 
@@ -28,13 +28,21 @@ namespace rmx
 	uint64 addToFNV1a_64(uint64 hash, const uint8* data, size_t bytes);
 
 	// Compile-time FNV-1a 32-bit and 64-bit of a string
-	static inline uint32 compileTimeFNV_32(const char* string, const uint32 value = FNV1a_32_START_VALUE) noexcept
+	static inline uint32 compileTimeFNV_32(const char* string, const uint32 value)
 	{
-		return (string[0] == 0) ? value : compileTimeFNV_32(&string[1], (value ^ static_cast<uint32>(string[0])) * FNV1a_32_MAGIC_PRIME);
+		return (string[0] == 0) ? value : compileTimeFNV_32(&string[1], (value ^ static_cast<uint32>(string[0])) * (uint32)FNV1a_32_MAGIC_PRIME);
 	}
-	static inline uint64 compileTimeFNV_64(const char* string, const uint64 value = FNV1a_64_START_VALUE) noexcept
+	static inline uint32 compileTimeFNV_32(const char* string)
+	{
+		return compileTimeFNV_32(string, FNV1a_32_START_VALUE);
+	}
+	static inline uint64 compileTimeFNV_64(const char* string, const uint64 value)
 	{
 		return (string[0] == 0) ? value : compileTimeFNV_64(&string[1], (value ^ static_cast<uint32>(string[0])) * FNV1a_64_MAGIC_PRIME);
+	}
+	static inline uint64 compileTimeFNV_64(const char* string)
+	{
+		return compileTimeFNV_64(string, FNV1a_64_START_VALUE);
 	}
 
 	// Calculate Murmur2 64-bit hash for data

@@ -71,8 +71,10 @@ public:
 
 	struct DataBlockInfo
 	{
-		uint64 mBeginPosition = 0xffffffffffffffffULL;
-		uint64 mEndPosition = 0xffffffffffffffffULL;
+			uint64 mBeginPosition;
+			uint64 mEndPosition;
+
+			DataBlockInfo() : mBeginPosition(0xffffffffffffffffULL), mEndPosition(0xffffffffffffffffULL) {}
 	};
 
 public:
@@ -186,8 +188,8 @@ private:
 	void writePortable(const void* address, size_t bytes, bool checkEndianness);
 
 private:
-	std::istream* mInputStream = nullptr;
-	std::ostream* mOutputStream = nullptr;
-	TokenMode	  mTokenMode = TOKEN_FLAG_NONE;
-	bool		  mIsLittleEndianMachine = true;
+		std::istream* mInputStream;
+		std::ostream* mOutputStream;
+		TokenMode	  mTokenMode;
+		bool		  mIsLittleEndianMachine;
 };

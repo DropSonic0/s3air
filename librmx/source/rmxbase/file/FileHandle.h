@@ -43,7 +43,7 @@ public:
 	void flush();
 
 private:
-	FILE* mFile = 0;
+		FILE* mFile;
 	WString mFilename;
-	mutable int64 mFileSize = 0;
+		mutable int64 mFileSize;
 };

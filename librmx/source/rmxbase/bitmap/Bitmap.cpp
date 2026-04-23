@@ -11,21 +11,21 @@
 
 Bitmap::CodecList Bitmap::mCodecs;
 
-Bitmap::Bitmap()
+Bitmap::Bitmap() : mData(nullptr), mWidth(0), mHeight(0)
 {
 }
 
-Bitmap::Bitmap(const Bitmap& bitmap)
+Bitmap::Bitmap(const Bitmap& bitmap) : mData(nullptr), mWidth(0), mHeight(0)
 {
 	copy(bitmap);
 }
 
-Bitmap::Bitmap(const String& filename)
+Bitmap::Bitmap(const String& filename) : mData(nullptr), mWidth(0), mHeight(0)
 {
 	load(filename.toWString());
 }
 
-Bitmap::Bitmap(const WString& filename)
+Bitmap::Bitmap(const WString& filename) : mData(nullptr), mWidth(0), mHeight(0)
 {
 	load(filename);
 }
@@ -288,7 +288,7 @@ bool Bitmap::encode(OutputStream& stream, const char* format) const
 	return false;
 }
 
-uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
+uint8* Bitmap::convert(ColorFormat_t format, int& size, uint32* palette)
 {
 	// Convert into a different color format
 	uint8* output = nullptr;
@@ -297,7 +297,7 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 	switch (format)
 	{
 		// Convert RGBA -> RGB
-		case ColorFormat::RGB24:
+		case (ColorFormat_t)ColorFormat::RGB24:
 		{
 			size *= 3;
 			output = new uint8[size];
@@ -307,7 +307,7 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		}
 
 		// Reduce to 16-bit
-		case ColorFormat::RGB16:
+		case (ColorFormat_t)ColorFormat::RGB16:
 		{
 			size *= 2;
 			output = new uint8[size];
@@ -323,7 +323,7 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		}
 
 		// Create palette with 256 colors
-		case ColorFormat::INDEXED_256_COLORS:
+		case (ColorFormat_t)ColorFormat::INDEXED_256_COLORS:
 		{
 			if (!palette)
 				break;
@@ -333,7 +333,7 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		}
 
 		// Create palette with 16 colors
-		case ColorFormat::INDEXED_16_COLORS:
+		case (ColorFormat_t)ColorFormat::INDEXED_16_COLORS:
 		{
 			if (!palette)
 				break;
@@ -379,7 +379,7 @@ bool Bitmap::load(const WString& filename, LoadResult* outResult)
 	if (nullptr == stream)
 	{
 		if (nullptr != outResult)
-			outResult->mError = LoadResult::Error::FILE_NOT_FOUND;
+			outResult->mError = (Bitmap::LoadResult::Error_t)Bitmap::LoadResult::Error::FILE_NOT_FOUND;
 		return false;
 	}
 

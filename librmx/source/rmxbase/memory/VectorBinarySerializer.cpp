@@ -55,13 +55,17 @@ namespace
 
 VectorBinarySerializer::VectorBinarySerializer(bool read, std::vector<uint8>& buffer) :
 	mReading(read),
-	mBuffer(buffer)
+	mBuffer(buffer),
+	mReadPosition(0),
+	mHasError(false)
 {
 }
 
 VectorBinarySerializer::VectorBinarySerializer(bool read, const std::vector<uint8>& buffer) :
 	mReading(read),
-	mBuffer(const_cast<std::vector<uint8>&>(buffer))
+	mBuffer(const_cast<std::vector<uint8>&>(buffer)),
+	mReadPosition(0),
+	mHasError(false)
 {
 }
 

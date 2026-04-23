@@ -37,16 +37,16 @@ namespace
 }
 
 
-FileHandle::FileHandle()
+FileHandle::FileHandle() : mFile(0), mFileSize(0)
 {
 }
 
-FileHandle::FileHandle(const String& filename, uint32 flags)
+FileHandle::FileHandle(const String& filename, uint32 flags) : mFile(0), mFileSize(0)
 {
 	open(filename, flags);
 }
 
-FileHandle::FileHandle(const WString& filename, uint32 flags)
+FileHandle::FileHandle(const WString& filename, uint32 flags) : mFile(0), mFileSize(0)
 {
 	open(filename, flags);
 }

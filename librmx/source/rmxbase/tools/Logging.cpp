@@ -64,7 +64,7 @@ namespace rmx
 	{
 	}
 
-	void StdCoutLogger::log(LogLevel logLevel, const std::string& string)
+	void StdCoutLogger::log(LogLevel_t logLevel, const std::string& string)
 	{
 		// Write to std::cout
 		if (mAddTimestamp)
@@ -114,7 +114,7 @@ namespace rmx
 		mFileHandle.open(filename, FILE_ACCESS_WRITE);
 	}
 
-	void FileLogger::log(LogLevel logLevel, const std::string& string)
+	void FileLogger::log(LogLevel_t logLevel, const std::string& string)
 	{
 		if (mAddTimestamp)
 		{
@@ -142,7 +142,7 @@ namespace rmx
 		mLoggers.push_back(&logger);
 	}
 
-	void Logging::log(LogLevel logLevel, const std::string& string)
+	void Logging::log(LogLevel_t logLevel, const std::string& string)
 	{
 		for (LoggerBase* logger : mLoggers)
 		{

@@ -435,7 +435,7 @@ void FastWriter::writeValue(const Value& value) {
 // Class StyledWriter
 // //////////////////////////////////////////////////////////////////
 
-StyledWriter::StyledWriter() : addChildValues_(false) {}
+StyledWriter::StyledWriter() : rightMargin_(74), indentSize_(3), addChildValues_(false) {}
 
 String StyledWriter::write(const Value& root) {
   document_.clear();
@@ -648,8 +648,8 @@ bool StyledWriter::hasCommentForValue(const Value& value) {
 // //////////////////////////////////////////////////////////////////
 
 StyledStreamWriter::StyledStreamWriter(String indentation)
-    : document_(0), indentation_(std::move(indentation)),
-      addChildValues_(), indented_(false) {}
+    : document_(0), rightMargin_(74), indentation_(std::move(indentation)),
+      addChildValues_(false), indented_(false) {}
 
 void StyledStreamWriter::write(OStream& out, const Value& root) {
   document_ = &out;

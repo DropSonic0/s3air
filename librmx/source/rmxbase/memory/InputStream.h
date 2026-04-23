@@ -21,12 +21,26 @@ namespace StreamIO
 class API_EXPORT InputStream
 {
 public:
+#if defined(PLATFORM_PS3)
+	struct StreamingState
+	{
+		enum Enum
+		{
+			STREAMING,		// Next read will likely return more data
+			BLOCKED,		// Reading is currently blocked, try again later
+			COMPLETED		// Stream is read completely, reads will not return any more data
+		};
+	};
+	typedef StreamingState::Enum StreamingState_t;
+#else
 	enum class StreamingState
 	{
 		STREAMING,		// Next read will likely return more data
 		BLOCKED,		// Reading is currently blocked, try again later
 		COMPLETED		// Stream is read completely, reads will not return any more data
 	};
+	typedef StreamingState StreamingState_t;
+#endif
 
 public:
 	virtual ~InputStream() {}
@@ -43,7 +57,7 @@ public:
 	virtual size_t read(void* dst, size_t len) = 0;
 	virtual void skip(size_t len) = 0;
 	virtual bool tryRead(const void* data, size_t len) = 0;
-	virtual StreamingState getStreamingState() = 0;
+	virtual StreamingState_t getStreamingState() = 0;
 	virtual void rewind()  { setPosition(0); }
 
 	template<typename T> T read()
@@ -108,6 +122,7 @@ class API_EXPORT MemInputStream : public InputStream
 public:
 	MemInputStream(const void* data, size_t size, bool autoDelete = false);
 	MemInputStream(InputStream& input);
+	MemInputStream();
 	~MemInputStream();
 
 	bool valid() const  { return (0 != mBuffer); }
@@ -119,19 +134,21 @@ public:
 	size_t getSize() const   { return (size_t)(mBufferEnd - mBuffer); }
 	size_t getRemaining() const   { return (size_t)(mBufferEnd - mCursor); }
 
+#if !defined(PLATFORM_PS3)
 	using InputStream::read;
+#endif
 	size_t read(void* dst, size_t len) ;
 	void skip(size_t len) ;
 	bool tryRead(const void* data, size_t len) ;
-	StreamingState getStreamingState() ;
+	StreamingState_t getStreamingState() ;
 
 	const uint8* getCursor()  { return mCursor; }
 
 protected:
-	const uint8* mBuffer = 0;
-	const uint8* mBufferEnd = 0;
-	const uint8* mCursor = 0;
-	bool mAutoDelete = false;
+	const uint8* mBuffer;
+	const uint8* mBufferEnd;
+	const uint8* mCursor;
+	bool mAutoDelete;
 };
 
 
@@ -139,7 +156,7 @@ protected:
 class API_EXPORT FileInputStream : public InputStream
 {
 public:
-	FileInputStream() {}
+	FileInputStream();
 	FileInputStream(const String& filename);
 	FileInputStream(const WString& filename);
 	~FileInputStream();
@@ -159,13 +176,15 @@ public:
 	size_t getPosition() const   { return (size_t)getPosition64(); }
 	size_t getSize() const   { return (size_t)getSize64(); }
 
+#if !defined(PLATFORM_PS3)
 	using InputStream::read;
+#endif
 	size_t read(void* dst, size_t len) ;
 	void skip(size_t len) ;
 	bool tryRead(const void* data, size_t len) ;
-	StreamingState getStreamingState() ;
+	StreamingState_t getStreamingState() ;
 
 private:
 	FileHandle mFile;
-	StreamingState mLastStreamingState = StreamingState::COMPLETED;
+	StreamingState_t mLastStreamingState;
 };

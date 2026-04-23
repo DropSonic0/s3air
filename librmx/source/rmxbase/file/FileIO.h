@@ -21,8 +21,10 @@ namespace rmx
 		{
 			std::wstring mFilename;
 			std::wstring mPath;
-			time_t mTime = 0;
-			size_t mSize = 0;
+				time_t mTime;
+				size_t mSize;
+
+				FileEntry() : mTime(0), mSize(0) {}
 		};
 
 	public:

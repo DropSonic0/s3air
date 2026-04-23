@@ -21,6 +21,7 @@ namespace StreamIO
 class API_EXPORT OutputStream
 {
 public:
+	virtual ~OutputStream() {}
 	virtual void setPosition(int pos) = 0;
 	virtual int  getPosition() const = 0;
 	virtual void rewind()  { setPosition(0); }
@@ -65,7 +66,7 @@ class API_EXPORT MemOutputStream : public OutputStream
 {
 public:
 	MemOutputStream(int size);
-	~MemOutputStream();
+	virtual ~MemOutputStream();
 
 	void setPosition(int pos)	{ mCursor = mBuffer + pos; assert(mCursor <= mBufferEnd); }
 	int getPosition() const		{ return (int)(mCursor - mBuffer); }
@@ -77,9 +78,9 @@ public:
 	bool saveToFile(const String& filename);
 
 protected:
-	uint8* mBuffer = 0;
-	uint8* mBufferEnd = 0;
-	uint8* mCursor = 0;
+		uint8* mBuffer;
+		uint8* mBufferEnd;
+		uint8* mCursor;
 };
 
 
@@ -88,7 +89,7 @@ class API_EXPORT DynOutputStream : public OutputStream
 {
 public:
 	DynOutputStream();
-	~DynOutputStream();
+	virtual ~DynOutputStream();
 
 	void clear();
 
@@ -104,8 +105,8 @@ protected:
 
 protected:
 	std::vector<uint8*> mPages;
-	int mPageSize = 1024;
-	int mCurrPage = 0;
-	uint8* mCursor = 0;
-	uint8* mPageEnd = 0;
+		int mPageSize;
+		int mCurrPage;
+		uint8* mCursor;
+		uint8* mPageEnd;
 };

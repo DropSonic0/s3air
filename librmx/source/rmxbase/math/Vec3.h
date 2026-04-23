@@ -25,15 +25,9 @@ public:
 	};
 
 #if defined(PLATFORM_PS3)
-	struct Initialization
-	{
-		enum Enum
-		{
-			NONE
-		};
-	};
-	typedef Initialization::Enum Initialization_t;
-	static const Initialization_t Uninitialized = Initialization::NONE;
+	enum Initialization_t { Initialization_NONE };
+	struct Initialization { enum { NONE = Initialization_NONE }; };
+	static const Initialization_t Uninitialized = (Initialization_t)Initialization_NONE;
 #else
 	enum class Initialization { NONE };
 	using Initialization_t = Initialization;

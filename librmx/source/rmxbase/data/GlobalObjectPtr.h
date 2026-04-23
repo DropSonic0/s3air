@@ -13,6 +13,7 @@ template<class CLASS>
 class GlobalObjectPtr
 {
 public:
+	GlobalObjectPtr() : mInstance(0) {}
 	~GlobalObjectPtr()
 	{
 		clear();
@@ -41,5 +42,5 @@ public:
 	CLASS* operator->()  { return mInstance; }
 
 private:
-	CLASS* mInstance = 0;
+	CLASS* mInstance;
 };

@@ -11,6 +11,10 @@
 
 namespace rmx
 {
+	OneTimeAllocPool::OneTimeAllocPool() : mPageSize(0x10000), mNextAllocationPointer(nullptr), mRemainingSize(0)
+	{
+	}
+
 	OneTimeAllocPool::~OneTimeAllocPool()
 	{
 		clear();
@@ -35,6 +39,7 @@ namespace rmx
 
 			// Add a new page
 			Page& page = vectorAdd(mPages);
+			page.mData = nullptr;
 			page.mData = new uint8[mPageSize];
 			page.mSize = mPageSize;
 

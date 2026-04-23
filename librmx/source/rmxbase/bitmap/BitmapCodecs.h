@@ -14,6 +14,7 @@
 class IBitmapCodec
 {
 public:
+	virtual ~IBitmapCodec() {}
 	virtual bool canDecode(const String& format) const  { return false; }
 	virtual bool canEncode(const String& format) const  { return false; }
 	virtual bool decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult)  { return false; }
@@ -23,6 +24,7 @@ public:
 class API_EXPORT BitmapCodecBMP : public IBitmapCodec
 {
 public:
+	virtual ~BitmapCodecBMP() {}
 	bool canDecode(const String& format) const override;
 	bool canEncode(const String& format) const override;
 	bool decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult) override;
@@ -32,6 +34,7 @@ public:
 class API_EXPORT BitmapCodecPNG : public IBitmapCodec
 {
 public:
+	virtual ~BitmapCodecPNG() {}
 	bool canDecode(const String& format) const override;
 	bool canEncode(const String& format) const override;
 	bool decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult) override;
@@ -41,6 +44,7 @@ public:
 class API_EXPORT BitmapCodecJPG : public IBitmapCodec
 {
 public:
+	virtual ~BitmapCodecJPG() {}
 	bool canDecode(const String& format) const override;
 	bool canEncode(const String& format) const override;
 	bool decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult) override;
@@ -50,6 +54,7 @@ public:
 class API_EXPORT BitmapCodecICO : public IBitmapCodec
 {
 public:
+	virtual ~BitmapCodecICO() {}
 	bool canDecode(const String& format) const override;
 	bool canEncode(const String& format) const override;
 	bool decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult) override;

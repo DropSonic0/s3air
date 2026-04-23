@@ -50,7 +50,7 @@ bool MemOutputStream::saveToFile(const String& filename)
 
 /* ----- DynOutputStream --------------------------------------------------------------------------------- */
 
-DynOutputStream::DynOutputStream()
+DynOutputStream::DynOutputStream() : mPageSize(1024), mCurrPage(0), mCursor(0), mPageEnd(0)
 {
 }
 

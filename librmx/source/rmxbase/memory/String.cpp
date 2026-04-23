@@ -279,3 +279,12 @@ uint32 WString::readUTF8(const char*& str, size_t& length)
 		return 0xffffffff;		// Too large code (over 0x140000)
 	}
 }
+
+template<> const StringTemplate<char, String> StringTemplate<char, String>::EMPTY;
+template<> const StringTemplate<wchar_t, WString> StringTemplate<wchar_t, WString>::EMPTY;
+
+// Force instantiation of templates on PS3 if needed
+#if defined(PLATFORM_PS3)
+template class StringTemplate<char, String>;
+template class StringTemplate<wchar_t, WString>;
+#endif
