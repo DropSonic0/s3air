@@ -69,11 +69,11 @@ private:
 	inline void refillBitBuffer();
 	void decodeHuffmanDC(short* output, HuffmanTable* htab, short& prev_DC);
 	void decodeHuffmanAC(short* output, HuffmanTable* htab, int count);
-	Bitmap::LoadResult::Error readDQT(const uint8* mem, int size);
-	Bitmap::LoadResult::Error readDHT(const uint8* mem, int size);
-	Bitmap::LoadResult::Error readSOF(const uint8* mem, int size);
-	Bitmap::LoadResult::Error readSOS(const uint8* mem, int& size);
-	Bitmap::LoadResult::Error readJPEG(const uint8* buffer, size_t bufsize);
+	Bitmap::LoadResult::Error_t readDQT(const uint8* mem, int size);
+	Bitmap::LoadResult::Error_t readDHT(const uint8* mem, int size);
+	Bitmap::LoadResult::Error_t readSOF(const uint8* mem, int size);
+	Bitmap::LoadResult::Error_t readSOS(const uint8* mem, int& size);
+	Bitmap::LoadResult::Error_t readJPEG(const uint8* buffer, size_t bufsize);
 
 	// Part 2: Decode into bitmap
 	void applyIDCT(short* input, unsigned char* output);
@@ -232,7 +232,7 @@ void BitmapJPG::decodeHuffmanAC(short* output, HuffmanTable* htab, int count)
 	}
 }
 
-Bitmap::LoadResult::Error BitmapJPG::readDQT(const uint8* mem, int size)
+Bitmap::LoadResult::Error_t BitmapJPG::readDQT(const uint8* mem, int size)
 {
 	// DQT: Define Quantization Table
 	int pos = 0;
@@ -249,7 +249,7 @@ Bitmap::LoadResult::Error BitmapJPG::readDQT(const uint8* mem, int size)
 	return Bitmap::LoadResult::Error::OK;
 }
 
-Bitmap::LoadResult::Error BitmapJPG::readDHT(const uint8* mem, int size)
+Bitmap::LoadResult::Error_t BitmapJPG::readDHT(const uint8* mem, int size)
 {
 	// DHT: Define Huffman Table
 	int pos = 0;
@@ -290,7 +290,7 @@ Bitmap::LoadResult::Error BitmapJPG::readDHT(const uint8* mem, int size)
 	return Bitmap::LoadResult::Error::OK;
 }
 
-Bitmap::LoadResult::Error BitmapJPG::readSOF(const uint8* mem, int size)
+Bitmap::LoadResult::Error_t BitmapJPG::readSOF(const uint8* mem, int size)
 {
 	// SOF: Start Of Frame
 	if (mem[0] != 8)
@@ -343,7 +343,7 @@ Bitmap::LoadResult::Error BitmapJPG::readSOF(const uint8* mem, int size)
 	return Bitmap::LoadResult::Error::OK;
 }
 
-Bitmap::LoadResult::Error BitmapJPG::readSOS(const uint8* mem, int& size)
+Bitmap::LoadResult::Error_t BitmapJPG::readSOS(const uint8* mem, int& size)
 {
 	// SOS: Start Of Scan
 	if (!found_SOF)
@@ -432,7 +432,7 @@ Bitmap::LoadResult::Error BitmapJPG::readSOS(const uint8* mem, int& size)
 	return Bitmap::LoadResult::Error::OK;
 }
 
-Bitmap::LoadResult::Error BitmapJPG::readJPEG(const uint8* buffer, size_t bufsize)
+Bitmap::LoadResult::Error_t BitmapJPG::readJPEG(const uint8* buffer, size_t bufsize)
 {
 	// Read JPEG data stream
 	if (buffer[0] != 0xff || buffer[1] != JPG_SOI)
@@ -457,7 +457,7 @@ Bitmap::LoadResult::Error BitmapJPG::readJPEG(const uint8* buffer, size_t bufsiz
 		pos += 3;
 		const uint8* mem = &buffer[pos];
 
-		Bitmap::LoadResult::Error result = Bitmap::LoadResult::Error::OK;
+		Bitmap::LoadResult::Error_t result = Bitmap::LoadResult::Error::OK;
 		switch (type)
 		{
 			// APP0: Header with signature & version number

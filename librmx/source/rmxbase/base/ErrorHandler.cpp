@@ -110,7 +110,7 @@ namespace
 	}
 #endif
 
-	int showFallbackMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message)
+	int showFallbackMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType_t dialogType, rmx::ErrorSeverity_t errorSeverity, const std::string& message)
 	{
 		// Build output message
 		std::stringstream stringBuilder;
@@ -135,7 +135,7 @@ namespace
 		return MessageBoxA(0, stringBuilder.str().c_str(), caption.c_str(), type | icon);
 	}
 
-	int showWindowsMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message)
+	int showWindowsMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType_t dialogType, rmx::ErrorSeverity_t errorSeverity, const std::string& message)
 	{
 		// Show a message box, preferably Vista-style
 	#ifdef USE_VISTA_STYLE
@@ -174,7 +174,7 @@ namespace rmx
 	#endif
 	}
 
-	void ErrorHandling::printToLog(ErrorSeverity errorSeverity, const std::string& message)
+	void ErrorHandling::printToLog(ErrorSeverity_t errorSeverity, const std::string& message)
 	{
 		if (0 != mLogger)
 		{
@@ -182,7 +182,7 @@ namespace rmx
 		}
 	}
 
-	bool ErrorHandling::handleAssertBreak(ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line)
+	bool ErrorHandling::handleAssertBreak(ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line)
 	{
 		// Log message in any case
 		printToLog(errorSeverity, message);
@@ -197,13 +197,13 @@ namespace rmx
 			return false;
 		isInsideAssertBreakHandler = true;
 
-		MessageBoxInterface::DialogType dialogType = MessageBoxInterface::DialogType::ACCEPT_OR_CANCEL;
+		MessageBoxInterface::DialogType_t dialogType = MessageBoxInterface::DialogType::ACCEPT_OR_CANCEL;
 		if (isDebuggerAttached())
 		{
 			dialogType = MessageBoxInterface::DialogType::ALL_OPTIONS;
 		}
 
-		MessageBoxInterface::Result result = MessageBoxInterface::Result::ABORT;
+		MessageBoxInterface::Result_t result = MessageBoxInterface::Result::ABORT;
 		if (0 != mMessageBoxImplementation)
 		{
 			result = mMessageBoxImplementation->showMessageBox(dialogType, errorSeverity, message, filename, line);
