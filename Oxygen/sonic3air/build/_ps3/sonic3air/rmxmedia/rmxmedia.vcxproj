@@ -1,0 +1,139 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|PS3">
+      <Configuration>Debug</Configuration>
+      <Platform>PS3</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|PS3">
+      <Configuration>Release</Configuration>
+      <Platform>PS3</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioMixer.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioReference.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\VideoBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\file\FileInputStreamSDL.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\file\FileProviderSDL.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\Font.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontProcessor.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontSource.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\AppFramework.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\FTX_System.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\GuiBase.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Framebuffer.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\GLTools.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLFontOutput.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Painter.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Shader.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\SpriteAtlas.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Texture.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\VertexArrayObject.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\rmxmedia.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\JobManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\Thread.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\glew.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioManager.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioMixer.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioReference.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\VideoBuffer.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\file\FileInputStreamSDL.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\file\FileProviderSDL.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\Font.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontProcessor.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontSource.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\AppFramework.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\FTX_System.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\GuiBase.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Framebuffer.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\GLTools.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLFontOutput.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLHelper.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Painter.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Shader.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\SpriteAtlas.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Texture.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\VertexArrayObject.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\JobManager.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\Thread.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\eglew.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\glew.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\glxew.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\wglew.h" />
+    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia_externals.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\StdFontData.inc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\rmxbase\rmxbase.vcxproj">
+      <Project>{5b2a91f1-44ff-4b13-8f6d-3e0699c6e6d0}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
+    <ProjectGuid>{65D4748F-FB9D-4F13-BF2A-BCDE10F6B133}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>SNC</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>SNC</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(DebuggerFlavor)'=='PS3Debugger'" Label="OverrideDebuggerDefaults">
+    <!--LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand-->
+    <!--LocalDebuggerCommandArguments></LocalDebuggerCommandArguments-->
+    <!--LocalDebuggerCommandLine>-r -e -m</LocalDebuggerCommandLine-->
+    <!--LocalRunCommandLine>-r</LocalRunCommandLine-->
+    <!--LocalTunerCommandLine></LocalTunerCommandLine-->
+    <!--LocalDebuggerFileServingDirectory>$(ProjectDir)</LocalDebuggerFileServingDirectory-->
+    <!--LocalDebuggerHomeDirectory>$(ProjectDir)</LocalDebuggerHomeDirectory-->
+    <!--LocalDebuggerProjectFile></LocalDebuggerProjectFile-->
+    <!--LocalDebuggerResetType>Soft</LocalDebuggerResetType-->
+    <!--LocalDebuggerClearTty>False</LocalDebuggerClearTty-->
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
+    <OutDir>$(ProjectDir)..\..\lib\$(BuildCode)\</OutDir>
+    <IntDir>$(ProjectName)_$(BuildCode)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;__CELL_ASSERT__;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <OptimizationLevel>Level2</OptimizationLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CppLanguageStd>Cpp11</CppLanguageStd>
+      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\librmx\source;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include;C:\sonic3air-24.02.02.0-stable\librmx\source\rmxmedia\_glew;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
