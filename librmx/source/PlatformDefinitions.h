@@ -165,6 +165,30 @@
 			}
 			bool operator!=(const CHAR* s) const { return !(*this == s); }
 
+			int compare(const basic_string_view& other) const {
+				size_t len = (mLength < other.mLength) ? mLength : other.mLength;
+				for (size_t i = 0; i < len; ++i) {
+					if (mData[i] < other.mData[i]) return -1;
+					if (mData[i] > other.mData[i]) return 1;
+				}
+				if (mLength < other.mLength) return -1;
+				if (mLength > other.mLength) return 1;
+				return 0;
+			}
+
+			size_t find(const basic_string_view& s, size_t pos = 0) const {
+				if (s.mLength == 0) return pos <= mLength ? pos : npos;
+				if (pos + s.mLength > mLength) return npos;
+				for (size_t i = pos; i <= mLength - s.mLength; ++i) {
+					size_t j = 0;
+					for (; j < s.mLength; ++j) {
+						if (mData[i + j] != s.mData[j]) break;
+					}
+					if (j == s.mLength) return i;
+				}
+				return npos;
+			}
+
 			size_t find_last_of(const CHAR* s, size_t pos = npos) const {
 				if (mLength == 0 || s == 0) return npos;
 				if (pos == npos || pos >= mLength) pos = mLength - 1;
