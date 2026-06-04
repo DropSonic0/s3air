@@ -200,7 +200,11 @@ namespace lemon
 
 				default:
 				{
+#if defined(PLATFORM_PS3)
+					writer.writeLine(*String(0, "<unknown_node_%d>", (int)node.getType()));
+#else
 					writer.writeLine("<unknown_node_" + std::to_string((int)node.getType()) + ">");
+#endif
 					break;
 				}
 			}

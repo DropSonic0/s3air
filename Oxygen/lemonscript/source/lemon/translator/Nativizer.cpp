@@ -54,19 +54,31 @@ namespace lemon
 
 	void Nativizer::LookupDictionary::addEmptyEntries(const uint64* hashes, size_t numHashes)
 	{
+#if !defined(PLATFORM_PS3)
 		mEntries.reserve(mEntries.size() + numHashes);
+#endif
 		for (size_t i = 0; i < numHashes; ++i)
 		{
+#if defined(PLATFORM_PS3)
+			mEntries.insert(std::make_pair(hashes[i], LookupEntry()));
+#else
 			mEntries.emplace(hashes[i], LookupEntry());
+#endif
 		}
 	}
 
 	void Nativizer::LookupDictionary::loadFunctions(const CompactFunctionEntry* entries, size_t numEntries)
 	{
+#if !defined(PLATFORM_PS3)
 		mEntries.reserve(mEntries.size() + numEntries);
+#endif
 		for (size_t i = 0; i < numEntries; ++i)
 		{
+#if defined(PLATFORM_PS3)
+			mEntries.insert(std::make_pair(entries[i].mHash, LookupEntry(entries[i].mFunctionPointer, entries[i].mParameterStart)));
+#else
 			mEntries.emplace(entries[i].mHash, LookupEntry(entries[i].mFunctionPointer, entries[i].mParameterStart));
+#endif
 		}
 	}
 
@@ -218,7 +230,7 @@ namespace lemon
 			mBuiltDictionary.mParameterData.resize(1);
 			mBuiltDictionary.mParameterData[0].mOffset = 0;
 			mBuiltDictionary.mParameterData[0].mOpcodeIndex = 0xff;
-			mBuiltDictionary.mParameterData[0].mSemantics = (LookupEntry::ParameterInfo::Semantics)0xff;
+			mBuiltDictionary.mParameterData[0].mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
 		}
 
 		// Start writing
@@ -253,7 +265,11 @@ namespace lemon
 				const size_t chunks = (bytes + 0x7fff) / 0x8000;
 				for (size_t i = 0; i < chunks; ++i)
 				{
+#if defined(PLATFORM_PS3)
+					const std::string identifier = (*String(0, "emptyEntries%d", (int)i));
+#else
 					const std::string identifier = "emptyEntries" + std::to_string(i);
+#endif
 					const size_t restBytes = std::min<size_t>(bytes - i * 0x8000, 0x8000);
 					writeBinaryBlob(writer, identifier, &data[i * 0x8000], restBytes);
 					writer.writeLine("dict.addEmptyEntries(reinterpret_cast<const uint64*>(" + identifier + "), " + rmx::hexString(restBytes / 8, 2) + ");");
@@ -271,7 +287,7 @@ namespace lemon
 					const LookupEntry& lookupEntry = pair.second;
 					if (nullptr != lookupEntry.mExecFunc)
 					{
-						functionList.emplace_back(pair.first, pair.second.mParameterStart);
+						functionList.push_back(std::make_pair(pair.first, pair.second.mParameterStart));
 					}
 				}
 
@@ -392,7 +408,7 @@ namespace lemon
 				// Add a terminating entry as well
 				parameterPtr->mOffset = (uint16)nativizerInternal.mParameters.mTotalSize;
 				parameterPtr->mOpcodeIndex = 0xff;
-				parameterPtr->mSemantics = (LookupEntry::ParameterInfo::Semantics)0xff;
+				parameterPtr->mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
 			}
 		}
 

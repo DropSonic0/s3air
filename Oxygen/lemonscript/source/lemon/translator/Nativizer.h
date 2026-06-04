@@ -26,8 +26,8 @@ namespace lemon
 	class Nativizer
 	{
 	public:
-		static const constexpr size_t MIN_OPCODES = 2;
-		static const constexpr size_t MAX_OPCODES = 32;
+		static constexpr size_t MIN_OPCODES = 2;
+		static constexpr size_t MAX_OPCODES = 32;
 
 		struct OpcodeSubtypeInfo
 		{
@@ -53,7 +53,8 @@ namespace lemon
 					INTEGER,
 					GLOBAL_VARIABLE,
 					EXTERNAL_VARIABLE,
-					FIXED_MEMORY_ADDRESS
+					FIXED_MEMORY_ADDRESS,
+					UNDEFINED = 0xff
 				};
 
 				uint16 mOffset = 0;
