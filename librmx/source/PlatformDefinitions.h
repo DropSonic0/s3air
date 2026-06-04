@@ -37,6 +37,9 @@
 	#ifndef override
 		#define override
 	#endif
+	#ifndef final
+		#define final
+	#endif
 	#ifndef noexcept
 		#define noexcept
 	#endif
@@ -91,6 +94,28 @@
 			T* release() { T* p = ptr; ptr = 0; return p; }
 			void reset(T* p = 0) { if (ptr != p) { delete ptr; ptr = p; } }
 			unique_ptr& operator=(const unique_ptr& other) { reset(const_cast<unique_ptr&>(other).release()); return *this; }
+		};
+
+		template <typename T>
+		struct shared_ptr {
+			T* ptr;
+			int* refCount;
+			explicit shared_ptr(T* p = 0) : ptr(p), refCount(new int(1)) {}
+			shared_ptr(const shared_ptr& other) : ptr(other.ptr), refCount(other.refCount) { (*refCount)++; }
+			~shared_ptr() { if (--(*refCount) == 0) { delete ptr; delete refCount; } }
+			T& operator*() const { return *ptr; }
+			T* operator->() const { return ptr; }
+			operator bool() const { return ptr != 0; }
+			T* get() const { return ptr; }
+			shared_ptr& operator=(const shared_ptr& other) {
+				if (this != &other) {
+					if (--(*refCount) == 0) { delete ptr; delete refCount; }
+					ptr = other.ptr;
+					refCount = other.refCount;
+					(*refCount)++;
+				}
+				return *this;
+			}
 		};
 
 		template <typename T> T& move(T& t) { return t; }

@@ -13,7 +13,7 @@
 AudioBuffer::LoadCallbackList AudioBuffer::mStaticLoadCallbacks;
 
 
-AudioBuffer::AudioBuffer()
+AudioBuffer::AudioBuffer() : mPurgedFrames(0), mLength(0), mChannels(2), mFrequency(44100), mPersistent(true), mCompleted(false), mMutexLockCounter(0)
 {
 }
 
@@ -37,29 +37,23 @@ void AudioBuffer::addData(short** data, int length, int frequency, int channels)
 	if (nullptr == data || length <= 0)
 		return;
 
-/*	// TODO: Convert data if needed
-	if (channels <= 0)
-		channels = mDefaultChannels;
-	if (frequency <= 0)
-		frequency = mDefaultFrequency;
-*/
-	int offset = 0;
-	while (offset < length)
-	{
-		// Get or create working frame
-		AudioFrame& workingFrame = getWorkingFrame();
+	// TODO: Convert data if needed
 
-		// Copy data
-		int len = std::min(length - offset, MAX_FRAME_LENGTH - workingFrame.mLength);
-		for (int i = 0; i < mChannels; ++i)
+	int k = 0;
+	while (k < length)
+	{
+		AudioFrame& frame = getWorkingFrame();
+		const int remaining = MAX_FRAME_LENGTH - frame.mLength;
+		const int len = std::min(remaining, length - k);
+
+		for (int c = 0; c < mChannels; ++c)
 		{
-			short* src = &data[i][offset];
-			short* dst = &workingFrame.mData[i][workingFrame.mLength];
-			memcpy(dst, src, len * sizeof(short));
+			memcpy(&frame.mData[c][frame.mLength], &data[c][k], len * sizeof(short));
 		}
-		offset += len;
-		workingFrame.mLength += len;
+
+		frame.mLength += len;
 		mLength += len;
+		k += len;
 	}
 }
 
@@ -69,65 +63,52 @@ void AudioBuffer::addData(float** data, int length, int frequency, int channels)
 	if (nullptr == data || length <= 0)
 		return;
 
-/*	// TODO: Convert data if needed
-	if (channels <= 0)
-		channels = mDefaultChannels;
-	if (frequency <= 0)
-		frequency = mDefaultFrequency;
-*/
-	int offset = 0;
-	while (offset < length)
-	{
-		// Get or create working frame
-		AudioFrame& workingFrame = getWorkingFrame();
+	// TODO: Convert data if needed
 
-		// Copy data
-		const int len = std::min(length - offset, MAX_FRAME_LENGTH - workingFrame.mLength);
-		for (int i = 0; i < mChannels; ++i)
+	int k = 0;
+	while (k < length)
+	{
+		AudioFrame& frame = getWorkingFrame();
+		const int remaining = MAX_FRAME_LENGTH - frame.mLength;
+		const int len = std::min(remaining, length - k);
+
+		for (int c = 0; c < mChannels; ++c)
 		{
-			const float* src = &data[i][offset];
-			short* dst = &workingFrame.mData[i][workingFrame.mLength];
-			for (int j = 0; j < len; ++j)
+			short* RESTRICT dst = &frame.mData[c][frame.mLength];
+			const float* RESTRICT src = &data[c][k];
+			for (int i = 0; i < len; ++i)
 			{
-				const int value = (int)(src[j] * 0x8000 + 0.5f);
-				dst[j] = clamp(value, -0x8000, +0x7fff);
+				dst[i] = (short)clamp(roundToInt(src[i] * 32767.0f), -32768, 32767);
 			}
 		}
-		offset += len;
-		workingFrame.mLength += len;
+
+		frame.mLength += len;
 		mLength += len;
+		k += len;
 	}
 }
 
 void AudioBuffer::markPurgeableSamples(int purgePosition)
 {
-	RMX_ASSERT(!mPersistent, "'AudioBuffer::markPurgeableSamples' is meant only for non-persistent audio buffers");
-	RMX_ASSERT(mMutexLockCounter > 0, "Audio buffer mutex should be locked in 'AudioBuffer::markPurgeableSamples' method");
-	int numFramesToPurge = purgePosition / MAX_FRAME_LENGTH;
-	numFramesToPurge = clamp(numFramesToPurge, 0, mPurgedFrames + (int)mFrames.size() - 1);
-	const int difference = numFramesToPurge - mPurgedFrames;
+	if (mPersistent)
+		return;
 
-	// To avoid the expensive copying all the time, don't purge any frames unless it's at least 32 frames to be moved
-	if (difference >= 32)
+	const int purgeFrame = (purgePosition / MAX_FRAME_LENGTH);
+	while (mPurgedFrames < purgeFrame && !mFrames.empty())
 	{
-		const int framesRemaining = (int)mFrames.size() - difference;
-		for (int i = 0; i < framesRemaining; ++i)
-		{
-			mFrames[i] = mFrames[i + difference];
-		}
-		mFrames.resize(framesRemaining);
-		mPurgedFrames = numFramesToPurge;
+		AudioFrame* frame = mFrames.front();
+		mFrames.erase(mFrames.begin());
+		delete[] frame->mBuffer;
+		delete frame;
+		++mPurgedFrames;
 	}
 }
 
 bool AudioBuffer::load(const String& source, const String& params)
 {
-	// Load using the static loading callbacks
-	clear();
 	for (LoadCallbackList::iterator it = mStaticLoadCallbacks.begin(); it != mStaticLoadCallbacks.end(); ++it)
 	{
-		LoadCallbackType func = *it;
-		if (func(this, source, params))
+		if ((*it)(this, source, params))
 			return true;
 	}
 	return false;
@@ -140,7 +121,7 @@ float AudioBuffer::getLengthInSec() const
 
 size_t AudioBuffer::getMemoryUsage() const
 {
-	return mFrames.size() * MAX_FRAME_LENGTH * sizeof(short) * mChannels;
+	return mFrames.size() * MAX_FRAME_LENGTH * mChannels * sizeof(short);
 }
 
 void AudioBuffer::setPersistent(bool persistent)
@@ -155,35 +136,22 @@ void AudioBuffer::setCompleted(bool completed)
 
 int AudioBuffer::getData(short** output, int position) const
 {
-	// Access audio data
-	RMX_ASSERT(mMutexLockCounter > 0, "Audio buffer mutex should be locked in 'AudioBuffer::getData' method");
-	output[0] = nullptr;
-	output[1] = nullptr;
-	if (position < 0)
+	const int frameIndex = position / MAX_FRAME_LENGTH;
+	if (frameIndex < mPurgedFrames || frameIndex >= (int)(mPurgedFrames + mFrames.size()))
 		return 0;
 
-	const int frameIndex = (position / MAX_FRAME_LENGTH) - mPurgedFrames;
-	RMX_ASSERT(frameIndex >= 0 && frameIndex <= (int)mFrames.size(), "Invalid frame index " << frameIndex);  // Equality with frame size is okay and does not trigger the assert, but caught by the if-check
-	if (frameIndex >= 0 && frameIndex < (int)mFrames.size())
-	{
-		const AudioFrame* frame = mFrames[frameIndex];
-		if (nullptr != frame)
-		{
-			const int localPosition = position % MAX_FRAME_LENGTH;
-			if (localPosition < frame->mLength)
-			{
-				output[0] = &frame->mData[0][localPosition];
-				output[1] = &frame->mData[1][localPosition];
-				return frame->mLength - localPosition;
-			}
-		}
-	}
-	return 0;
+	const AudioFrame* frame = mFrames[frameIndex - mPurgedFrames];
+	const int offset = position % MAX_FRAME_LENGTH;
+	if (offset >= frame->mLength)
+		return 0;
+
+	output[0] = &frame->mData[0][offset];
+	output[1] = &frame->mData[1][offset];
+	return frame->mLength - offset;
 }
 
 void AudioBuffer::lock()
 {
-	// Note: An SDL mutex can be locked multiple times by the same thread with no problems
 	mMutex.lock();
 	++mMutexLockCounter;
 }
@@ -196,8 +164,7 @@ void AudioBuffer::unlock()
 
 void AudioBuffer::clearInternal()
 {
-	// Clear all frames
-	for (int i = 0; i < (int)mFrames.size(); ++i)
+	for (size_t i = 0; i < mFrames.size(); ++i)
 	{
 		delete[] mFrames[i]->mBuffer;
 		delete mFrames[i];
@@ -209,15 +176,14 @@ void AudioBuffer::clearInternal()
 
 AudioBuffer::AudioFrame& AudioBuffer::getWorkingFrame()
 {
-	AudioFrame* workingFrame = mFrames.empty() ? nullptr : mFrames[mFrames.size()-1];
-	if (nullptr == workingFrame || workingFrame->mLength >= MAX_FRAME_LENGTH)
+	if (mFrames.empty() || mFrames.back()->mLength >= MAX_FRAME_LENGTH)
 	{
-		workingFrame = new AudioFrame();
-		workingFrame->mBuffer = new short[mChannels * MAX_FRAME_LENGTH];
-		for (int i = 0; i < mChannels; ++i)
-			workingFrame->mData[i] = &workingFrame->mBuffer[i * MAX_FRAME_LENGTH];
-		workingFrame->mLength = 0;
-		mFrames.push_back(workingFrame);
+		AudioFrame* frame = new AudioFrame;
+		frame->mBuffer = new short[MAX_FRAME_LENGTH * mChannels];
+		frame->mData[0] = &frame->mBuffer[0];
+		frame->mData[1] = (mChannels > 1) ? &frame->mBuffer[MAX_FRAME_LENGTH] : &frame->mBuffer[0];
+		frame->mLength = 0;
+		mFrames.push_back(frame);
 	}
-	return *workingFrame;
+	return *mFrames.back();
 }

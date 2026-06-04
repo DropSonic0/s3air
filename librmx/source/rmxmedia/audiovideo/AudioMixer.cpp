@@ -85,24 +85,27 @@ namespace rmx
 
 
 
+	AudioMixer::AudioMixer(int mixerId) : mRelativeVolume(1.0f), mOutputVolume(1.0f), mMixerId(mixerId), mParent(nullptr) {}
+
 	AudioMixer::~AudioMixer()
 	{
 		// Remove from hierarchy: Insert all children into own parent
 		//  -> Except if this is the root mixer; but when that one is destroyed, all its child will get destroyed afterwards as well
-		if (0 != mParent)
+		if (nullptr != mParent)
 		{
-			for (AudioMixer* child : mChildren)
+			for (size_t i = 0; i < mChildren.size(); ++i)
 			{
+				AudioMixer* child = mChildren[i];
 				child->mParent = mParent;
 				mParent->mChildren.push_back(child);
 			}
 		}
 
 		// Stop all playing audio instances
-		for (const auto& [key, audioInstance] : mAudioInstances)
+		for (std::map<int, AudioManager::AudioInstance*>::iterator it = mAudioInstances.begin(); it != mAudioInstances.end(); ++it)
 		{
-			audioInstance->mPlaybackDone = true;
-			audioInstance->mAudioMixer = 0;
+			it->second->mPlaybackDone = true;
+			it->second->mAudioMixer = nullptr;
 		}
 	}
 
@@ -111,17 +114,22 @@ namespace rmx
 		if (child.mParent == this)
 			return;
 
-		if (0 != child.mParent)
+		if (nullptr != child.mParent)
 		{
 			child.mParent->removeChildInternal(child);
 		}
 
-		child.mParent = this;
 		mChildren.push_back(&child);
+		child.mParent = this;
 	}
 
 	void AudioMixer::clearAudioInstances()
 	{
+		for (std::map<int, AudioManager::AudioInstance*>::iterator it = mAudioInstances.begin(); it != mAudioInstances.end(); ++it)
+		{
+			it->second->mPlaybackDone = true;
+			it->second->mAudioMixer = nullptr;
+		}
 		mAudioInstances.clear();
 	}
 
@@ -133,153 +141,107 @@ namespace rmx
 	void AudioMixer::removeAudioInstance(AudioManager::AudioInstance& audioInstance)
 	{
 		mAudioInstances.erase(audioInstance.mID);
+		audioInstance.mAudioMixer = nullptr;
 	}
 
 	void AudioMixer::performAudioMix(const MixerParameters& parameters)
 	{
 		updateOutputVolume(parameters);
-		mixInAllChildren(parameters);
 		mixInAllAudioInstances(parameters);
+		mixInAllChildren(parameters);
 	}
 
 	void AudioMixer::updateOutputVolume(const MixerParameters& parameters)
 	{
-		mOutputVolume = parameters.mAccumulatedVolume * mRelativeVolume;
+		mOutputVolume = mRelativeVolume * parameters.mAccumulatedVolume;
 	}
 
 	void AudioMixer::mixInAllChildren(const MixerParameters& parameters)
 	{
-		if (mChildren.empty())
-			return;
-
-		MixerParameters newParameters = parameters;
-		newParameters.mAccumulatedVolume = mOutputVolume;
-		for (rmx::AudioMixer* audioMixer : mChildren)
+		MixerParameters childParameters = parameters;
+		childParameters.mAccumulatedVolume = mOutputVolume;
+		for (size_t i = 0; i < mChildren.size(); ++i)
 		{
-			audioMixer->performAudioMix(newParameters);
+			mChildren[i]->performAudioMix(childParameters);
 		}
 	}
 
 	void AudioMixer::mixInAllAudioInstances(const MixerParameters& parameters)
 	{
-		for (const auto& [key, audioInstance] : mAudioInstances)
+		for (std::map<int, AudioManager::AudioInstance*>::iterator it = mAudioInstances.begin(); it != mAudioInstances.end(); ++it)
 		{
-			mixInAudioInstance(*audioInstance, parameters.mOutputBuffers, parameters.mOutputSamples, *parameters.mOutputFormat);
+			mixInAudioInstance(*it->second, parameters.mOutputBuffers, parameters.mOutputSamples, *parameters.mOutputFormat);
 		}
 	}
 
 	void AudioMixer::mixInAudioInstance(AudioManager::AudioInstance& audioInstance, int32*const* outputBuffer, size_t numOutputSamplesNeeded, const SDL_AudioSpec& outputFormat)
 	{
-		// Mix in audio data into the output stream
 		if (audioInstance.mPaused)
 			return;
 
-		AudioBuffer& audioBuffer = *audioInstance.mAudioBuffer;
+		AudioBuffer* audioBuffer = audioInstance.mAudioBuffer;
+		const int bufferFrequency = audioBuffer->getFrequency();
+		const int bufferChannels = audioBuffer->getChannels();
 
-		// Properties
-		float playSpeed = audioInstance.mSpeed * (float)audioBuffer.getFrequency() / (float)outputFormat.freq;
-		playSpeed = clamp(playSpeed, 0.1f, 10.0f);
-		const int sourceIndexAdvance = roundToInt(playSpeed * 0x10000);
-
-		// Offsets where the data starts
 		int32* output[2] = { outputBuffer[0], outputBuffer[1] };
 
-		// While still waiting for playback start, don't mix in anything yet
+		// Offset playback position?
 		if (audioInstance.mPosition < 0)
 		{
-			int instProgress = (int)(numOutputSamplesNeeded * playSpeed);
-			if (audioInstance.mPosition + instProgress <= 0)
+			const int offset = std::min<int>(numOutputSamplesNeeded, roundToInt((float)(-audioInstance.mPosition) * (float)outputFormat.freq / (float)bufferFrequency));
+			if (offset > 0)
 			{
-				audioInstance.mPosition += instProgress;
-				return;
+				output[0] += offset;
+				output[1] += offset;
+				numOutputSamplesNeeded -= offset;
+				audioInstance.mPosition += roundToInt((float)offset * (float)bufferFrequency / (float)outputFormat.freq);
 			}
-
-			int offset = (int)(-audioInstance.mPosition / playSpeed);
-			output[0] += offset;
-			output[1] += offset;
-			numOutputSamplesNeeded -= offset;
-			audioInstance.mPosition = 0;
 		}
 
-		// Perform the actual audio mixing
-		audioBuffer.lock();
-		const bool result = mixAudioBufferInner(audioInstance, output, numOutputSamplesNeeded, outputFormat, sourceIndexAdvance);
-		audioBuffer.unlock();
+		if (numOutputSamplesNeeded <= 0)
+			return;
 
-		if (!result)
-		{
-			audioInstance.mPlaybackDone = true;
-		}
-	}
-
-	bool AudioMixer::mixAudioBufferInner(AudioManager::AudioInstance& audioInstance, int32** output, size_t numOutputSamplesNeeded, const SDL_AudioSpec& outputFormat, int sourceIndexAdvance)
-	{
-		AudioBuffer& audioBuffer = *audioInstance.mAudioBuffer;
-
-		// Check if the audio buffer got cleared (that can happen in Oxygen Engine)
-		//  -> In that case, just stop the sound immediately
-		if (audioInstance.mPosition > audioBuffer.getLength())
-			return false;
-
-		const int instanceChannels = audioBuffer.getChannels();
-		const float volumeMultiplier = mOutputVolume * 0x10000;
-
-		// Loop to mix in samples in multiple blocks (if necessary)
+		// Parameters
+		const float baseVolume = audioInstance.mVolume * mOutputVolume * 256.0f;
+		const float baseVolumeChange = audioInstance.mVolumeChange * mOutputVolume * 256.0f;
+		const int sourceIndexAdvance = roundToInt(audioInstance.mSpeed * (float)bufferFrequency / (float)outputFormat.freq * 65536.0f);
 		int sourceSamplePositionFraction = 0;
+
+		// Mix in samples
 		while (numOutputSamplesNeeded > 0)
 		{
-			RMX_ASSERT(audioInstance.mPosition <= audioBuffer.getLength(), "Audio instance position " << audioInstance.mPosition << " exceeding audio buffer length " << audioBuffer.getLength());
+			// How many samples are available in the current audio buffer?
 			short* instanceData[2];
-			int numAvailableInputSamples = audioBuffer.getData(instanceData, audioInstance.mPosition);
+			const int numAvailableInputSamples = audioBuffer->getData(instanceData, audioInstance.mPosition);
 			if (numAvailableInputSamples <= 0)
 			{
-				// Reached the end of available data
-
-				// Check if streaming is active and not yet complete
-				if (audioInstance.mStreaming && !audioBuffer.isCompleted())
+				if (audioInstance.mLoop)
 				{
-					// We don't have any more data yet, sorry
-					return true;
-				}
-				else if (audioInstance.mLoop)
-				{
-					// Restart looped sound
 					audioInstance.mPosition = audioInstance.mLoopStart;
-					numAvailableInputSamples = audioBuffer.getData(instanceData, audioInstance.mPosition);
-					if (numAvailableInputSamples <= 0)
-					{
-						return audioInstance.mStreaming;
-					}
+					continue;
 				}
-				else
-				{
-					// Stop playback
-					return false;
-				}
+
+				if (audioInstance.mStreaming && !audioBuffer->isCompleted())
+					break;
+
+				audioInstance.mPlaybackDone = true;
+				break;
 			}
 
-			// Number of samples to be mixed in next as a single block
-			int numBlockSamples;
+			// How many samples can we mix in one block?
+			int numBlockSamples = numOutputSamplesNeeded;
+			if (sourceIndexAdvance > 0)
 			{
-				// Consider timeout
-				if (audioInstance.mTimeout > 0)
-				{
-					numAvailableInputSamples = std::min(numAvailableInputSamples, audioInstance.mTimeout);
-				}
-
-				// Limit by samples available in instance
-				numBlockSamples = (sourceSamplePositionFraction + (numAvailableInputSamples << 16) - 1) / sourceIndexAdvance + 1;
-				numBlockSamples = std::min(numBlockSamples, (int)numOutputSamplesNeeded);
+				const int maxPossibleInputSamples = (numAvailableInputSamples << 16) / sourceIndexAdvance;
+				numBlockSamples = std::min(numBlockSamples, maxPossibleInputSamples);
 			}
 
-			// Determine starting volumes and volume change per sample
-			int volume[2];
-			int volumeChange[2];
+			if (numBlockSamples > 0)
 			{
-				const float baseVolume = audioInstance.mVolume * volumeMultiplier;
-				const float baseVolumeChange = audioInstance.mVolumeChange * volumeMultiplier / (float)outputFormat.freq;
-
-				if (audioInstance.mPanning && (outputFormat.channels == 2))
+				// Volume
+				int volume[2];
+				int volumeChange[2];
+				if (audioInstance.mUsePan)
 				{
 					volume[0] = roundToInt(baseVolume * (1.0f - audioInstance.mPanning));
 					volume[1] = roundToInt(baseVolume * (1.0f + audioInstance.mPanning));
@@ -293,54 +255,50 @@ namespace rmx
 					volumeChange[0] = roundToInt(baseVolumeChange);
 					volumeChange[1] = roundToInt(baseVolumeChange);
 				}
-			}
 
-			// Mix in audio samples
-			if (outputFormat.channels == 1)
-			{
-				// Output as Mono
-				if (instanceChannels == 1)
+				// Mix
+				if (outputFormat.channels == 1)
 				{
-					mixInSamples(output[0], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
+					if (bufferChannels == 1)
+						mixInSamples(output[0], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
+					else
+						mixInSampleAverages(output[0], instanceData[0], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
 				}
 				else
 				{
-					mixInSampleAverages(output[0], instanceData[0], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
+					if (bufferChannels == 1)
+					{
+						mixInSamples(output[0], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
+						mixInSamples(output[1], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[1], volumeChange[1]);
+					}
+					else
+					{
+						mixInSampleAverages(output[0], instanceData[0], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
+						mixInSampleAverages(output[1], instanceData[0], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[1], volumeChange[1]);
+					}
 				}
+
+				output[0] += numBlockSamples;
+				output[1] += numBlockSamples;
 			}
 			else
 			{
-				// Output as Stereo
-				if (instanceChannels == 1)
-				{
-					mixInSamples(output[0], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
-					mixInSamples(output[1], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[1], volumeChange[1]);
-				}
-				else if (audioInstance.mPanning)
-				{
-					mixInSampleAverages(output[0], instanceData[0], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
-					mixInSampleAverages(output[1], instanceData[0], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[1], volumeChange[1]);
-				}
-				else
-				{
-					mixInSamples(output[0], instanceData[0], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[0], volumeChange[0]);
-					mixInSamples(output[1], instanceData[1], numBlockSamples, sourceSamplePositionFraction, sourceIndexAdvance, volume[1], volumeChange[1]);
-				}
+				numBlockSamples = 1;
 			}
 
-			output[0] += numBlockSamples;
-			output[1] += numBlockSamples;
-
-			// Advance in input
+			// Advance
 			sourceSamplePositionFraction += sourceIndexAdvance * numBlockSamples;
 			audioInstance.mPosition += sourceSamplePositionFraction >> 16;
 			sourceSamplePositionFraction &= 0xffff;
 
 			if (audioInstance.mTimeout > 0)
 			{
-				audioInstance.mTimeout -= numAvailableInputSamples;
+				audioInstance.mTimeout -= numBlockSamples;	// Should be related to input samples?
 				if (audioInstance.mTimeout <= 0)
-					return false;
+				{
+					audioInstance.mPlaybackDone = true;
+					return;
+				}
 			}
 
 			// Update instance volume
@@ -352,7 +310,8 @@ namespace rmx
 				{
 					audioInstance.mVolume = 0.0f;
 					audioInstance.mVolumeChange = 0.0f;
-					return false;
+					audioInstance.mPlaybackDone = true;
+					return;
 				}
 				if (audioInstance.mVolume >= 1.0f)
 				{
@@ -363,9 +322,6 @@ namespace rmx
 
 			numOutputSamplesNeeded -= numBlockSamples;
 		}
-
-		// Done
-		return true;
 	}
 
 	void AudioMixer::removeChildInternal(AudioMixer& child)
@@ -375,7 +331,7 @@ namespace rmx
 			if (mChildren[i] == &child)
 			{
 				mChildren.erase(mChildren.begin() + i);
-				child.mParent = 0;
+				child.mParent = nullptr;
 				return;
 			}
 		}

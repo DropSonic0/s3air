@@ -127,10 +127,10 @@ public:
 	int compare(const StringTemplate& str) const;
 
 	int countChar(CHAR ch) const;
-	int findChar(CHAR ch, int pos, int dir) const;
-	int skipChar(CHAR ch, int pos, int dir) const;
-	int findChars(const CHAR* chars, int pos, int dir) const;
-	int skipChars(const CHAR* chars, int pos, int dir) const;
+	int findChar(CHAR ch, int pos = 0, int dir = +1) const;
+	int skipChar(CHAR ch, int pos = 0, int dir = +1) const;
+	int findChars(const CHAR* chars, int pos = 0, int dir = +1) const;
+	int skipChars(const CHAR* chars, int pos = 0, int dir = +1) const;
 
 	int findString(const StringTemplate& str, int pos = 0, int dir = +1) const;		// Returns -1 if substring not found
 
@@ -270,12 +270,12 @@ public:
 	WString(const StdStringView& str) : BASE(str) {}
 #endif
 	explicit WString(const String& str) : BASE(str.toWString()) {}
-	explicit WString(const char* str) : WString(String(str)) {}
-	explicit WString(const std::basic_string<char, std::char_traits<char>, std::allocator<char> >& str) : WString(String(str)) {}
+	explicit WString(const char* str) : BASE(String(str).toWString()) {}
+	explicit WString(const std::basic_string<char, std::char_traits<char>, std::allocator<char> >& str) : BASE(String(str).toWString()) {}
 #if defined(PLATFORM_PS3)
-	explicit WString(const std::basic_string_view<char>& str) : WString(String(str.data(), str.length())) {}
+	explicit WString(const std::basic_string_view<char>& str) : BASE(String(str.data(), str.length()).toWString()) {}
 #else
-	explicit WString(const std::string_view& str) : WString(String(str)) {}
+	explicit WString(const std::string_view& str) : BASE(String(str).toWString()) {}
 #endif
 	WString(int ignoreMe, const wchar_t* format, ...);
 

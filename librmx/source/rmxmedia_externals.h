@@ -27,7 +27,165 @@
 
 
 // SDL
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_PS3)
+	// SDL Shims for PS3
+	typedef int SDL_mutex;
+	typedef int SDL_cond;
+	typedef int SDL_Thread;
+	typedef int SDL_AudioDeviceID;
+	typedef int SDL_AudioStatus;
+	#define SDL_AUDIO_STOPPED 0
+	#define SDL_AUDIO_PLAYING 1
+	#define SDL_AUDIO_PAUSED 2
+	struct SDL_AudioSpec {
+		int freq;
+		int channels;
+		int samples;
+		int format;
+		void (*callback)(void*, unsigned char*, int);
+		void* userdata;
+	};
+	struct SDL_AudioCVT {
+		int needed;
+		int src_format;
+		int dst_format;
+		double rate_incr;
+		unsigned char* buf;
+		int len;
+		int len_cvt;
+		int len_mult;
+		double len_ratio;
+	};
+	#define AUDIO_S16LSB 0
+	struct SDL_WindowEvent { int event; int data1; int data2; };
+	struct SDL_Keysym { int sym; int scancode; int mod; };
+	struct SDL_KeyboardEvent { int type; SDL_Keysym keysym; int state; int repeat; };
+	struct SDL_TextInputEvent { int type; char text[32]; };
+	struct SDL_MouseButtonEvent { int type; int button; int state; int x; int y; };
+	struct SDL_MouseWheelEvent { int type; int y; };
+	struct SDL_MouseMotionEvent { int type; int state; int x; int y; };
+	struct SDL_Event {
+		int type;
+		SDL_WindowEvent window;
+		SDL_KeyboardEvent key;
+		SDL_TextInputEvent text;
+		SDL_MouseButtonEvent button;
+		SDL_MouseWheelEvent wheel;
+		SDL_MouseMotionEvent motion;
+	};
+	struct SDL_Window { int unused; };
+
+	inline SDL_mutex* SDL_CreateMutex() { return (SDL_mutex*)1; }
+	inline void SDL_DestroyMutex(SDL_mutex* m) {}
+	inline void SDL_LockMutex(SDL_mutex* m) {}
+	inline void SDL_UnlockMutex(SDL_mutex* m) {}
+	inline SDL_cond* SDL_CreateCond() { return (SDL_cond*)1; }
+	inline void SDL_DestroyCond(SDL_cond* c) {}
+	inline void SDL_CondSignal(SDL_cond* c) {}
+	inline void SDL_CondWait(SDL_cond* c, SDL_mutex* m) {}
+	inline int  SDL_CondWaitTimeout(SDL_cond* c, SDL_mutex* m, unsigned int ms) { return 0; }
+	inline SDL_Thread* SDL_CreateThread(int (*f)(void*), const char* n, void* d) { return (SDL_Thread*)1; }
+	inline void SDL_WaitThread(SDL_Thread* t, int* s) {}
+	inline void* SDL_RWFromFile(const char* f, const char* m) { return 0; }
+	inline void SDL_RWclose(void* c) {}
+	inline size_t SDL_RWsize(void* c) { return 0; }
+	inline size_t SDL_RWtell(void* c) { return 0; }
+	inline size_t SDL_RWseek(void* c, long long p, int w) { return 0; }
+	inline size_t SDL_RWread(void* c, void* d, size_t s, size_t n) { return 0; }
+	#define RW_SEEK_SET 0
+	#define SDLK_SCANCODE_MASK (1<<30)
+	inline void SDL_PauseAudioDevice(SDL_AudioDeviceID d, int p) {}
+	inline SDL_AudioStatus SDL_GetAudioStatus() { return (SDL_AudioStatus)0; }
+	inline void SDL_LockAudioDevice(SDL_AudioDeviceID d) {}
+	inline void SDL_UnlockAudioDevice(SDL_AudioDeviceID d) {}
+	inline int SDL_LoadWAV(const char* f, SDL_AudioSpec* s, unsigned char** d, unsigned int* l) { return 0; }
+	inline void SDL_FreeWAV(unsigned char* d) {}
+	inline int SDL_BuildAudioCVT(SDL_AudioCVT* c, int sf, int sc, int sr, int df, int dc, int dr) { return 0; }
+	inline int SDL_ConvertAudio(SDL_AudioCVT* c) { return 0; }
+	inline void SDL_DestroyWindow(SDL_Window* w) {}
+	#define SDL_INIT_VIDEO 0
+	#define SDL_INIT_AUDIO 0
+	#define SDL_INIT_TIMER 0
+	#define SDL_INIT_GAMECONTROLLER 0
+	inline int SDL_Init(int f) { return 0; }
+	inline void SDL_Quit() {}
+	inline char* SDL_GetError() { return (char*)""; }
+	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
+	inline unsigned int SDL_GetTicks() { return 0; }
+	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
+	#define SDL_QUIT 0
+	#define SDL_WINDOWEVENT 0
+	#define SDL_WINDOWEVENT_RESIZED 0
+	#define SDL_KEYDOWN 0
+	#define SDL_KEYUP 0
+	#define SDL_TEXTINPUT 0
+	#define SDL_MOUSEBUTTONDOWN 0
+	#define SDL_MOUSEBUTTONUP 0
+	#define SDL_MOUSEWHEEL 0
+	#define SDL_MOUSEMOTION 0
+	#define SDL_PRESSED 0
+	#define SDL_BUTTON_LEFT 0
+	#define SDL_BUTTON_RIGHT 0
+	#define SDL_BUTTON_MIDDLE 0
+	#define SDL_BUTTON_X1 0
+	#define SDL_BUTTON_X2 0
+	#define SDL_AUDIO_PLAYING 1
+	inline void SDL_CloseAudioDevice(SDL_AudioDeviceID d) {}
+	#define SDL_AUDIO_ALLOW_ANY_CHANGE 0
+	inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 0; }
+	inline void SDL_Delay(unsigned int ms) {}
+
+	// OpenGL Shims for PS3
+	typedef int GLint;
+	typedef int GLenum;
+	typedef unsigned int GLuint;
+	typedef float GLfloat;
+	typedef int GLsizei;
+	typedef int GLsizeiptr;
+	#define GL_TEXTURE_2D 0
+	#define GL_RGBA 0
+	#define GL_RGB 0
+	#define GL_RGBA8 0
+	#define GL_RGB8 0
+	#define GL_DEPTH_COMPONENT 0
+	#define GL_DEPTH_COMPONENT16 0
+	#define GL_FALSE 0
+	#define GL_TRUE 1
+	#define GL_FLOAT 0
+	#define GL_STATIC_DRAW 0
+	#define GL_ARRAY_BUFFER 0
+	#define GL_COLOR_BUFFER_BIT 0
+	#define GL_DEPTH_BUFFER_BIT 0
+	#define GL_UNSIGNED_BYTE 0
+	inline void glGenTextures(GLsizei n, GLuint* t) {}
+	inline void glDeleteTextures(GLsizei n, const GLuint* t) {}
+	inline void glGenVertexArrays(GLsizei n, GLuint* a) {}
+	inline void glDeleteVertexArrays(GLsizei n, const GLuint* a) {}
+	inline void glGenBuffers(GLsizei n, GLuint* b) {}
+	inline void glDeleteBuffers(GLsizei n, const GLuint* b) {}
+	inline void glBindVertexArray(GLuint a) {}
+	inline void glBindBuffer(GLenum t, GLuint b) {}
+	inline void glVertexAttribPointer(GLuint i, GLint s, GLenum t, int n, GLsizei st, const void* p) {}
+	inline void glEnableVertexAttribArray(GLuint i) {}
+	inline void glDisableVertexAttribArray(GLuint i) {}
+	inline void glBufferData(GLenum t, GLsizeiptr s, const void* d, GLenum u) {}
+	inline void glDrawArrays(GLenum m, GLint f, GLsizei c) {}
+	inline void glClearColor(float r, float g, float b, float a) {}
+	inline void glClear(int m) {}
+	inline void glViewport(int x, int y, int w, int h) {}
+	inline void glReadPixels(int x, int y, int w, int h, int f, int t, void* d) {}
+	inline void SDL_GL_SwapWindow(SDL_Window* w) {}
+	#define SDL_WINDOW_OPENGL 0
+	#define SDL_WINDOW_SHOWN 0
+	#define SDL_WINDOW_FULLSCREEN 0
+	#define SDL_WINDOW_RESIZABLE 0
+	#define SDL_WINDOW_BORDERLESS 0
+	#define SDL_WINDOWPOS_CENTERED 0
+	typedef void* SDL_GLContext;
+	inline SDL_GLContext SDL_GL_CreateContext(SDL_Window* w) { return 0; }
+	inline void SDL_GL_SetSwapInterval(int i) {}
+
+#elif defined(PLATFORM_WINDOWS)
 	// Needed for MSYS2
 	#if defined(__GNUC__)
 		#include <SDL2/SDL.h>
@@ -40,7 +198,9 @@
 
 
 // OpenGL
-#if defined(PLATFORM_WINDOWS)
+#if defined(PLATFORM_PS3)
+	// PS3 uses its own graphics API (libgcm or similar)
+#elif defined(PLATFORM_WINDOWS)
 	#define ALLOW_LEGACY_OPENGL
 	#define RMX_USE_GLEW
 

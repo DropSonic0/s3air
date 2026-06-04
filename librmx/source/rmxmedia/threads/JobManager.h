@@ -46,19 +46,19 @@ namespace rmx
 		void stopAllThreads();
 
 	private:
-		SDL_cond* mConditionVariable = nullptr;
-		SDL_mutex* mConditionLock = nullptr;
+		SDL_cond* mConditionVariable;
+		SDL_mutex* mConditionLock;
 
 		// Worker threads
-		int mMaxThreads = 1;
+		int mMaxThreads;
 		std::vector<JobWorkerThread*> mThreads;
 
 		// Registered jobs
 		//  -> Not using a data structure optimized for getting the next job (using priority);
 		//     but that's probably overkill anyways if the number of active jobs is not more than a few dozens
 		std::vector<JobBase*> mJobs;
-		uint32 mNextDelayedJobTicks = 0;
-		bool mSearchforJobs = true;
+		uint32 mNextDelayedJobTicks;
+		bool mSearchforJobs;
 	};
 
 
@@ -70,7 +70,17 @@ namespace rmx
 	friend class JobWorkerThread;
 
 	public:
-		inline virtual ~JobBase()  {}
+		enum JobState
+		{
+			JobState_INACTIVE,	// Initial state before being added to the job manager
+			JobState_WAITING,	// Waiting for execution
+			JobState_RUNNING,	// Currently being executed
+			JobState_DONE		// Job finished, nothing left to do
+		};
+
+	public:
+		JobBase();
+		virtual ~JobBase()  {}
 
 		inline const String& getJobType() const		{ return mJobType; }
 
@@ -81,9 +91,9 @@ namespace rmx
 		void setJobDelayUntilTicks(uint32 sdlTicks);
 
 		inline bool isJobRegistered() const	{ return (nullptr != mRegisteredAtManager); }
-		inline bool isJobWaiting() const	{ return (mJobState == JobState::WAITING); }
-		inline bool isJobRunning() const	{ return (mJobState == JobState::RUNNING); }
-		inline bool isJobDone() const		{ return (mJobState == JobState::DONE); }
+		inline bool isJobWaiting() const	{ return (mJobState == JobState_WAITING); }
+		inline bool isJobRunning() const	{ return (mJobState == JobState_RUNNING); }
+		inline bool isJobDone() const		{ return (mJobState == JobState_DONE); }
 
 		bool callJobFuncOnCallingThread();
 		void executeOnCallingThread();
@@ -99,20 +109,11 @@ namespace rmx
 		String mJobType;							// Type string for the job
 
 	private:
-		enum class JobState
-		{
-			INACTIVE,	// Initial state before being added to the job manager
-			WAITING,	// Waiting for execution
-			RUNNING,	// Currently being executed
-			DONE		// Job finished, nothing left to do
-		};
-
-	private:
-		JobManager* mRegisteredAtManager = nullptr;	// Job manager instance this is registered at (should actually always be FTX::JobManager or nullptr)
-		JobState mJobState = JobState::INACTIVE;	// Current state
-		bool mJobShouldBeRunning = false;			// Can be set to false while running to signal the jobFunc that it should abort
-		float mJobPriority = 0.0f;					// Priority, higher values will be preferred; jobs with negative priorities won't get processed at all
-		uint32 mJobDelayUntilTicks = 0;				// SDL ticks value until when the job should get delayed; 0 if no delay active (which is the default)
+		JobManager* mRegisteredAtManager;	// Job manager instance this is registered at (should actually always be FTX::JobManager or nullptr)
+		JobState mJobState;	// Current state
+		bool mJobShouldBeRunning;			// Can be set to false while running to signal the jobFunc that it should abort
+		float mJobPriority;					// Priority, higher values will be preferred; jobs with negative priorities won't get processed at all
+		uint32 mJobDelayUntilTicks;				// SDL ticks value until when the job should get delayed; 0 if no delay active (which is the default)
 	};
 
 
@@ -122,10 +123,10 @@ namespace rmx
 	{
 	public:
 		JobWorkerThread(JobManager& jobManager, int index);
-		void threadFunc();
+		virtual void threadFunc();
 
 	public:
-		float mInactivityDelay = 0.1f;
+		float mInactivityDelay;
 
 	private:
 		JobManager& mJobManager;

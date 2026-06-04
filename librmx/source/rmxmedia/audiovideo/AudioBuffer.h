@@ -54,11 +54,11 @@ public:
 	void unlock();
 
 private:
-	struct AudioFrame
-	{
-		short* mBuffer = 0;				// Holds all audio data
-		short* mData[2] = { 0, 0 };	// Pointers into the buffer, one for each channel
-		int mLength = 0;						// Length in samples
+	struct AudioFrame {
+		short* mBuffer;
+		short* mData[2];
+		int mLength;
+		AudioFrame() : mBuffer(nullptr), mLength(0) { mData[0] = nullptr; mData[1] = nullptr; }
 	};
 
 private:
@@ -67,14 +67,14 @@ private:
 
 private:
 	std::vector<AudioFrame*> mFrames;	// Array of audio frames
-	int mPurgedFrames = 0;
-	int mLength = 0;					// In samples
+	int mPurgedFrames;
+	int mLength;					// In samples
 
-	int mChannels = 2;					// 1 for Mono, 2 for Stereo
-	int mFrequency = 44100;				// Sampling frequency, e.g. 44100 Hz
-	bool mPersistent = true;			// If false, played audio frames get deleted (e.g. for music streams)
-	bool mCompleted = false;			// Set to true when loading / streaming is completed
+	int mChannels;					// 1 for Mono, 2 for Stereo
+	int mFrequency;				// Sampling frequency, e.g. 44100 Hz
+	bool mPersistent;			// If false, played audio frames get deleted (e.g. for music streams)
+	bool mCompleted;			// Set to true when loading / streaming is completed
 
 	rmx::Mutex mMutex;
-	int mMutexLockCounter = 0;
+	int mMutexLockCounter;
 };

@@ -1,3 +1,4 @@
+#if !defined(PLATFORM_PS3)
 /*
 *	rmx Library
 *	Copyright (C) 2008-2024 by Eukaryot
@@ -24,3 +25,4 @@ namespace rmx
 	};
 
 }
+#endif

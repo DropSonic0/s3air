@@ -18,9 +18,14 @@ uint32 VideoBuffer::mGVTable[256];
 uint32 VideoBuffer::mBUTable[256];
 
 
-VideoBuffer::VideoBuffer()
+VideoBuffer::VideoBuffer() :
+	mWidth(0),
+	mWidthUV(0),
+	mHeight(0),
+	mHeightUV(0),
+	mFramesPerSecond(25.0f)
 {
-	mFramesPerSecond = 25.0f;
+	for (int i = 0; i < 4; ++i) mCropRect[i] = 0.0f;
 }
 
 VideoBuffer::~VideoBuffer()
@@ -41,28 +46,16 @@ void VideoBuffer::clear()
 
 void VideoBuffer::clear(int width, int height)
 {
-	clear();
-	mWidth = width;
-	mHeight = height;
+	clear(width, height, width/2, height/2);
 }
 
 void VideoBuffer::clear(int width, int height, int widthUV, int heightUV)
 {
 	clear();
 	mWidth = width;
-	mWidthUV = widthUV;
 	mHeight = height;
+	mWidthUV = widthUV;
 	mHeightUV = heightUV;
-}
-
-void VideoBuffer::deleteFrame(VideoFrame* frame)
-{
-	if (0 == frame)
-		return;
-	delete[] frame->bufferRGBA;
-	for (int j = 0; j < 3; ++j)
-		delete[] frame->bufferYUV[j];
-	delete frame;
 }
 
 void VideoBuffer::addImageRGBA(uint32* data, int stride)
@@ -85,136 +78,98 @@ void VideoBuffer::addImageYUV(uint8* dataY, uint8* dataU, uint8* dataV, int stri
 		strideY = mWidth;
 	if (strideUV <= 0)
 		strideUV = mWidthUV;
+
 	VideoFrame* frame = new VideoFrame;
 	frame->bufferRGBA = 0;
 	frame->bufferYUV[0] = new uint8[mWidth*mHeight];
+	frame->bufferYUV[1] = new uint8[mWidthUV*mHeightUV];
+	frame->bufferYUV[2] = new uint8[mWidthUV*mHeightUV];
+
 	for (int line = 0; line < mHeight; ++line)
 		memcpy(&frame->bufferYUV[0][line*mWidth], &dataY[line*strideY], mWidth);
-	frame->bufferYUV[1] = new uint8[mWidthUV*mHeightUV];
 	for (int line = 0; line < mHeightUV; ++line)
+	{
 		memcpy(&frame->bufferYUV[1][line*mWidthUV], &dataU[line*strideUV], mWidthUV);
-	frame->bufferYUV[2] = new uint8[mWidthUV*mHeightUV];
-	for (int line = 0; line < mHeightUV; ++line)
 		memcpy(&frame->bufferYUV[2][line*mWidthUV], &dataV[line*strideUV], mWidthUV);
+	}
 	mFrames.push_back(frame);
 }
 
 const uint32* VideoBuffer::getImageRGBA(int num)
 {
-	if (num < 0 || num >= (signed)mFrames.size() || 0 == mFrames[num])
+	if (num < 0 || num >= (signed)mFrames.size())
 		return 0;
+
+	if (0 == mFrames[num]->bufferRGBA)
+		convertYUVtoRGBA(num);
 	return mFrames[num]->bufferRGBA;
 }
 
 const uint8* VideoBuffer::getImageY(int num)
 {
-	if (num < 0 || num >= (signed)mFrames.size() || 0 == mFrames[num])
-		return 0;
-	return mFrames[num]->bufferYUV[0];
+	return getImageYUV(num, 0);
 }
 
 const uint8* VideoBuffer::getImageU(int num)
 {
-	if (num < 0 || num >= (signed)mFrames.size() || 0 == mFrames[num])
-		return 0;
-	return mFrames[num]->bufferYUV[1];
+	return getImageYUV(num, 1);
 }
 
 const uint8* VideoBuffer::getImageV(int num)
 {
-	if (num < 0 || num >= (signed)mFrames.size() || 0 == mFrames[num])
-		return 0;
-	return mFrames[num]->bufferYUV[2];
+	return getImageYUV(num, 2);
 }
 
 const uint8* VideoBuffer::getImageYUV(int num, int channel)
 {
-	if (num < 0 || num >= (signed)mFrames.size() || 0 == mFrames[num])
-		return 0;
-	if (channel < 0 || channel > 2)
+	if (num < 0 || num >= (signed)mFrames.size())
 		return 0;
 	return mFrames[num]->bufferYUV[channel];
 }
 
 void VideoBuffer::convertYUVtoRGBA(int num)
 {
-	if (num < 0 || num >= (signed)mFrames.size() || 0 == mFrames[num])
-		return;
-	if (0 == mFrames[num]->bufferYUV[0] || 0 == mFrames[num]->bufferYUV[1] || 0 == mFrames[num]->bufferYUV[2])
+	if (num < 0 || num >= (signed)mFrames.size())
 		return;
 
+	VideoFrame* frame = mFrames[num];
+	if (nullptr != frame->bufferRGBA || nullptr == frame->bufferYUV[0])
+		return;
+
+	// Lazy initialization of conversion tables
 	if (!mConversionTablesInitialized)
 	{
-		const int scale = 1L << 13;
-		for (unsigned int i = 0; i < 256; ++i)
+		for (int i = 0; i < 256; ++i)
 		{
-			const int temp = i - 128;
-			mYTable[i]  = (unsigned int)((1.164f * scale + 0.5f) * (i - 16));	// Calc Y component
-			mRVTable[i] = (unsigned int)((1.596f * scale + 0.5f) * temp);		// Calc R component
-			mGUTable[i] = (unsigned int)((0.391f * scale + 0.5f) * temp);		// Calc G u & v components
-			mGVTable[i] = (unsigned int)((0.813f * scale + 0.5f) * temp);
-			mBUTable[i] = (unsigned int)((2.018f * scale + 0.5f) * temp);		// Calc B component
+			mYTable[i]  = clamp(roundToInt(1.164f * (float)(i-16)), 0, 255);
+			mRVTable[i] = roundToInt(1.596f * (float)(i-128));
+			mGUTable[i] = roundToInt(0.391f * (float)(i-128));
+			mGVTable[i] = roundToInt(0.813f * (float)(i-128));
+			mBUTable[i] = roundToInt(2.018f * (float)(i-128));
 		}
 		mConversionTablesInitialized = true;
 	}
 
-	if (0 == mFrames[num]->bufferRGBA)
-		mFrames[num]->bufferRGBA = new uint32[mWidth*mHeight];
-
-	// Conversion YUV -> RGB
-	bool half_uv_width = (mWidthUV < mWidth);
-	bool half_uv_height = (mHeightUV < mHeight);
-	uint8* ySrc2 = mFrames[num]->bufferYUV[0];
-	uint8* uSrc2 = mFrames[num]->bufferYUV[1];
-	uint8* vSrc2 = mFrames[num]->bufferYUV[2];
-	uint32* output = mFrames[num]->bufferRGBA;
-	int r, g, b, cu, cv, bU, gUV, rV, rgbY;
-
+	frame->bufferRGBA = new uint32[mWidth*mHeight];
 	for (int y = 0; y < mHeight; ++y)
 	{
-		uint8* ySrc = ySrc2;
-		uint8* ySrcEnd = ySrc2 + mWidth;
-		uint8* uSrc = uSrc2;
-		uint8* vSrc = vSrc2;
-		int t = 0;
-		while (ySrc != ySrcEnd)
+		for (int x = 0; x < mWidth; ++x)
 		{
-			// Get corresponding lookup values
-			rgbY = mYTable[*ySrc];
-			if (!half_uv_width || ((t = !t) == 1))
-			{
-				cu = *uSrc;
-				cv = *vSrc;
-				rV  = mRVTable[cv];
-				gUV = mGUTable[cu] + mGVTable[cv];
-				bU  = mBUTable[cu];
-				uSrc++;
-				vSrc++;
-			}
+			const int Y = frame->bufferYUV[0][y*mWidth+x];
+			const int U = frame->bufferYUV[1][(y*mHeightUV/mHeight)*mWidthUV+(x*mWidthUV/mWidth)];
+			const int V = frame->bufferYUV[2][(y*mHeightUV/mHeight)*mWidthUV+(x*mWidthUV/mWidth)];
 
-			// Scale down - brings values back into the 8 bits of a uint8
-			r = (rgbY + rV)  >> 13;
-			g = (rgbY - gUV) >> 13;
-			b = (rgbY + bU)  >> 13;
-			*output = ((uint32)clamp(b, 0, 255) << 16)
-					+ ((uint32)clamp(g, 0, 255) << 8)
-					+  (uint32)clamp(r, 0, 255) + 0xff000000;
-			++output;
-			++ySrc;
-		}
-		ySrc2 += mWidth;
-		if (!half_uv_height || y%2 == 1)
-		{
-			uSrc2 += mWidthUV;
-			vSrc2 += mWidthUV;
+			const int r = clamp((int)mYTable[Y] + mRVTable[V], 0, 255);
+			const int g = clamp((int)mYTable[Y] - mGUTable[U] - mGVTable[V], 0, 255);
+			const int b = clamp((int)mYTable[Y] + mBUTable[U], 0, 255);
+
+			frame->bufferRGBA[y*mWidth+x] = 0xff000000 | (b << 16) | (g << 8) | r;
 		}
 	}
 }
 
 void VideoBuffer::getCropRect(float* croprect)
 {
-	if (0 == croprect)
-		return;
 	for (int i = 0; i < 4; ++i)
 		croprect[i] = mCropRect[i];
 }
@@ -229,18 +184,28 @@ void VideoBuffer::setCropRect(float left, float top, float right, float bottom)
 
 void VideoBuffer::setCropRect(int left, int top, int width, int height)
 {
-	const float scaleX = 1.0f / (float)mWidth;
-	const float scaleY = 1.0f / (float)mHeight;
-	setCropRect((float)left * scaleX, (float)top * scaleY,
-				(float)(left + width) * scaleX, (float)(top + height) * scaleY);
+	setCropRect((float)left / (float)mWidth, (float)top / (float)mHeight, (float)(mWidth-left-width) / (float)mWidth, (float)(mHeight-top-height) / (float)mHeight);
 }
 
 void VideoBuffer::setObsoleteFrames(int count)
 {
+	if (count <= 0)
+		return;
+
 	count = std::min(count, (int)mFrames.size());
 	for (int i = 0; i < count; ++i)
-	{
 		deleteFrame(mFrames[i]);
-		mFrames[i] = 0;
-	}
+	mFrames.erase(mFrames.begin(), mFrames.begin() + count);
+}
+
+void VideoBuffer::deleteFrame(VideoFrame* frame)
+{
+	if (nullptr == frame)
+		return;
+	if (nullptr != frame->bufferRGBA)
+		delete[] frame->bufferRGBA;
+	for (int k = 0; k < 3; ++k)
+		if (nullptr != frame->bufferYUV[k])
+			delete[] frame->bufferYUV[k];
+	delete frame;
 }

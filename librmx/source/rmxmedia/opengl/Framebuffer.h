@@ -21,17 +21,17 @@ public:
 	~Renderbuffer();
 
 	void create();
-	void create(GLenum format, int width, int height);
+	void create(int format, int width, int height);
 	void setSize(int width, int height);
 	void destroy();
 
-	inline GLuint getHandle() const  { return mHandle; }
+	inline unsigned int getHandle() const  { return mHandle; }
 
 private:
-	GLuint mHandle = 0;
-	GLenum mFormat = 0;
-	int mWidth = 0;
-	int mHeight = 0;
+	unsigned int mHandle;
+	int mFormat;
+	int mWidth;
+	int mHeight;
 };
 
 
@@ -47,30 +47,30 @@ public:
 	void destroy();
 	void setSize(int width, int height);
 
-	void attachTexture(GLenum attachment, GLuint handle, GLenum texTarget = GL_TEXTURE_2D);
-	void attachTexture(GLenum attachment, const Texture* texture, GLenum texTarget = GL_TEXTURE_2D);
+	void attachTexture(int attachment, unsigned int handle, int texTarget = GL_TEXTURE_2D);
+	void attachTexture(int attachment, const Texture* texture, int texTarget = GL_TEXTURE_2D);
 
-	void attachRenderbuffer(GLenum attachment, GLuint handle);
-	void createRenderbuffer(GLenum attachment, GLenum internalformat);
+	void attachRenderbuffer(int attachment, unsigned int handle);
+	void createRenderbuffer(int attachment, int internalformat);
 
 	void bind();
 	void unbind();
 
 	void activate();
-	void activate(GLbitfield clearmask);
+	void activate(int clearmask);
 	void deactivate();
 
-	inline GLuint getHandle() const   { return mHandle; }
+	inline unsigned int getHandle() const   { return mHandle; }
 	inline Recti getViewport() const  { return Recti(0, 0, mWidth, mHeight); }
 
 private:
-	void deleteAttachedBuffer(GLenum attachment);
+	void deleteAttachedBuffer(int attachment);
 
 private:
-	GLuint mHandle = 0;
-	int mWidth = 0;
-	int mHeight = 0;
-	std::map<GLenum, Renderbuffer*> mRenderbuffers;
+	unsigned int mHandle;
+	int mWidth;
+	int mHeight;
+	std::map<int, Renderbuffer*> mRenderbuffers;
 };
 
 #endif

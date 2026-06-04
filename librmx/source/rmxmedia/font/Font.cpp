@@ -23,6 +23,8 @@ int FontKey::compare(const FontKey& other) const
 }
 
 
+FontSourceStdFactory::~FontSourceStdFactory() {}
+
 FontSource* FontSourceStdFactory::construct(const FontSourceKey& key)
 {
 	if (key.mName.empty() && key.mSize > 0.0f)
@@ -31,6 +33,8 @@ FontSource* FontSourceStdFactory::construct(const FontSourceKey& key)
 	}
 	return nullptr;
 }
+
+FontSourceBitmapFactory::~FontSourceBitmapFactory() {}
 
 FontSource* FontSourceBitmapFactory::construct(const FontSourceKey& key)
 {
@@ -43,18 +47,36 @@ FontSource* FontSourceBitmapFactory::construct(const FontSourceKey& key)
 
 
 
-Font::Font()
+Font::Font() :
+	mFontSource(nullptr),
+	mFontSourceDirty(true),
+	mOwnsFontSource(false),
+	mAdvance(0.0f),
+	mChangeCounter(0)
 {
+	mKey.mSize = -1.0f;
 }
 
-Font::Font(const String& filename, float size)
+Font::Font(const String& filename, float size) :
+	mFontSource(nullptr),
+	mFontSourceDirty(true),
+	mOwnsFontSource(false),
+	mAdvance(0.0f),
+	mChangeCounter(0)
 {
+	mKey.mSize = -1.0f;
 	loadFromFile(filename, size);
 }
 
 Font::Font(float size) :
-	Font("", size)
+	mFontSource(nullptr),
+	mFontSourceDirty(true),
+	mOwnsFontSource(false),
+	mAdvance(0.0f),
+	mChangeCounter(0)
 {
+	mKey.mSize = -1.0f;
+	loadFromFile("", size);
 }
 
 Font::~Font()
@@ -98,7 +120,7 @@ void Font::clearFontProcessors()
 
 void Font::addFontProcessor(const std::shared_ptr<FontProcessor>& processor)
 {
-	mKey.mProcessors.emplace_back(processor);
+	mKey.mProcessors.push_back(processor);
 	mCharacterMap.clear();
 	++mChangeCounter;
 }
@@ -187,8 +209,9 @@ void Font::wordWrapText(std::vector<std::wstring>& output, int maxLineWidth, con
 	struct TextAndWidth
 	{
 		std::wstring mText;
-		int mWidth = 0;
+		int mWidth;
 
+		TextAndWidth() : mWidth(0) {}
 		bool empty() const							{ return mText.empty(); }
 		void clear()								{ mText = L""; mWidth = 0; }
 		void operator+=(const TextAndWidth& other)	{ mText += other.mText; mWidth += other.mWidth; }
@@ -196,7 +219,7 @@ void Font::wordWrapText(std::vector<std::wstring>& output, int maxLineWidth, con
 
 		void pushAsLineInto(std::vector<std::wstring>& output)
 		{
-			output.emplace_back();
+			output.push_back(std::wstring());
 			mText.swap(output.back());
 			clear();
 		}
@@ -301,7 +324,7 @@ void Font::getTypeInfos(std::vector<TypeInfo>& output, Vec2f pos, const StringRe
 			output[k].mBitmap = &info->mBitmap;
 			output[k].mPosition = pos + info->mIndent;
 
-			pos.x += info->mAdvance + spacing;
+			pos.x += (float)(info->mAdvance + spacing);
 		}
 		else
 		{
@@ -309,13 +332,13 @@ void Font::getTypeInfos(std::vector<TypeInfo>& output, Vec2f pos, const StringRe
 			{
 				// Line break
 				pos.x = originalPosition.x;
-				pos.y += fontSource->getLineHeight();
+				pos.y += (float)fontSource->getLineHeight();
 			}
 		}
 	}
 }
 
-void Font::applyToTypeInfos(std::vector<ExtendedTypeInfo>& outTypeInfos, const std::vector<TypeInfo>& inTypeInfos)
+void Font::applyToTypeInfos(std::vector<ExtendedTypeInfo>& outTypeInfos, const std::vector<Font::TypeInfo>& inTypeInfos)
 {
 	outTypeInfos.reserve(inTypeInfos.size());
 	for (size_t i = 0; i < inTypeInfos.size(); ++i)
@@ -326,10 +349,11 @@ void Font::applyToTypeInfos(std::vector<ExtendedTypeInfo>& outTypeInfos, const s
 
 		CharacterInfo& characterInfo = applyEffects(typeInfo);
 
-		ExtendedTypeInfo& extendedTypeInfo = vectorAdd(outTypeInfos);
+		outTypeInfos.push_back(ExtendedTypeInfo());
+		ExtendedTypeInfo& extendedTypeInfo = outTypeInfos.back();
 		extendedTypeInfo.mCharacter = typeInfo.mUnicode;
 		extendedTypeInfo.mBitmap = &characterInfo.mCachedBitmap;
-		extendedTypeInfo.mDrawPosition = Vec2i(typeInfo.mPosition) - Vec2i(characterInfo.mBorderLeft, characterInfo.mBorderTop);
+		extendedTypeInfo.mDrawPosition = Vec2i((int)typeInfo.mPosition.x, (int)typeInfo.mPosition.y) - Vec2i(characterInfo.mBorderLeft, characterInfo.mBorderTop);
 	}
 }
 
@@ -343,9 +367,9 @@ Font::CharacterInfo& Font::applyEffects(const TypeInfo& typeInfo)
 		fontProcessingData.mBitmap = *typeInfo.mBitmap;
 
 		// Run font processors
-		for (const std::shared_ptr<FontProcessor>& processor : mKey.mProcessors)
+		for (size_t i = 0; i < mKey.mProcessors.size(); ++i)
 		{
-			processor->process(fontProcessingData);
+			mKey.mProcessors[i]->process(fontProcessingData);
 		}
 
 		characterInfo.mBorderLeft = fontProcessingData.mBorderLeft;
@@ -394,8 +418,9 @@ void Font::printBitmap(Bitmap& outBitmap, Recti& outInnerRect, const StringReade
 	// Get bounds
 	Vec2i boundsMin(+10000, +10000);
 	Vec2i boundsMax(-10000, -10000);
-	for (const ExtendedTypeInfo& extendedTypeInfo : extendedTypeInfos)
+	for (size_t i = 0; i < extendedTypeInfos.size(); ++i)
 	{
+		const ExtendedTypeInfo& extendedTypeInfo = extendedTypeInfos[i];
 		const Vec2i minPos = extendedTypeInfo.mDrawPosition;
 		const Vec2i maxPos = minPos + extendedTypeInfo.mBitmap->getSize();
 		boundsMin.x = std::min(boundsMin.x, minPos.x);
@@ -412,8 +437,9 @@ void Font::printBitmap(Bitmap& outBitmap, Recti& outInnerRect, const StringReade
 		outBitmap.createReusingMemory(size.x, size.y, *reservedOutputSize, 0);
 
 	// Fill bitmap
-	for (const ExtendedTypeInfo& extendedTypeInfo : extendedTypeInfos)
+	for (size_t i = 0; i < extendedTypeInfos.size(); ++i)
 	{
+		const ExtendedTypeInfo& extendedTypeInfo = extendedTypeInfos[i];
 		outBitmap.insertBlend(extendedTypeInfo.mDrawPosition.x - boundsMin.x, extendedTypeInfo.mDrawPosition.y - boundsMin.y, *extendedTypeInfo.mBitmap);
 	}
 
@@ -470,8 +496,9 @@ FontSource* Font::getFontSource()
 	{
 		mFontSourceDirty = false;
 		RMX_ASSERT(nullptr == mFontSource, "Font source is expected to be a null pointer");
-		for (IFontSourceFactory* factory : Font::mCodecs.mList)
+		for (size_t i = 0; i < Font::mCodecs.mList.size(); ++i)
 		{
+			IFontSourceFactory* factory = Font::mCodecs.mList[i];
 			mFontSource = factory->construct(mKey);
 			if (nullptr != mFontSource)
 			{

@@ -17,16 +17,19 @@
 struct FontProcessingData
 {
 	Bitmap mBitmap;
-	int mBorderLeft = 0;
-	int mBorderRight = 0;
-	int mBorderTop = 0;
-	int mBorderBottom = 0;
+	int mBorderLeft;
+	int mBorderRight;
+	int mBorderTop;
+	int mBorderBottom;
+
+	FontProcessingData() : mBorderLeft(0), mBorderRight(0), mBorderTop(0), mBorderBottom(0) {}
 };
 
 
 class FontProcessor
 {
 public:
+	virtual ~FontProcessor() {}
 	virtual void process(FontProcessingData& data) = 0;
 };
 
@@ -34,7 +37,8 @@ public:
 class ShadowFontProcessor : public FontProcessor
 {
 public:
-	inline explicit ShadowFontProcessor(Vec2i shadowOffset = Vec2i(1, 1), float shadowBlur = 1.0f, Color shadowColor = Color::BLACK) :
+	virtual ~ShadowFontProcessor() {}
+	inline explicit ShadowFontProcessor(Vec2i shadowOffset, float shadowBlur, Color shadowColor) :
 		mShadowOffset(shadowOffset),
 		mShadowBlur(shadowBlur),
 		mShadowColor(shadowColor)
@@ -43,22 +47,23 @@ public:
 	inline explicit ShadowFontProcessor(Vec2i shadowOffset, float shadowBlur, float shadowAlpha) :
 		mShadowOffset(shadowOffset),
 		mShadowBlur(shadowBlur),
-		mShadowColor(0.0f, 0.0f, 0.0f, shadowAlpha)
+		mShadowColor(Color(0.0f, 0.0f, 0.0f, shadowAlpha))
 	{}
 
 	virtual void process(FontProcessingData& data) override;
 
 private:
 	Vec2i mShadowOffset;
-	float mShadowBlur = 1.0f;
-	Color mShadowColor = Color::BLACK;
+	float mShadowBlur;
+	Color mShadowColor;
 };
 
 
 class OutlineFontProcessor : public FontProcessor
 {
 public:
-	inline explicit OutlineFontProcessor(Color outlineColor = Color::BLACK, int range = 1, bool rectangularOutline = false) :
+	virtual ~OutlineFontProcessor() {}
+	inline explicit OutlineFontProcessor(Color outlineColor, int range, bool rectangularOutline) :
 		mOutlineColor(outlineColor),
 		mRange(range),
 		mRectangularOutline(rectangularOutline)
@@ -67,15 +72,16 @@ public:
 	virtual void process(FontProcessingData& data) override;
 
 private:
-	Color mOutlineColor = Color::BLACK;
-	int mRange = 1;
-	bool mRectangularOutline = false;
+	Color mOutlineColor;
+	int mRange;
+	bool mRectangularOutline;
 };
 
 
 class GradientFontProcessor : public FontProcessor
 {
 public:
+	virtual ~GradientFontProcessor() {}
 	inline explicit GradientFontProcessor()
 	{}
 

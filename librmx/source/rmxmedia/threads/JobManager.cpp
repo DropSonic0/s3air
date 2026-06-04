@@ -12,7 +12,7 @@
 namespace rmx
 {
 
-	JobManager::JobManager()
+	JobManager::JobManager() : mConditionVariable(nullptr), mConditionLock(nullptr), mMaxThreads(1), mNextDelayedJobTicks(0), mSearchforJobs(true)
 	{
 		mConditionVariable = SDL_CreateCond();
 		mConditionLock = SDL_CreateMutex();
@@ -36,7 +36,7 @@ namespace rmx
 		{
 			if (job.mRegisteredAtManager != this)
 				return;
-			if (job.mJobState != JobBase::JobState::INACTIVE && job.mJobState != JobBase::JobState::DONE)
+			if (job.mJobState != JobBase::JobState_INACTIVE && job.mJobState != JobBase::JobState_DONE)
 				return;
 
 			// Job is already registered here, but needs to have its state reset back to waiting
@@ -58,7 +58,7 @@ namespace rmx
 		}
 
 		// Job is ready to be processed
-		job.mJobState = JobBase::JobState::WAITING;
+		job.mJobState = JobBase::JobState_WAITING;
 
 		// Wake up a thread
 		if (!mThreads.empty())
@@ -109,7 +109,7 @@ namespace rmx
 			// Wait until job execution is done
 			job.mJobPriority = -1.0f;
 			job.mJobShouldBeRunning = false;
-			while (job.mJobState == JobBase::JobState::RUNNING)
+			while (job.mJobState == JobBase::JobState_RUNNING)
 			{
 				SDL_Delay(1);
 			}
@@ -120,9 +120,9 @@ namespace rmx
 	{
 		int count = 0;
 		SDL_LockMutex(mConditionLock);
-		for (JobBase* job : mJobs)
+		for (size_t i = 0; i < mJobs.size(); ++i)
 		{
-			if (job->isJobDone())
+			if (mJobs[i]->isJobDone())
 				++count;
 		}
 		SDL_UnlockMutex(mConditionLock);
@@ -181,9 +181,10 @@ namespace rmx
 		mNextDelayedJobTicks = 0xffffffff;	// This will get updated as well
 		JobBase* bestJob = nullptr;
 		const uint32 currentTicks = SDL_GetTicks();
-		for (JobBase* job : mJobs)
+		for (size_t i = 0; i < mJobs.size(); ++i)
 		{
-			if (job->mJobState == JobBase::JobState::WAITING)
+			JobBase* job = mJobs[i];
+			if (job->mJobState == JobBase::JobState_WAITING)
 			{
 				if (job->mJobDelayUntilTicks <= currentTicks)
 				{
@@ -207,7 +208,7 @@ namespace rmx
 			if (bestJob->mJobPriority >= 0.0f)
 			{
 				bestJob->mJobShouldBeRunning = true;
-				bestJob->mJobState = JobBase::JobState::RUNNING;
+				bestJob->mJobState = JobBase::JobState_RUNNING;
 			}
 			else
 			{
@@ -220,22 +221,26 @@ namespace rmx
 	void JobManager::stopAllThreads()
 	{
 		mSearchforJobs = false;
-		for (JobWorkerThread* thread : mThreads)
+		for (size_t i = 0; i < mThreads.size(); ++i)
 		{
-			thread->signalStopThread(false);
+			mThreads[i]->signalStopThread(false);
 		}
-		for (JobWorkerThread* thread : mThreads)
+		for (size_t i = 0; i < mThreads.size(); ++i)
 		{
-			thread->joinThread();
+			mThreads[i]->joinThread();
 		}
-		for (JobWorkerThread* thread : mThreads)
+		for (size_t i = 0; i < mThreads.size(); ++i)
 		{
-			delete thread;
+			delete mThreads[i];
 		}
 		mThreads.clear();
 	}
 
 
+
+	JobBase::JobBase() : mRegisteredAtManager(nullptr), mJobState(JobState_INACTIVE), mJobShouldBeRunning(false), mJobPriority(0.0f), mJobDelayUntilTicks(0)
+	{
+	}
 
 	void JobBase::setJobPriority(float priority)
 	{
@@ -265,29 +270,29 @@ namespace rmx
 	bool JobBase::callJobFuncOnCallingThread()
 	{
 		mJobShouldBeRunning = true;
-		mJobState = JobBase::JobState::RUNNING;
+		mJobState = JobBase::JobState_RUNNING;
 
 		// Call job function implementation once
 		const bool result = jobFunc();
 		if (result)
 		{
 			// Job is done
-			mJobState = JobBase::JobState::DONE;
+			mJobState = JobBase::JobState_DONE;
 		}
 		else
 		{
 			// Set back to waiting state
-			mJobState = JobBase::JobState::WAITING;
+			mJobState = JobBase::JobState_WAITING;
 		}
 		return result;
 	}
 
 	void JobBase::executeOnCallingThread()
 	{
-		if (mJobState <= JobBase::JobState::WAITING)
+		if (mJobState <= JobBase::JobState_WAITING)
 		{
 			mJobShouldBeRunning = true;
-			mJobState = JobBase::JobState::RUNNING;
+			mJobState = JobBase::JobState_RUNNING;
 
 			// Execute until done
 			while (!jobFunc())
@@ -295,13 +300,14 @@ namespace rmx
 			}
 
 			mJobShouldBeRunning = false;
-			mJobState = JobBase::JobState::DONE;
+			mJobState = JobBase::JobState_DONE;
 		}
 	}
 
 
 
 	JobWorkerThread::JobWorkerThread(JobManager& jobManager, int index) :
+		mInactivityDelay(0.1f),
 		mJobManager(jobManager)
 	{
 		// Index goes unused at the moment
@@ -319,14 +325,14 @@ namespace rmx
 				if (result)
 				{
 					// Job is done
-					job->mJobState = JobBase::JobState::DONE;
+					job->mJobState = JobBase::JobState_DONE;
 					job->mRegisteredAtManager->removeJob(*job);
 				}
 				else
 				{
 					// Set back to waiting state
 					//  -> Note that the job's priority might have changed, or there's another job with higher priority now, so don't just continue with this job
-					job->mJobState = JobBase::JobState::WAITING;
+					job->mJobState = JobBase::JobState_WAITING;
 				}
 			}
 		}

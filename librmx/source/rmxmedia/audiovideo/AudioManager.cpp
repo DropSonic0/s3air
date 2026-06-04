@@ -13,9 +13,16 @@ namespace rmx
 {
 
 	AudioManager::AudioManager() :
+		mAudioDeviceID(0),
+		mAudioLocks(0),
+		mNextFreeID(1),
+		mChangeCounter(0),
+		mPlayedSamples(0),
+		mTimeSinceLastUpdate(0.0f),
 		mRootMixer(*new AudioMixer(0))	// Root mixer always uses ID 0
 	{
 		mAudioMixers[0] = &mRootMixer;
+		memset(&mFormat, 0, sizeof(mFormat));
 	}
 
 	AudioManager::~AudioManager()
@@ -23,9 +30,9 @@ namespace rmx
 		RMX_ASSERT(mAudioLocks == 0, "Pending audio locks");
 
 		// Delete all audio mixers (including the root mixer)
-		for (const auto& [key, audioMixer] : mAudioMixers)
+		for (std::map<int, AudioMixer*>::iterator it = mAudioMixers.begin(); it != mAudioMixers.end(); ++it)
 		{
-			delete audioMixer;
+			delete it->second;
 		}
 	}
 
@@ -38,59 +45,37 @@ namespace rmx
 		mInstances.clear();
 		mRootMixer.clearAudioInstances();
 
-		// Initialize SDL2 audio subsystem
-		SDL_InitSubSystem(SDL_INIT_AUDIO);
-
-		// Check input, we don't support everything
-		if ((sample_freq % 11025) != 0)
-		{
-			if (sample_freq != 48000)
-			{
-				// It might be supported anyway, you'd have to try
-				RMX_ASSERT(false, "Unsupported sample frequency: " << sample_freq << " Hz");
-				int sf = sample_freq / 11025;
-				sf = (sf == 3) ? 2 : clamp(sf, 1, 4);	// Result is 1, 2 or 4
-				sample_freq = sf * 11025;
-			}
-		}
-		channels = clamp(channels, 1, 2);
-
-		// Define format
-		mFormat.freq = sample_freq;
-		mFormat.format = AUDIO_S16LSB;
-		mFormat.channels = channels;
-		mFormat.samples = audioBufferSamples;
-		mFormat.callback = AudioManager::mixAudioStatic;
-		mFormat.userdata = 0;
-
 		// Open audio device
-		SDL_AudioSpec requested = mFormat;
-		mAudioDeviceID = SDL_OpenAudioDevice(0, 0, &requested, &mFormat, 0);
+		SDL_AudioSpec desired;
+		memset(&desired, 0, sizeof(desired));
+		desired.freq = sample_freq;
+		desired.format = AUDIO_S16LSB;
+		desired.channels = (uint8)channels;
+		desired.samples = (uint16)audioBufferSamples;
+		desired.callback = mixAudioStatic;
+		desired.userdata = this;
+
+#ifdef PLATFORM_WEB
+		mAudioDeviceID = SDL_OpenAudioDevice(nullptr, 0, &desired, &mFormat, 0);
+#else
+		mAudioDeviceID = SDL_OpenAudioDevice(nullptr, 0, &desired, &mFormat, SDL_AUDIO_ALLOW_ANY_CHANGE);
+#endif
 		if (mAudioDeviceID == 0)
 		{
-			const int numAudioDevices = SDL_GetNumAudioDevices(0);
-			RMX_CHECK(numAudioDevices >= 0, "SDL_GetNumAudioDevices failed to determine audio devices", );
-			RMX_CHECK(numAudioDevices != 0, "SDL_GetNumAudioDevices could not find any audio devices", );
-
-			std::string text;
-			for (int i = 0; i < numAudioDevices; ++i)
-			{
-				if (!text.empty())
-					text += ", ";
-				text += SDL_GetAudioDeviceName(i, 0);
-			}
-			RMX_ERROR("SDL_OpenAudioDevice failed with error: '" << SDL_GetError() << "' (found " << numAudioDevices << " audio devices: " << text << ")", );
-			return;
+			RMX_ERROR("Failed to open audio device: " << SDL_GetError(), return);
 		}
 
-		// Everything alright so far
-		mPlayedSamples = 0;
+		// Success!
 		playAudio(true);
 	}
 
 	void AudioManager::exit()
 	{
-		SDL_CloseAudioDevice(mAudioDeviceID);
+		if (mAudioDeviceID != 0)
+		{
+			SDL_CloseAudioDevice(mAudioDeviceID);
+			mAudioDeviceID = 0;
+		}
 	}
 
 	void AudioManager::clear()
@@ -98,13 +83,14 @@ namespace rmx
 		if (!mInstances.empty())
 		{
 			lockAudio();
-			for (const auto& [key, audioMixer] : mAudioMixers)
+			for (std::map<int, AudioMixer*>::iterator it = mAudioMixers.begin(); it != mAudioMixers.end(); ++it)
 			{
-				audioMixer->clearAudioInstances();
+				it->second->clearAudioInstances();
 			}
 			unlockAudio();
 
 			mInstances.clear();
+			mRemoveIDs.clear();
 			++mChangeCounter;
 		}
 	}
@@ -150,20 +136,20 @@ namespace rmx
 			// Collect non-persistent audio buffers currently played back, and the earliest playback positions
 			static std::vector<std::pair<AudioBuffer*, int>> audioBufferPurgePositions;
 			audioBufferPurgePositions.clear();
-			for (const auto& instancePair : mInstances)
+			for (std::map<int, AudioInstance>::iterator it_inst = mInstances.begin(); it_inst != mInstances.end(); ++it_inst)
 			{
-				const AudioInstance& instance = instancePair.second;
+				const AudioInstance& instance = it_inst->second;
 				AudioBuffer* audioBuffer = instance.mAudioBuffer;
-				if (0 != audioBuffer && !audioBuffer->isPersistent())
+				if (nullptr != audioBuffer && !audioBuffer->isPersistent())
 				{
 					// Already had this one before?
 					bool found = false;
-					for (auto& bufferPair : audioBufferPurgePositions)
+					for (size_t i_bp = 0; i_bp < audioBufferPurgePositions.size(); ++i_bp)
 					{
-						if (bufferPair.first == audioBuffer)
+						if (audioBufferPurgePositions[i_bp].first == audioBuffer)
 						{
 							// Update the playback position
-							bufferPair.second = std::min(bufferPair.second, instance.mPosition);
+							audioBufferPurgePositions[i_bp].second = std::min(audioBufferPurgePositions[i_bp].second, instance.mPosition);
 							found = true;
 							break;
 						}
@@ -171,17 +157,17 @@ namespace rmx
 
 					if (!found)
 					{
-						audioBufferPurgePositions.emplace_back(audioBuffer, instance.mPosition);
+						audioBufferPurgePositions.push_back(std::make_pair(audioBuffer, instance.mPosition));
 					}
 				}
 			}
 
 			// Now update the audio buffers
-			for (auto& bufferPair : audioBufferPurgePositions)
+			for (size_t i_bp = 0; i_bp < audioBufferPurgePositions.size(); ++i_bp)
 			{
-				AudioBuffer* audioBuffer = bufferPair.first;
+				AudioBuffer* audioBuffer = audioBufferPurgePositions[i_bp].first;
 				audioBuffer->lock();
-				audioBuffer->markPurgeableSamples(bufferPair.second);
+				audioBuffer->markPurgeableSamples(audioBufferPurgePositions[i_bp].second);
 				audioBuffer->unlock();
 			}
 
@@ -196,8 +182,8 @@ namespace rmx
 
 	AudioMixer* AudioManager::getAudioMixerByID(int mixerId) const
 	{
-		const auto it = mAudioMixers.find(mixerId);
-		return (it == mAudioMixers.end()) ? 0 : it->second;
+		const std::map<int, AudioMixer*>::const_iterator it = mAudioMixers.find(mixerId);
+		return (it == mAudioMixers.end()) ? nullptr : it->second;
 	}
 
 	void AudioManager::deleteAudioMixerByID(int mixerId)
@@ -209,13 +195,13 @@ namespace rmx
 	float AudioManager::getAudioMixerVolumeByID(int mixerId) const
 	{
 		const AudioMixer* audioMixer = getAudioMixerByID(mixerId);
-		return (0 != audioMixer) ? audioMixer->getVolume() : 0.0f;
+		return (nullptr != audioMixer) ? audioMixer->getVolume() : 0.0f;
 	}
 
 	void AudioManager::setAudioMixerVolumeByID(int mixerId, float relativeVolume)
 	{
 		AudioMixer* audioMixer = getAudioMixerByID(mixerId);
-		if (0 != audioMixer)
+		if (nullptr != audioMixer)
 		{
 			audioMixer->setVolume(relativeVolume);
 		}
@@ -223,11 +209,11 @@ namespace rmx
 
 	bool AudioManager::addSound(const PlaybackOptions& playbackOptions, AudioReference& ref)
 	{
-		if (0 == playbackOptions.mAudioBuffer)
+		if (nullptr == playbackOptions.mAudioBuffer)
 			return false;
 
 		AudioMixer* audioMixer = getAudioMixerByID(playbackOptions.mAudioMixerId);
-		if (0 == audioMixer)
+		if (nullptr == audioMixer)
 			return false;
 
 		AudioInstance& instance = mInstances[mNextFreeID];
@@ -288,14 +274,14 @@ namespace rmx
 	AudioManager::AudioInstance* AudioManager::findInstance(int ID)
 	{
 		if (ID <= 0 || ID >= mNextFreeID)
-			return 0;
+			return nullptr;
 
 		// This seems like a good place to do some cleanup if needed
 		processRemoveIDs();
 
-		const auto it = mInstances.find(ID);
+		const std::map<int, AudioInstance>::iterator it = mInstances.find(ID);
 		if (it == mInstances.end())
-			return 0;
+			return nullptr;
 
 		return &it->second;
 	}
@@ -303,11 +289,11 @@ namespace rmx
 	void AudioManager::removeInstance(int ID)
 	{
 		assert(ID > 0 && ID < mNextFreeID);
-		const auto it = mInstances.find(ID);
+		const std::map<int, AudioInstance>::iterator it = mInstances.find(ID);
 		if (it != mInstances.end())
 		{
 			AudioInstance& audioInstance = it->second;
-			if (0 != audioInstance.mAudioMixer)
+			if (nullptr != audioInstance.mAudioMixer)
 			{
 				lockAudio();
 				audioInstance.mAudioMixer->removeAudioInstance(audioInstance);
@@ -324,13 +310,14 @@ namespace rmx
 		if (!mRemoveIDs.empty())
 		{
 			lockAudio();
-			for (int ID : mRemoveIDs)
+			for (size_t i = 0; i < mRemoveIDs.size(); ++i)
 			{
-				const auto it = mInstances.find(ID);
+				int ID = mRemoveIDs[i];
+				const std::map<int, AudioInstance>::iterator it = mInstances.find(ID);
 				if (it != mInstances.end())
 				{
 					AudioInstance& audioInstance = it->second;
-					if (0 != audioInstance.mAudioMixer)
+					if (nullptr != audioInstance.mAudioMixer)
 					{
 						audioInstance.mAudioMixer->removeAudioInstance(audioInstance);
 					}
@@ -338,9 +325,9 @@ namespace rmx
 			}
 			unlockAudio();
 
-			for (int ID : mRemoveIDs)
+			for (size_t i = 0; i < mRemoveIDs.size(); ++i)
 			{
-				mInstances.erase(ID);
+				mInstances.erase(mRemoveIDs[i]);
 			}
 			mRemoveIDs.clear();
 			++mChangeCounter;
@@ -350,23 +337,23 @@ namespace rmx
 	void AudioManager::registerAudioMixer(AudioMixer& audioMixer, int parentMixerId)
 	{
 		// Is there another audio mixer with the same ID already?
-		const auto it = mAudioMixers.find(audioMixer.mMixerId);
+		const std::map<int, AudioMixer*>::iterator it = mAudioMixers.find(audioMixer.mMixerId);
 		if (it != mAudioMixers.end() && it->second != &audioMixer)
 		{
 			// Replace the old mixer in the hierarchy
 			AudioMixer* oldMixer = it->second;
 
 			std::swap(audioMixer.mParent, oldMixer->mParent);
-			for (AudioMixer*& child : audioMixer.mParent->mChildren)
+			for (size_t i = 0; i < audioMixer.mParent->mChildren.size(); ++i)
 			{
-				if (child == oldMixer)
-					child = &audioMixer;
+				if (audioMixer.mParent->mChildren[i] == oldMixer)
+					audioMixer.mParent->mChildren[i] = &audioMixer;
 			}
 
 			std::swap(audioMixer.mChildren, oldMixer->mChildren);
-			for (AudioMixer* child : audioMixer.mChildren)
+			for (size_t i = 0; i < audioMixer.mChildren.size(); ++i)
 			{
-				child->mParent = &audioMixer;
+				audioMixer.mChildren[i]->mParent = &audioMixer;
 			}
 
 			delete oldMixer;
@@ -377,20 +364,20 @@ namespace rmx
 
 		// Register at (new) parent
 		AudioMixer* parent = getAudioMixerByID(parentMixerId);
-		if (0 == parent)
+		if (nullptr == parent)
 			parent = &mRootMixer;
 		parent->addChild(audioMixer);
 	}
 
 	void AudioManager::mixAudioStatic(void* _userdata, uint8* outputStream, int outputBytes)
 	{
-		FTX::Audio->mixAudio(outputStream, outputBytes);
+		static_cast<AudioManager*>(_userdata)->mixAudio(outputStream, outputBytes);
 	}
 
 	void AudioManager::mixAudio(uint8* outputStream, int outputBytes)
 	{
 		const size_t outputSamples = outputBytes / (mFormat.channels * sizeof(short));
-		const constexpr size_t MAX_SAMPLES = 2048;
+		const size_t MAX_SAMPLES = 2048;
 
 		RMX_ASSERT(outputSamples <= MAX_SAMPLES, "Mixing more than " << MAX_SAMPLES << " samples at once is not supported");
 		RMX_ASSERT(mFormat.channels <= 2, "More than 2 channels is not supported");
@@ -425,7 +412,7 @@ namespace rmx
 				}
 				else
 				{
-					*dst = (*src >> 8);
+					*dst = (short)(*src >> 8);
 				}
 				++src;
 				dst += 2;
@@ -435,14 +422,14 @@ namespace rmx
 		mPlayedSamples += (uint32)outputSamples;
 
 		// Remove instance that are done playing
-		for (auto& [key, audioInstance] : mInstances)
+		for (std::map<int, AudioInstance>::iterator it = mInstances.begin(); it != mInstances.end(); ++it)
 		{
-			if (audioInstance.mPlaybackDone)
+			if (it->second.mPlaybackDone)
 			{
 				// Add to remove IDs list, but only once please
-				if (!containsElement(mRemoveIDs, key))
+				if (!containsElement(mRemoveIDs, it->first))
 				{
-					mRemoveIDs.push_back(key);
+					mRemoveIDs.push_back(it->first);
 				}
 				++mChangeCounter;
 			}
@@ -454,7 +441,7 @@ namespace rmx
 	bool WavLoader::load(AudioBuffer* buffer, const String& source, const String& params)
 	{
 		// Load WAV file
-		if (0 == buffer || source.empty())
+		if (nullptr == buffer || source.empty())
 			return false;
 		if (!source.endsWith(".wav"))
 			return false;
@@ -495,6 +482,7 @@ namespace rmx
 					buf[j][i] = data[(page*2048+i)*2+j];
 			buffer->addData(buf, pagesize);
 		}
+		delete[] cvt.buf;
 		return true;
 	}
 

@@ -13,13 +13,13 @@
 namespace rmx
 {
 
-	VideoConfig::VideoConfig()
+	VideoConfig::VideoConfig() : mColorDepth(32), mFullscreen(false), mPositioning(false), mResizeable(true), mBorderless(false), mVSync(true), mHideCursor(false), mMultisampling(0), mAutoClearScreen(true), mAutoSwapBuffers(true), mIconResource(0), mRenderer(Renderer_OPENGL)
 	{
 		mWindowRect.set(0, 0, 800, 500);
 		mCaption = "FTX Window";
 	}
 
-	VideoConfig::VideoConfig(bool fullscreen, int width, int height, const String& caption)
+	VideoConfig::VideoConfig(bool fullscreen, int width, int height, const String& caption) : mColorDepth(32), mFullscreen(false), mPositioning(false), mResizeable(true), mBorderless(false), mVSync(true), mHideCursor(false), mMultisampling(0), mAutoClearScreen(true), mAutoSwapBuffers(true), mIconResource(0), mRenderer(Renderer_OPENGL)
 	{
 		mFullscreen = fullscreen;
 		mResizeable = !fullscreen;
@@ -46,69 +46,65 @@ namespace rmx
 
 	void InputContext::copy(const InputContext& source)
 	{
-		*this = source;
+		memcpy(this, &source, sizeof(InputContext));
+		mKeyState = source.mKeyState;
+		mKeyChange = source.mKeyChange;
 	}
 
 	void InputContext::applyEvent(const KeyboardEvent& ev)
 	{
-		 //static_assert(SDL_NUM_SCANCODES == 0x0200);		// That's actually only partially relevant, as we're using keycodes, not scancodes
-		const size_t bitIndex = getBitIndex(ev.key);
-
-		const bool oldState = mKeyState.isBitSet(bitIndex);
-		const bool change = (oldState != ev.state);
-		if (change)
+		const size_t bit = getBitIndex(ev.key);
+		if (mKeyState.isBitSet(bit) != ev.state)
 		{
-			mKeyState.setBit(bitIndex, ev.state);
-			mKeyChange.setBit(bitIndex);
-		}
-		else
-		{
-			mKeyChange.clearBit(bitIndex);
+			mKeyState.setBit(bit, ev.state);
+			mKeyChange.setBit(bit, true);
 		}
 	}
 
 	void InputContext::applyEvent(const MouseEvent& ev)
 	{
-		mMouseChange[(int)ev.button] = (ev.state != mMouseState[(int)ev.button]);
-		mMouseState[(int)ev.button] = ev.state;
+		mMousePos = ev.position;
+		if (mMouseState[ev.button] != ev.state)
+		{
+			mMouseState[ev.button] = ev.state;
+			mMouseChange[ev.button] = true;
+		}
 	}
 
 	bool InputContext::getMouseState(int button) const
 	{
-		if (button < 0 || button > 4)
-			return false;
-		return mMouseState[button];
+		return (button >= 0 && button < 5) ? mMouseState[button] : false;
 	}
 
 	bool InputContext::getMouseChange(int button) const
 	{
-		if (button < 0 || button > 4)
-			return false;
-		return mMouseChange[button];
+		return (button >= 0 && button < 5) ? mMouseChange[button] : false;
 	}
+
 }
+
 
 
 namespace FTX
 {
-	int   screenWidth()			{ return FTX::Video->getScreenWidth(); }
-	int   screenHeight()		{ return FTX::Video->getScreenHeight(); }
-    Vec2i screenSize()		    { return FTX::Video->getScreenSize(); }
-	const Recti& screenRect()	{ return FTX::Video->getScreenRect(); }
-	bool  reshaped()			{ return FTX::Video->reshaped(); }
+	int screenWidth()  { return Video->getScreenWidth(); }
+	int screenHeight() { return Video->getScreenHeight(); }
+	Vec2i screenSize() { return Video->getScreenSize(); }
+	const Recti& screenRect() { return Video->getScreenRect(); }
+	bool reshaped()    { return Video->reshaped(); }
 
-	float getTime()				{ return FTX::System->getTime(); }
-	float getTimeDifference()	{ return FTX::System->getTimeDifference(); }
-	float getFramerate()		{ return FTX::System->getFramerate(); }
-	int   getFrameCounter()		{ return FTX::System->getFrameCounter(); }
+	float getTimeDifference() { return System->getTimeDifference(); }
+	float getTime()           { return System->getTime(); }
+	float getFramerate()      { return System->getFramerate(); }
+	int   getFrameCounter()   { return System->getFrameCounter(); }
 
-	bool keyState(int key)		{ return FTX::System->getKeyState(key); }
-	bool keyChange(int key)		{ return FTX::System->getKeyChange(key); }
+	bool keyState(int key)  { return System->getKeyState(key); }
+	bool keyChange(int key) { return System->getKeyChange(key); }
 
-	const Vec2i& mousePos()			{ return FTX::System->getMousePos(); }
-	const Vec2i& mouseRel()			{ return FTX::System->getMouseRel(); }
-	int mouseWheel()				{ return FTX::System->getMouseWheel(); }
-	bool mouseState(rmx::MouseButton button)	{ return FTX::System->getMouseState((int)button); }
-	bool mouseChange(rmx::MouseButton button)	{ return FTX::System->getMouseChange((int)button); }
-	bool mouseIn(const Recti& rect)	{ return rect.contains(FTX::System->getMousePos()); }
+	const Vec2i& mousePos() { return System->getMousePos(); }
+	const Vec2i& mouseRel() { return System->getMouseRel(); }
+	int  mouseWheel() { return System->getMouseWheel(); }
+	bool mouseState(rmx::MouseButton button)  { return System->getMouseState((int)button); }
+	bool mouseChange(rmx::MouseButton button) { return System->getMouseChange((int)button); }
+	bool mouseIn(const Recti& rect) { return System->mouseIn(rect); }
 }

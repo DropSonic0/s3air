@@ -13,7 +13,7 @@
 
 /* ----- Renderbuffer ---------------------------------------------------------------------------------------------- */
 
-Renderbuffer::Renderbuffer()
+Renderbuffer::Renderbuffer() : mHandle(0), mFormat(0), mWidth(0), mHeight(0)
 {
 }
 
@@ -72,7 +72,7 @@ void Renderbuffer::destroy()
 
 /* ----- Framebuffer ----------------------------------------------------------------------------------------------- */
 
-Framebuffer::Framebuffer()
+Framebuffer::Framebuffer() : mHandle(0), mWidth(0), mHeight(0)
 {
 }
 

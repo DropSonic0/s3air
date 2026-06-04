@@ -20,22 +20,26 @@
 class API_EXPORT Shader
 {
 public:
-	enum class ShaderType
+	enum ShaderType
 	{
-		FRAGMENT,
-		VERTEX
+		ShaderType_FRAGMENT,
+		ShaderType_VERTEX
 	};
 
-	enum class BlendMode
+	enum BlendMode
 	{
-		UNDEFINED = -1,
-		OPAQUE,
-		ALPHA,
-		ADD
+		BlendMode_UNDEFINED = -1,
+		BlendMode_OPAQUE,
+		BlendMode_ALPHA,
+		BlendMode_ADD
 	};
 
-	static inline std::function<void(String&, ShaderType)> mShaderSourcePostProcessCallback;
-	static inline std::function<bool(BlendMode)> mShaderApplyBlendModeCallback;				// Internal application of blend function will only be done if this is not set, or returns false
+#if !defined(PLATFORM_PS3)
+	static std::function<void(String&, ShaderType)> mShaderSourcePostProcessCallback;
+	static std::function<bool(BlendMode)> mShaderApplyBlendModeCallback;
+#endif
+	 
+	 				// Internal application of blend function will only be done if this is not set, or returns false
 
 public:
 	Shader();
@@ -50,10 +54,10 @@ public:
 	inline BlendMode getBlendMode() const			{ return mBlendMode; }
 	inline void setBlendMode(BlendMode mode)		{ mBlendMode = mode; }
 
-	inline GLuint getProgramHandle() const			{ return mProgram; }
+	inline unsigned int getProgramHandle() const			{ return mProgram; }
 
-	GLuint getUniformLocation(const char* name) const;
-	GLuint getAttribLocation(const char* name) const;
+	unsigned int getUniformLocation(const char* name) const;
+	unsigned int getAttribLocation(const char* name) const;
 
 	void setParam(const char* name, int param);
 	void setParam(const char* name, const Vec2i& param);
@@ -67,7 +71,7 @@ public:
 	void setMatrix(const char* name, const Mat3f& matrix);
 	void setMatrix(const char* name, const Mat4f& matrix);
 
-	void setTexture(const char* name, GLuint handle, GLenum target);
+	void setTexture(const char* name, unsigned int handle, int target);
 	void setTexture(const char* name, const Texture& texture);
 
 	void bind();
@@ -77,15 +81,15 @@ public:
 	bool load(const std::vector<uint8>& content, const String& techname = String(), const String& additionalDefines = String());
 
 private:
-	bool compileShader(GLenum shaderType, GLuint& shaderHandle, const String& source);
+	bool compileShader(int shaderType, unsigned int& shaderHandle, const String& source);
 	bool linkProgram(const std::map<int, String>* vertexAttribMap = nullptr);
 
 private:
-	GLuint mVertexShader = 0;
-	GLuint mFragmentShader = 0;
-	GLuint mProgram = 0;
-	BlendMode mBlendMode = BlendMode::UNDEFINED;
-	int mTextureCount = 0;
+	unsigned int mVertexShader;
+	unsigned int mFragmentShader;
+	unsigned int mProgram;
+	BlendMode mBlendMode;
+	int mTextureCount;
 
 	String mVertexSource;
 	String mFragmentSource;
@@ -120,7 +124,7 @@ private:
 		std::vector<String> mFragmentShaderParts;
 		std::vector<String> mDefines;
 		std::map<int, String> mVertexAttribMap;
-		Shader::BlendMode mBlendMode = Shader::BlendMode::UNDEFINED;
+		Shader::BlendMode mBlendMode;
 	};
 
 private:

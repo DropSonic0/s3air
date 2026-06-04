@@ -17,18 +17,18 @@ class FontSource;
 
 struct StringReader
 {
-	const char* mString = nullptr;
-	const wchar_t* mWString = nullptr;
-	size_t mLength = 0;
+	const char* mString;
+	const wchar_t* mWString;
+	size_t mLength;
 
-	StringReader(const char* str)		  : mString(str), mLength(strlen(str)) {}
-	StringReader(const wchar_t* str)	  : mWString(str), mLength(wcslen(str)) {}
-	StringReader(const String& str)		  : mString(*str), mLength(str.length()) {}
-	StringReader(const WString& str)	  : mWString(*str), mLength(str.length()) {}
-	StringReader(const std::string& str)  : mString(str.c_str()), mLength(str.length()) {}
-	StringReader(const std::wstring& str) : mWString(str.c_str()), mLength(str.length()) {}
-	StringReader(std::string_view str)	  : mString(str.data()), mLength(str.length()) {}
-	StringReader(std::wstring_view str)	  : mWString(str.data()), mLength(str.length()) {}
+	StringReader(const char* str)		  : mString(str), mWString(nullptr), mLength(strlen(str)) {}
+	StringReader(const wchar_t* str)	  : mString(nullptr), mWString(str), mLength(wcslen(str)) {}
+	StringReader(const String& str)		  : mString(*str), mWString(nullptr), mLength(str.length()) {}
+	StringReader(const WString& str)	  : mString(nullptr), mWString(*str), mLength(str.length()) {}
+	StringReader(const std::string& str)  : mString(str.c_str()), mWString(nullptr), mLength(str.length()) {}
+	StringReader(const std::wstring& str) : mString(nullptr), mWString(str.c_str()), mLength(str.length()) {}
+	StringReader(std::string_view str)	  : mString(str.data()), mWString(nullptr), mLength(str.length()) {}
+	StringReader(std::wstring_view str)	  : mString(nullptr), mWString(str.data()), mLength(str.length()) {}
 
 	uint32 operator[](size_t index) const  { return (nullptr != mString) ? (uint32)(uint8)mString[index] : (uint32)mWString[index]; }
 };
@@ -36,9 +36,11 @@ struct StringReader
 
 struct FontSourceKey
 {
-	FontSource* mFontSource = nullptr;	// Only used in case a certain font source is ínjected into a font instance
+	FontSource* mFontSource;	// Only used in case a certain font source is injected into a font instance
 	String mName;
-	float mSize = -1.0f;
+	float mSize;
+
+	FontSourceKey() : mFontSource(nullptr), mSize(-1.0f) {}
 
 	int compare(const FontSourceKey& other) const
 	{
@@ -55,7 +57,7 @@ struct FontSourceKey
 
 struct FontKey : public FontSourceKey
 {
-	std::vector<std::shared_ptr<FontProcessor>> mProcessors;
+	std::vector<std::shared_ptr<FontProcessor> > mProcessors;
 
 	int compare(const FontKey& other) const;
 	inline bool operator==(const FontKey& other) const { return (compare(other) == 0); }
@@ -68,25 +70,31 @@ class Font
 public:
 	struct TypeInfo
 	{
-		uint32 mUnicode = 0;
-		const Bitmap* mBitmap = nullptr;
+		uint32 mUnicode;
+		const Bitmap* mBitmap;
 		Vec2f mPosition;
+
+		TypeInfo() : mUnicode(0), mBitmap(nullptr) {}
 	};
 
 	struct ExtendedTypeInfo
 	{
-		uint32 mCharacter = 0;
-		Bitmap* mBitmap = nullptr;
+		uint32 mCharacter;
+		Bitmap* mBitmap;
 		Vec2i mDrawPosition;
+
+		ExtendedTypeInfo() : mCharacter(0), mBitmap(nullptr) {}
 	};
 
 	struct CharacterInfo
 	{
 		Bitmap mCachedBitmap;
-		int mBorderLeft = 0;
-		int mBorderRight = 0;
-		int mBorderTop = 0;
-		int mBorderBottom = 0;
+		int mBorderLeft;
+		int mBorderRight;
+		int mBorderTop;
+		int mBorderBottom;
+
+		CharacterInfo() : mBorderLeft(0), mBorderRight(0), mBorderTop(0), mBorderBottom(0) {}
 	};
 
 public:
@@ -129,14 +137,14 @@ private:
 	FontSource* getFontSource();
 
 private:
-	FontSource* mFontSource = nullptr;
-	bool mFontSourceDirty = true;
-	bool mOwnsFontSource = false;
+	FontSource* mFontSource;
+	bool mFontSourceDirty;
+	bool mOwnsFontSource;
 
 	FontKey mKey;
-	float mAdvance = 0.0f;
+	float mAdvance;
 	std::map<uint32, CharacterInfo> mCharacterMap;
-	uint32 mChangeCounter = 0;			// This is meant for classes like OpenGLFontOutput, so that it knows when to invalidate its caching
+	uint32 mChangeCounter;			// This is meant for classes like OpenGLFontOutput, so that it knows when to invalidate its caching
 
 public:
 	struct API_EXPORT CodecList
@@ -152,17 +160,20 @@ public:
 class IFontSourceFactory
 {
 public:
+	virtual ~IFontSourceFactory() {}
 	virtual FontSource* construct(const FontSourceKey& key) = 0;
 };
 
 class FontSourceStdFactory : public IFontSourceFactory
 {
 public:
+	virtual ~FontSourceStdFactory() {}
 	virtual FontSource* construct(const FontSourceKey& key) override;
 };
 
 class FontSourceBitmapFactory : public IFontSourceFactory
 {
 public:
+	virtual ~FontSourceBitmapFactory() {}
 	virtual FontSource* construct(const FontSourceKey& key) override;
 };

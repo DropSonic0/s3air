@@ -24,14 +24,16 @@ namespace rmx
 	public:
 		struct MixerParameters
 		{
-			int32* mOutputBuffers[2] = { nullptr, nullptr };	// One for each channel
-			size_t mOutputSamples = 0;
-			const SDL_AudioSpec* mOutputFormat = nullptr;
-			float mAccumulatedVolume = 1.0f;
+			int32* mOutputBuffers[2];	// One for each channel
+			size_t mOutputSamples;
+			const SDL_AudioSpec* mOutputFormat;
+			float mAccumulatedVolume;
+
+			MixerParameters() : mOutputSamples(0), mOutputFormat(nullptr), mAccumulatedVolume(1.0f) { mOutputBuffers[0] = nullptr; mOutputBuffers[1] = nullptr; }
 		};
 
 	public:
-		AudioMixer(int mixerId) : mMixerId(mixerId) {}
+		AudioMixer(int mixerId);
 		virtual ~AudioMixer();
 
 		void addChild(AudioMixer& child);
@@ -53,8 +55,8 @@ namespace rmx
 		void mixInAudioInstance(AudioManager::AudioInstance& audioInstance, int32*const* outputBuffer, size_t numOutputSamplesNeeded, const SDL_AudioSpec& outputFormat);
 
 	protected:
-		float mRelativeVolume = 1.0f;
-		float mOutputVolume = 1.0f;
+		float mRelativeVolume;
+		float mOutputVolume;
 		std::map<int, AudioManager::AudioInstance*> mAudioInstances;
 
 	private:
@@ -62,8 +64,8 @@ namespace rmx
 		void removeChildInternal(AudioMixer& child);
 
 	private:
-		int mMixerId = 0;
-		AudioMixer* mParent = nullptr;
+		int mMixerId;
+		AudioMixer* mParent;
 		std::vector<AudioMixer*> mChildren;
 	};
 

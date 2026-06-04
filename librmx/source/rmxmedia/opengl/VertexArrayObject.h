@@ -18,17 +18,18 @@ namespace opengl
 	class VertexArrayObject
 	{
 	public:
-		enum class Format
+		enum Format
 		{
-			UNDEFINED,
-			P2,			// 2D position
-			P2_C3,		// 2D position, RGB color
-			P2_C4,		// 2D position, RGBA color
-			P2_T2		// 2D position, 2D texcoords
+			Format_UNDEFINED,
+			Format_P2,			// 2D position
+			Format_P2_C3,		// 2D position, RGB color
+			Format_P2_C4,		// 2D position, RGBA color
+			Format_P2_T2		// 2D position, 2D texcoords
 						// ...add more as needed
 		};
 
 	public:
+		VertexArrayObject();
 		~VertexArrayObject();
 
 		void setup(Format format);
@@ -39,16 +40,16 @@ namespace opengl
 		void bind();
 		void unbind();
 
-		void draw(GLenum mode);		// Shortcut for "bind()" + "glDrawArrays(mode, 0, mNumBufferedVertices)"
+		void draw(int mode);		// Shortcut for "bind()" + "glDrawArrays(mode, 0, mNumBufferedVertices)"
 
 	private:
-		GLuint mHandle = 0;						// Vertex array object handle
-		GLuint mVertexBufferObjectHandle = 0;	// We could actually use multiple VBOs (e.g. one for positions, one for texcoords), but one is sufficient
-		Format mCurrentFormat = Format::UNDEFINED;
+		unsigned int mHandle;						// Vertex array object handle
+		unsigned int mVertexBufferObjectHandle;	// We could actually use multiple VBOs (e.g. one for positions, one for texcoords), but one is sufficient
+		Format mCurrentFormat;
 
-		size_t mNumBufferedVertices = 0;
-		size_t mNumVertexAttributes = 0;
-		size_t mFloatsPerVertex = 0;
+		size_t mNumBufferedVertices;
+		size_t mNumVertexAttributes;
+		size_t mFloatsPerVertex;
 	};
 }
 

@@ -16,19 +16,21 @@ class API_EXPORT SpriteAtlasBase
 public:
 	struct Page
 	{
-		int mIndex = 0;
+		int mIndex;
 		Vec2i mPageSize;
+		Page() : mIndex(0) {}
 	};
 	struct Sprite
 	{
-		uint32 mKey = 0;
+		uint32 mKey;
 		Page mPage;
 		Recti mRect;
+		Sprite() : mKey(0) {}
 	};
 
 public:
 	SpriteAtlasBase();
-	~SpriteAtlasBase();
+	virtual ~SpriteAtlasBase();
 
 	void clear();
 	bool add(uint32 key, const Vec2i& size);
@@ -50,17 +52,17 @@ private:
 	static bool compareSpriteInfoBySize(const SpriteInfo& first, const SpriteInfo& second);
 
 protected:
-	Vec2i mPageSize = Vec2i(512, 128);		// That size is a bit small for usual text rendering, but okay for pixelized rendering as used by Oxygen
-	int mPadding = 1;
+	Vec2i mPageSize;		// That size is a bit small for usual text rendering, but okay for pixelized rendering as used by Oxygen
+	int mPadding;
 
 	struct Node
 	{
-		Node* mChildNode[2] = { nullptr, nullptr };
+		Node* mChildNode[2];
 		Recti mRect;
-		bool mUsed = false;
+		bool mUsed;
 
-		inline Node() {}
-		inline Node(const Recti& rct) : mRect(rct) {}
+		inline Node() : mUsed(false) { mChildNode[0] = 0; mChildNode[1] = 0; }
+		inline Node(const Recti& rct) : mRect(rct), mUsed(false) { mChildNode[0] = 0; mChildNode[1] = 0; }
 		inline ~Node()  { clear(); }
 
 		void clear();
@@ -75,9 +77,10 @@ protected:
 
 	struct SpriteInfo
 	{
-		uint32 mKey = 0xffffffff;
-		int mPageIndex = -1;
+		uint32 mKey;
+		int mPageIndex;
 		Recti mRect;
+		SpriteInfo() : mKey(0xffffffff), mPageIndex(-1) {}
 	};
 	std::map<uint32, SpriteInfo> mSprites;
 };
@@ -91,14 +94,15 @@ class API_EXPORT SpriteAtlas : protected SpriteAtlasBase
 public:
 	struct Sprite
 	{
-		Texture* mTexture = nullptr;
+		Texture* mTexture;
 		Vec2f mUVStart;
 		Vec2f mUVEnd;
+		Sprite() : mTexture(0) {}
 	};
 
 public:
 	SpriteAtlas();
-	~SpriteAtlas();
+	virtual ~SpriteAtlas();
 
 	void clear();
 	int add(const Bitmap& bmp);

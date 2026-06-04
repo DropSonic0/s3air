@@ -12,6 +12,8 @@
 
 namespace opengl
 {
+	VertexArrayObject::VertexArrayObject() : mHandle(0), mVertexBufferObjectHandle(0), mCurrentFormat(Format_UNDEFINED), mNumBufferedVertices(0), mNumVertexAttributes(0), mFloatsPerVertex(0) {}
+
 	VertexArrayObject::~VertexArrayObject()
 	{
 		if (mHandle != 0)
@@ -39,38 +41,38 @@ namespace opengl
 		mCurrentFormat = format;
 		switch (format)
 		{
-			case Format::P2:
+			case Format_P2:
 			{
 				mNumVertexAttributes = 1;
 				mFloatsPerVertex = 2;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
 				break;
 			}
 
-			case Format::P2_C3:
+			case Format_P2_C3:
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 5;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(2 * sizeof(float)));	// Colors
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(2 * sizeof(float)));	// Colors
 				break;
 			}
 
-			case Format::P2_C4:
+			case Format_P2_C4:
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(2 * sizeof(float)));	// Colors
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(2 * sizeof(float)));	// Colors
 				break;
 			}
 
-			case Format::P2_T2:
+			case Format_P2_T2:
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 4;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(2 * sizeof(float)));	// Texcoords
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(2 * sizeof(float)));	// Texcoords
 				break;
 			}
 

@@ -13,7 +13,7 @@
 
 
 // OggLoaderError
-enum class OggLoaderError
+enum OggLoaderError
 {
 	OK = 0,
 	COULD_NOT_OPEN_FILE,
@@ -22,7 +22,7 @@ enum class OggLoaderError
 	HEADERS_NOT_FOUND
 };
 
-enum class OggLoaderState
+enum OggLoaderState
 {
 	INACTIVE = 0,
 	STREAMING,
@@ -66,13 +66,13 @@ private:
 	int  seekInternal(float targetTime, std::streamsize& rangeMin, std::streamsize& rangeMax);
 
 private:
-	bool mIsStreaming = false;
-	AudioBuffer* mAudioBuffer = 0;
-	InputStream* mInputStream = 0;
-	OggLoaderError mError = OggLoaderError::OK;
-	ogg_int64_t mVorbisGranulePos = 0;
-	OggLoaderState mAudioState = OggLoaderState::INACTIVE;
-	int mSkipAudioSampleOutput = 0;
+	bool mIsStreaming;
+	AudioBuffer* mAudioBuffer;
+	InputStream* mInputStream;
+	OggLoaderError mError;
+	ogg_int64_t mVorbisGranulePos;
+	OggLoaderState mAudioState;
+	int mSkipAudioSampleOutput;
 
 	// Ogg/Vorbis data structures
 	ogg_sync_state   mSyncState;

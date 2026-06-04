@@ -9,14 +9,14 @@
 #include "rmxmedia.h"
 
 
-GuiBase::GuiBase()
+GuiBase::GuiBase() : mParent(nullptr), mEnabled(true), mVisible(true), mAlpha(1.0f), mRealAlpha(1.0f), mIteratingChildren(false)
 {
 }
 
 GuiBase::~GuiBase()
 {
 	deleteAllChildren();
-	if (0 != mParent)
+	if (nullptr != mParent)
 		mParent->removeChild(this);
 }
 
@@ -49,7 +49,7 @@ void GuiBase::removeChild(GuiBase* child)
 		return;
 
 	child->deinitialize();
-	child->mParent = 0;
+	child->mParent = nullptr;
 
 	if (mIteratingChildren)
 	{
@@ -71,7 +71,7 @@ void GuiBase::deleteAllChildren()
 {
 	for (GuiBase* child : mChildren)
 	{
-		child->mParent = 0;
+		child->mParent = nullptr;
 		delete child;
 	}
 	mChildren.clear();
@@ -110,7 +110,7 @@ void GuiBase::setAlpha(float alpha)
 void GuiBase::updateRealAlpha()
 {
 	mRealAlpha = mAlpha;
-	if (0 != mParent)
+	if (nullptr != mParent)
 		mRealAlpha *= mParent->mRealAlpha;
 
 	mIteratingChildren = true;

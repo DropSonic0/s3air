@@ -24,13 +24,19 @@ namespace rmx
 
 
 	ThreadBase::ThreadBase() :
-		mName("rmx Thread")
+		mShouldBeRunning(false),
+		mSDLThread(nullptr),
+		mName("rmx Thread"),
+		mIsThreadRunning(false)
 	{
 		mManager->registerThread(*this);
 	}
 
 	ThreadBase::ThreadBase(const std::string& name) :
-		mName(name)
+		mShouldBeRunning(false),
+		mSDLThread(nullptr),
+		mName(name),
+		mIsThreadRunning(false)
 	{
 		mManager->registerThread(*this);
 	}

@@ -13,7 +13,7 @@
 
 /* ----- Shader -------------------------------------------------------------------------------------------------- */
 
-Shader::Shader()
+Shader::Shader() : mVertexShader(0), mFragmentShader(0), mProgram(0), mBlendMode(BlendMode_UNDEFINED), mTextureCount(0)
 {
 }
 
@@ -121,7 +121,7 @@ void Shader::setTexture(const char* name, const Texture& texture)
 
 void Shader::bind()
 {
-	if (mBlendMode != BlendMode::UNDEFINED)
+	if (mBlendMode != BlendMode_UNDEFINED)
 	{
 		bool handled = false;
 		if (mShaderApplyBlendModeCallback)
@@ -133,9 +133,9 @@ void Shader::bind()
 		{
 			switch (mBlendMode)
 			{
-				case BlendMode::OPAQUE: glBlendFunc(GL_ONE, GL_ZERO);  break;
-				case BlendMode::ALPHA:  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  break;
-				case BlendMode::ADD:    glBlendFunc(GL_ONE, GL_ONE);   break;
+				case BlendMode_OPAQUE: glBlendFunc(GL_ONE, GL_ZERO);  break;
+				case BlendMode_ALPHA:  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  break;
+				case BlendMode_ADD:    glBlendFunc(GL_ONE, GL_ONE);   break;
 				default:				glBlendFunc(GL_ONE, GL_ZERO);  break;
 			}
 		}
@@ -339,11 +339,11 @@ bool ShaderEffect::getShaderInternal(Shader& shader, TechniqueStruct& tech, cons
 
 	String vsSource;
 	buildSourceFromParts(vsSource, tech.mVertexShaderParts, definitions);
-	preprocessSource(vsSource, Shader::ShaderType::VERTEX);
+	preprocessSource(vsSource, Shader::ShaderType_VERTEX);
 
 	String fsSource;
 	buildSourceFromParts(fsSource, tech.mFragmentShaderParts, definitions);
-	preprocessSource(fsSource, Shader::ShaderType::FRAGMENT);
+	preprocessSource(fsSource, Shader::ShaderType_FRAGMENT);
 
 	if (!shader.compile(vsSource, fsSource, &tech.mVertexAttribMap))
 		return false;
@@ -455,11 +455,11 @@ void ShaderEffect::parseTechniques(String& source)
 			{
 				value.lowerCase();
 				if (value == "alpha")
-					tech.mBlendMode = Shader::BlendMode::ALPHA;
+					tech.mBlendMode = Shader::BlendMode_ALPHA;
 				else if (value == "add")
-					tech.mBlendMode = Shader::BlendMode::ADD;
+					tech.mBlendMode = Shader::BlendMode_ADD;
 				else
-					tech.mBlendMode = Shader::BlendMode::OPAQUE;
+					tech.mBlendMode = Shader::BlendMode_OPAQUE;
 			}
 			else if (identifier == "define" || identifier == "defines")
 			{
@@ -580,12 +580,12 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 		{
 			// "in" -> "attribute" or "varying"
 			line.remove(0, 2);
-			line.insert((shaderType == Shader::ShaderType::VERTEX) ? "attribute" : "varying", 0);
+			line.insert((shaderType == Shader::ShaderType_VERTEX) ? "attribute" : "varying", 0);
 		}
 		else if (line.startsWith("out "))
 		{
 			// "out" -> "varying" or remove entirely
-			if (shaderType == Shader::ShaderType::VERTEX)
+			if (shaderType == Shader::ShaderType_VERTEX)
 			{
 				line.remove(0, 3);
 				line.insert("varying", 0);

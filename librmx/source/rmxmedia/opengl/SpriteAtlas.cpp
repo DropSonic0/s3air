@@ -81,7 +81,7 @@ SpriteAtlasBase::Node* SpriteAtlasBase::Node::insert(const Vec2i& size, int padd
 }
 
 
-SpriteAtlasBase::SpriteAtlasBase()
+SpriteAtlasBase::SpriteAtlasBase() : mPageSize(512, 128), mPadding(1)
 {
 }
 

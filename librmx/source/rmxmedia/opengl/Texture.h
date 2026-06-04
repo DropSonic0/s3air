@@ -4,9 +4,6 @@
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
-*
-*	Texture
-*		OpenGL texture (2D or cubemap) wrapper class.
 */
 
 #pragma once
@@ -25,11 +22,11 @@ public:
 
 	void generate();	// Just calls "glGenTextures", nothing else
 
-	void create(GLenum type = GL_TEXTURE_2D);
-	void create(GLint format = rmx::OpenGLHelper::FORMAT_RGBA);
-	void create(int width, int height, GLint format = rmx::OpenGLHelper::FORMAT_RGBA);
-	void createCubemap(GLint format = rmx::OpenGLHelper::FORMAT_RGBA);
-	void createCubemap(int width, int height, GLint format = rmx::OpenGLHelper::FORMAT_RGBA);
+	void create(int type = 0);
+	void create_format(int format);
+	void create(int width, int height, int format = rmx::OpenGLHelper::FORMAT_RGBA);
+	void createCubemap(int format = rmx::OpenGLHelper::FORMAT_RGBA);
+	void createCubemap(int width, int height, int format = rmx::OpenGLHelper::FORMAT_RGBA);
 
 	void load(const void* data, int width, int height);
 	void load(const Bitmap& bitmap);
@@ -44,9 +41,9 @@ public:
 
 	void buildMipmaps();
 
-	inline GLuint getHandle() const	{ return mHandle; }
-	inline GLenum getType() const	{ return mType; }
-	inline GLint getFormat() const	{ return mFormat; }
+	inline unsigned int getHandle() const	{ return mHandle; }
+	inline int getType() const	{ return mType; }
+	inline int getFormat() const	{ return mFormat; }
 	inline int getWidth() const		{ return mWidth; }
 	inline int getHeight() const	{ return mHeight; }
 	inline Recti getRect() const	{ return Recti(0, 0, mWidth, mHeight); }
@@ -61,22 +58,22 @@ public:
 	void setWrapRepeat();
 	void setWrapRepeatMirror();
 
-	inline GLuint operator*() const  { return mHandle; }
+	inline unsigned int operator*() const  { return mHandle; }
 
-	static GLenum getDefaultDataFormat(GLenum internalFormat);
+	static int getDefaultDataFormat(int internalFormat);
 
 private:
 	void initialize();
 	bool checkHandle() const;
 
 private:
-	mutable GLuint mHandle = 0;
-	GLenum mType = 0;
-	GLint  mFormat = 0;
-	int    mWidth = 0;
-	int    mHeight = 0;
-	bool   mFilterLinear = true;
-	bool   mHasMipmaps = false;
+	mutable unsigned int mHandle;
+	int mType;
+	int mFormat;
+	int mWidth;
+	int mHeight;
+	bool mFilterLinear;
+	bool mHasMipmaps;
 };
 
 #endif

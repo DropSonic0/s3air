@@ -72,13 +72,13 @@ namespace rmx
 		GuiBase mRoot;
 
 		InputContext mInputContext;
-		bool   mInitialized = false;
-		bool   mRunning = false;
-		uint32 mTicks = 0;
-		float  mTotalTime = 0.0f;
-		float  mTimeDifference = 0.0f;
-		float  mFrameRate = 0.0f;
-		int    mFrameCounter = 0;
+		bool   mInitialized;
+		bool   mRunning;
+		uint32 mTicks;
+		float  mTotalTime;
+		float  mTimeDifference;
+		float  mFrameRate;
+		int    mFrameCounter;
 	};
 
 
@@ -119,16 +119,16 @@ namespace rmx
 		void getScreenBitmap(Bitmap& bitmap);
 
 		uint64 getNativeWindowHandle() const;
-		SDL_Window* getMainWindow() const { return mMainWindow; }
+		void* getMainWindow() const { return mMainWindow; }
 
 	private:
 		bool setVideoMode(const VideoConfig& videoconfig);
 
 	private:
-		bool mInitialized = false;
+		bool mInitialized;
 		VideoConfig mVideoConfig;
-		bool mReshaped = false;
-		SDL_Window* mMainWindow = nullptr;
+		bool mReshaped;
+		SDL_Window* mMainWindow;
 	};
 
 }

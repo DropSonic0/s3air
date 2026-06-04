@@ -78,18 +78,18 @@ private:
 
 protected:
 	std::list<GuiBase*> mChildren;
-	GuiBase* mParent = nullptr;
+	GuiBase* mParent;
 
 	Rectf mRect;
 	String mName;
 
-	bool mEnabled = true;
-	bool mVisible = true;
+	bool mEnabled;
+	bool mVisible;
 
-	float mAlpha = 1.0f;
-	float mRealAlpha = 1.0f;
+	float mAlpha;
+	float mRealAlpha;
 
 private:
 	std::vector<GuiBase*> mChildrenToRemove;
-	bool mIteratingChildren = false;
+	bool mIteratingChildren;
 };

@@ -25,33 +25,37 @@ namespace rmx
 	public:
 		struct AudioInstance
 		{
-			int mID = 0;							// Unique audio instance ID, invalid if 0
-			AudioBuffer* mAudioBuffer = nullptr;	// The audio buffer used as a source, must not be a nullptr
-			AudioMixer* mAudioMixer = nullptr;		// Audio mixer this is played in
-			int mPosition = 0;						// Position in the audio buffer, in samples
-			int mTimeout = 0;						// Time until playback gets stopped in samples, or 0 if not used
-			int mLoopStart = 0;						// If looping is enabled, jump back to this sample position
-			float mVolume = 1.0f;					// Volume in range [0.0f, 1.0f]
-			float mVolumeChange = 0.0f;				// Volume change rate per second, usually 0.0f
-			float mSpeed = 1.0f;					// Playback speed, usually 1.0f
-			float mPanning = 0.0f;					// Left/right panning value in range [-1.0f, +1.0f], usually 0.0f
-			bool mLoop = false;						// Set if sound playback should be looped
-			bool mPaused = false;					// Set when sound playback is paused
-			bool mUsePan = false;					// Set if panning should be used
-			bool mStreaming = false;				// Set if reaching the end of the audio buffer should not stop the playback, just temporily pause it until more data comes in
-			bool mPlaybackDone = false;				// Gets set by audio mixer when playback should stop now
+			int mID;							// Unique audio instance ID, invalid if 0
+			AudioBuffer* mAudioBuffer;	// The audio buffer used as a source, must not be a nullptr
+			AudioMixer* mAudioMixer;		// Audio mixer this is played in
+			int mPosition;						// Position in the audio buffer, in samples
+			int mTimeout;						// Time until playback gets stopped in samples, or 0 if not used
+			int mLoopStart;						// If looping is enabled, jump back to this sample position
+			float mVolume;					// Volume in range [0.0f, 1.0f]
+			float mVolumeChange;				// Volume change rate per second, usually 0.0f
+			float mSpeed;					// Playback speed, usually 1.0f
+			float mPanning;					// Left/right panning value in range [-1.0f, +1.0f], usually 0.0f
+			bool mLoop;						// Set if sound playback should be looped
+			bool mPaused;					// Set when sound playback is paused
+			bool mUsePan;					// Set if panning should be used
+			bool mStreaming;				// Set if reaching the end of the audio buffer should not stop the playback, just temporily pause it until more data comes in
+			bool mPlaybackDone;				// Gets set by audio mixer when playback should stop now
+
+			AudioInstance() : mID(0), mAudioBuffer(nullptr), mAudioMixer(nullptr), mPosition(0), mTimeout(0), mLoopStart(0), mVolume(1.0f), mVolumeChange(0.0f), mSpeed(1.0f), mPanning(0.0f), mLoop(false), mPaused(false), mUsePan(false), mStreaming(false), mPlaybackDone(false) {}
 		};
 
 		struct PlaybackOptions
 		{
-			AudioBuffer* mAudioBuffer = nullptr;
-			float mVolume = 1.0f;
-			float mVolumeChange = 0.0f;
-			int mAudioMixerId = 0;
-			float mSpeed = 1.0f;
-			float mPosition = 0.0f;
-			bool mLoop = false;
-			bool mStreaming = false;
+			AudioBuffer* mAudioBuffer;
+			float mVolume;
+			float mVolumeChange;
+			int mAudioMixerId;
+			float mSpeed;
+			float mPosition;
+			bool mLoop;
+			bool mStreaming;
+
+			PlaybackOptions() : mAudioBuffer(nullptr), mVolume(1.0f), mVolumeChange(0.0f), mAudioMixerId(0), mSpeed(1.0f), mPosition(0.0f), mLoop(false), mStreaming(false) {}
 		};
 
 	public:
@@ -114,16 +118,16 @@ namespace rmx
 		void mixAudio(uint8* outputStream, int outputBytes);
 
 	private:
-		SDL_AudioDeviceID mAudioDeviceID = 0;		// Audio device opened by SDL
+		SDL_AudioDeviceID mAudioDeviceID;		// Audio device opened by SDL
 		SDL_AudioSpec mFormat;						// Audio format
-		uint32 mAudioLocks = 0;						// Set if audio device is locked right now (needed to allow for nested audio locking)
+		uint32 mAudioLocks;						// Set if audio device is locked right now (needed to allow for nested audio locking)
 		std::map<int, AudioInstance> mInstances;	// Map of all active audio instances by their ID
 		std::vector<int> mRemoveIDs;				// Audio instance IDs that got invalid during audio mixing
-		int mNextFreeID = 1;						// ID to use for next audio instance created
-		int mChangeCounter = 0;						// Changed whenever an audio instance gets created or invalidated
-		uint32 mPlayedSamples = 0;					// Number of samples played (this takes about one day to overflow at 48 kHz)
+		int mNextFreeID;						// ID to use for next audio instance created
+		int mChangeCounter;						// Changed whenever an audio instance gets created or invalidated
+		uint32 mPlayedSamples;					// Number of samples played (this takes about one day to overflow at 48 kHz)
 
-		float mTimeSinceLastUpdate = 0.0f;
+		float mTimeSinceLastUpdate;
 
 		// Mixers
 		std::map<int, AudioMixer*> mAudioMixers;

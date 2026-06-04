@@ -11,9 +11,16 @@
 
 /* ----- FontSource ---------------------------------------------------------------------------------------------- */
 
+FontSource::FontSource() :
+	mAscender(0),
+	mDescender(0),
+	mLineHeight(0)
+{
+}
+
 const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 {
-	auto it = mGlyphMap.find(unicode);
+	std::map<uint32, GlyphInfo>::iterator it = mGlyphMap.find(unicode);
 	if (it != mGlyphMap.end())
 		return &it->second;
 
@@ -26,7 +33,7 @@ const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 		return nullptr;
 
 	// Add to map
-	it = mGlyphMap.emplace(unicode, info).first;
+	it = mGlyphMap.insert(std::make_pair(unicode, info)).first;
 	return &it->second;
 }
 
@@ -45,10 +52,11 @@ namespace rmx::stdfont
 	static const constexpr int LINEHEIGHT = 25;
 }
 
-FontSourceStd::FontSourceStd(float size)
+FontSourceStd::FontSourceStd(float size) :
+	FontSource(),
+	mSize(size)
 {
 	RMX_ASSERT(size >= 1.0f && size < 100.0f, "Invalid standard font size of " << size);
-	mSize = size;
 	mAscender = rmx::stdfont::ASCENDER;
 	mDescender = rmx::stdfont::HEIGHT - rmx::stdfont::ASCENDER;
 	mLineHeight = rmx::stdfont::LINEHEIGHT;
@@ -87,7 +95,10 @@ bool FontSourceStd::fillGlyphInfo(FontSource::GlyphInfo& info)
 
 /* ----- FontSourceBitmap ------------------------------------------------------------------------------------------- */
 
-FontSourceBitmap::FontSourceBitmap(const String& jsonFilename)
+FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
+	FontSource(),
+	mSpaceBetweenCharacters(0),
+	mLoadingSucceeded(false)
 {
 	// Read JSON file
 	Json::Value root = rmx::JsonHelper::loadFile(*jsonFilename.toWString());

@@ -17,6 +17,7 @@
 class API_EXPORT AudioReference
 {
 public:
+	AudioReference();
 	inline int getInstanceID() const  { return mInstanceID; }
 	void setInstanceID(int ID);
 
@@ -45,7 +46,7 @@ private:
 	void updateInstance();
 
 private:
-	int mInstanceID = 0;
-	rmx::AudioManager::AudioInstance* mInstance = nullptr;
-	int mChangeCounter = -1;
+	int mInstanceID;
+	rmx::AudioManager::AudioInstance* mInstance;
+	int mChangeCounter;
 };

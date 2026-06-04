@@ -9,10 +9,17 @@
 #include "rmxmedia.h"
 
 
+AudioReference::AudioReference() :
+	mInstanceID(0),
+	mInstance(nullptr),
+	mChangeCounter(-1)
+{
+}
+
 void AudioReference::setInstanceID(int ID)
 {
 	mInstanceID = ID;
-	mInstance = 0;
+	mInstance = nullptr;
 	mChangeCounter = -1;
 }
 
@@ -28,114 +35,140 @@ void AudioReference::updateInstance()
 bool AudioReference::valid()
 {
 	updateInstance();
-	return (0 != mInstance);
+	return (nullptr != mInstance);
 }
 
 float AudioReference::getPosition()
 {
-	if (valid())
-		return (float)mInstance->mPosition / (float)mInstance->mAudioBuffer->getFrequency();
-	return 0.0f;
+	updateInstance();
+	return (nullptr != mInstance) ? ((float)mInstance->mPosition / (float)mInstance->mAudioBuffer->getFrequency()) : 0.0f;
 }
 
 float AudioReference::getVolume()
 {
-	if (valid())
-		return mInstance->mVolume;
-	return 0.0f;
+	updateInstance();
+	return (nullptr != mInstance) ? mInstance->mVolume : 0.0f;
 }
 
 float AudioReference::getSpeed()
 {
-	if (valid())
-		return mInstance->mSpeed;
-	return 0.0f;
+	updateInstance();
+	return (nullptr != mInstance) ? mInstance->mSpeed : 1.0f;
 }
 
 bool AudioReference::isLooped()
 {
-	if (valid())
-		return mInstance->mLoop;
-	return false;
+	updateInstance();
+	return (nullptr != mInstance) ? mInstance->mLoop : false;
 }
 
 bool AudioReference::isPaused()
 {
-	if (valid())
-		return mInstance->mPaused;
-	return false;
+	updateInstance();
+	return (nullptr != mInstance) ? mInstance->mPaused : false;
 }
 
 bool AudioReference::isStreaming()
 {
-	if (valid())
-		return mInstance->mStreaming;
-	return false;
+	updateInstance();
+	return (nullptr != mInstance) ? mInstance->mStreaming : false;
 }
 
 void AudioReference::stop()
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		FTX::Audio->removeSound(*this);
+	}
 }
 
 void AudioReference::setPosition(float position)
 {
-	if (valid())
-		mInstance->mPosition = (int)(position * mInstance->mAudioBuffer->getFrequency());
+	updateInstance();
+	if (nullptr != mInstance)
+	{
+		mInstance->mPosition = roundToInt(position * (float)mInstance->mAudioBuffer->getFrequency());
+	}
 }
 
 void AudioReference::setLoopStartInSamples(int loopStart)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mLoopStart = loopStart;
+	}
 }
 
 void AudioReference::setVolume(float volume)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mVolume = volume;
+		mInstance->mVolumeChange = 0.0f;
+	}
 }
 
 void AudioReference::setVolumeChange(float volumeChange)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mVolumeChange = volumeChange;
+	}
 }
 
 void AudioReference::setSpeed(float speed)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mSpeed = speed;
+	}
 }
 
 void AudioReference::setLoop(bool loop)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mLoop = loop;
+	}
 }
 
 void AudioReference::setPause(bool pause)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mPaused = pause;
+	}
 }
 
 void AudioReference::setStreaming(bool strm)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
+	{
 		mInstance->mStreaming = strm;
+	}
 }
 
 void AudioReference::setTimeout(float timeout)
 {
-	if (valid())
-		mInstance->mTimeout = (int)(timeout * mInstance->mAudioBuffer->getFrequency());
+	updateInstance();
+	if (nullptr != mInstance)
+	{
+		mInstance->mTimeout = roundToInt(timeout * (float)mInstance->mAudioBuffer->getFrequency());
+	}
 }
 
 void AudioReference::setPanning(bool enable, float value)
 {
-	if (valid())
+	updateInstance();
+	if (nullptr != mInstance)
 	{
 		mInstance->mUsePan = enable;
 		mInstance->mPanning = value;

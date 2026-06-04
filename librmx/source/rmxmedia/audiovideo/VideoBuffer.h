@@ -52,10 +52,10 @@ public:
 	inline bool isPersistent() const { return false; }
 
 private:
-	struct VideoFrame
-	{
-		uint32* bufferRGBA = nullptr;
-		uint8* bufferYUV[3] = { nullptr };
+	struct VideoFrame {
+		uint32* bufferRGBA;
+		uint8* bufferYUV[3];
+		VideoFrame() : bufferRGBA(nullptr) { for (int i = 0; i < 3; ++i) bufferYUV[i] = nullptr; }
 	};
 
 private:
@@ -63,12 +63,12 @@ private:
 
 private:
 	std::vector<VideoFrame*> mFrames;
-	int mWidth = 0;
-	int mWidthUV = 0;
-	int mHeight = 0;
-	int mHeightUV = 0;
-	float mFramesPerSecond = 25.0f;
-	float mCropRect[4] = { 0.0f };
+	int mWidth;
+	int mWidthUV;
+	int mHeight;
+	int mHeightUV;
+	float mFramesPerSecond;
+	float mCropRect[4];
 
 	// Tables for YUV -> RGB conversion
 	static bool mConversionTablesInitialized;

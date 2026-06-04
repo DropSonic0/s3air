@@ -34,6 +34,10 @@
 	// To export functions
 	#define GENERIC_FUNCTION_EXPORT	extern "C" __attribute__ ((visibility("default")))
 
+#elif defined(PLATFORM_PS3)
+	#define GENERIC_API_EXPORT
+	#define GENERIC_FUNCTION_EXPORT
+
 #else
 	#error "Unsupported platform"
 #endif

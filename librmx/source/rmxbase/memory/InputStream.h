@@ -125,7 +125,7 @@ public:
 	MemInputStream();
 	~MemInputStream();
 
-	bool valid() const  { return (0 != mBuffer); }
+	bool valid() const  { return (nullptr != mBuffer); }
 	void close() ;
 	const char* getType() const  { return "mem"; }
 
@@ -135,7 +135,7 @@ public:
 	size_t getRemaining() const   { return (size_t)(mBufferEnd - mCursor); }
 
 #if !defined(PLATFORM_PS3)
-	using InputStream::read;
+	 
 #endif
 	size_t read(void* dst, size_t len) ;
 	void skip(size_t len) ;
@@ -177,7 +177,7 @@ public:
 	size_t getSize() const   { return (size_t)getSize64(); }
 
 #if !defined(PLATFORM_PS3)
-	using InputStream::read;
+	 
 #endif
 	size_t read(void* dst, size_t len) ;
 	void skip(size_t len) ;
