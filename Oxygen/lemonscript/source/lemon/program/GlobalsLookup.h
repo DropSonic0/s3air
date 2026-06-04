@@ -14,6 +14,9 @@
 #include "lemon/program/Function.h"
 #include "lemon/program/StringRef.h"
 #include "lemon/compiler/PreprocessorDefinition.h"
+#if !defined(PLATFORM_PS3)
+#include <unordered_map>
+#endif
 
 
 namespace lemon
@@ -95,11 +98,20 @@ namespace lemon
 
 	private:
 		// All identifiers
+#if defined(PLATFORM_PS3)
+		std::map<uint64, Identifier> mAllIdentifiers;
+#else
 		std::unordered_map<uint64, Identifier> mAllIdentifiers;
+#endif
 
 		// Functions
+#if defined(PLATFORM_PS3)
+		std::map<uint64, std::vector<Function*>> mFunctionsByName;	// Key is the hashed function name
+		std::map<uint64, std::vector<Function*>> mMethodsByName;		// Key is the sum of hashed context name + hashed function name
+#else
 		std::unordered_map<uint64, std::vector<Function*>> mFunctionsByName;	// Key is the hashed function name
 		std::unordered_map<uint64, std::vector<Function*>> mMethodsByName;		// Key is the sum of hashed context name + hashed function name
+#endif
 		uint32 mNextFunctionID = 0;
 
 		// Global variables

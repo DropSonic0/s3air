@@ -124,8 +124,14 @@ namespace lemon
 		buildOpcodesFromNodes(blockNode, context);
 
 		// Process all jumps to labels
+#if defined(PLATFORM_PS3)
+		for (std::map<uint64, CollectedLabel>::const_iterator it = mCollectedLabels.begin(); it != mCollectedLabels.end(); ++it)
+		{
+			const CollectedLabel& collectedLabel = it->second;
+#else
 		for (const auto& [key, collectedLabel] : mCollectedLabels)
 		{
+#endif
 			for (size_t jumpLocation : collectedLabel.mJumpLocations)
 			{
 				RMX_ASSERT(mOpcodes[jumpLocation].mType == Opcode::Type::JUMP, "Expected JUMP opcode");
@@ -382,7 +388,8 @@ namespace lemon
 					// First evaluate the condition
 					compileTokenTreeToOpcodes(*isn.mConditionToken);
 
-					OpcodeBuilder& builder = openOpcodeBuilders.emplace_back(*this);
+				openOpcodeBuilders.push_back(OpcodeBuilder(*this));
+				OpcodeBuilder& builder = openOpcodeBuilders.back();
 					builder.beginIf();
 					{
 						// Compile if-block content
@@ -1085,6 +1092,9 @@ namespace lemon
 			// Trace all reachable opcodes from our seeds
 			while (!openSeeds.empty())
 			{
+#if defined(PLATFORM_PS3)
+			if (mOpcodes.empty()) break;
+#endif
 				size_t position = openSeeds.back();
 				openSeeds.pop_back();
 

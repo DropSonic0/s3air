@@ -11,7 +11,9 @@
 #include "lemon/program/ConstantArray.h"
 #include "lemon/program/Define.h"
 #include "lemon/program/Function.h"
+#if !defined(PLATFORM_PS3)
 #include <unordered_map>
+#endif
 
 
 namespace lemon
@@ -73,12 +75,21 @@ namespace lemon
 		// Functions
 		std::vector<Function*> mFunctions;
 		std::vector<ScriptFunction*> mScriptFunctions;
+#if defined(PLATFORM_PS3)
+		std::map<uint64, std::vector<Function*>> mFunctionsBySignature;	// Key is the hashed function name + signature hash
+		std::map<uint64, std::vector<Function*>> mFunctionsByName;		// Key is the hashed function name
+#else
 		std::unordered_map<uint64, std::vector<Function*>> mFunctionsBySignature;	// Key is the hashed function name + signature hash
 		std::unordered_map<uint64, std::vector<Function*>> mFunctionsByName;		// Key is the hashed function name
+#endif
 
 		// Variables
 		std::vector<Variable*> mGlobalVariables;
+#if defined(PLATFORM_PS3)
+		std::map<uint64, Variable*> mGlobalVariablesByName;
+#else
 		std::unordered_map<uint64, Variable*> mGlobalVariablesByName;
+#endif
 
 		// Constant arrays
 		std::vector<ConstantArray*> mConstantArrays;

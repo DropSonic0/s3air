@@ -187,8 +187,13 @@ namespace lemon
 		RuntimeDetailHandler* mRuntimeDetailHandler = nullptr;
 
 		std::vector<RuntimeFunction> mRuntimeFunctions;
+#if defined(PLATFORM_PS3)
+		std::map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
+		std::map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
+#else
 		std::unordered_map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
 		std::unordered_map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
+#endif
 		rmx::OneTimeAllocPool mRuntimeOpcodesPool;
 
 		// Static memory contains all global variables

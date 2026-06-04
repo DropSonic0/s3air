@@ -189,25 +189,29 @@ namespace genericmanager
 		template<typename TYPE>
 		static TYPE& create()
 		{
-			detail::ElementFactoryBase<ELEMENT>& factory = mFactoryMap.template getOrCreateElementFactory<TYPE>();
+			detail::ElementFactoryBase<ELEMENT>& factory = getFactoryMap().template getOrCreateElementFactory<TYPE>();
 			return static_cast<TYPE&>(factory.create());
 		}
 
 		static void shrinkAllPools()
 		{
-			mFactoryMap.shrinkAllPools();
+			getFactoryMap().shrinkAllPools();
 		}
 
 	private:
 		static void destroy(Element<ELEMENT>& element)
 		{
 			RMX_ASSERT(element.getReferenceCounter() == 0, "Element still has references");
-			detail::ElementFactoryBase<ELEMENT>& factory = mFactoryMap.getElementFactory(element.getType());
+			detail::ElementFactoryBase<ELEMENT>& factory = getFactoryMap().getElementFactory(element.getType());
 			factory.destroy(static_cast<ELEMENT&>(element));
 		}
 
 	private:
-		static inline detail::ElementFactoryMap<ELEMENT> mFactoryMap;
+		static detail::ElementFactoryMap<ELEMENT>& getFactoryMap()
+		{
+			static detail::ElementFactoryMap<ELEMENT> mFactoryMap;
+			return mFactoryMap;
+		}
 	};
 
 

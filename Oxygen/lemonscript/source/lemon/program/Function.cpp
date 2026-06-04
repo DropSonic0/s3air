@@ -17,6 +17,9 @@
 
 namespace lemon
 {
+
+	Function::Function(Type type) : mType(type), mID(0), mNameAndSignatureHash(0), mReturnType(&PredefinedDataTypes::VOID), mSignatureHash(0) {}
+
 	namespace detail
 	{
 		uint32 getVoidSignatureHash()

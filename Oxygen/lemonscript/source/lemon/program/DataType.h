@@ -32,8 +32,8 @@ namespace lemon
 		inline DataTypeDefinition(const char* name, uint16 id, Class class_, size_t bytes, BaseType baseType) :
 			mNameString(name),
 			mID(id),
-			mClass(class_),
 			mBytes(bytes),
+			mClass(class_),
 			mBaseType(baseType)
 		{}
 		virtual ~DataTypeDefinition() {}
@@ -53,10 +53,10 @@ namespace lemon
 		const char* mNameString;
 		mutable FlyweightString mName;
 
-		uint16 mID = 0;
-		const size_t mBytes = 0;
-		const Class mClass = Class::VOID;
-		const BaseType mBaseType = BaseType::VOID;	// If compatible to a base type (from the runtime's point of view), set this to something different than VOID
+		uint16 mID;
+		const size_t mBytes;
+		const Class mClass;
+		const BaseType mBaseType;	// If compatible to a base type (from the runtime's point of view), set this to something different than VOID
 	};
 
 
@@ -88,16 +88,16 @@ namespace lemon
 			BOOLEAN
 		};
 
-		const Semantics mSemantics = Semantics::DEFAULT;
-		const bool mIsSigned = false;
-		const uint8 mSizeBits = 0;	// 0 for 8-bit data types, 1 for 16-bit, 2 for 32-bit, 3 for 64-bit
+		const Semantics mSemantics;
+		const bool mIsSigned;
+		const uint8 mSizeBits;	// 0 for 8-bit data types, 1 for 16-bit, 2 for 32-bit, 3 for 64-bit
 
 	public:
 		inline IntegerDataType(const char* name, uint16 id, size_t bytes, Semantics semantics, bool isSigned, BaseType baseType) :
 			DataTypeDefinition(name, id, Class::INTEGER, bytes, baseType),
 			mSemantics(semantics),
-			mSizeBits((bytes == 1) ? 0 : (bytes == 2) ? 1 : (bytes == 4) ? 2 : 3),
-			mIsSigned(isSigned)
+			mIsSigned(isSigned),
+			mSizeBits((bytes == 1) ? 0 : (bytes == 2) ? 1 : (bytes == 4) ? 2 : 3)
 		{}
 	};
 
@@ -132,6 +132,26 @@ namespace lemon
 
 	struct PredefinedDataTypes
 	{
+#if defined(PLATFORM_PS3)
+		static const VoidDataType VOID;
+		static const AnyDataType ANY;
+
+		static const IntegerDataType BOOL;
+		static const IntegerDataType UINT_8;
+		static const IntegerDataType UINT_16;
+		static const IntegerDataType UINT_32;
+		static const IntegerDataType UINT_64;
+		static const IntegerDataType INT_8;
+		static const IntegerDataType INT_16;
+		static const IntegerDataType INT_32;
+		static const IntegerDataType INT_64;
+		static const IntegerDataType CONST_INT;
+
+		static const FloatDataType FLOAT;
+		static const FloatDataType DOUBLE;
+
+		static const StringDataType STRING;
+#else
 		inline static const VoidDataType VOID		  = VoidDataType();
 		inline static const AnyDataType ANY			  = AnyDataType();
 
@@ -150,6 +170,7 @@ namespace lemon
 		inline static const FloatDataType& DOUBLE	  = FloatDataType("double", 12, 8);
 
 		inline static const StringDataType STRING     = StringDataType(13);
+#endif
 
 		static void collectPredefinedDataTypes(std::vector<const DataTypeDefinition*>& outDataTypes);
 	};

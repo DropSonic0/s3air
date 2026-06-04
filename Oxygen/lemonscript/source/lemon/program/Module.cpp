@@ -334,6 +334,7 @@ namespace lemon
 		return variable;
 	}
 
+#if !defined(PLATFORM_PS3)
 	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor)
 	{
 		// TODO: Add an object pool for this
@@ -342,6 +343,16 @@ namespace lemon
 		addGlobalVariable(variable, name, dataType);
 		return variable;
 	}
+#else
+	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, int64* (*accessor)())
+	{
+		// TODO: Add an object pool for this
+		ExternalVariable& variable = *new ExternalVariable();
+		variable.mAccessor = accessor;
+		addGlobalVariable(variable, name, dataType);
+		return variable;
+	}
+#endif
 
 	void Module::addGlobalVariable(Variable& variable, FlyweightString name, const DataTypeDefinition* dataType)
 	{

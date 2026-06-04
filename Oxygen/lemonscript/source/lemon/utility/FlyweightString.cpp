@@ -12,6 +12,11 @@
 
 namespace lemon
 {
+#if defined(PLATFORM_PS3)
+	detail::FlyweightStringManager FlyweightString::mManager;
+	std::string_view FlyweightString::EMPTY_STRING_VIEW;
+#endif
+
 	namespace detail
 	{
 		FlyweightStringManager::FlyweightStringManager()

@@ -204,6 +204,24 @@
 		inline bool operator!=(const CHAR* s, const basic_string_view<CHAR>& v) { return v != s; }
 		typedef basic_string_view<char> string_view;
 		typedef basic_string_view<wchar_t> wstring_view;
+
+		template <typename T>
+		class optional {
+		public:
+			optional() : mHasValue(false) {}
+			optional(const T& value) : mHasValue(true), mValue(value) {}
+			bool has_value() const { return mHasValue; }
+			operator bool() const { return mHasValue; }
+			const T& operator*() const { return mValue; }
+			T& operator*() { return mValue; }
+			const T* operator->() const { return &mValue; }
+			T* operator->() { return &mValue; }
+			const T& value() const { return mValue; }
+			T& value() { return mValue; }
+		private:
+			bool mHasValue;
+			T mValue;
+		};
 	}
 #endif
 

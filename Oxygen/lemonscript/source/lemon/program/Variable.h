@@ -35,6 +35,7 @@ namespace lemon
 		};
 
 	public:
+		virtual ~Variable() {}
 		virtual int64 getValue() const = 0;
 		virtual void setValue(int64 value) = 0;
 
@@ -46,15 +47,15 @@ namespace lemon
 		inline size_t getStaticMemorySize() const			 { return mStaticMemorySize; }
 
 	protected:
-		inline Variable(Type type) : mType(type) {}
+		inline Variable(Type type) : mType(type), mID(0), mDataType(nullptr), mStaticMemoryOffset(0), mStaticMemorySize(0) {}
 
 	private:
 		Type mType;
 		FlyweightString mName;
-		uint32 mID = 0;
-		const DataTypeDefinition* mDataType = nullptr;
-		size_t mStaticMemoryOffset = 0;
-		size_t mStaticMemorySize = 0;
+		uint32 mID;
+		const DataTypeDefinition* mDataType;
+		size_t mStaticMemoryOffset;
+		size_t mStaticMemorySize;
 	};
 
 
@@ -72,42 +73,63 @@ namespace lemon
 	class API_EXPORT GlobalVariable : public Variable
 	{
 	public:
-		inline GlobalVariable() : Variable(Type::GLOBAL) {}
+		inline GlobalVariable() : Variable(Type::GLOBAL), mInitialValue(0) {}
 
 		// Do not use these for variables, instead look it up in the runtime's global variables list
 		int64 getValue() const override		 { return 0; }
 		void setValue(int64 value) override  {}
 
 	public:
-		int64 mInitialValue = 0;
+		int64 mInitialValue;
 	};
 
 
 	class API_EXPORT UserDefinedVariable : public Variable
 	{
 	public:
+#if !defined(PLATFORM_PS3)
 		inline UserDefinedVariable() : Variable(Type::USER) {}
+#else
+		inline UserDefinedVariable() : Variable(Type::USER), mGetter(nullptr), mSetter(nullptr) {}
+#endif
 
+#if !defined(PLATFORM_PS3)
 		int64 getValue() const override		 { return (mGetter) ? mGetter() : 0; }
 		void setValue(int64 value) override  { if (mSetter) mSetter(value); }
 
 	public:
 		std::function<int64()> mGetter;
 		std::function<void(int64)> mSetter;
+#else
+		int64 getValue() const override		 { return (mGetter) ? mGetter() : 0; }
+		void setValue(int64 value) override  { if (mSetter) mSetter(value); }
+
+	public:
+		int64 (*mGetter)();
+		void (*mSetter)(int64);
+#endif
 	};
 
 
 	class API_EXPORT ExternalVariable : public Variable
 	{
 	public:
+#if !defined(PLATFORM_PS3)
 		inline ExternalVariable() : Variable(Type::EXTERNAL) {}
+#else
+		inline ExternalVariable() : Variable(Type::EXTERNAL), mAccessor(nullptr) {}
+#endif
 
 		// Do not use these for variables, instead directly access the pointer with the right data type
 		int64 getValue() const override		 { return 0; }
 		void setValue(int64 value) override  {}
 
 	public:
+#if !defined(PLATFORM_PS3)
 		std::function<int64*()> mAccessor;
+#else
+		int64* (*mAccessor)();
+#endif
 	};
 
 }

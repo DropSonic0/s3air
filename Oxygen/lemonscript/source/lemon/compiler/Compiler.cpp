@@ -88,7 +88,11 @@ namespace lemon
 		mScriptFiles.reserve(0x200);
 
 		// Recursively load script files
+#if defined(PLATFORM_PS3)
+		std::set<uint64> includedPathHashes;
+#else
 		std::unordered_set<uint64> includedPathHashes;
+#endif
 		if (!loadScriptInternal(*basepath, *filename, outLines, includedPathHashes))
 			return false;
 
@@ -139,7 +143,11 @@ namespace lemon
 		return false;
 	}
 
+#if defined(PLATFORM_PS3)
+	bool Compiler::loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::set<uint64>& includedPathHashes)
+#else
 	bool Compiler::loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::unordered_set<uint64>& includedPathHashes)
+#endif
 	{
 		const std::wstring filepath = basepath + filename;
 		const uint64 pathHash = rmx::getMurmur2_64(filepath);

@@ -43,7 +43,11 @@ namespace lemon
 		inline const std::vector<ErrorMessage>& getErrors() const  { return mErrors; }
 
 	private:
+#if defined(PLATFORM_PS3)
+		bool loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::set<uint64>& includedPathHashes);
+#else
 		bool loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::unordered_set<uint64>& includedPathHashes);
+#endif
 		void runCompilerBackend(std::vector<FunctionNode*>& functionNodes);
 
 	private:
