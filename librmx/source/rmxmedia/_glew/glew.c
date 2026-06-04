@@ -51,7 +51,7 @@
 #    undef NOGDI
 #  endif
 #  include <GL/wglew.h>
-#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX))
+#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__CELLOS_LV2__) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 #  include <GL/glxew.h>
 #endif
 
@@ -176,6 +176,8 @@ void* NSGLGetProcAddress (const GLubyte *name)
 #  define glewGetProcAddress(name) NULL /* TODO */
 #elif defined(__native_client__)
 #  define glewGetProcAddress(name) NULL /* TODO */
+#elif defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+#  define glewGetProcAddress(name) NULL
 #else /* __linux */
 #  define glewGetProcAddress(name) (*glXGetProcAddressARB)(name)
 #endif
@@ -19748,7 +19750,7 @@ GLenum GLEWAPIENTRY wglewInit ()
   return GLEW_OK;
 }
 
-#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX))
+#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__CELLOS_LV2__) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 
 PFNGLXGETCURRENTDISPLAYPROC __glewXGetCurrentDisplay = NULL;
 

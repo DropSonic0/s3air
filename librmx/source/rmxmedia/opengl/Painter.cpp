@@ -28,7 +28,7 @@ namespace rmx
 		mTexturesEnabled = false;
 
 		// Note: Most of the Painter class actually only makes sense with OpenGL...
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 		#ifdef ALLOW_LEGACY_OPENGL
 			glColor(mColor);
@@ -55,7 +55,7 @@ namespace rmx
 			return;
 
 		mTexturesEnabled = enable;
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 			glEnable_Toggle(GL_TEXTURE_2D, enable);
 		}
@@ -67,7 +67,7 @@ namespace rmx
 			return;
 
 		mColor = Color::WHITE;
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 		#ifdef ALLOW_LEGACY_OPENGL
 			glColor3f(1.0f, 1.0f, 1.0f);
@@ -83,7 +83,7 @@ namespace rmx
 			return;
 
 		mColor = color;
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 		#ifdef ALLOW_LEGACY_OPENGL
 			glColor(color);
@@ -97,7 +97,7 @@ namespace rmx
 	{
 		enableTextures(false);
 		setColor(color);
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 		#ifdef ALLOW_LEGACY_OPENGL
 			glRectf(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height);
@@ -170,7 +170,7 @@ namespace rmx
 		if (0 != fontOutput)
 			return *fontOutput;
 
-		const auto pair = mFontOutputMap.emplace(&font, font);
+		const auto pair = mFontOutputMap.insert(std::make_pair(&font, OpenGLFontOutput(font)));
 		return pair.first->second;
 	}
 
@@ -179,7 +179,7 @@ namespace rmx
 		if (mScissorStack.empty())
 			return;
 
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 			glDisable(GL_SCISSOR_TEST);
 		}
@@ -194,7 +194,7 @@ namespace rmx
 		}
 		mScissorStack.clear();
 		mScissorStack.push_back(rect);
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 			glScissor(rect.x, FTX::screenHeight() - rect.y - rect.height, rect.width, rect.height);
 		}
@@ -205,7 +205,7 @@ namespace rmx
 		const Recti& oldScissor = (!mScissorStack.empty()) ? mScissorStack.back() : FTX::screenRect();
 		if (mScissorStack.empty())
 		{
-			if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+			if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 			{
 				glEnable(GL_SCISSOR_TEST);
 			}
@@ -214,7 +214,7 @@ namespace rmx
 		Recti newScissor;
 		newScissor.intersect(oldScissor, rect);
 		mScissorStack.push_back(newScissor);
-		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+		if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 		{
 			glScissor(newScissor.x, FTX::screenHeight() - newScissor.y - newScissor.height, newScissor.width, newScissor.height);
 		}
@@ -234,7 +234,7 @@ namespace rmx
 		{
 			mScissorStack.pop_back();
 			const Recti& newScissor = mScissorStack.back();
-			if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer::OPENGL)
+			if (FTX::Video->getVideoConfig().mRenderer == VideoConfig::Renderer_OPENGL)
 			{
 				glScissor(newScissor.x, FTX::screenHeight() - newScissor.y - newScissor.height, newScissor.width, newScissor.height);
 			}

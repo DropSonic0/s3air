@@ -119,7 +119,7 @@ namespace rmx
 		void getScreenBitmap(Bitmap& bitmap);
 
 		uint64 getNativeWindowHandle() const;
-		void* getMainWindow() const { return mMainWindow; }
+		SDL_Window* getMainWindow() const { return mMainWindow; }
 
 	private:
 		bool setVideoMode(const VideoConfig& videoconfig);

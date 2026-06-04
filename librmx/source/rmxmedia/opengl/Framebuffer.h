@@ -57,7 +57,7 @@ public:
 	void unbind();
 
 	void activate();
-	void activate(int clearmask);
+	void activate(GLbitfield clearmask);
 	void deactivate();
 
 	inline unsigned int getHandle() const   { return mHandle; }

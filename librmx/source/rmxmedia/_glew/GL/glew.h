@@ -1189,6 +1189,12 @@ GLAPI void GLAPIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 /* ---------------------------------- GLU ---------------------------------- */
 
 #ifndef GLEW_NO_GLU
+#  if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+#    define GLEW_NO_GLU
+#  endif
+#endif
+
+#ifndef GLEW_NO_GLU
 #  ifdef __APPLE__
 #    include <Availability.h>
 #    if defined(__IPHONE_OS_VERSION_MIN_REQUIRED)

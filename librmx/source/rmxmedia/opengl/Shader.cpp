@@ -124,10 +124,12 @@ void Shader::bind()
 	if (mBlendMode != BlendMode_UNDEFINED)
 	{
 		bool handled = false;
+#if !defined(PLATFORM_PS3)
 		if (mShaderApplyBlendModeCallback)
 		{
 			handled = Shader::mShaderApplyBlendModeCallback(mBlendMode);
 		}
+#endif
 
 		if (!handled)
 		{
@@ -208,9 +210,9 @@ bool Shader::linkProgram(const std::map<int, String>* vertexAttribMap)
 	// Bind vertex atrributes (must be done just before linking)
 	if (nullptr != vertexAttribMap)
 	{
-		for (const auto& [index, attributeName] : *vertexAttribMap)
+		for (std::map<int, String>::const_iterator it = vertexAttribMap->begin(); it != vertexAttribMap->end(); ++it)
 		{
-			glBindAttribLocation(mProgram, index, *attributeName);
+			glBindAttribLocation(mProgram, it->first, *it->second);
 		}
 	}
 
@@ -629,10 +631,12 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 	source.swap(newSource);
 #endif
 
+#if !defined(PLATFORM_PS3)
 	if (Shader::mShaderSourcePostProcessCallback)
 	{
 		Shader::mShaderSourcePostProcessCallback(source, shaderType);
 	}
+#endif
 }
 
 #endif

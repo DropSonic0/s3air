@@ -29,6 +29,7 @@
 // SDL
 #if defined(PLATFORM_PS3)
 	// SDL Shims for PS3
+	typedef uint32 Uint32;
 	typedef int SDL_mutex;
 	typedef int SDL_cond;
 	typedef int SDL_Thread;
@@ -103,32 +104,33 @@
 	inline int SDL_BuildAudioCVT(SDL_AudioCVT* c, int sf, int sc, int sr, int df, int dc, int dr) { return 0; }
 	inline int SDL_ConvertAudio(SDL_AudioCVT* c) { return 0; }
 	inline void SDL_DestroyWindow(SDL_Window* w) {}
-	#define SDL_INIT_VIDEO 0
-	#define SDL_INIT_AUDIO 0
-	#define SDL_INIT_TIMER 0
-	#define SDL_INIT_GAMECONTROLLER 0
+	#define SDL_INIT_VIDEO 1
+	#define SDL_INIT_AUDIO 2
+	#define SDL_INIT_TIMER 4
+	#define SDL_INIT_GAMECONTROLLER 8
 	inline int SDL_Init(int f) { return 0; }
 	inline void SDL_Quit() {}
 	inline char* SDL_GetError() { return (char*)""; }
 	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
+	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) { return (SDL_Window*)1; }
 	inline unsigned int SDL_GetTicks() { return 0; }
 	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
-	#define SDL_QUIT 0
-	#define SDL_WINDOWEVENT 0
-	#define SDL_WINDOWEVENT_RESIZED 0
-	#define SDL_KEYDOWN 0
-	#define SDL_KEYUP 0
-	#define SDL_TEXTINPUT 0
-	#define SDL_MOUSEBUTTONDOWN 0
-	#define SDL_MOUSEBUTTONUP 0
-	#define SDL_MOUSEWHEEL 0
-	#define SDL_MOUSEMOTION 0
-	#define SDL_PRESSED 0
-	#define SDL_BUTTON_LEFT 0
-	#define SDL_BUTTON_RIGHT 0
-	#define SDL_BUTTON_MIDDLE 0
-	#define SDL_BUTTON_X1 0
-	#define SDL_BUTTON_X2 0
+	#define SDL_QUIT 1
+	#define SDL_WINDOWEVENT 2
+	#define SDL_WINDOWEVENT_RESIZED 3
+	#define SDL_KEYDOWN 4
+	#define SDL_KEYUP 5
+	#define SDL_TEXTINPUT 6
+	#define SDL_MOUSEBUTTONDOWN 7
+	#define SDL_MOUSEBUTTONUP 8
+	#define SDL_MOUSEWHEEL 9
+	#define SDL_MOUSEMOTION 10
+	#define SDL_PRESSED 1
+	#define SDL_BUTTON_LEFT 1
+	#define SDL_BUTTON_RIGHT 2
+	#define SDL_BUTTON_MIDDLE 3
+	#define SDL_BUTTON_X1 4
+	#define SDL_BUTTON_X2 5
 	#define SDL_AUDIO_PLAYING 1
 	inline void SDL_CloseAudioDevice(SDL_AudioDeviceID d) {}
 	#define SDL_AUDIO_ALLOW_ANY_CHANGE 0
@@ -142,6 +144,8 @@
 	typedef float GLfloat;
 	typedef int GLsizei;
 	typedef int GLsizeiptr;
+	typedef unsigned int GLbitfield;
+	typedef char GLchar;
 	#define GL_TEXTURE_2D 0
 	#define GL_RGBA 0
 	#define GL_RGB 0
@@ -154,9 +158,29 @@
 	#define GL_FLOAT 0
 	#define GL_STATIC_DRAW 0
 	#define GL_ARRAY_BUFFER 0
-	#define GL_COLOR_BUFFER_BIT 0
-	#define GL_DEPTH_BUFFER_BIT 0
+	#define GL_COLOR_BUFFER_BIT 0x00004000
+	#define GL_DEPTH_BUFFER_BIT 0x00000100
 	#define GL_UNSIGNED_BYTE 0
+	#define GL_SCISSOR_TEST 0
+	#define GL_RENDERBUFFER 0
+	#define GL_FRAMEBUFFER 0
+	#define GL_FRAMEBUFFER_COMPLETE 0
+	#define GL_VERTEX_SHADER 0
+	#define GL_FRAGMENT_SHADER 0
+	#define GL_TEXTURE0 0
+	#define GL_ONE 0
+	#define GL_ZERO 0
+	#define GL_SRC_ALPHA 0
+	#define GL_ONE_MINUS_SRC_ALPHA 0
+	#define GL_COMPILE_STATUS 0
+	#define GL_LINK_STATUS 0
+	#define GL_INFO_LOG_LENGTH 0
+	#define GL_NONE 0
+	#define GL_INVALID_OPERATION 1
+	#define GL_INVALID_ENUM 2
+	#define GL_INVALID_VALUE 3
+	#define GL_OUT_OF_MEMORY 4
+	#define GL_INVALID_FRAMEBUFFER_OPERATION 5
 	inline void glGenTextures(GLsizei n, GLuint* t) {}
 	inline void glDeleteTextures(GLsizei n, const GLuint* t) {}
 	inline void glGenVertexArrays(GLsizei n, GLuint* a) {}
@@ -170,18 +194,61 @@
 	inline void glDisableVertexAttribArray(GLuint i) {}
 	inline void glBufferData(GLenum t, GLsizeiptr s, const void* d, GLenum u) {}
 	inline void glDrawArrays(GLenum m, GLint f, GLsizei c) {}
+	inline void glBindTexture(GLenum t, GLuint h) {}
 	inline void glClearColor(float r, float g, float b, float a) {}
 	inline void glClear(int m) {}
 	inline void glEnable(GLenum cap) {}
 	inline void glDisable(GLenum cap) {}
 	inline void glViewport(int x, int y, int w, int h) {}
 	inline void glReadPixels(int x, int y, int w, int h, int f, int t, void* d) {}
+	inline void glScissor(int x, int y, int w, int h) {}
+	inline unsigned char glIsRenderbuffer(GLuint b) { return 0; }
+	inline void glGenRenderbuffers(GLsizei n, GLuint* b) {}
+	inline void glBindRenderbuffer(GLenum t, GLuint b) {}
+	inline void glRenderbufferStorage(GLenum t, GLenum i, GLsizei w, GLsizei h) {}
+	inline void glDeleteRenderbuffers(GLsizei n, const GLuint* b) {}
+	inline void glGenFramebuffers(GLsizei n, GLuint* b) {}
+	inline GLenum glCheckFramebufferStatus(GLenum t) { return 0; }
+	inline GLenum glGetError() { return 0; }
+	inline void glDeleteFramebuffers(GLsizei n, const GLuint* b) {}
+	inline void glFramebufferTexture2D(GLenum t, GLenum a, GLenum tt, GLuint te, GLint l) {}
+	inline void glFramebufferRenderbuffer(GLenum t, GLenum a, GLenum rt, GLuint r) {}
+	inline unsigned char glIsFramebuffer(GLuint b) { return 0; }
+	inline void glBindFramebuffer(GLenum t, GLuint b) {}
+	inline void glDeleteProgram(GLuint p) {}
+	inline void glDeleteShader(GLuint s) {}
+	inline GLint glGetUniformLocation(GLuint p, const char* n) { return 0; }
+	inline GLint glGetAttribLocation(GLuint p, const char* n) { return 0; }
+	inline void glUniform1i(GLint l, GLint v) {}
+	inline void glUniform2iv(GLint l, GLsizei c, const GLint* v) {}
+	inline void glUniform3iv(GLint l, GLsizei c, const GLint* v) {}
+	inline void glUniform4iv(GLint l, GLsizei c, const GLint* v) {}
+	inline void glUniform1f(GLint l, GLfloat v) {}
+	inline void glUniform2fv(GLint l, GLsizei c, const GLfloat* v) {}
+	inline void glUniform3fv(GLint l, GLsizei c, const GLfloat* v) {}
+	inline void glUniform4fv(GLint l, GLsizei c, const GLfloat* v) {}
+	inline void glUniformMatrix3fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
+	inline void glUniformMatrix4fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
+	inline void glActiveTexture(GLenum t) {}
+	inline void glBlendFunc(GLenum s, GLenum d) {}
+	inline void glUseProgram(GLuint p) {}
+	inline GLuint glCreateShader(GLenum t) { return 0; }
+	inline void glShaderSource(GLuint s, GLsizei c, const GLchar** st, const GLint* l) {}
+	inline void glCompileShader(GLuint s) {}
+	inline void glGetShaderiv(GLuint s, GLenum p, GLint* v) {}
+	inline void glGetShaderInfoLog(GLuint s, GLsizei b, GLsizei* l, GLchar* i) {}
+	inline GLuint glCreateProgram() { return 0; }
+	inline void glAttachShader(GLuint p, GLuint s) {}
+	inline void glBindAttribLocation(GLuint p, GLuint i, const GLchar* n) {}
+	inline void glLinkProgram(GLuint p) {}
+	inline void glGetProgramiv(GLuint p, GLenum n, GLint* v) {}
+	inline void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) {}
 	inline void SDL_GL_SwapWindow(SDL_Window* w) {}
-	#define SDL_WINDOW_OPENGL 0
-	#define SDL_WINDOW_SHOWN 0
-	#define SDL_WINDOW_FULLSCREEN 0
-	#define SDL_WINDOW_RESIZABLE 0
-	#define SDL_WINDOW_BORDERLESS 0
+	#define SDL_WINDOW_OPENGL 0x01
+	#define SDL_WINDOW_SHOWN 0x02
+	#define SDL_WINDOW_FULLSCREEN 0x04
+	#define SDL_WINDOW_RESIZABLE 0x08
+	#define SDL_WINDOW_BORDERLESS 0x10
 	#define SDL_WINDOWPOS_CENTERED 0
 	typedef void* SDL_GLContext;
 	inline SDL_GLContext SDL_GL_CreateContext(SDL_Window* w) { return 0; }

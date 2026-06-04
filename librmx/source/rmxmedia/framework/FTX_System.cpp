@@ -1,4 +1,3 @@
-#if !defined(PLATFORM_PS3)
 /*
 *	rmx Library
 *	Copyright (C) 2008-2024 by Eukaryot
@@ -85,9 +84,9 @@ namespace rmx
 
 	void FTX_SystemManager::warpMouse(int x, int y)
 	{
-		if (Video->isActive())
+		if (FTX::Video->isActive())
 		{
-			SDL_WarpMouseInWindow(Video->getMainWindow(), x, y);
+			SDL_WarpMouseInWindow(FTX::Video->getMainWindow(), x, y);
 		}
 	}
 
@@ -166,7 +165,7 @@ namespace rmx
 
 	void FTX_SystemManager::reshape(int width, int height)
 	{
-		Video->reshape(width, height);
+		FTX::Video->reshape(width, height);
 	}
 
 	void FTX_SystemManager::keyboard(const SDL_KeyboardEvent& ev)
@@ -219,11 +218,11 @@ namespace rmx
 
 	void FTX_SystemManager::render()
 	{
-		if (Video->isActive())
+		if (FTX::Video->isActive())
 		{
-			Video->beginRendering();
+			FTX::Video->beginRendering();
 			mRoot.render();
-			Video->endRendering();
+			FTX::Video->endRendering();
 		}
 	}
 
@@ -296,7 +295,7 @@ namespace rmx
 	{
 		bitmap.create(mVideoConfig.mWindowRect.width, mVideoConfig.mWindowRect.height);
 		glReadPixels(0, 0, bitmap.getWidth(), bitmap.getHeight(), GL_RGBA, GL_UNSIGNED_BYTE, bitmap.getData());
-		bitmap.flipVertical();
+		bitmap.mirrorVertical();
 	}
 
 	uint64 FTX_VideoManager::getNativeWindowHandle() const
@@ -346,4 +345,3 @@ namespace rmx
 	}
 
 }
-#endif
