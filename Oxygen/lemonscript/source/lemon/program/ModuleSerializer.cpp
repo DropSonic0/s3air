@@ -16,7 +16,7 @@ namespace lemon
 {
 	namespace
 	{
-		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO;
+		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO = SourceFileInfo();
 
 		static const BaseType DEFAULT_OPCODE_BASETYPES[(size_t)Opcode::Type::_NUM_TYPES] =
 		{
@@ -494,7 +494,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mAddressHooks.emplace_back(serializer.read<uint32>());
+							scriptFunc.mAddressHooks.push_back(serializer.read<uint32>());
 						}
 					}
 
@@ -504,7 +504,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mPragmas.emplace_back(serializer.read<std::string>());
+							scriptFunc.mPragmas.push_back(serializer.read<std::string>());
 						}
 					}
 				}
@@ -563,9 +563,10 @@ namespace lemon
 
 					// Opcodes
 					serializer.writeAs<uint32>(scriptFunc.mOpcodes.size());
-					for (const Opcode& opcode : scriptFunc.mOpcodes)
+					for (size_t opIdx = 0; opIdx < scriptFunc.mOpcodes.size(); ++opIdx)
 					{
-						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64);
+						const Opcode& opcode = scriptFunc.mOpcodes[opIdx];
+						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64, "Too many opcode types");
 
 						const uint8 parameterBits = (opcode.mParameter == 0)  ? 0 :
 							(opcode.mParameter == 1)  ? 1 :

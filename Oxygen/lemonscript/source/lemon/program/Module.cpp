@@ -26,7 +26,7 @@ namespace lemon
 		mModuleName(name),
 		mModuleId(rmx::getMurmur2_64(name) & 0xffffffffffff0000ull)
 	{
-		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36);	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
+		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36, "DEFAULT_OPCODE_BASETYPES needs update");	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
 	}
 
 	Module::~Module()
@@ -188,14 +188,25 @@ namespace lemon
 			content << "\r\n";
 
 			std::string lastPrefix = ".";		// Start with an invalid prefix so that first function will add a line break
-			for (const Function* function : currentFunctions)
+			for (size_t funcIdx = 0; funcIdx < currentFunctions.size(); ++funcIdx)
 			{
+				const Function* function = currentFunctions[funcIdx];
 				// Separate functions with different prefixes
-				const size_t dot = function->getName().getString().find_first_of('.');
-				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : function->getName().getString().substr(0, dot);
+				std::string_view nameStr = function->getName().getString();
+				size_t dot = std::string_view::npos;
+				for (size_t i = 0; i < nameStr.length(); ++i)
+				{
+					if (nameStr[i] == '.')
+					{
+						dot = i;
+						break;
+					}
+				}
+
+				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : nameStr.substr(0, dot);
 				if (prefix != lastPrefix)
 				{
-					lastPrefix = prefix;
+					lastPrefix.assign(prefix.data(), prefix.length());
 					content << "\r\n";
 				}
 
@@ -248,7 +259,7 @@ namespace lemon
 			const PreprocessorDefinition* definition = preprocessorDefinitions.getDefinition(hash);
 			RMX_ASSERT(nullptr != definition, "Invalid entry in PreprocessorDefinitionMap's new definitions set");
 			Constant& constant = addPreprocessorDefinition(definition->mIdentifier, definition->mValue);
-			mPreprocessorDefinitions.emplace_back(&constant);
+			mPreprocessorDefinitions.push_back(&constant);
 		}
 		preprocessorDefinitions.clearNewDefinitions();
 	}
@@ -259,7 +270,7 @@ namespace lemon
 		constant.mName = name;
 		constant.mDataType = &PredefinedDataTypes::INT_64;
 		constant.mValue.set(value);
-		mPreprocessorDefinitions.emplace_back(&constant);
+		mPreprocessorDefinitions.push_back(&constant);
 		return constant;
 	}
 
@@ -359,7 +370,7 @@ namespace lemon
 		variable.mName = name;
 		variable.mDataType = dataType;
 		variable.mID = mFirstVariableID + (uint32)mGlobalVariables.size() + ((uint32)variable.mType << 28);
-		mGlobalVariables.emplace_back(&variable);
+		mGlobalVariables.push_back(&variable);
 	}
 
 	LocalVariable& Module::createLocalVariable()
@@ -378,7 +389,7 @@ namespace lemon
 		constant.mName = name;
 		constant.mDataType = dataType;
 		constant.mValue = value;
-		mConstants.emplace_back(&constant);
+		mConstants.push_back(&constant);
 		return constant;
 	}
 
@@ -392,7 +403,7 @@ namespace lemon
 			constantArray.setContent(values, size);
 		else if (size > 0)
 			constantArray.setSize(size);
-		mConstantArrays.emplace_back(&constantArray);
+		mConstantArrays.push_back(&constantArray);
 
 		if (isGlobalDefinition)
 		{
@@ -407,7 +418,7 @@ namespace lemon
 		Define& define = mDefinePool.createObject();
 		define.mName = name;
 		define.mDataType = dataType;
-		mDefines.emplace_back(&define);
+		mDefines.push_back(&define);
 		return define;
 	}
 
