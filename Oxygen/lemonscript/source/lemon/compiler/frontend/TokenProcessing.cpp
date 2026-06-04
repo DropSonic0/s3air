@@ -297,7 +297,11 @@ namespace lemon
 					case BaseCastType::DOUBLE_TO_FLOAT:   constantToken.mValue.cast<double, float>();  break;
 
 					default:
+#if !defined(PLATFORM_PS3)
 						throw std::runtime_error("Unrecognized cast type");
+#else
+						abort();
+#endif
 				}
 				break;
 			}

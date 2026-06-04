@@ -70,6 +70,7 @@ namespace genericmanager
 		class ElementFactoryBase
 		{
 		public:
+			virtual ~ElementFactoryBase() {}
 			virtual ELEMENT& create() = 0;
 			virtual void destroy(ELEMENT& element) = 0;
 			virtual void shrinkPool() {}
@@ -285,7 +286,11 @@ namespace genericmanager
 			}
 		}
 
+#if defined(PLATFORM_PS3)
 		inline virtual ~ElementList()
+#else
+		inline ~ElementList()
+#endif
 		{
 			clear();
 			if (mElements != mBuffer)

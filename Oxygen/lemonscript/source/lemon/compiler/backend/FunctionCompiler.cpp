@@ -41,24 +41,27 @@ namespace lemon
 	struct OpcodeBuilder
 	{
 	public:
+#if defined(PLATFORM_PS3)
+		OpcodeBuilder() : mFunctionCompiler(nullptr) {}
+#endif
 		OpcodeBuilder(FunctionCompiler& functionCompiler) :
-			mFunctionCompiler(functionCompiler)
+			mFunctionCompiler(&functionCompiler)
 		{}
 
 		void beginIf()
 		{
-			mIfJumpOpcodeIndex = mFunctionCompiler.mOpcodes.size();
-			mFunctionCompiler.addOpcode(Opcode::Type::JUMP_CONDITIONAL);	// Target position must be set afterwards when if block is complete
+			mIfJumpOpcodeIndex = mFunctionCompiler->mOpcodes.size();
+			mFunctionCompiler->addOpcode(Opcode::Type::JUMP_CONDITIONAL);	// Target position must be set afterwards when if block is complete
 		}
 
 		void beginElse()
 		{
 			// Conditional jump to the end of the else-part
-			mElseJumpOpcodeIndex = mFunctionCompiler.mOpcodes.size();
-			mFunctionCompiler.addOpcode(Opcode::Type::JUMP);				// Target position must be set afterwards when else block is complete
+			mElseJumpOpcodeIndex = mFunctionCompiler->mOpcodes.size();
+			mFunctionCompiler->addOpcode(Opcode::Type::JUMP);				// Target position must be set afterwards when else block is complete
 
 			// Correct target position of if-jump
-			mFunctionCompiler.mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler.mOpcodes.size();
+			mFunctionCompiler->mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler->mOpcodes.size();
 		}
 
 		void endIf()
@@ -67,16 +70,16 @@ namespace lemon
 			const bool hadElsePart = (mElseJumpOpcodeIndex != 0);
 			if (hadElsePart)
 			{
-				mFunctionCompiler.mOpcodes[mElseJumpOpcodeIndex].mParameter = mFunctionCompiler.mOpcodes.size();
+				mFunctionCompiler->mOpcodes[mElseJumpOpcodeIndex].mParameter = mFunctionCompiler->mOpcodes.size();
 			}
 			else
 			{
-				mFunctionCompiler.mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler.mOpcodes.size();
+				mFunctionCompiler->mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler->mOpcodes.size();
 			}
 		}
 
 	private:
-		FunctionCompiler& mFunctionCompiler;
+		FunctionCompiler* mFunctionCompiler;
 		size_t mIfJumpOpcodeIndex = 0;
 		size_t mElseJumpOpcodeIndex = 0;
 	};

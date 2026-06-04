@@ -268,7 +268,11 @@ namespace lemon
 	{
 		if (mSelectedControlFlow->mLocalVariablesSize + runtimeFunction.mFunction->mLocalVariablesByID.size() > ControlFlow::VAR_STACK_LIMIT)
 		{
+#if !defined(PLATFORM_PS3)
 			throw std::runtime_error("Reached var stack limit, probably due to recursive function calls");
+#else
+			abort();
+#endif
 		}
 
 		// Push new state to call stack
@@ -609,7 +613,11 @@ namespace lemon
 					}
 
 					default:
+#if !defined(PLATFORM_PS3)
 						throw std::runtime_error("Unhandled opcode");
+#else
+						abort();
+#endif
 				}
 			}
 		}

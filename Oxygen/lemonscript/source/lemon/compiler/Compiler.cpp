@@ -109,7 +109,9 @@ namespace lemon
 
 	bool Compiler::compileLines(const std::vector<std::string_view>& lines)
 	{
+#if !defined(PLATFORM_PS3)
 		try
+#endif
 		{
 			BlockNode rootNode;
 			std::vector<FunctionNode*> functionNodes;
@@ -130,6 +132,7 @@ namespace lemon
 			// Success
 			return true;
 		}
+#if !defined(PLATFORM_PS3)
 		catch (const CompilerException& e)
 		{
 			const auto& translated = mLineNumberTranslation.translateLineNumber(e.mError.mLineNumber);
@@ -141,6 +144,7 @@ namespace lemon
 		}
 
 		return false;
+#endif
 	}
 
 #if defined(PLATFORM_PS3)
@@ -192,12 +196,15 @@ namespace lemon
 		}
 
 		// Your turn, preprocessor
+#if !defined(PLATFORM_PS3)
 		try
+#endif
 		{
 			mPreprocessor.mPreprocessorDefinitions = &mGlobalsLookup.mPreprocessorDefinitions;
 			mPreprocessor.processLines(fileLines);
 			mModule.registerNewPreprocessorDefinitions(mGlobalsLookup.mPreprocessorDefinitions);
 		}
+#if !defined(PLATFORM_PS3)
 		catch (const CompilerException& e)
 		{
 			ErrorMessage& error = vectorAdd(mErrors);
@@ -206,6 +213,7 @@ namespace lemon
 			error.mError = e.mError;
 			return false;
 		}
+#endif
 
 		// Build output
 		for (uint32 fileLineIndex = 0; fileLineIndex < (uint32)fileLines.size(); ++fileLineIndex)
