@@ -30,9 +30,9 @@ class Profiling
 {
 public:
 #if defined(PLATFORM_ANDROID)
-	static const constexpr size_t MAX_FRAMES = 90;
+	static constexpr size_t MAX_FRAMES = 90;
 #else
-	static const constexpr size_t MAX_FRAMES = 240;
+	static constexpr size_t MAX_FRAMES = 240;
 #endif
 
 	struct Region

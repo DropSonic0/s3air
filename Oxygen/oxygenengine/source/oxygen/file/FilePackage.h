@@ -25,9 +25,9 @@ public:
 
 	struct PackageHeader
 	{
-		static const constexpr char SIGNATURE[] = "OPCK";
-		static const constexpr uint32 CURRENT_FORMAT_VERSION = 3;
-		static const constexpr size_t HEADER_SIZE = 20;
+		static constexpr char SIGNATURE[] = "OPCK";
+		static constexpr uint32 CURRENT_FORMAT_VERSION = 3;
+		static constexpr size_t HEADER_SIZE = 20;
 
 		uint32 mFormatVersion = CURRENT_FORMAT_VERSION;
 		uint32 mContentVersion = 0;

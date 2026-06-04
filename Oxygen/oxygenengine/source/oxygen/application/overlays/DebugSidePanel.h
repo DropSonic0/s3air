@@ -10,7 +10,9 @@
 
 #include <rmxbase.h>
 #include <functional>
+#if !defined(PLATFORM_PS3)
 #include <optional>
+#endif
 
 
 class CustomDebugSidePanelCategory;

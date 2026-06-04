@@ -39,6 +39,7 @@ public:
 	};
 
 public:
+	virtual ~EngineDelegateInterface() {}
 	virtual const AppMetaData& getAppMetaData() = 0;
 	virtual GuiBase& createGameApp() = 0;
 	virtual AudioOutBase& createAudioOut() = 0;

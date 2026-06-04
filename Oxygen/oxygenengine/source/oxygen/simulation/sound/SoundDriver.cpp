@@ -148,7 +148,7 @@ static const uint8 z80_SoundDriverPointersData[0x900] =
 
 
 // 32500 is the "gap" when Z80 is blocked, at least it's this long in S3&K level select; the rest is just a guess
-static const constexpr uint32 CYCLES_PER_FRAME = SoundDriver::MCYCLES_PER_FRAME - 32500 - 3000;
+static constexpr uint32 CYCLES_PER_FRAME = SoundDriver::MCYCLES_PER_FRAME - 32500 - 3000;
 
 
 //#define VERIFY_AGAINST_DUMPS		// Enable verification against dumped data from Gensx

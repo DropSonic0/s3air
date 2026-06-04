@@ -21,7 +21,7 @@ namespace
 	//  - 2 and lower: See serialization code for changes
 	//  - 3: Using shared memory access flags
 	//  - 4: Added more rendering data (scroll offsets, sprites, etc.)
-	static const constexpr uint8 STANDALONE_SAVESTATE_FORMATVERSION = 4;
+	static constexpr uint8 STANDALONE_SAVESTATE_FORMATVERSION = 4;
 }
 
 

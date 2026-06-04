@@ -25,8 +25,8 @@ friend class WebSocketClient;
 friend class highlevel::RequestBase;
 
 public:
-	static const constexpr int TIMEOUT_SECONDS = 30;	// Timeout after 30 seconds without getting any response despite waiting for one
-	static const constexpr int STALE_SECONDS = 5 * 60;	// Stale connection after 5 minutes if there was no communication at all in that time
+	static constexpr int TIMEOUT_SECONDS = 30;	// Timeout after 30 seconds without getting any response despite waiting for one
+	static constexpr int STALE_SECONDS = 5 * 60;	// Stale connection after 5 minutes if there was no communication at all in that time
 
 	enum class State
 	{

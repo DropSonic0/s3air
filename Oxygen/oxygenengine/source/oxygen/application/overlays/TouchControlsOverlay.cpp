@@ -17,7 +17,7 @@
 
 namespace
 {
-	static const constexpr float CONFIG_TO_SETUP_SCALE = 0.01f;
+	static constexpr float CONFIG_TO_SETUP_SCALE = 0.01f;
 	static const Rectf DONE_BUTTON_RECT(-0.24f, -0.6f, 0.48f, 0.2f);
 
 	inline static const float square(float value)

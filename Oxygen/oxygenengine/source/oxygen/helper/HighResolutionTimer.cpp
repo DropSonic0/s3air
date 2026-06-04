@@ -17,7 +17,11 @@ void HighResolutionTimer::reset()
 
 void HighResolutionTimer::start()
 {
+#if !defined(PLATFORM_PS3)
 	mStart = std::chrono::high_resolution_clock::now();
+#else
+	mStart = SDL_GetTicks();
+#endif
 	mRunning = true;
 }
 
@@ -25,8 +29,12 @@ double HighResolutionTimer::getSecondsSinceStart() const
 {
 	if (mRunning)
 	{
+#if !defined(PLATFORM_PS3)
 		const Duration duration = (std::chrono::high_resolution_clock::now() - mStart);
 		return duration.count();
+#else
+		return (double)(SDL_GetTicks() - mStart) / 1000.0;
+#endif
 	}
 	return 0.0;
 }
@@ -35,7 +43,11 @@ double HighResolutionTimer::getSecondsSinceStart() const
 void AccumulativeTimer::resetTiming()
 {
 	reset();
+#if !defined(PLATFORM_PS3)
 	mAccumulatedTime = Duration::zero();
+#else
+	mAccumulatedTime = 0.0;
+#endif
 }
 
 void AccumulativeTimer::resumeTiming()
@@ -50,7 +62,11 @@ void AccumulativeTimer::pauseTiming()
 {
 	if (mRunning)
 	{
+#if !defined(PLATFORM_PS3)
 		mAccumulatedTime += (std::chrono::high_resolution_clock::now() - mStart);
+#else
+		mAccumulatedTime += (double)(SDL_GetTicks() - mStart) / 1000.0;
+#endif
 		mRunning = false;
 	}
 }
@@ -60,13 +76,22 @@ double AccumulativeTimer::getAccumulatedSeconds() const
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
 	{
+#if !defined(PLATFORM_PS3)
 		totalDuration += (std::chrono::high_resolution_clock::now() - mStart);
+#else
+		totalDuration += (double)(SDL_GetTicks() - mStart) / 1000.0;
+#endif
 	}
+#if !defined(PLATFORM_PS3)
 	return totalDuration.count();
+#else
+	return totalDuration;
+#endif
 }
 
 double AccumulativeTimer::getAccumulatedSecondsAndRestart()
 {
+#if !defined(PLATFORM_PS3)
 	const TimePoint now = std::chrono::high_resolution_clock::now();
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
@@ -78,4 +103,17 @@ double AccumulativeTimer::getAccumulatedSecondsAndRestart()
 	mAccumulatedTime = Duration::zero();
 	mRunning = true;
 	return totalDuration.count();
+#else
+	const TimePoint now = SDL_GetTicks();
+	Duration totalDuration = mAccumulatedTime;
+	if (mRunning)
+	{
+		totalDuration += (double)(now - mStart) / 1000.0;
+	}
+
+	mStart = now;
+	mAccumulatedTime = 0.0;
+	mRunning = true;
+	return totalDuration;
+#endif
 }

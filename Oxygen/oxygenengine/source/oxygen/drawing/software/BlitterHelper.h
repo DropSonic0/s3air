@@ -562,7 +562,7 @@ struct BlitterHelper
 
 				if (USE_TINT_COLOR)
 				{
-					const constexpr int BUFFER_SIZE = 2048;
+					constexpr int BUFFER_SIZE = 2048;
 					RMX_ASSERT(sourceRect.width <= BUFFER_SIZE, "Buffer supports only widths of " << BUFFER_SIZE << " pixels at maximum");
 					sourceRect.width = std::min(sourceRect.width, BUFFER_SIZE);
 					uint32 buffer[BUFFER_SIZE];

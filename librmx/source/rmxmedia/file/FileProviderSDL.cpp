@@ -81,7 +81,7 @@ namespace rmx
 			outData.reserve((size_t)totalSize);
 		}
 
-		const constexpr size_t BUFFER_SIZE = 0x1000;
+		constexpr size_t BUFFER_SIZE = 0x1000;
 		char data[BUFFER_SIZE];
 		while (true)
 		{

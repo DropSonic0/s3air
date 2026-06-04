@@ -593,7 +593,7 @@ void GameView::render()
 	// Refresh simulation output image
 	if (mStillImage.mMode != StillImageMode::NONE)
 	{
-		const constexpr float REDUCTION = 0.0333f;	// One blur step every 1/30 second
+		constexpr float REDUCTION = 0.0333f;	// One blur step every 1/30 second
 		if (mStillImage.mBlurringStepTimer >= REDUCTION)
 		{
 			mStillImage.mBlurringStepTimer -= REDUCTION;

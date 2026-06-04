@@ -43,7 +43,7 @@ public:
 		READ_FROM_ASM
 	};
 
-	static const constexpr size_t CALL_FRAMES_LIMIT = 0x1000;
+	static constexpr size_t CALL_FRAMES_LIMIT = 0x1000;
 
 	struct CallFrame
 	{

@@ -507,7 +507,7 @@ bool TCPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 	size_t bytesRead = 0;
 	while (true)
 	{
-		const constexpr size_t CHUNK_SIZE = 0x1000;
+		constexpr size_t CHUNK_SIZE = 0x1000;
 		outReceiveResult.mBuffer.resize(bytesRead + CHUNK_SIZE);
 
 		const int result = ::recv(mInternal->mSocket, (char*)&outReceiveResult.mBuffer[bytesRead], CHUNK_SIZE, 0);
@@ -765,7 +765,7 @@ bool UDPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 	while (true)
 	{
 		// TODO: Reading a datagram in multiple chunks does not work, at least on Windows, so this whole while-loop is kind of pointless...
-		const constexpr size_t CHUNK_SIZE = MAX_DATAGRAM_SIZE;
+		constexpr size_t CHUNK_SIZE = MAX_DATAGRAM_SIZE;
 		outReceiveResult.mBuffer.resize(bytesRead + CHUNK_SIZE);
 
 		sockaddr_storage& senderAddr = *reinterpret_cast<sockaddr_storage*>(outReceiveResult.mSenderAddress.accessSockAddr());

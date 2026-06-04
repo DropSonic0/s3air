@@ -15,7 +15,7 @@ namespace lemon
 
 	namespace
 	{
-		static const constexpr uint8 operatorPriorityLookup[] =
+		static constexpr uint8 operatorPriorityLookup[] =
 		{
 			15,	 // ASSIGN
 			15,	 // ASSIGN_PLUS
@@ -61,7 +61,7 @@ namespace lemon
 		};
 		static_assert(sizeof(operatorPriorityLookup) == (size_t)Operator::_NUM_OPERATORS, "Update operator priority lookup");
 
-		static const constexpr bool operatorAssociativityLookup[] =
+		static constexpr bool operatorAssociativityLookup[] =
 		{
 			// "false" = left to right
 			// "true" = right to left

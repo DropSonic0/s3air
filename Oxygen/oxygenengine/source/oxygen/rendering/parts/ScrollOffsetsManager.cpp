@@ -14,7 +14,7 @@
 
 // This bitmask is applied to reduce the necessary precision in "render_plane.shader"
 //  -> That's needed because on some Android devices, we don't even get full 16-bit integers
-static const constexpr uint16 SCROLL_OFFSET_VALUE_BITMASK = 0x0fff;
+static constexpr uint16 SCROLL_OFFSET_VALUE_BITMASK = 0x0fff;
 
 
 ScrollOffsetsManager::ScrollOffsetsManager(PlaneManager& planeManager) :

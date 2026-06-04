@@ -8,7 +8,9 @@
 
 #pragma once
 
+#if !defined(PLATFORM_PS3)
 #include <chrono>
+#endif
 
 
 class HighResolutionTimer
@@ -21,8 +23,13 @@ public:
 	double getSecondsSinceStart() const;
 
 protected:
+#if !defined(PLATFORM_PS3)
 	typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePoint;
 	typedef std::chrono::duration<double> Duration;
+#else
+	typedef uint32 TimePoint;
+	typedef double Duration;
+#endif
 
 	TimePoint mStart;
 	bool mRunning = false;

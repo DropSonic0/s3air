@@ -681,7 +681,7 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 		if (stepsCounter >= nextCheckSteps)
 		{
 			// Limit execution to this number of steps
-			const constexpr int32 MAX_STEPS = 0x8000000;	// Needed for S3AIR entering special stage in OxygenApp
+			constexpr int32 MAX_STEPS = 0x8000000;	// Needed for S3AIR entering special stage in OxygenApp
 			if (mAccumulatedStepsOfCurrentFrame + stepsCounter >= MAX_STEPS)
 			{
 				mExecutionState = ExecutionState::INTERRUPTED;

@@ -20,7 +20,7 @@ struct SoundEmulation::Internal
 	soundemulation::YM2612  mYM2612;
 };
 
-static const constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
+static constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
 
 
 SoundEmulation::SoundEmulation() :

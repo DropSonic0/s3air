@@ -96,6 +96,7 @@ public:
 
 public:
 	Configuration();
+	virtual ~Configuration() {}
 
 	void initialization();
 	bool loadConfiguration(const std::wstring& filename);

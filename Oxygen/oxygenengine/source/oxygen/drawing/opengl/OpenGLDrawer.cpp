@@ -72,8 +72,8 @@ namespace opengldrawer
 #ifdef USE_OPENGL_MESSAGE_CALLBACK
 	void GLAPIENTRY openGLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 	{
-		const constexpr bool showMessages = true;			// Only errors, or other messages as well?
-		const constexpr bool showNotifications = false;		// If showing messages, include notifications as well?
+		constexpr bool showMessages = true;			// Only errors, or other messages as well?
+		constexpr bool showNotifications = false;		// If showing messages, include notifications as well?
 
 		if (type != GL_DEBUG_TYPE_ERROR)
 		{
@@ -333,7 +333,7 @@ namespace opengldrawer
 			// Simple culling by checking the bounding box before rendering
 			// TODO: This is not particularly precise, as it's not considering the real impact of effects (outlines, shadows, etc.) - instead, we're using a fixed tolerance value
 			{
-				const constexpr int TOLERANCE = 10;
+				constexpr int TOLERANCE = 10;
 				Vec2f boundingBoxMin(1e10f, 1e10f);
 				Vec2f boundingBoxMax(-1e10f, -1e10f);
 				for (const Font::TypeInfo& typeInfo : typeInfos)

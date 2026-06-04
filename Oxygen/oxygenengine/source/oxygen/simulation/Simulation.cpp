@@ -318,7 +318,7 @@ void Simulation::update(float timeElapsed)
 			//  -> It should not introduce any noticeable issues or game speed changes in other cases
 			const double stableOffset = useFrameInterpolation ? 0.25 : 0.0;
 			const double diff = mCurrentTargetFrame - (roundToDouble(mCurrentTargetFrame - stableOffset) + stableOffset);
-			const constexpr double maxChange = 0.1;
+			constexpr double maxChange = 0.1;
 			mCurrentTargetFrame += clamp(-diff, -maxChange, maxChange);
 			mLastCorrectionFrame = mFrameNumber;
 		}

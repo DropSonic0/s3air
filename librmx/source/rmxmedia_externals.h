@@ -30,6 +30,7 @@
 #if defined(PLATFORM_PS3)
 	// SDL Shims for PS3
 	typedef uint32 Uint32;
+	typedef int SDL_Keycode;
 	typedef int SDL_mutex;
 	typedef int SDL_cond;
 	typedef int SDL_Thread;

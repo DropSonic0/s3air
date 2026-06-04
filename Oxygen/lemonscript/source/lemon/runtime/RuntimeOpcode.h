@@ -54,7 +54,7 @@ namespace lemon
 #if defined(PLATFORM_PS3)
 		static constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
 #else
-		static const constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
+		static constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
 #endif
 
 		template<typename T> FORCE_INLINE T getParameter() const

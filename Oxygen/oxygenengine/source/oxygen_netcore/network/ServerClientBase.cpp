@@ -16,7 +16,7 @@
 
 namespace
 {
-	static const constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSION_RANGE { 1, 1 };
+	static constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSION_RANGE { 1, 1 };
 
 	struct ProtocolVersionChecker
 	{

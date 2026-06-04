@@ -16,7 +16,7 @@ class Palette
 friend class PaletteManager;
 
 public:
-	static const constexpr size_t NUM_COLORS = 0x200;
+	static constexpr size_t NUM_COLORS = 0x200;
 
 public:
 	struct PackedPaletteColor

@@ -17,7 +17,7 @@ class SoundDriver
 {
 public:
 	// M-Cycles per frame: 262 lines with 3420 cycles each (NTSC console)
-	static const constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
+	static constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
 
 	enum class UpdateResult
 	{

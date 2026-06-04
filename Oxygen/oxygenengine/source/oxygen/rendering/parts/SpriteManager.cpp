@@ -206,7 +206,7 @@ void SpriteManager::drawCustomSpriteWithTransform(uint64 key, const Vec2i& posit
 	{
 		sprite.mUseUpscaledSprite = true;
 
-		const constexpr float SCALE = 1.0f / 3.0f;
+		constexpr float SCALE = 1.0f / 3.0f;
 		const Vec2f transformedOffset = sprite.mTransformation.transformVector(sprite.mCacheItem->mSprite->mOffset);
 		sprite.mPosition.x += roundToInt(transformedOffset.x * (1.0f - SCALE));
 		sprite.mPosition.y += roundToInt(transformedOffset.y * (1.0f - SCALE));
@@ -436,7 +436,7 @@ void SpriteManager::checkSpriteTag(renderitems::SpriteInfo& sprite)
 
 bool SpriteManager::checkRenderItemLimit()
 {
-	const constexpr size_t LIMIT = 2048;
+	constexpr size_t LIMIT = 2048;
 	if (mAddedItems.mItems.size() < LIMIT)
 	{
 		// Everything's okay

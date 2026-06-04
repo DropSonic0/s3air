@@ -91,7 +91,7 @@ namespace detail
 	private:
 		struct Page
 		{
-			static const constexpr size_t SIZE = 0x10000;
+			static constexpr size_t SIZE = 0x10000;
 			int mPageLocation = -1;
 			uint8 mData[SIZE];
 			size_t mLoadedSize = 0;

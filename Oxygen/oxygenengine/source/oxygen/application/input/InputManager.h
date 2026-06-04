@@ -208,7 +208,7 @@ private:
 	void stopControllerRumbleForDevice(RealDevice& device);
 
 private:
-	static const constexpr size_t NUM_PLAYERS = 2;
+	static constexpr size_t NUM_PLAYERS = 2;
 	Player mPlayers[NUM_PLAYERS];
 
 	std::vector<Control*> mAllControls;
