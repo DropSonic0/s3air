@@ -23,6 +23,8 @@ int FontKey::compare(const FontKey& other) const
 }
 
 
+IFontSourceFactory::~IFontSourceFactory() {}
+
 FontSourceStdFactory::~FontSourceStdFactory() {}
 
 FontSource* FontSourceStdFactory::construct(const FontSourceKey& key)

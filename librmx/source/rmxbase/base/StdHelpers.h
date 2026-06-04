@@ -78,14 +78,14 @@ int vectorIndexOf(const std::vector<T>& vec, T element)
 template<typename K, typename V>
 V* mapFind(std::map<K, V>& map, K key)
 {
-	const  it = map.find(key);
+	typename std::map<K, V>::iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 
 template<typename K, typename V>
 const V* mapFind(const std::map<K, V>& map, K key)
 {
-	const  it = map.find(key);
+	typename std::map<K, V>::const_iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 
@@ -93,7 +93,7 @@ const V* mapFind(const std::map<K, V>& map, K key)
 template<typename K, typename V>
 V* mapFind(std::unordered_map<K, V>& map, K key)
 {
-	const  it = map.find(key);
+	typename std::unordered_map<K, V>::iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 #endif
@@ -102,7 +102,7 @@ V* mapFind(std::unordered_map<K, V>& map, K key)
 template<typename K, typename V>
 const V* mapFind(const std::unordered_map<K, V>& map, K key)
 {
-	const  it = map.find(key);
+	typename std::unordered_map<K, V>::const_iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 #endif

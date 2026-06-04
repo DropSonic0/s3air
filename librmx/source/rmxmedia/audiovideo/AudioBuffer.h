@@ -19,7 +19,7 @@ public:
 	typedef std::list<LoadCallbackType> LoadCallbackList;
 	static LoadCallbackList mStaticLoadCallbacks;
 
-	static const constexpr int MAX_FRAME_LENGTH = 4096;		// Maximum length of an audio frame in samples -- this is the length of all audio frames, except the last
+	static constexpr int MAX_FRAME_LENGTH = 4096;		// Maximum length of an audio frame in samples -- this is the length of all audio frames, except the last
 
 public:
 	AudioBuffer();

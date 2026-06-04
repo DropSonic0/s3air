@@ -101,9 +101,7 @@ namespace FTX
 
 
 // This include depends on FTX::FileSystem, so add it afterwards
-#if !defined(PLATFORM_PS3)
 #include "rmxbase/memory/StringImpl.h"
-#endif
 
 
 

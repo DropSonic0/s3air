@@ -172,6 +172,8 @@
 	inline void glDrawArrays(GLenum m, GLint f, GLsizei c) {}
 	inline void glClearColor(float r, float g, float b, float a) {}
 	inline void glClear(int m) {}
+	inline void glEnable(GLenum cap) {}
+	inline void glDisable(GLenum cap) {}
 	inline void glViewport(int x, int y, int w, int h) {}
 	inline void glReadPixels(int x, int y, int w, int h, int f, int t, void* d) {}
 	inline void SDL_GL_SwapWindow(SDL_Window* w) {}

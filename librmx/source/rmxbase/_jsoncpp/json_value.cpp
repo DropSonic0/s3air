@@ -264,10 +264,12 @@ Value::CZString::CZString(const CZString& other) {
   storage_.length_ = other.storage_.length_;
 }
 
+#if !defined(PLATFORM_PS3)
 Value::CZString::CZString(CZString&& other) throw()
     : cstr_(other.cstr_), index_(other.index_) {
   other.cstr_ = 0;
 }
+#endif
 
 Value::CZString::~CZString() {
   if (cstr_ && storage_.policy_ == duplicate) {
@@ -290,12 +292,14 @@ Value::CZString& Value::CZString::operator=(const CZString& other) {
   return *this;
 }
 
+#if !defined(PLATFORM_PS3)
 Value::CZString& Value::CZString::operator=(CZString&& other) throw() {
   cstr_ = other.cstr_;
   index_ = other.index_;
   other.cstr_ = 0;
   return *this;
 }
+#endif
 
 bool Value::CZString::operator<(const CZString& other) const {
   if (!cstr_)
@@ -438,10 +442,12 @@ Value::Value(const Value& other) {
   dupMeta(other);
 }
 
+#if !defined(PLATFORM_PS3)
 Value::Value(Value&& other) throw() {
   initBasic(nullValue);
   swap(other);
 }
+#endif
 
 Value::~Value() {
   releasePayload();
@@ -453,10 +459,12 @@ Value& Value::operator=(const Value& other) {
   return *this;
 }
 
+#if !defined(PLATFORM_PS3)
 Value& Value::operator=(Value&& other) throw() {
   other.swap(*this);
   return *this;
 }
+#endif
 
 void Value::swapPayload(Value& other) {
   std::swap(bits_, other.bits_);
@@ -1140,8 +1148,20 @@ Value& Value::operator[](const StaticString& key) {
   return resolveReference(key.c_str());
 }
 
-Value& Value::append(const Value& value) { return append(Value(value)); }
+Value& Value::append(const Value& value) {
+#if defined(PLATFORM_PS3)
+  JSON_ASSERT_MESSAGE(type() == nullValue || type() == arrayValue,
+                      "in Json::Value::append: requires arrayValue");
+  if (type() == nullValue) {
+    *this = Value(arrayValue);
+  }
+  return (*this->value_.map_->insert(std::make_pair(CZString(size()), value)).first).second;
+#else
+  return append(Value(value));
+#endif
+}
 
+#if !defined(PLATFORM_PS3)
 Value& Value::append(Value&& value) {
   JSON_ASSERT_MESSAGE(type() == nullValue || type() == arrayValue,
                       "in Json::Value::append: requires arrayValue");
@@ -1154,11 +1174,27 @@ Value& Value::append(Value&& value) {
   return this->value_.map_->emplace(size(), std::move(value)).first->second;
 #endif
 }
+#endif
 
 bool Value::insert(ArrayIndex index, const Value& newValue) {
+#if defined(PLATFORM_PS3)
+  JSON_ASSERT_MESSAGE(type() == nullValue || type() == arrayValue,
+                      "in Json::Value::insert: requires arrayValue");
+  ArrayIndex length = size();
+  if (index > length) {
+    return false;
+  }
+  for (ArrayIndex i = length; i > index; i--) {
+    (*this)[i] = (*this)[i - 1];
+  }
+  (*this)[index] = newValue;
+  return true;
+#else
   return insert(index, Value(newValue));
+#endif
 }
 
+#if !defined(PLATFORM_PS3)
 bool Value::insert(ArrayIndex index, Value&& newValue) {
   JSON_ASSERT_MESSAGE(type() == nullValue || type() == arrayValue,
                       "in Json::Value::insert: requires arrayValue");
@@ -1172,6 +1208,7 @@ bool Value::insert(ArrayIndex index, Value&& newValue) {
   (*this)[index] = std::move(newValue);
   return true;
 }
+#endif
 
 Value Value::get(char const* begin, char const* end,
                  Value const& defaultValue) const {
@@ -1395,18 +1432,22 @@ bool Value::isObject() const { return type() == objectValue; }
 Value::Comments::Comments(const Comments& that)
     : ptr_(cloneUnique(that.ptr_)) {}
 
+#if !defined(PLATFORM_PS3)
 Value::Comments::Comments(Comments&& that) throw()
     : ptr_(std::move(that.ptr_)) {}
+#endif
 
 Value::Comments& Value::Comments::operator=(const Comments& that) {
   ptr_ = cloneUnique(that.ptr_);
   return *this;
 }
 
+#if !defined(PLATFORM_PS3)
 Value::Comments& Value::Comments::operator=(Comments&& that) throw() {
   ptr_ = std::move(that.ptr_);
   return *this;
 }
+#endif
 
 bool Value::Comments::has(CommentPlacement slot) const {
   return ptr_ && !(*ptr_)[slot].empty();

@@ -1,3 +1,5 @@
+#include "rmxmedia.h"
+
 #if !defined(PLATFORM_PS3)
 /*
 *	rmx Library
@@ -6,8 +8,6 @@
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
 */
-
-#include "rmxmedia.h"
 
 
 namespace rmx

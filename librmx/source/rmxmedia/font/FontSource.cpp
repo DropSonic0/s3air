@@ -43,14 +43,14 @@ const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 
 #include "StdFontData.inc"
 
-namespace rmx::stdfont
+namespace rmx { namespace stdfont
 {
-	static const constexpr float SIZE = 16;
-	static const constexpr int WIDTH = 12;
-	static const constexpr int HEIGHT = 20;
-	static const constexpr int ASCENDER = 15;
-	static const constexpr int LINEHEIGHT = 25;
-}
+	static constexpr float SIZE = 16;
+	static constexpr int WIDTH = 12;
+	static constexpr int HEIGHT = 20;
+	static constexpr int ASCENDER = 15;
+	static constexpr int LINEHEIGHT = 25;
+}}
 
 FontSourceStd::FontSourceStd(float size) :
 	FontSource(),
@@ -126,7 +126,7 @@ FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
 	}
 
 	Json::Value charactersJson = root["characters"];
-	for (auto iterator = charactersJson.begin(); iterator != charactersJson.end(); ++iterator)
+	for (Json::Value::iterator iterator = charactersJson.begin(); iterator != charactersJson.end(); ++iterator)
 	{
 		wchar_t character;
 		{
@@ -135,7 +135,7 @@ FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
 			key.fromUTF8(keyString.c_str(), keyString.length());
 			character = key[0];
 		}
-		String value = iterator->asString();
+		String value = iterator->asString().c_str();
 
 		if (value.startsWith("redirect:"))
 		{
@@ -164,7 +164,13 @@ FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
 
 bool FontSourceBitmap::fillGlyphInfo(FontSource::GlyphInfo& info)
 {
-	auto it = mCharacterBitmaps.find(info.mUnicode);
+#if defined(NO_UNORDERED_CONTAINERS)
+	typedef std::map<wchar_t, Bitmap>::iterator Iterator;
+#else
+	typedef std::unordered_map<wchar_t, Bitmap>::iterator Iterator;
+#endif
+
+	Iterator it = mCharacterBitmaps.find((wchar_t)info.mUnicode);
 	if (it == mCharacterBitmaps.end())
 	{
 		// Resolve redirect if possible

@@ -16,6 +16,17 @@
 
 template<typename CHAR, typename CLASS> class StringTemplate;
 
+namespace rmx
+{
+	template<typename CHAR>
+	struct StringTraits
+	{
+		static CHAR fromUnicode(uint32 code);
+		static uint32 toUnicode(CHAR ch);
+		static int buildFormatted(CHAR* dst, size_t dstSize, const CHAR* format, va_list argv);
+	};
+}
+
 
 #if defined(PLATFORM_PS3)
 struct UnicodeEncoding
@@ -88,8 +99,8 @@ public:
 	inline CHAR* accessData()				{ return mData; }
 	inline CHAR getChar(size_t index)		{ return (index < mLength) ? mData[index] : 0; }
 	inline CHAR getChar(int index)			{ return (index >= 0 && index < (int)mLength) ? mData[index] : 0; }
-	inline uint32 getUnicode(size_t index)	{ return toUnicode(getChar(index)); }
-	inline uint32 getUnicode(int index)		{ return toUnicode(getChar(index)); }
+	inline uint32 getUnicode(size_t index)	{ return rmx::StringTraits<CHAR>::toUnicode(getChar(index)); }
+	inline uint32 getUnicode(int index)		{ return rmx::StringTraits<CHAR>::toUnicode(getChar(index)); }
 
 	inline int length() const			{ return (int)mLength; }
 	inline bool empty() const			{ return (mLength == 0); }
@@ -115,7 +126,6 @@ public:
 	void addHex(unsigned int value);
 	void addFloat(float value, int precision = 0);
 	void addDouble(double value, int precision = 0);
-	void addDouble(double value);
 	void addData(void* inputdata, int bytes);
 
 	int parseInt() const;
@@ -186,8 +196,8 @@ public:
 
 	CLASS& operator=(const CLASS& str)			{ copy(str); return (CLASS&)*this; }
 	CLASS& operator=(const CHAR* str)			{ copy(str); return (CLASS&)*this; }
-	CLASS& operator=(const StdString& str)		{ copy(str); return *this; }
-	CLASS& operator=(const StdStringView& str)	{ copy(str); return *this; }
+	CLASS& operator=(const StdString& str)		{ copy(str); return (CLASS&)*this; }
+	CLASS& operator=(const StdStringView& str)	{ copy(str); return (CLASS&)*this; }
 
 	CLASS& operator<<(const CLASS& str)		{ add(str);			return (CLASS&)*this; }
 	CLASS& operator<<(CHAR ch)				{ add(ch);			return (CLASS&)*this; }
@@ -295,15 +305,6 @@ public:
 
 
 
-namespace rmx
-{
-	template<typename CHAR>
-	struct StringTraits
-	{
-		static CHAR fromUnicode(uint32 code);
-		static uint32 toUnicode(CHAR ch);
-		static int buildFormatted(CHAR* dst, size_t dstSize, const CHAR* format, va_list argv);
-	};
-}
-
+#if !defined(PLATFORM_PS3)
 #include "StringImpl.h"
+#endif

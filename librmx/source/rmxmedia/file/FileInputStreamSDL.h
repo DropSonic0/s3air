@@ -1,3 +1,5 @@
+#include "rmxbase.h"
+
 #if !defined(PLATFORM_PS3)
 /*
 *	rmx Library

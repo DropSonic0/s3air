@@ -13,7 +13,32 @@
 
 
 // OggLoaderError
-enum OggLoaderError
+#if defined(PLATFORM_PS3)
+struct OggLoaderError
+{
+	enum Enum
+	{
+		OK = 0,
+		COULD_NOT_OPEN_FILE,
+		UNEXPECTED_EOF,
+		INVALID_VORBIS_HEADER,
+		HEADERS_NOT_FOUND
+	};
+};
+typedef OggLoaderError::Enum OggLoaderError_t;
+
+struct OggLoaderState
+{
+	enum Enum
+	{
+		INACTIVE = 0,
+		STREAMING,
+		COMPLETE
+	};
+};
+typedef OggLoaderState::Enum OggLoaderState_t;
+#else
+enum class OggLoaderError
 {
 	OK = 0,
 	COULD_NOT_OPEN_FILE,
@@ -21,13 +46,16 @@ enum OggLoaderError
 	INVALID_VORBIS_HEADER,
 	HEADERS_NOT_FOUND
 };
+using OggLoaderError_t = OggLoaderError;
 
-enum OggLoaderState
+enum class OggLoaderState
 {
 	INACTIVE = 0,
 	STREAMING,
 	COMPLETE
 };
+using OggLoaderState_t = OggLoaderState;
+#endif
 
 
 // OggLoader
@@ -56,9 +84,9 @@ public:
 
 	inline bool isStreaming() const        { return mIsStreaming; }
 	inline bool isStreamingVorbis() const  { return (0 != mAudioBuffer); }
-	inline OggLoaderState getAudioState() const  { return mAudioState; }
+	inline OggLoaderState_t getAudioState() const  { return mAudioState; }
 
-	inline OggLoaderError getError() const  { return mError; }
+	inline OggLoaderError_t getError() const  { return mError; }
 
 private:
 	int  bufferData();
@@ -69,9 +97,9 @@ private:
 	bool mIsStreaming;
 	AudioBuffer* mAudioBuffer;
 	InputStream* mInputStream;
-	OggLoaderError mError;
+	OggLoaderError_t mError;
 	ogg_int64_t mVorbisGranulePos;
-	OggLoaderState mAudioState;
+	OggLoaderState_t mAudioState;
 	int mSkipAudioSampleOutput;
 
 	// Ogg/Vorbis data structures

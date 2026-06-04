@@ -160,20 +160,20 @@ public:
 class IFontSourceFactory
 {
 public:
-	virtual ~IFontSourceFactory() {}
+	virtual ~IFontSourceFactory();
 	virtual FontSource* construct(const FontSourceKey& key) = 0;
 };
 
 class FontSourceStdFactory : public IFontSourceFactory
 {
 public:
-	virtual ~FontSourceStdFactory() {}
+	virtual ~FontSourceStdFactory();
 	virtual FontSource* construct(const FontSourceKey& key) override;
 };
 
 class FontSourceBitmapFactory : public IFontSourceFactory
 {
 public:
-	virtual ~FontSourceBitmapFactory() {}
+	virtual ~FontSourceBitmapFactory();
 	virtual FontSource* construct(const FontSourceKey& key) override;
 };

@@ -450,7 +450,7 @@ TEMPLATE void STRING::addFloat(float value, int precision)
 	else
 	{
 		strCpy(format, 8, _format_0f<CHAR>());
-		format[2] += std::min(precision, 9);
+		format[2] += (CHAR)std::min(precision, 9);
 	}
 	CHAR cstr[32];
 	sprintf(cstr, 32, format, value);
@@ -461,7 +461,7 @@ TEMPLATE void STRING::addFloat(float value, int precision)
 TEMPLATE void STRING::addDouble(double value, int precision)
 {
 	// Conversion: double -> String
-	CHAR format[5];
+	CHAR format[8];
 	if (precision <= 0)
 	{
 		strCpy(format, 8, _format_f<CHAR>());
@@ -469,7 +469,7 @@ TEMPLATE void STRING::addDouble(double value, int precision)
 	else
 	{
 		strCpy(format, 8, _format_0f<CHAR>());
-		format[2] += std::min(precision, 9);
+		format[2] += (CHAR)std::min(precision, 9);
 	}
 	CHAR cstr[32];
 	sprintf(cstr, 32, format, value);
@@ -1065,7 +1065,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 		MemInputStream blob(data, datasize);
 
 		#define IF_ENCODING(x) \
-			if (blob.tryRead(*ByteOrderMark_##x, ByteOrderMark_##x.length())) encoding = (UnicodeEncoding_t)UnicodeEncoding::x;
+			if (blob.tryRead(ByteOrderMark_##x.getData(), ByteOrderMark_##x.length())) encoding = (UnicodeEncoding_t)UnicodeEncoding::x;
 
 		IF_ENCODING(UTF8)    else
 		IF_ENCODING(UTF32LE) else		// Check UTF-32 before UTF-16
@@ -1097,12 +1097,16 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 			expand(len);
 			mLength = (int)len;
 			for (size_t pos = 0; pos < len; ++pos)
-				mData[pos] = (CHAR)(blob.read<uint8>());
+				{
+					uint8 value;
+					blob.read(&value, 1);
+					mData[pos] = (CHAR)value;
+				}
 		}
 		else if (encoding == (UnicodeEncoding_t)UnicodeEncoding::UTF8)
 		{
 			// UTF-8
-			blob.tryRead(*ByteOrderMark_UTF8, ByteOrderMark_UTF8.length());
+			blob.tryRead(ByteOrderMark_UTF8.getData(), ByteOrderMark_UTF8.length());
 			int remaining = (int)blob.getRemaining();
 			expand(remaining);
 
@@ -1110,7 +1114,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 			uint8 values[4];
 			while (remaining > 0)
 			{
-				blob >> values[0];
+				blob.read(&values[0], 1);
 				--remaining;
 
 				if (values[0] <= 0x7f)
@@ -1135,7 +1139,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 
 					for (int k = 1; k < seqLength; ++k)
 					{
-						blob >> values[k];
+						blob.read(&values[k], 1);
 						if (values[k] < 0x80 || values[k] >= 0xc0)
 							ABORT;		// Additional bytes of a sequence always begin with bits 10xxxxxx
 						values[k] &= 0x3f;
@@ -1161,14 +1165,14 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 		{
 			// UTF-16
 			const String& bom = (encoding == (UnicodeEncoding_t)UnicodeEncoding::UTF16LE) ? ByteOrderMark_UTF16LE : ByteOrderMark_UTF16BE;
-			blob.tryRead(*bom, bom.length());
+			blob.tryRead(bom.getData(), bom.length());
 			size_t remaining = blob.getRemaining() / 2;
 			expand(remaining);
 
 			uint16 value;
 			while (remaining > 0)
 			{
-				blob >> value;
+				blob.read(&value, 2);
 				if (encoding == (UnicodeEncoding_t)UnicodeEncoding::UTF16BE)
 					value = swapBytes16(value);
 				--remaining;
@@ -1183,7 +1187,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 						ABORT;
 
 					uint16 second;
-					blob >> second;
+					blob.read(&second, 2);
 					if (encoding == (UnicodeEncoding_t)UnicodeEncoding::UTF16BE)
 						second = swapBytes16(second);
 					--remaining;
@@ -1198,7 +1202,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 		{
 			// UTF-32
 			const String& bom = (encoding == (UnicodeEncoding_t)UnicodeEncoding::UTF32LE) ? ByteOrderMark_UTF32LE : ByteOrderMark_UTF32BE;
-			blob.tryRead(*bom, bom.length());
+			blob.tryRead(bom.getData(), bom.length());
 			size_t len = blob.getRemaining() / 4;
 			expand(len);
 			mLength = (int)len;
@@ -1207,7 +1211,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 			{
 				for (size_t pos = 0; pos < len; ++pos)
 				{
-					blob >> code;
+					blob.read(&code, 4);
 					mData[pos] = rmx::StringTraits<CHAR>::fromUnicode(code);
 				}
 			}
@@ -1215,7 +1219,7 @@ TEMPLATE bool STRING::readUnicode(const uint8* data, size_t datasize, UnicodeEnc
 			{
 				for (size_t pos = 0; pos < len; ++pos)
 				{
-					blob >> code;
+					blob.read(&code, 4);
 					mData[pos] = rmx::StringTraits<CHAR>::fromUnicode(swapBytes32(code));
 				}
 			}
@@ -1273,7 +1277,7 @@ TEMPLATE void STRING::writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding_t
 		uint8* ptr = &buffer[0];
 		if (addBOM)
 		{
-			memcpy(ptr, *ByteOrderMark_UTF8, size4bom);
+			memcpy(ptr, ByteOrderMark_UTF8.getData(), size4bom);
 			ptr += size4bom;
 		}
 
@@ -1325,7 +1329,7 @@ TEMPLATE void STRING::writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding_t
 
 		buffer.resize(size);
 		if (addBOM)
-			memcpy(&buffer[0], *bom, bom.length());
+			memcpy(&buffer[0], bom.getData(), bom.length());
 		uint16* start = (uint16*)&buffer[0] + size4bom;
 		uint16* end = (uint16*)&buffer[0] +  size;
 
@@ -1363,7 +1367,7 @@ TEMPLATE void STRING::writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding_t
 
 		buffer.resize(size);
 		if (addBOM)
-			memcpy(&buffer[0], *bom, bom.length());
+			memcpy(&buffer[0], bom.getData(), bom.length());
 
 		uint32* ptr = (uint32*)&buffer[size4bom];
 		if (encoding == (UnicodeEncoding_t)UnicodeEncoding::UTF32LE)
