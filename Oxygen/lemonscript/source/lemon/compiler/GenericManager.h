@@ -101,8 +101,12 @@ namespace genericmanager
 			template<typename T>
 			FactoryBase& getOrCreateElementFactory()
 			{
-				const constexpr uint32 type = (uint32)T::TYPE;
+				static constexpr uint32 type = (uint32)T::TYPE;
+#if defined(PLATFORM_PS3)
+				if (type < 0x80)
+#else
 				if constexpr (type < 0x80)
+#endif
 				{
 					// Use std::vector
 					if (nullptr != mClassFactoriesList[type])

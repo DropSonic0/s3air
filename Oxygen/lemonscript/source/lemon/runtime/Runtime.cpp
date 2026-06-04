@@ -103,6 +103,36 @@ namespace lemon
 
 
 
+	ControlFlow* Runtime::mActiveControlFlow = nullptr;
+	const Environment* Runtime::mActiveEnvironment = nullptr;
+
+	ControlFlow* Runtime::getActiveControlFlow()
+	{
+		return mActiveControlFlow;
+	}
+
+	Runtime* Runtime::getActiveRuntime()
+	{
+		return (nullptr == mActiveControlFlow) ? nullptr : &mActiveControlFlow->getRuntime();
+	}
+
+	const Environment* Runtime::getActiveEnvironment()
+	{
+		return mActiveEnvironment;
+	}
+
+	const Environment& Runtime::getActiveEnvironmentSafe()
+	{
+		RMX_ASSERT(nullptr != mActiveEnvironment, "No active environment set");
+		return *mActiveEnvironment;
+	}
+
+	void Runtime::setActiveEnvironment(const Environment* environment)
+	{
+		mActiveEnvironment = environment;
+	}
+
+
 	Runtime::Runtime()
 	{
 		// Create default control flow

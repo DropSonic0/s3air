@@ -22,7 +22,7 @@ namespace lemon
 		int checkIncludeLine(std::string_view str)
 		{
 			// Check for "include", but ignore leading whitespace
-			const constexpr size_t REQUIRED_LENGTH = 8;		// Length of "include" plus a space
+			static constexpr size_t REQUIRED_LENGTH = 8;		// Length of "include" plus a space
 			size_t pos = 0;
 			while (pos + REQUIRED_LENGTH <= str.length() && (str[pos] == ' ' || str[pos] == '\t'))
 				++pos;
@@ -191,7 +191,7 @@ namespace lemon
 				const int start = pos;
 				size_t length;
 				pos = scriptFile.mContent.getLine(length, start);
-				fileLines.emplace_back(&scriptFile.mContent[start], length);
+				fileLines.push_back(std::string_view(&scriptFile.mContent[start], length));
 			}
 		}
 
@@ -265,7 +265,7 @@ namespace lemon
 			}
 			else
 			{
-				outLines.emplace_back(std::move(fileLines[fileLineIndex]));
+				outLines.push_back(std::move(fileLines[fileLineIndex]));
 			}
 		}
 

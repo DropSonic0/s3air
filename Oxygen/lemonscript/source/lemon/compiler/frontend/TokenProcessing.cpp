@@ -131,15 +131,15 @@ namespace lemon
 		fillCachedBuiltInFunctionSingle(mBuiltinStringOperatorGreater,			globalsLookup, BuiltInFunctions::STRING_OPERATOR_GREATER);
 		fillCachedBuiltInFunctionSingle(mBuiltinStringOperatorGreaterOrEqual,	globalsLookup, BuiltInFunctions::STRING_OPERATOR_GREATER_OR_EQUAL);
 
-		mBinaryOperationLookup[(size_t)Operator::BINARY_PLUS]             .emplace_back(&mBuiltinStringOperatorPlus,           &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING);
-		mBinaryOperationLookup[(size_t)Operator::BINARY_PLUS]             .emplace_back(&mBuiltinStringOperatorPlusInt64,      &PredefinedDataTypes::STRING, &PredefinedDataTypes::INT_64, &PredefinedDataTypes::STRING);
-		mBinaryOperationLookup[(size_t)Operator::BINARY_PLUS]             .emplace_back(&mBuiltinStringOperatorPlusInt64Inv,   &PredefinedDataTypes::INT_64, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING);
-		mBinaryOperationLookup[(size_t)Operator::ASSIGN_PLUS]             .emplace_back(&mBuiltinStringOperatorPlus,           &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, Operator::BINARY_PLUS);
-		mBinaryOperationLookup[(size_t)Operator::ASSIGN_PLUS]             .emplace_back(&mBuiltinStringOperatorPlusInt64,      &PredefinedDataTypes::STRING, &PredefinedDataTypes::INT_64, &PredefinedDataTypes::STRING, Operator::BINARY_PLUS);
-		mBinaryOperationLookup[(size_t)Operator::COMPARE_LESS]            .emplace_back(&mBuiltinStringOperatorLess,           &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL);
-		mBinaryOperationLookup[(size_t)Operator::COMPARE_LESS_OR_EQUAL]   .emplace_back(&mBuiltinStringOperatorLessOrEqual,    &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL);
-		mBinaryOperationLookup[(size_t)Operator::COMPARE_GREATER]         .emplace_back(&mBuiltinStringOperatorGreater,        &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL);
-		mBinaryOperationLookup[(size_t)Operator::COMPARE_GREATER_OR_EQUAL].emplace_back(&mBuiltinStringOperatorGreaterOrEqual, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL);
+		mBinaryOperationLookup[(size_t)Operator::BINARY_PLUS]             .push_back(BinaryOperationLookup(&mBuiltinStringOperatorPlus,           &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING));
+		mBinaryOperationLookup[(size_t)Operator::BINARY_PLUS]             .push_back(BinaryOperationLookup(&mBuiltinStringOperatorPlusInt64,      &PredefinedDataTypes::STRING, &PredefinedDataTypes::INT_64, &PredefinedDataTypes::STRING));
+		mBinaryOperationLookup[(size_t)Operator::BINARY_PLUS]             .push_back(BinaryOperationLookup(&mBuiltinStringOperatorPlusInt64Inv,   &PredefinedDataTypes::INT_64, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING));
+		mBinaryOperationLookup[(size_t)Operator::ASSIGN_PLUS]             .push_back(BinaryOperationLookup(&mBuiltinStringOperatorPlus,           &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, Operator::BINARY_PLUS));
+		mBinaryOperationLookup[(size_t)Operator::ASSIGN_PLUS]             .push_back(BinaryOperationLookup(&mBuiltinStringOperatorPlusInt64,      &PredefinedDataTypes::STRING, &PredefinedDataTypes::INT_64, &PredefinedDataTypes::STRING, Operator::BINARY_PLUS));
+		mBinaryOperationLookup[(size_t)Operator::COMPARE_LESS]            .push_back(BinaryOperationLookup(&mBuiltinStringOperatorLess,           &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL));
+		mBinaryOperationLookup[(size_t)Operator::COMPARE_LESS_OR_EQUAL]   .push_back(BinaryOperationLookup(&mBuiltinStringOperatorLessOrEqual,    &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL));
+		mBinaryOperationLookup[(size_t)Operator::COMPARE_GREATER]         .push_back(BinaryOperationLookup(&mBuiltinStringOperatorGreater,        &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL));
+		mBinaryOperationLookup[(size_t)Operator::COMPARE_GREATER_OR_EQUAL].push_back(BinaryOperationLookup(&mBuiltinStringOperatorGreaterOrEqual, &PredefinedDataTypes::STRING, &PredefinedDataTypes::STRING, &PredefinedDataTypes::BOOL));
 	}
 
 	void TokenProcessing::processTokens(TokenList& tokensRoot, uint32 lineNumber, const DataTypeDefinition* resultType)
@@ -394,7 +394,7 @@ namespace lemon
 					opToken.mOperator == Operator::BRACKET_LEFT)
 				{
 					const ParenthesisType type = (opToken.mOperator == Operator::PARENTHESIS_LEFT) ? ParenthesisType::PARENTHESIS : ParenthesisType::BRACKET;
-					parenthesisStack.emplace_back(type, i);
+					parenthesisStack.push_back(std::make_pair(type, i));
 				}
 				else if (opToken.mOperator == Operator::PARENTHESIS_RIGHT ||
 						 opToken.mOperator == Operator::BRACKET_RIGHT)
@@ -722,8 +722,8 @@ namespace lemon
 				if (nullptr != thisPointerVariable)
 				{
 					// Add as implicit first parameter
-					const auto it = functionToken.mParameters.emplace(functionToken.mParameters.begin());
-					VariableToken& variableToken = it->create<VariableToken>();
+					const auto it = functionToken.mParameters.insert(functionToken.mParameters.begin(), TokenPtr<StatementToken>());
+					VariableToken& variableToken = it->template create<VariableToken>();
 					variableToken.mVariable = thisPointerVariable;
 					variableToken.mDataType = thisPointerVariable->getDataType();
 				}

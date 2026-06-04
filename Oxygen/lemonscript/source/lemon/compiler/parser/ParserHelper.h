@@ -13,7 +13,9 @@
 #include "lemon/compiler/Utility.h"
 #include "lemon/utility/AnyBaseValue.h"
 
+#if !defined(PLATFORM_PS3)
 #include <optional>
+#endif
 
 
 namespace lemon
