@@ -33,7 +33,7 @@ public:
 	std::string mHeader;
 	char mShortCharacter = 0;
 	Type mType = Type::INTERNAL;
-	std::function<void(DebugSidePanelCategory&, DebugSidePanel::Builder&, uint64)> mCallback;
+	DebugSidePanel::CategoryCallback mCallback;
 
 	// Runtime data
 	int mScrollSize = 0;

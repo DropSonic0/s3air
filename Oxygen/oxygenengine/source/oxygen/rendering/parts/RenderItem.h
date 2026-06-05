@@ -43,6 +43,7 @@ public:
 	inline bool isSprite() const  { return (mRenderItemType >= Type::VDP_SPRITE && mRenderItemType <= Type::COMPONENT_SPRITE); }
 
 	virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion);
+	virtual ~RenderItem() {}
 
 public:
 	Vec2i mPosition;
@@ -65,6 +66,7 @@ namespace renderitems
 	struct SpriteInfo : public RenderItem
 	{
 	public:
+		virtual ~SpriteInfo() {}
 		bool   mPriorityFlag = false;
 		Color  mTintColor = Color::WHITE;
 		Color  mAddedColor = Color::TRANSPARENT;
@@ -84,6 +86,7 @@ namespace renderitems
 	struct VdpSpriteInfo : public SpriteInfo
 	{
 		inline VdpSpriteInfo() : SpriteInfo(Type::VDP_SPRITE) {}
+		virtual ~VdpSpriteInfo() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		Vec2i  mSize;				// In columns / rows of 8 pixels
@@ -93,6 +96,7 @@ namespace renderitems
 	struct CustomSpriteInfoBase : public SpriteInfo
 	{
 		inline CustomSpriteInfoBase(Type type) : SpriteInfo(type) {}
+		virtual ~CustomSpriteInfoBase() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		uint64 mKey = 0;
@@ -106,6 +110,7 @@ namespace renderitems
 	struct PaletteSpriteInfo : public CustomSpriteInfoBase
 	{
 		inline PaletteSpriteInfo() : CustomSpriteInfoBase(Type::PALETTE_SPRITE) {}
+		virtual ~PaletteSpriteInfo() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		uint16 mAtex = 0;
@@ -114,11 +119,13 @@ namespace renderitems
 	struct ComponentSpriteInfo : public CustomSpriteInfoBase
 	{
 		inline ComponentSpriteInfo() : CustomSpriteInfoBase(Type::COMPONENT_SPRITE) {}
+		virtual ~ComponentSpriteInfo() {}
 	};
 
 	struct SpriteMaskInfo : public SpriteInfo
 	{
 		inline SpriteMaskInfo() : SpriteInfo(Type::SPRITE_MASK) {}
+		virtual ~SpriteMaskInfo() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		Vec2i mSize;
@@ -128,6 +135,7 @@ namespace renderitems
 	struct Rectangle : public RenderItem
 	{
 		inline Rectangle() : RenderItem(Type::RECTANGLE) {}
+		virtual ~Rectangle() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		Vec2i mSize;
@@ -137,6 +145,7 @@ namespace renderitems
 	struct Text : public RenderItem
 	{
 		inline Text() : RenderItem(Type::TEXT) {}
+		virtual ~Text() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		std::string mFontKeyString;

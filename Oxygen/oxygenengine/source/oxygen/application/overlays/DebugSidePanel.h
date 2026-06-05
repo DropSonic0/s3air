@@ -62,7 +62,13 @@ public:
 	virtual void update(float timeElapsed) override;
 	virtual void render() override;
 
-	DebugSidePanelCategory& createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const std::function<void(DebugSidePanelCategory&,Builder&,uint64)>& callback);
+#if defined(PLATFORM_PS3)
+	typedef void (*CategoryCallback)(DebugSidePanelCategory&, Builder&, uint64);
+#else
+	typedef std::function<void(DebugSidePanelCategory&, Builder&, uint64)> CategoryCallback;
+#endif
+
+	DebugSidePanelCategory& createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const CategoryCallback& callback);
 
 	bool setupCustomCategory(std::string_view header, char shortCharacter);
 	bool addOption(std::string_view text, bool defaultValue);

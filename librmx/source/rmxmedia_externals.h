@@ -59,7 +59,7 @@
 		double len_ratio;
 	};
 	#define AUDIO_S16LSB 0
-	struct SDL_WindowEvent { int event; int data1; int data2; };
+	struct SDL_WindowEvent { int windowID; int event; int data1; int data2; };
 	struct SDL_Keysym { int sym; int scancode; int mod; };
 	struct SDL_KeyboardEvent { int type; SDL_Keysym keysym; int state; int repeat; };
 	struct SDL_TextInputEvent { int type; char text[32]; };
@@ -96,6 +96,29 @@
 	inline size_t SDL_RWread(void* c, void* d, size_t s, size_t n) { return 0; }
 	#define RW_SEEK_SET 0
 	#define SDLK_SCANCODE_MASK (1<<30)
+	#define SDLK_KP_DIVIDE 0x40000054
+	#define SDLK_KP_MULTIPLY 0x40000055
+	#define SDLK_KP_PLUS 0x40000057
+	#define SDLK_KP_MINUS 0x40000056
+	#define KMOD_LCTRL 0x0040
+	#define KMOD_LSHIFT 0x0001
+	#define SDLK_LALT 0x400000e2
+	#define SDLK_RALT 0x400000e6
+	#define SDLK_RETURN 0x0d
+	#define SDLK_LSHIFT 0x400000e1
+	#define SDLK_RSHIFT 0x400000e5
+	#define SDLK_END 0x4000004d
+	#define SDLK_HOME 0x4000004a
+	#define SDLK_PAGEUP 0x4000004b
+	#define SDLK_PAGEDOWN 0x4000004e
+	#define SDLK_F1 0x4000003a
+	#define SDLK_F2 0x4000003b
+	#define SDLK_F3 0x4000003c
+	#define SDLK_F4 0x4000003d
+	#define SDLK_F5 0x4000003e
+	#define SDLK_F8 0x40000041
+	#define SDLK_PRINTSCREEN 0x40000046
+
 	inline void SDL_PauseAudioDevice(SDL_AudioDeviceID d, int p) {}
 	inline SDL_AudioStatus SDL_GetAudioStatus() { return (SDL_AudioStatus)0; }
 	inline void SDL_LockAudioDevice(SDL_AudioDeviceID d) {}
@@ -114,6 +137,20 @@
 	inline char* SDL_GetError() { return (char*)""; }
 	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
 	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) { return (SDL_Window*)1; }
+	inline int SDL_GetWindowID(SDL_Window* w) { return 1; }
+	inline int SDL_GetWindowDisplayIndex(SDL_Window* w) { return 0; }
+	inline void SDL_SetWindowFullscreen(SDL_Window* w, Uint32 f) {}
+	inline void SDL_SetWindowSize(SDL_Window* w, int w1, int h1) {}
+	inline void SDL_GetWindowSize(SDL_Window* w, int* w1, int* h1) { if (w1) *w1 = 1280; if (h1) *h1 = 720; }
+	inline void SDL_SetWindowPosition(SDL_Window* w, int x, int y) {}
+	inline void SDL_SetWindowResizable(SDL_Window* w, int r) {}
+	inline void SDL_SetWindowBordered(SDL_Window* w, int b) {}
+	inline int SDL_ShowCursor(int t) { return 0; }
+	struct SDL_Rect { int x, y, w, h; };
+	inline int SDL_GetDisplayBounds(int i, SDL_Rect* r) { if (r) { r->x = r->y = 0; r->w = 1920; r->h = 1080; } return 0; }
+	struct SDL_DisplayMode { int w, h; };
+	inline int SDL_GetDesktopDisplayMode(int i, SDL_DisplayMode* m) { if (m) { m->w = 1920; m->h = 1080; } return 0; }
+
 	inline unsigned int SDL_GetTicks() { return 0; }
 	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
 	#define SDL_QUIT 1
@@ -126,6 +163,11 @@
 	#define SDL_MOUSEBUTTONUP 8
 	#define SDL_MOUSEWHEEL 9
 	#define SDL_MOUSEMOTION 10
+	#define SDL_JOYDEVICEADDED 11
+	#define SDL_JOYDEVICEREMOVED 12
+	#define SDL_APP_WILLENTERBACKGROUND 13
+	#define SDL_FALSE 0
+	#define SDL_TRUE 1
 	#define SDL_PRESSED 1
 	#define SDL_BUTTON_LEFT 1
 	#define SDL_BUTTON_RIGHT 2
@@ -133,6 +175,12 @@
 	#define SDL_BUTTON_X1 4
 	#define SDL_BUTTON_X2 5
 	#define SDL_AUDIO_PLAYING 1
+
+	#define SDL_WINDOWEVENT_FOCUS_LOST 1
+	#define SDL_WINDOW_FULLSCREEN_DESKTOP 0x1000
+	#define SDL_WINDOWPOS_CENTERED_MASK 0x2FFF0000u
+	#define SDL_WINDOWPOS_CENTERED_DISPLAY(X) (SDL_WINDOWPOS_CENTERED_MASK|(X))
+
 	inline void SDL_CloseAudioDevice(SDL_AudioDeviceID d) {}
 	#define SDL_AUDIO_ALLOW_ANY_CHANGE 0
 	inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 0; }

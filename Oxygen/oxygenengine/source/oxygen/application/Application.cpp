@@ -104,7 +104,11 @@ void Application::initialize()
 
 	// Font
 	mLogDisplayFont.setSize(15.0f);
+#if defined(PLATFORM_PS3)
+	mLogDisplayFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f, 1.0f)));
+#else
 	mLogDisplayFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+#endif
 
 	RMX_LOG_INFO("Application initialization complete");
 }
@@ -391,7 +395,7 @@ void Application::keyboard(const rmx::KeyboardEvent& ev)
 						height = 224;
 
 						videoOut.setScreenSize(width, height);
-						LogDisplay::instance().setLogDisplay("Changed render resolution to " + std::to_string(width) + " x " + std::to_string(height) + " pixels");
+						LogDisplay::instance().setLogDisplay(String(0, "Changed render resolution to %u x %u pixels", width, height));
 					}
 					break;
 				}

@@ -21,7 +21,11 @@
 SaveStateMenu::SaveStateMenu()
 {
 	mFont.setSize(18.0f);
+#if defined(PLATFORM_PS3)
+	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(2, 2), 0.5f, 0.5f)));
+#else
 	mFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(2, 2), 0.5f));
+#endif
 }
 
 SaveStateMenu::~SaveStateMenu()

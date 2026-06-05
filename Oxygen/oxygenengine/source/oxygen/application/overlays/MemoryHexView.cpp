@@ -27,7 +27,11 @@ void MemoryHexView::initialize()
 
 	// Debug output font
 	mFont.setSize(15.0f);
+#if defined(PLATFORM_PS3)
+	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f, 1.0f)));
+#else
 	mFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+#endif
 }
 
 void MemoryHexView::deinitialize()

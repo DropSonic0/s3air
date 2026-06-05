@@ -139,18 +139,30 @@ namespace
 				const Vec2i shadowOffset(param.getIntArgument<int8>(0, 1), param.getIntArgument<int8>(1, 1));
 				const float shadowBlur = param.getFloatArgument(2, 0.0f);
 				const float shadowAlpha = param.getFloatArgument(3, 1.0f);
+#if defined(PLATFORM_PS3)
+				outFontProcessors.emplace_back(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(shadowOffset, shadowBlur, shadowAlpha)));
+#else
 				outFontProcessors.emplace_back(std::make_shared<ShadowFontProcessor>(shadowOffset, shadowBlur, shadowAlpha));
+#endif
 			}
 			else if (param.mIdentifier->mName == "outline")
 			{
 				const Color outlineColor = Color::fromRGBA32(param.getIntArgument<uint32>(0, 0x000000ff));
 				const int range = param.getIntArgument<int8>(1, 1);
 				const bool rectangularOutline = (param.getIntArgument<bool>(2, false) != 0);
+#if defined(PLATFORM_PS3)
+				outFontProcessors.emplace_back(std::shared_ptr<OutlineFontProcessor>(new OutlineFontProcessor(outlineColor, range, rectangularOutline)));
+#else
 				outFontProcessors.emplace_back(std::make_shared<OutlineFontProcessor>(outlineColor, range, rectangularOutline));
+#endif
 			}
 			else if (param.mIdentifier->mName == "gradient")
 			{
+#if defined(PLATFORM_PS3)
+				outFontProcessors.emplace_back(std::shared_ptr<GradientFontProcessor>(new GradientFontProcessor()));
+#else
 				outFontProcessors.emplace_back(std::make_shared<GradientFontProcessor>());
+#endif
 			}
 		}
 	}

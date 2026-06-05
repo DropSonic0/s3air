@@ -1136,7 +1136,7 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug keys
 		for (int i = 0; i < 10; ++i)
 		{
-			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::to_string(i), &lemon::PredefinedDataTypes::UINT_8);
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::string(String(0, "%d", i)), &lemon::PredefinedDataTypes::UINT_8);
 			var.mGetter = std::bind(debugKeyGetter, i);
 		}
 

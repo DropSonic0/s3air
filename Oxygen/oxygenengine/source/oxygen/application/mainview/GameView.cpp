@@ -224,7 +224,7 @@ void GameView::keyboard(const rmx::KeyboardEvent& ev)
 					{
 						int& effect = Configuration::instance().mBackgroundBlur;
 						effect = (effect + 1) % 5;
-						setLogDisplay("Background Blur: " + std::to_string(effect * 25) + "%");
+						setLogDisplay(String(0, "Background Blur: %d%%", effect * 25));
 						break;
 					}
 

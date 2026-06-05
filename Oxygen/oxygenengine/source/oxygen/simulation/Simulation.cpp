@@ -374,7 +374,7 @@ bool Simulation::generateFrame()
 		if (mGameRecorder.getFrameData(mFrameNumber + 1, result))
 		{
 			if (isGameRecorderPlayback)
-				LogDisplay::instance().setModeDisplay("Game recorder playback at frame: " + std::to_string(mFrameNumber + 1));
+				LogDisplay::instance().setModeDisplay(String(0, "Game recorder playback at frame: %u", mFrameNumber + 1));
 
 			if (nullptr != result.mData && !Configuration::instance().mGameRecorder.mPlaybackIgnoreKeys)
 			{

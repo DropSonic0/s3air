@@ -102,6 +102,7 @@
 			int* refCount;
 			explicit shared_ptr(T* p = 0) : ptr(p), refCount(new int(1)) {}
 			shared_ptr(const shared_ptr& other) : ptr(other.ptr), refCount(other.refCount) { (*refCount)++; }
+			template<typename U> shared_ptr(const shared_ptr<U>& other) : ptr(other.ptr), refCount(other.refCount) { (*refCount)++; }
 			~shared_ptr() { if (--(*refCount) == 0) { delete ptr; delete refCount; } }
 			T& operator*() const { return *ptr; }
 			T* operator->() const { return ptr; }

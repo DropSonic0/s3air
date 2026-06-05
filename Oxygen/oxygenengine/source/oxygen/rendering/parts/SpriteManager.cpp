@@ -448,7 +448,7 @@ bool SpriteManager::checkRenderItemLimit()
 		if (!mLoggedLimitWarning)
 		{
 			if (EngineMain::getDelegate().useDeveloperFeatures())
-				LogDisplay::instance().setLogDisplay("Warning: Exceeded the upper limit of " + std::to_string(LIMIT) + " items to render, further ones will be ignored");
+				LogDisplay::instance().setLogDisplay(String(0, "Warning: Exceeded the upper limit of %u items to render, further ones will be ignored", (uint32)LIMIT));
 			mLoggedLimitWarning = true;
 		}
 		return false;

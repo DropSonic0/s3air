@@ -140,7 +140,7 @@ bool LemonScriptProgram::loadScriptModule(lemon::Module& module, lemon::GlobalsL
 			if (error.mFilename.empty())
 				text += "Caused in module " + module.getModuleName() + ".";
 			else
-				text += "Caused in file '" + WString(error.mFilename).toStdString() + "', line " + std::to_string(error.mError.mLineNumber) + ", of module '" + module.getModuleName() + "'.";
+				text += "Caused in file '" + WString(error.mFilename).toStdString() + "', line " + std::string(String(0, "%u", error.mError.mLineNumber)) + ", of module '" + module.getModuleName() + "'.";
 			RMX_ERROR(text, );
 			return false;
 		}

@@ -38,7 +38,7 @@ namespace
 			std::string name;
 			std::string ext;
 			rmx::FileIO::splitPath(filename, nullptr, &name, &ext);
-			std::string text = message + "\n[" + name + "." + ext + ", line " + std::to_string(line) + "]";
+			std::string text = message + "\n[" + name + "." + ext + ", line " + std::string(String(0, "%u", line)) + "]";
 		#else
 			std::string text = message;
 		#endif
@@ -51,7 +51,7 @@ namespace
 				std::string moduleName;
 				if (LemonScriptRuntime::getCurrentScriptFunction(&functionName, &fileName, &lineNumber, &moduleName))
 				{
-					text += "\n\nCaused during script execution in function '" + std::string(functionName) + "' at line " + std::to_string(lineNumber) + " of file '" + WString(fileName).toStdString() + "' in module '" + moduleName + "'.";
+					text += "\n\nCaused during script execution in function '" + std::string(functionName) + "' at line " + std::string(String(0, "%u", lineNumber)) + " of file '" + WString(fileName).toStdString() + "' in module '" + moduleName + "'.";
 				}
 			}
 

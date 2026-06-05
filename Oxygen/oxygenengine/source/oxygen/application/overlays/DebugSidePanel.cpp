@@ -112,7 +112,11 @@ DebugSidePanel::~DebugSidePanel()
 void DebugSidePanel::initialize()
 {
 	mSmallFont.loadFromFile("data/font/freefont_sampled.json");
+#if defined(PLATFORM_PS3)
+	mSmallFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f, 1.0f)));
+#else
 	mSmallFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+#endif
 }
 
 void DebugSidePanel::deinitialize()
@@ -375,7 +379,7 @@ void DebugSidePanel::render()
 	drawer.performRendering();
 }
 
-DebugSidePanelCategory& DebugSidePanel::createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const std::function<void(DebugSidePanelCategory&,Builder&,uint64)>& callback)
+DebugSidePanelCategory& DebugSidePanel::createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const CategoryCallback& callback)
 {
 	DebugSidePanelCategory& category = addCategory(identifier, header, shortCharacter);
 	category.mType = DebugSidePanelCategory::Type::GAME;
@@ -576,7 +580,7 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 						Color color = Color::WHITE;
 						if (showOpcodesExecuted)
 						{
-							postfix += " <" + std::to_string(callFrame.mSteps) + ">";
+							postfix += " <" + std::string(String(0, "%u", (uint32)callFrame.mSteps)) + ">";
 							const float log = log10f((float)clamp((int)callFrame.mSteps, 100, 1000000));
 							color.setFromHSL(Vec3f((0.75f - log / 6.0f) * 360.0f, 1.0f, 0.5f));
 						}
@@ -646,7 +650,7 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 							std::string scriptFilename;
 							uint32 lineNumber;
 							codeExec.getLemonScriptProgram().resolveLocation(*hit.mLocation.mFunction, (uint32)hit.mLocation.mProgramCounter, scriptFilename, lineNumber);
-							textLine->mCodeLocation = "\"" + scriptFilename + "\":" + std::to_string(lineNumber);
+							textLine->mCodeLocation = "\"" + scriptFilename + "\":" + std::string(String(0, "%u", lineNumber));
 
 							// TODO: The script file name needs to contains the full file path for this to work, not just the file name itself
 							//  -> Maybe store a list of source files in the module?
