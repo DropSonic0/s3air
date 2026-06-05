@@ -9,8 +9,10 @@
 #pragma once
 
 #include <rmxbase.h>
+#if !defined(PLATFORM_PS3)
 #include <atomic>
 #include <thread>
+#endif
 
 
 class Downloader
@@ -47,10 +49,19 @@ private:
 
 private:
 	std::string mURL;
+#if !defined(PLATFORM_PS3)
 	std::thread* mThread = nullptr;
+#else
+	void* mThread = nullptr;
+#endif
 	State mState = State::NONE;
 	std::wstring mOutputFilename;
 	FileHandle mOutputFile;
+#if !defined(PLATFORM_PS3)
 	std::atomic<uint64> mBytesDownloaded = 0;
 	std::atomic<bool> mThreadRunning = false;
+#else
+	uint64 mBytesDownloaded = 0;
+	bool mThreadRunning = false;
+#endif
 };

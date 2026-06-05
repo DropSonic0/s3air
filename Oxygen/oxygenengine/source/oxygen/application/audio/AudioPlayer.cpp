@@ -489,7 +489,7 @@ void AudioPlayer::enableAudioModifier(int channelId, int contextId, std::string_
 
 	applyAudioModifier(channelId, contextId, postfix, relativeSpeed, relativeSpeed / existingModifier->mRelativeSpeed);
 
-	existingModifier->mPostfix = postfix;
+	existingModifier->mPostfix.assign(postfix.data(), postfix.length());
 	existingModifier->mRelativeSpeed = relativeSpeed;
 }
 
@@ -777,7 +777,7 @@ AudioPlayer::AudioModifier* AudioPlayer::findAudioModifier(int channelId, int co
 AudioPlayer::SourceRegistration* AudioPlayer::getModifiedSourceRegistration(SourceRegistration& baseSourceReg, std::string_view postfix) const
 {
 	std::string newKeyString = baseSourceReg.mAudioDefinition->mKeyString;
-	newKeyString.append(postfix);	// It would be nice if "std::string + std::string_view" would be supported by the STL
+	newKeyString.append(postfix.data(), postfix.length());	// It would be nice if "std::string + std::string_view" would be supported by the STL
 	return mAudioCollection.getSourceRegistration(rmx::getMurmur2_64(newKeyString), baseSourceReg.mPackage);
 }
 

@@ -57,7 +57,9 @@ void Downloader::setupDownload(std::string_view url, std::wstring_view outputFil
 void Downloader::startDownload()
 {
 	mState = State::RUNNING;
+#if !defined(PLATFORM_PS3)
 	mThread = new std::thread(&Downloader::performDownloadStatic, this);
+#endif
 }
 
 void Downloader::stopDownload()
@@ -66,8 +68,10 @@ void Downloader::stopDownload()
 	if (nullptr != mThread)
 	{
 		mThreadRunning = false;
+#if !defined(PLATFORM_PS3)
 		mThread->join();
 		delete mThread;
+#endif
 		mThread = nullptr;
 	}
 
@@ -178,7 +182,9 @@ void Downloader::performDownload()
 			return;
 		}
 
+#if !defined(PLATFORM_PS3)
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+#endif
 	}
 
 #endif

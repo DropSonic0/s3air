@@ -30,13 +30,13 @@ namespace
 	void readInputDevices(const Json::Value& rootJson, std::vector<InputConfig::DeviceDefinition>& inputDeviceDefinitions)
 	{
 		// Input devices
-		const auto& devicesJson = rootJson["InputDevices"];
+		const Json::Value devicesJson = rootJson.get("InputDevices", Json::Value::nullSingleton());
 		if (!devicesJson.isObject())
 			return;
 
 		for (auto it = devicesJson.begin(); it != devicesJson.end(); ++it)
 		{
-			const std::string key = it.key().asString();
+			const std::string key = it.key().asString().c_str();
 
 			// Check for overwrite
 			InputConfig::DeviceDefinition* inputDeviceDefinition = nullptr;
@@ -53,17 +53,17 @@ namespace
 			{
 				// Definition does not exist yet, this must be an unknown gamepad
 				inputDeviceDefinition = &vectorAdd(inputDeviceDefinitions);
-				inputDeviceDefinition->mIdentifier = it.key().asString();
+				inputDeviceDefinition->mIdentifier = it.key().asString().c_str();
 				inputDeviceDefinition->mDeviceType = InputConfig::DeviceType::GAMEPAD;
 			}
 
 			// Collect device names
-			const Json::Value deviceNames = (*it)["DeviceNames"];
+			const Json::Value deviceNames = (*it).get("DeviceNames", Json::Value::nullSingleton());
 			if (deviceNames.isArray())
 			{
 				for (Json::ArrayIndex i = 0; i < deviceNames.size(); ++i)
 				{
-					const std::string name = deviceNames[i].asString();
+					const std::string name = deviceNames[i].asString().c_str();
 					if (!name.empty())
 					{
 						String str(name);
@@ -78,14 +78,15 @@ namespace
 			std::vector<InputConfig::Assignment> newAssignments;
 			for (size_t buttonIndex = 0; buttonIndex < InputConfig::DeviceDefinition::NUM_BUTTONS; ++buttonIndex)
 			{
-				const Json::Value& mappingJson = (*it)[InputConfig::DeviceDefinition::BUTTON_NAME[buttonIndex]];
+				const char* buttonName = InputConfig::DeviceDefinition::BUTTON_NAME[buttonIndex].c_str();
+				const Json::Value mappingJson = (*it).get(buttonName, Json::Value::nullSingleton());
 				newAssignments.clear();
 				if (mappingJson.isArray())
 				{
 					for (Json::ArrayIndex k = 0; k < mappingJson.size(); ++k)
 					{
 						InputConfig::Assignment assignment;
-						if (InputConfig::Assignment::setFromMappingString(assignment, mappingJson[k].asString(), inputDeviceDefinition->mDeviceType))
+						if (InputConfig::Assignment::setFromMappingString(assignment, mappingJson[k].asString().c_str(), inputDeviceDefinition->mDeviceType))
 						{
 							newAssignments.push_back(assignment);
 						}
@@ -175,7 +176,7 @@ namespace
 
 		for (auto it = modJson.begin(); it != modJson.end(); ++it)
 		{
-			const std::string modName = it.key().asString();
+			const std::string modName = it.key().asString().c_str();
 			const uint64 modNameHash = rmx::getMurmur2_64(modName);
 
 			Configuration::Mod& mod = modSettings[modNameHash];
@@ -185,10 +186,11 @@ namespace
 			{
 				if (it2->isNumeric())
 				{
-					const std::string key = it2.key().asString();
+					const std::string key = it2.key().asString().c_str();
 					const uint64 keyHash = rmx::getMurmur2_64(key);
 
 					uint32 value = 0;
+#if !defined(PLATFORM_PS3)
 					try
 					{
 						value = it2->asUInt();
@@ -198,6 +200,9 @@ namespace
 						RMX_ERROR("Failed to read '" << key << "' setting for mod '" << modName << "' with error: " << e.what(), );
 						continue;
 					}
+#else
+					value = it2->asUInt();
+#endif
 
 					Configuration::Mod::Setting& setting = mod.mSettings[keyHash];
 					setting.mIdentifier = key;
@@ -217,9 +222,9 @@ namespace
 				Json::Value modJson;
 				for (const auto& pair2 : pair.second.mSettings)
 				{
-					modJson[pair2.second.mIdentifier] = pair2.second.mValue;
+					modJson[pair2.second.mIdentifier.c_str()] = pair2.second.mValue;
 				}
-				modSettingsJson[pair.second.mModName] = modJson;
+				modSettingsJson[pair.second.mModName.c_str()] = modJson;
 			}
 		}
 		rootJson["ModSettings"] = modSettingsJson;
@@ -453,7 +458,7 @@ void Configuration::saveSettings()
 		root["CleanupSettings"] = 0;
 
 		// Paths
-		root["RomPath"] = WString(mLastRomPath).toStdString();
+		root["RomPath"] = WString(mLastRomPath).toStdString().c_str();
 
 		// General
 		root["RenderMethod"] = mAutoDetectRenderMethod ? "auto" :
@@ -477,19 +482,19 @@ void Configuration::saveSettings()
 		root["Volume"] = mAudioVolume;
 
 		// Input
-		root["PreferredGamepadPlayer1"] = mPreferredGamepad[0];
-		root["PreferredGamepadPlayer2"] = mPreferredGamepad[1];
+		root["PreferredGamepadPlayer1"] = mPreferredGamepad[0].c_str();
+		root["PreferredGamepadPlayer2"] = mPreferredGamepad[1].c_str();
 		root["AutoAssignGamepadPlayerIndex"] = mAutoAssignGamepadPlayerIndex;
 		root["ControllerRumblePlayer1"] = mControllerRumbleIntensity[0];
 		root["ControllerRumblePlayer2"] = mControllerRumbleIntensity[1];
 
 		// Virtual gamepad
 		{
-			Json::Value vg = root["VirtualGamepad"];
+			Json::Value vg = root.get("VirtualGamepad", Json::Value::nullSingleton());
 			const auto saveVec2i = [&](const std::string& key, Vec2i value)
 			{
-				vg[key + "X"] = value.x;
-				vg[key + "Y"] = value.y;
+				vg[(key + "X").c_str()] = value.x;
+				vg[(key + "Y").c_str()] = value.y;
 			};
 
 			vg["Opacity"] = mVirtualGamepad.mOpacity;
@@ -638,10 +643,10 @@ void Configuration::loadConfigurationProperties(JsonHelper& rootHelper)
 	}
 
 	// Video
-	tryParseWindowSize(rootHelper.mJson["WindowSize"].asString(), mWindowSize);
+	tryParseWindowSize(rootHelper.mJson["WindowSize"].asString().c_str(), mWindowSize);
 	if (mDevMode.mEnabled)
 	{
-		tryParseWindowSize(rootHelper.mJson["GameScreen"].asString(), mGameScreen);
+		tryParseWindowSize(rootHelper.mJson["GameScreen"].asString().c_str(), mGameScreen);
 	}
 	rootHelper.tryReadInt("Upscaling", mUpscaling);
 	rootHelper.tryReadInt("Filtering", mFiltering);

@@ -20,7 +20,7 @@ namespace
 
 	int compareSourceRegistrationPackages(AudioCollection::Package a, AudioCollection::Package b, bool preferOriginalSoundtrack)
 	{
-		static_assert((int)AudioCollection::Package::_NUM == 4);
+		static_assert((int)AudioCollection::Package::_NUM == 4, "Unexpected number of packages");
 		const int prioritiesA[4] = { 0, 1, 2, 3 };		// Preferring remastered over original, but modded will always be first
 		const int prioritiesB[4] = { 0, 2, 1, 3 };		// Preferring original over remastered, but modded will always be first
 		const int* priorities = preferOriginalSoundtrack ? prioritiesB : prioritiesA;
@@ -111,7 +111,7 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 
 	for (auto iterator = jsonRoot.begin(); iterator != jsonRoot.end(); ++iterator)
 	{
-		String keyString = iterator.key().asString();
+		String keyString = iterator.key().asString().c_str();
 		keyString.lowerCase();
 
 		// Numeric key is either a string hash, or the value in case of keys like "2C"
@@ -142,8 +142,8 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 
 		for (auto it = iterator->begin(); it != iterator->end(); ++it)
 		{
-			const std::string key = it.key().asString();
-			const std::string value = it->asString();
+			const std::string key = it.key().asString().c_str();
+			const std::string value = it->asString().c_str();
 
 			if (key == "Name")
 			{
@@ -277,8 +277,10 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 
 void AudioCollection::determineActiveSourceRegistrations(bool preferOriginalSoundtrack)
 {
-	for (auto& [key, audioDefinition] : mAudioDefinitions)
+	for (auto it = mAudioDefinitions.begin(); it != mAudioDefinitions.end(); ++it)
 	{
+		AudioDefinition& audioDefinition = it->second;
+
 		// Search for the right one considering settings
 		SourceRegistration* bestSourceReg = nullptr;
 		for (SourceRegistration& soundReg : audioDefinition.mSources)
