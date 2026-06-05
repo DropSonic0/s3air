@@ -294,7 +294,7 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 				++pos;
 
 			// Get part as string
-			parts.emplace_back(path.substr(start, pos-start));
+			parts.push_back(std::wstring(path.substr(start, pos-start)));
 		}
 
 		for (size_t index = 0; index < parts.size(); ++index)

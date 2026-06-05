@@ -137,7 +137,7 @@ void DebugTracking::clearColorLogEntries()
 
 void DebugTracking::addColorLogEntry(const ColorLogEntry& entry)
 {
-	mColorLogEntries.emplace_back(entry);
+	mColorLogEntries.push_back(entry);
 }
 
 void DebugTracking::addColorLogEntry(std::string_view name, uint32 startAddress, uint8 numColors)
@@ -182,7 +182,7 @@ void DebugTracking::clearWatches(bool clearPersistent)
 		{
 			if (watch->mPersistent)
 			{
-				reAddWatches.emplace_back(watch->mAddress, watch->mBytes);
+				reAddWatches.push_back(std::make_pair(watch->mAddress, watch->mBytes));
 			}
 		}
 	}
@@ -353,7 +353,7 @@ void DebugTracking::onWatchTriggered(size_t watchIndex, uint32 address, uint16 b
 		hit.mCallFrameIndex = getCurrentCallFrameIndex();
 		watch.mHits.push_back(&hit);
 
-		mWatchHitsThisUpdate.emplace_back(&watch, &hit);
+		mWatchHitsThisUpdate.push_back(std::make_pair(&watch, &hit));
 		mLemonScriptRuntime.getInternalLemonRuntime().triggerStopSignal();
 	}
 	watch.mLastHitLocation = location;

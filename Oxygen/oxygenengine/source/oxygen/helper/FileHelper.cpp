@@ -20,8 +20,12 @@
 	#pragma comment(lib, "minizip.lib")
 #endif
 
+#if !defined(PLATFORM_PS3)
 #include "unzip.h"
+#endif
 
+
+#if !defined(PLATFORM_PS3)
 
 namespace
 {
@@ -87,6 +91,8 @@ namespace
 		}
 	}
 }
+
+#endif
 
 
 bool FileHelper::loadPaletteBitmap(PaletteBitmap& bitmap, const std::wstring& filename, bool showError)
@@ -172,6 +178,7 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 
 bool FileHelper::extractZipFile(const std::wstring& zipFilename, const std::wstring& outputBasePath)
 {
+#if !defined(PLATFORM_PS3)
 	unzFile zipFile = unzOpen64(*WString(zipFilename).toString());
 	unz_global_info64 globalInfo;
 	int result = unzGetGlobalInfo64(zipFile, &globalInfo);
@@ -198,4 +205,7 @@ bool FileHelper::extractZipFile(const std::wstring& zipFilename, const std::wstr
 		}
 	}
 	return true;
+#else
+	return false;
+#endif
 }

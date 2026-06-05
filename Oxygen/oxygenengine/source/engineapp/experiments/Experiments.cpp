@@ -17,7 +17,7 @@ void Experiments::onPreFrameUpdate()
 {
 	if (nullptr == mCurrentFrame || !mCurrentFrame->mAudioData.empty())
 	{
-		mAudioFrames.emplace_back();
+		mAudioFrames.push_back(AudioFrame());
 		mCurrentFrame = &mAudioFrames.back();
 	}
 }

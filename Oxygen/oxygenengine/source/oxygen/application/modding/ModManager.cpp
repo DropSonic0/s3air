@@ -221,6 +221,7 @@ bool ModManager::scanMods()
 	}
 
 	// Check for zip files in the mods directory
+#if !defined(PLATFORM_PS3)
 	{
 		std::vector<std::wstring> zipPaths;
 		findZipsRecursively(zipPaths, L"", 3);
@@ -229,6 +230,7 @@ bool ModManager::scanMods()
 			processModZipFile(zipPath);
 		}
 	}
+#endif
 
 	// Scan mod directory
 	std::vector<FoundMod> foundMods;
@@ -384,6 +386,8 @@ void ModManager::scanDirectoryRecursive(std::vector<FoundMod>& outFoundMods, con
 	}
 }
 
+#if !defined(PLATFORM_PS3)
+
 void ModManager::findZipsRecursively(std::vector<std::wstring>& outZipPaths, const std::wstring& localPath, int maxDepth)
 {
 	std::vector<rmx::FileIO::FileEntry> zipFileEntries;
@@ -441,6 +445,19 @@ bool ModManager::processModZipFile(const std::wstring& zipLocalPath)
 		return false;
 	}
 }
+
+#else
+
+void ModManager::findZipsRecursively(std::vector<std::wstring>& outZipPaths, const std::wstring& localPath, int maxDepth)
+{
+}
+
+bool ModManager::processModZipFile(const std::wstring& zipLocalPath)
+{
+	return false;
+}
+
+#endif
 
 void ModManager::onActiveModsChanged(bool duringStartup)
 {

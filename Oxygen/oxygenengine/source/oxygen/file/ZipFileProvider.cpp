@@ -17,8 +17,12 @@
 	#pragma comment(lib, "minizip.lib")
 #endif
 
+#if !defined(PLATFORM_PS3)
 #include "unzip.h"
+#endif
 
+
+#if !defined(PLATFORM_PS3)
 
 namespace detail
 {
@@ -197,6 +201,8 @@ namespace detail
 	}
 }
 
+#endif
+
 
 struct ZipFileProvDetail
 {
@@ -211,7 +217,7 @@ struct ZipFileProvDetail
 				if (nullptr != customData)
 				{
 					ZipFileProvider::ContainedFile& containedFile = *(ZipFileProvider::ContainedFile*)customData;
-					outFileEntries.emplace_back(containedFile.mFileEntry);
+					outFileEntries.push_back(containedFile.mFileEntry);
 				}
 			}
 		}
@@ -221,8 +227,10 @@ struct ZipFileProvDetail
 
 struct ZipFileProvider::Internal
 {
+#if !defined(PLATFORM_PS3)
 	unzFile mZipFile;
 	unz_global_info64 mGlobalInfo;
+#endif
 	FileStructureTree mFileStructureTree;
 	std::vector<const FileStructureTree::Entry*> mEntriesBuffer;
 };
@@ -232,6 +240,7 @@ struct ZipFileProvider::Internal
 ZipFileProvider::ZipFileProvider(const std::wstring& zipFilename) :
 	mInternal(*new Internal())
 {
+#if !defined(PLATFORM_PS3)
 	zlib_filefunc64_def filefunc;
 	filefunc.zopen64_file = &detail::openFile;
 	filefunc.zread_file = &detail::readFile;
@@ -256,6 +265,9 @@ ZipFileProvider::ZipFileProvider(const std::wstring& zipFilename) :
 	{
 		RMX_LOG_INFO("Failed to load zip file '" << WString(zipFilename).toStdString() << "'");
 	}
+#else
+	RMX_LOG_INFO("ZIP file support not available on this platform ('" << WString(zipFilename).toStdString() << "')");
+#endif
 }
 
 ZipFileProvider::~ZipFileProvider()
@@ -327,6 +339,7 @@ InputStream* ZipFileProvider::createInputStream(const std::wstring& filename)
 
 bool ZipFileProvider::scanZipFile(const std::wstring& zipFilename)
 {
+#if !defined(PLATFORM_PS3)
 	mContainedFiles.clear();
 	mInternal.mFileStructureTree.clear();
 
@@ -387,10 +400,14 @@ bool ZipFileProvider::scanZipFile(const std::wstring& zipFilename)
 	}
 	mInternal.mFileStructureTree.sortTreeNodes();
 	return true;
+#else
+	return false;
+#endif
 }
 
 const ZipFileProvider::ContainedFile* ZipFileProvider::readFile(const std::wstring& filename)
 {
+#if !defined(PLATFORM_PS3)
 	ContainedFile* containedFile = findContainedFile(filename);
 	if (nullptr == containedFile)
 		return nullptr;
@@ -426,6 +443,9 @@ const ZipFileProvider::ContainedFile* ZipFileProvider::readFile(const std::wstri
 		unzCloseCurrentFile(mInternal.mZipFile);
 	}
 	return nullptr;
+#else
+	return nullptr;
+#endif
 }
 
 ZipFileProvider::ContainedFile* ZipFileProvider::findContainedFile(const std::wstring& filePath)

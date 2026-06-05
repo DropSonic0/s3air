@@ -188,7 +188,7 @@ CodeExec::CallFrame& CodeExec::CallFrameTracking::pushCallFrame(CallFrame::Type 
 	callFrame.mType = type;
 	callFrame.mParentIndex = parentIndex;
 	callFrame.mDepth = (int)mCallStack.size();
-	mCallStack.emplace_back(mCallFrames.size() - 1);
+	mCallStack.push_back(mCallFrames.size() - 1);
 	return callFrame;
 }
 
@@ -579,7 +579,7 @@ bool CodeExec::executeScriptFunction(const std::string& functionName, bool showE
 
 void CodeExec::setupCallFrame(std::string_view functionName, std::string_view labelName)
 {
-	mCallFramesToAdd.emplace_back(functionName, labelName);
+	mCallFramesToAdd.push_back(std::make_pair(std::string(functionName), std::string(labelName)));
 	mHasCallFramesToAdd = true;
 }
 

@@ -247,7 +247,7 @@ void LemonScriptRuntime::getCallStackWithLabels(CallStackWithLabels& outCallStac
 		const lemon::ScriptFunction::Label* label = location.mFunction->findLabelByOffset(location.mProgramCounter);
 		if (nullptr != label)
 		{
-			outCallStack.emplace_back(location.mFunction->getName().getString(), label->mName.getString());
+			outCallStack.push_back(std::make_pair(std::string(location.mFunction->getName().getString()), std::string(label->mName.getString())));
 		}
 	}
 }

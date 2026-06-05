@@ -372,7 +372,7 @@ void ResourcesCache::loadRawData(const std::wstring& path, bool isModded)
 			if (!entryJson["RomInject"].isNull())
 			{
 				rawData->mRomInjectAddress = (uint32)rmx::parseInteger(entryJson["RomInject"].asCString());
-				mRomInjections.emplace_back(rawData);
+				mRomInjections.push_back(rawData);
 			}
 		}
 	}
