@@ -13,10 +13,12 @@
 
 
 class InputManager;
+#if !defined(PLATFORM_PS3)
 struct _SDL_Joystick;
 struct _SDL_GameController;
 typedef struct _SDL_Joystick SDL_Joystick;
 typedef struct _SDL_GameController SDL_GameController;
+#endif
 
 
 class InputFeeder

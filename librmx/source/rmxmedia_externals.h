@@ -116,7 +116,10 @@
 	#define SDLK_F3 0x4000003c
 	#define SDLK_F4 0x4000003d
 	#define SDLK_F5 0x4000003e
+	#define SDLK_F7 0x40000040
 	#define SDLK_F8 0x40000041
+	#define SDLK_F10 0x40000043
+	#define SDLK_F11 0x40000044
 	#define SDLK_PRINTSCREEN 0x40000046
 	#define SDLK_TAB '\t'
 	#define SDLK_SPACE ' '
@@ -193,6 +196,7 @@
 	#define SDLK_RIGHT 0x4000004f
 	#define SDLK_ESCAPE 0x1b
 	#define SDLK_BACKSPACE 0x08
+	#define SDLK_CLEAR 0x4000009c
 	#define SDLK_KP_ENTER 0x40000058
 	#define SDLK_KP_1 0x40000059
 	#define SDLK_KP_2 0x4000005a
@@ -222,11 +226,79 @@
 	#define SDL_INIT_AUDIO 2
 	#define SDL_INIT_TIMER 4
 	#define SDL_INIT_GAMECONTROLLER 8
+	#define SDL_INIT_JOYSTICK 16
+	#define SDL_VERSION_ATLEAST(X, Y, Z) 0
 	inline int SDL_Init(int f) { return 0; }
+	inline int SDL_InitSubSystem(Uint32 f) { return 0; }
 	inline void SDL_Quit() {}
 	inline char* SDL_GetError() { return (char*)""; }
 	inline int SDL_SetHint(const char* n, const char* v) { return 1; }
 	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
+
+	typedef struct _SDL_Joystick SDL_Joystick;
+	typedef struct _SDL_GameController SDL_GameController;
+	typedef enum {
+		SDL_CONTROLLER_BINDTYPE_NONE = 0,
+		SDL_CONTROLLER_BINDTYPE_AXIS,
+		SDL_CONTROLLER_BINDTYPE_BUTTON,
+		SDL_CONTROLLER_BINDTYPE_HAT
+	} SDL_GameControllerBindType;
+	struct SDL_GameControllerButtonBind {
+		SDL_GameControllerBindType bindType;
+		union {
+			int button;
+			int axis;
+			struct {
+				int hat;
+				int hat_mask;
+			} hat;
+		} value;
+	};
+	#define SDL_CONTROLLER_AXIS_LEFTX 0
+	#define SDL_CONTROLLER_AXIS_LEFTY 1
+	#define SDL_CONTROLLER_BUTTON_A 0
+	#define SDL_CONTROLLER_BUTTON_B 1
+	#define SDL_CONTROLLER_BUTTON_X 2
+	#define SDL_CONTROLLER_BUTTON_Y 3
+	#define SDL_CONTROLLER_BUTTON_BACK 4
+	#define SDL_CONTROLLER_BUTTON_GUIDE 5
+	#define SDL_CONTROLLER_BUTTON_START 6
+	#define SDL_CONTROLLER_BUTTON_LEFTSTICK 7
+	#define SDL_CONTROLLER_BUTTON_RIGHTSTICK 8
+	#define SDL_CONTROLLER_BUTTON_LEFTSHOULDER 9
+	#define SDL_CONTROLLER_BUTTON_RIGHTSHOULDER 10
+	#define SDL_CONTROLLER_BUTTON_DPAD_UP 11
+	#define SDL_CONTROLLER_BUTTON_DPAD_DOWN 12
+	#define SDL_CONTROLLER_BUTTON_DPAD_LEFT 13
+	#define SDL_CONTROLLER_BUTTON_DPAD_RIGHT 14
+
+	inline const char* SDL_JoystickName(SDL_Joystick* j) { return (const char*)0; }
+	inline const char* SDL_GameControllerName(SDL_GameController* c) { return (const char*)0; }
+	inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForAxis(SDL_GameController* c, int a) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
+	inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForButton(SDL_GameController* c, int bt) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
+	inline int SDL_JoystickNumButtons(SDL_Joystick* j) { return 0; }
+	inline unsigned char SDL_JoystickGetButton(SDL_Joystick* j, int b) { return 0; }
+	inline int SDL_JoystickNumAxes(SDL_Joystick* j) { return 0; }
+	inline short SDL_JoystickGetAxis(SDL_Joystick* j, int a) { return 0; }
+	inline int SDL_JoystickNumHats(SDL_Joystick* j) { return 0; }
+	inline unsigned char SDL_JoystickGetHat(SDL_Joystick* j, int h) { return 0; }
+	inline int SDL_NumJoysticks() { return 0; }
+	inline SDL_Joystick* SDL_JoystickOpen(int i) { return (SDL_Joystick*)0; }
+	inline int SDL_JoystickInstanceID(SDL_Joystick* j) { return -1; }
+	inline SDL_GameController* SDL_GameControllerOpen(int i) { return (SDL_GameController*)0; }
+	inline int SDL_JoystickRumble(SDL_Joystick* j, unsigned short l, unsigned short h, uint32 d) { return 0; }
+
+	typedef int64 SDL_TouchID;
+	typedef struct SDL_Finger {
+		float x;
+		float y;
+		float pressure;
+	} SDL_Finger;
+	inline int SDL_GetNumTouchDevices() { return 0; }
+	inline SDL_TouchID SDL_GetTouchDevice(int i) { return 0; }
+	inline int SDL_GetNumTouchFingers(SDL_TouchID t) { return 0; }
+	inline SDL_Finger* SDL_GetTouchFinger(SDL_TouchID t, int i) { return (SDL_Finger*)0; }
+
 	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) { return (SDL_Window*)1; }
 	inline int SDL_GetWindowID(SDL_Window* w) { return 1; }
 	inline int SDL_GetWindowDisplayIndex(SDL_Window* w) { return 0; }

@@ -24,5 +24,9 @@ public:
 	void setDebugNotificationInterface(DebugNotificationInterface* debugNotificationInterface);
 
 public:
+#if defined(PLATFORM_PS3)
+	static DebugNotificationInterface* mDebugNotificationInterface;
+#else
 	static inline DebugNotificationInterface* mDebugNotificationInterface = nullptr;
+#endif
 };

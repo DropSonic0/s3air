@@ -86,11 +86,15 @@ public:
 		lemon::Runtime::FunctionCallParameters mParams;
 		uint64 mReturnValueStorage = 0;
 
-		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.emplace_back(dataType, storageValue); }
+		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(dataType, storageValue)); }
 	};
 
 public:
+#if defined(PLATFORM_PS3)
+	static CodeExec* getActiveInstance();
+#else
 	static inline CodeExec* getActiveInstance() { return mActiveInstance; }
+#endif
 
 public:
 	CodeExec();
@@ -170,5 +174,9 @@ private:
 	std::vector<uint32> mUnknownAddressesInOrder;
 
 private:
+#if defined(PLATFORM_PS3)
+	static CodeExec* mActiveInstance;
+#else
 	static inline CodeExec* mActiveInstance = nullptr;
+#endif
 };

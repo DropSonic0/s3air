@@ -9,7 +9,9 @@
 #pragma once
 
 #include "oxygen/simulation/DebuggingInterfaces.h"
+#if !defined(PLATFORM_PS3)
 #include <optional>
+#endif
 
 class LemonScriptRuntime;
 namespace lemon

@@ -15,7 +15,11 @@ class EmulatorInterface;
 
 struct RuntimeEnvironment : public lemon::Environment
 {
+#if defined(PLATFORM_PS3)
+	static const uint64 TYPE = 0xb70bf0b0;
+#else
 	static const uint64 TYPE = rmx::compileTimeFNV_32("Oxygen_RuntimeEnvironment");
+#endif
 
 	inline RuntimeEnvironment() : lemon::Environment(TYPE) {}
 

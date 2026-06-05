@@ -87,7 +87,11 @@ private:
 	uint16 mNameTableBaseW = 0x8000;
 
 	Vec2i mPlayfieldSize;		// In patterns (8x8 pixels)
+#if defined(PLATFORM_PS3)
+	uint16 mPlanePatternsBuffer[4][0x1000];		// Enough space to support 128 x 32 patterns (though usually only 0x800 is needed, for 64 x 32 patterns)
+#else
 	uint16 mPlanePatternsBuffer[4][0x1000] = { 0 };		// Enough space to support 128 x 32 patterns (though usually only 0x800 is needed, for 64 x 32 patterns)
+#endif
 
 	bool mUsingPlaneW = false;
 	uint16 mPlaneAWSplit = 0;

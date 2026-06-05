@@ -436,11 +436,11 @@ void GameView::mouse(const rmx::MouseEvent& ev)
 	if (FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
 	{
 		const char* functionName = nullptr;
-		if (ev.button == rmx::MouseButton::Left)
+		if (ev.button == rmx::MouseButton_Left)
 		{
 			functionName = ev.state ? "OxygenCallback.debugAltLeftMouseDown" : "OxygenCallback.debugAltLeftMouseUp";
 		}
-		else if (ev.button == rmx::MouseButton::Right)
+		else if (ev.button == rmx::MouseButton_Right)
 		{
 			functionName = ev.state ? "OxygenCallback.debugAltRightMouseDown" : "OxygenCallback.debugAltRightMouseUp";
 		}

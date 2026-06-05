@@ -77,6 +77,10 @@ PlaneManager::PlaneManager(PatternManager& patternManager) :
 	mPatternManager(patternManager),
 	mPlayfieldSize(64, 32)
 {
+#if defined(PLATFORM_PS3)
+	memset(mPlanePatternsBuffer, 0, sizeof(mPlanePatternsBuffer));
+	memset(mDisabledDefaultPlane, 0, sizeof(mDisabledDefaultPlane));
+#endif
 }
 
 void PlaneManager::reset()

@@ -10,6 +10,11 @@
 #include "oxygen/simulation/bindings/LemonScriptBindings.h"
 #include "oxygen/simulation/bindings/RendererBindings.h"
 #include "oxygen/simulation/CodeExec.h"
+
+#if defined(PLATFORM_PS3)
+DebugNotificationInterface* LemonScriptBindings::mDebugNotificationInterface = nullptr;
+#endif
+
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/simulation/PersistentData.h"

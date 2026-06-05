@@ -11,6 +11,17 @@
 #include "oxygen/simulation/EmulatorInterface.h"
 
 
+#if defined(PLATFORM_PS3)
+Palette::Palette()
+{
+	memset(mColor, 0, sizeof(mColor));
+	memset(mChangeFlags, 0, sizeof(mChangeFlags));
+	mChangeFlags[0] = 1;	// true initialization from header
+	memset(mPackedColorCache, 0, sizeof(mPackedColorCache));
+}
+#endif
+
+
 uint16 Palette::getEntryPacked(uint16 colorIndex, bool allowExtendedPacked) const
 {
 	RMX_CHECK(colorIndex < Palette::NUM_COLORS, "Invalid color index " << colorIndex, return 0);

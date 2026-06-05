@@ -16,6 +16,9 @@ class Palette
 friend class PaletteManager;
 
 public:
+#if defined(PLATFORM_PS3)
+	Palette();
+#endif
 	static constexpr size_t NUM_COLORS = 0x200;
 
 public:
@@ -47,7 +50,11 @@ public:
 private:
 	uint32 mColor[NUM_COLORS] = { 0 };							// Colors in the palette
 	uint64 mChangeFlags[NUM_COLORS/64] = { true };				// One flag per color; only actually used and reset by hardware rendering
+#if defined(PLATFORM_PS3)
+	PackedPaletteColor mPackedColorCache[NUM_COLORS];			// Only used as an optimization
+#else
 	PackedPaletteColor mPackedColorCache[NUM_COLORS] = { 0 };	// Only used as an optimization
+#endif
 };
 
 

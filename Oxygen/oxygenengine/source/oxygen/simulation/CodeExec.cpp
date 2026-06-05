@@ -8,6 +8,12 @@
 
 #include "oxygen/pch.h"
 #include "oxygen/simulation/CodeExec.h"
+
+#if defined(PLATFORM_PS3)
+CodeExec* CodeExec::mActiveInstance = nullptr;
+CodeExec* CodeExec::getActiveInstance() { return mActiveInstance; }
+#endif
+
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/LemonScriptProgram.h"
 #include "oxygen/simulation/LogDisplay.h"
