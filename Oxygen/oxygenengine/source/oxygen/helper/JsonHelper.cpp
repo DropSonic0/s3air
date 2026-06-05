@@ -30,6 +30,6 @@ Json::Value JsonHelper::loadFile(const std::wstring& filename)
 
 bool JsonHelper::saveFile(const std::wstring& filename, const Json::Value& value)
 {
-	const String output(value.toStyledString());
+	const String output(value.toStyledString().c_str());
 	return FTX::FileSystem->saveFile(filename, *output, output.length());
 }

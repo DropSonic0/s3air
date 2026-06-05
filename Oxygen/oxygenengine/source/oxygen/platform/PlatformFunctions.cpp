@@ -11,7 +11,9 @@
 #include "oxygen/helper/HighResolutionTimer.h"
 #include "oxygen/helper/Logging.h"
 
+#if !defined(PLATFORM_PS3)
 #include <thread>
+#endif
 
 #ifdef PLATFORM_WINDOWS
 	#include <CleanWindowsInclude.h>
@@ -152,6 +154,7 @@ namespace
 	}
 #endif
 
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
 	WString lookForROMFileInSearchPaths(const std::vector<WString>& searchPaths, const WString& localPath)
 	{
 		for (const WString& searchPath : searchPaths)
@@ -168,6 +171,7 @@ namespace
 		}
 		return WString();
 	}
+#endif
 }
 
 
@@ -206,7 +210,9 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 					{
 						HighResolutionTimer yieldTimer;
 						yieldTimer.start();
+					#if !defined(PLATFORM_PS3)
 						std::this_thread::yield();
+					#endif
 						lastYieldTimeMs = yieldTimer.getSecondsSinceStart();
 					}
 				}
@@ -219,12 +225,18 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		if (sleepTimeLeft >= 1.0)
 		{
 			// Sleep the thread if above granularity
+		#if !defined(PLATFORM_PS3)
 			std::this_thread::sleep_for(std::chrono::milliseconds((int)sleepTimeLeft));
+		#else
+			SDL_Delay((unsigned int)sleepTimeLeft);
+		#endif
 		}
 		else
 		{
 			// Yield the thread if below granularity
+		#if !defined(PLATFORM_PS3)
 			std::this_thread::yield();
+		#endif
 		}
 	}
 }
@@ -435,7 +447,7 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 #endif
 }
 
-PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
+PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity_t severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
 {
 #ifdef PLATFORM_WINDOWS
 
@@ -446,7 +458,7 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 		case DialogButtons::OK_CANCEL:	type |= MB_OKCANCEL;	break;
 		default:						type |= MB_YESNOCANCEL;	break;
 	}
-	switch (severity)
+	switch ((int)severity)
 	{
 		case rmx::ErrorSeverity::ERROR:		type |= MB_ICONEXCLAMATION;	break;
 		case rmx::ErrorSeverity::WARNING:	type |= MB_ICONWARNING;		break;
@@ -491,9 +503,9 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 						   (dialogButtons == DialogButtons::OK_CANCEL) ? SDL_arraysize(buttons_OkCancel) : SDL_arraysize(buttons_YesNoCancel);
 
 	uint32 flags = 0;
-	if (severity == rmx::ErrorSeverity::ERROR)
+	if (severity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::ERROR)
 		flags |= SDL_MESSAGEBOX_ERROR;
-	else if (severity == rmx::ErrorSeverity::WARNING)
+	else if (severity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::WARNING)
 		flags |= SDL_MESSAGEBOX_WARNING;
 	else
 		flags |= SDL_MESSAGEBOX_INFORMATION;

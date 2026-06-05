@@ -52,7 +52,7 @@ public:
 	static std::string getCompactSystemTimeString();
 
 	static void showMessageBox(const std::string& caption, const std::string& text);
-	static DialogResult showDialogBox(rmx::ErrorSeverity severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text);
+	static DialogResult showDialogBox(rmx::ErrorSeverity_t severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text);
 	static std::wstring openFileSelectionDialog(const std::wstring& title, const std::wstring& defaultFilename, const wchar_t* filter);
 
 	static void openFileExternal(const std::wstring& path);

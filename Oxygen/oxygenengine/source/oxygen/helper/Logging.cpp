@@ -21,9 +21,9 @@ namespace
 		std::string mCaption;
 
 	protected:
-		void logMessage(rmx::ErrorSeverity errorSeverity, const std::string& message) override
+		void logMessage(rmx::ErrorSeverity_t errorSeverity, const std::string& message) override
 		{
-			switch (errorSeverity)
+			switch ((int)errorSeverity)
 			{
 				default:
 				case rmx::ErrorSeverity::INFO:	  rmx::Logging::log(rmx::LogLevel::INFO, message);	  break;
@@ -32,7 +32,7 @@ namespace
 			}
 		}
 
-		Result showMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line) override
+		Result_t showMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType_t dialogType, rmx::ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line) override
 		{
 		#if defined(DEBUG)
 			std::string name;
@@ -51,11 +51,11 @@ namespace
 				std::string moduleName;
 				if (LemonScriptRuntime::getCurrentScriptFunction(&functionName, &fileName, &lineNumber, &moduleName))
 				{
-					text += "\n\nCaused during script execution in function '" + std::string(functionName) + "' at line " + std::string(String(0, "%u", lineNumber)) + " of file '" + WString(fileName).toStdString() + "' in module '" + moduleName + "'.";
+					text += "\n\nCaused during script execution in function '" + std::string(functionName.data(), functionName.length()) + "' at line " + std::string(*String(0, "%u", lineNumber)) + " of file '" + WString(fileName).toStdString() + "' in module '" + moduleName + "'.";
 				}
 			}
 
-			std::string caption = (errorSeverity == rmx::ErrorSeverity::ERROR) ? "Error" : "Warning";
+			std::string caption = (errorSeverity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::ERROR) ? "Error" : "Warning";
 			if (!mCaption.empty())
 			{
 				caption = mCaption + " - " + caption;
@@ -67,14 +67,14 @@ namespace
 			}
 
 			PlatformFunctions::DialogButtons dialogButtons = PlatformFunctions::DialogButtons::OK_CANCEL;
-			switch (dialogType)
+			switch ((int)dialogType)
 			{
 				case rmx::ErrorHandling::MessageBoxInterface::DialogType::ACCEPT_ONLY:		dialogButtons = PlatformFunctions::DialogButtons::OK;			  break;
 				case rmx::ErrorHandling::MessageBoxInterface::DialogType::ACCEPT_OR_CANCEL:	dialogButtons = PlatformFunctions::DialogButtons::OK_CANCEL;	  break;
 				case rmx::ErrorHandling::MessageBoxInterface::DialogType::ALL_OPTIONS:		dialogButtons = PlatformFunctions::DialogButtons::YES_NO_CANCEL;  break;
 			}
-			const PlatformFunctions::DialogResult result = PlatformFunctions::showDialogBox(errorSeverity, dialogButtons, caption, text);
-			return (result == PlatformFunctions::DialogResult::CANCEL) ? Result::IGNORE : (result == PlatformFunctions::DialogResult::OK) ? Result::ACCEPT : Result::ABORT;
+			const PlatformFunctions::DialogResult result = PlatformFunctions::showDialogBox((rmx::ErrorSeverity_t)errorSeverity, dialogButtons, caption, text);
+			return (result == PlatformFunctions::DialogResult::CANCEL) ? (Result_t)Result::IGNORE : (result == PlatformFunctions::DialogResult::OK) ? (Result_t)Result::ACCEPT : (Result_t)Result::ABORT;
 		}
 	};
 

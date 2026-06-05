@@ -63,6 +63,8 @@
 	struct SDL_Keysym { int sym; int scancode; int mod; };
 	struct SDL_KeyboardEvent { int type; SDL_Keysym keysym; int state; int repeat; };
 	struct SDL_TextInputEvent { int type; char text[32]; };
+	struct SDL_MessageBoxButtonData { uint32 flags; int buttonid; const char* text; };
+	struct SDL_MessageBoxData { uint32 flags; struct SDL_Window* window; const char* title; const char* message; int numbuttons; const SDL_MessageBoxButtonData* buttons; const void* colorScheme; };
 	struct SDL_MouseButtonEvent { int type; int button; int state; int x; int y; };
 	struct SDL_MouseWheelEvent { int type; int y; };
 	struct SDL_MouseMotionEvent { int type; int state; int x; int y; };
@@ -101,7 +103,11 @@
 	#define SDLK_KP_PLUS 0x40000057
 	#define SDLK_KP_MINUS 0x40000056
 	#define KMOD_LCTRL 0x0040
+	#define KMOD_RCTRL 0x0080
+	#define KMOD_CTRL (KMOD_LCTRL | KMOD_RCTRL)
 	#define KMOD_LSHIFT 0x0001
+	#define KMOD_RSHIFT 0x0002
+	#define KMOD_SHIFT (KMOD_LSHIFT | KMOD_RSHIFT)
 	#define SDLK_LALT 0x400000e2
 	#define SDLK_RALT 0x400000e6
 	#define SDLK_RETURN 0x0d
@@ -227,6 +233,7 @@
 	#define SDL_INIT_TIMER 4
 	#define SDL_INIT_GAMECONTROLLER 8
 	#define SDL_INIT_JOYSTICK 16
+	#define SDL_arraysize(X) (sizeof(X)/sizeof(X[0]))
 	#define SDL_VERSION_ATLEAST(X, Y, Z) 0
 	inline int SDL_Init(int f) { return 0; }
 	inline int SDL_InitSubSystem(Uint32 f) { return 0; }
@@ -234,6 +241,9 @@
 	inline char* SDL_GetError() { return (char*)""; }
 	inline int SDL_SetHint(const char* n, const char* v) { return 1; }
 	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
+	inline int SDL_GetModState() { return 0; }
+	inline int SDL_ShowSimpleMessageBox(uint32 f, const char* t, const char* m, struct SDL_Window* w) { return 0; }
+	inline int SDL_ShowMessageBox(const struct SDL_MessageBoxData* d, int* b) { if (b) *b = 0; return 0; }
 
 	typedef struct _SDL_Joystick SDL_Joystick;
 	typedef struct _SDL_GameController SDL_GameController;
@@ -382,6 +392,11 @@
 	#define SDL_AUDIO_PLAYING 1
 
 	#define SDL_WINDOWEVENT_FOCUS_LOST 1
+	#define SDL_MESSAGEBOX_ERROR 0x00000010
+	#define SDL_MESSAGEBOX_WARNING 0x00000020
+	#define SDL_MESSAGEBOX_INFORMATION 0x00000040
+	#define SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT 0x00000001
+	#define SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT 0x00000002
 	#define SDL_WINDOW_FULLSCREEN_DESKTOP 0x1000
 	#define SDL_WINDOWPOS_CENTERED_MASK 0x2FFF0000u
 	#define SDL_WINDOWPOS_CENTERED_DISPLAY(X) (SDL_WINDOWPOS_CENTERED_MASK|(X))
@@ -398,7 +413,8 @@
 	typedef unsigned int GLuint;
 	typedef float GLfloat;
 	typedef int GLsizei;
-	typedef int GLsizeiptr;
+	typedef long GLintptr;
+	typedef long GLsizeiptr;
 	typedef unsigned int GLbitfield;
 	typedef char GLchar;
 	#define GL_TEXTURE_2D 0
@@ -423,6 +439,8 @@
 	#define GL_VERTEX_SHADER 0
 	#define GL_FRAGMENT_SHADER 0
 	#define GL_TEXTURE0 0
+	#define GL_TEXTURE1 0x84C1
+	#define GL_TEXTURE2 0x84C2
 	#define GL_ONE 0
 	#define GL_ZERO 0
 	#define GL_SRC_ALPHA 0
@@ -447,6 +465,14 @@
 	#define GL_CLAMP_TO_EDGE 0
 	#define GL_REPEAT 1
 	#define GL_TRIANGLES 0
+	#define GL_DEPTH_ATTACHMENT 0x8D00
+	#define GL_DEPTH_TEST 0x0B71
+	#define GL_FRAMEBUFFER_BINDING 0x8CA6
+	#define GL_VIEWPORT 0x0BA2
+	#define GL_ALWAYS 0x0207
+	#define GL_GEQUAL 0x0206
+	#define GL_TEXTURE_BUFFER 0x8C2A
+	#define GL_LUMINANCE 0x1909
 	#define GL_BLEND 0
 	#define GL_FUNC_ADD 0
 	#define GL_FUNC_REVERSE_SUBTRACT 0
@@ -468,6 +494,8 @@
 	inline void glBindTexture(GLenum t, GLuint h) {}
 	inline void glTexParameteri(GLenum t, GLenum p, GLint v) {}
 	inline void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) {}
+	inline void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {}
+	inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
 	inline void glClearColor(float r, float g, float b, float a) {}
 	inline void glClear(int m) {}
 	inline void glEnable(GLenum cap) {}
@@ -476,6 +504,11 @@
 	inline void glReadPixels(int x, int y, int w, int h, int f, int t, void* d) {}
 	inline void glGetTexImage(GLenum t, GLint l, GLenum f, GLenum ty, void* p) {}
 	inline void glScissor(int x, int y, int w, int h) {}
+	inline void glClearDepth(float d) {}
+	inline void glDepthRange(float n, float f) {}
+	inline void glDepthMask(unsigned char m) {}
+	inline void glDepthFunc(GLenum f) {}
+	inline void glGetIntegerv(GLenum p, GLint* v) {}
 	inline unsigned char glIsRenderbuffer(GLuint b) { return 0; }
 	inline void glGenRenderbuffers(GLsizei n, GLuint* b) {}
 	inline void glBindRenderbuffer(GLenum t, GLuint b) {}

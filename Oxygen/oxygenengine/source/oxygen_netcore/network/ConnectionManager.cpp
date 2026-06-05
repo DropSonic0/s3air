@@ -76,7 +76,7 @@ bool ConnectionManager::updateReceivePackets()
 
 			RMX_LOG_INFO("Accepted TCP connection");
 			anyActivity = true;
-			mIncomingTCPConnections.push_back(TCPSocket());
+			mIncomingTCPConnections.emplace_back();
 			mIncomingTCPConnections.back().swapWith(newSocket);
 		}
 	}
@@ -300,7 +300,7 @@ void ConnectionManager::receivedPacketInternal(const std::vector<uint8>& buffer,
 		receivedPacket.mLowLevelSignature = lowLevelSignature;
 		receivedPacket.mSenderAddress = senderAddress;
 		receivedPacket.mConnection = connection;
-		mReceivedPackets.mWorkerQueue.push_back(&receivedPacket);
+		mReceivedPackets.mWorkerQueue.emplace_back(&receivedPacket);
 	}
 	else
 	{
@@ -380,7 +380,7 @@ void ConnectionManager::receivedPacketInternal(const std::vector<uint8>& buffer,
 					receivedPacket.mLowLevelSignature = lowLevelSignature;
 					receivedPacket.mSenderAddress = senderAddress;
 					receivedPacket.mConnection = connection;
-					mReceivedPackets.mWorkerQueue.push_back(&receivedPacket);
+					mReceivedPackets.mWorkerQueue.emplace_back(&receivedPacket);
 				}
 			}
 		}

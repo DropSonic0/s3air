@@ -148,7 +148,7 @@ namespace utils
 
 			--ellipsisPosition;
 			text[ellipsisPosition] = '.';
-			text.pop_back();
+			text.erase(text.length() - 1);
 		}
 	}
 

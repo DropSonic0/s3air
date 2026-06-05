@@ -9,7 +9,9 @@
 #pragma once
 
 #include <rmxbase.h>
+#if !defined(PLATFORM_PS3)
 #include <optional>
+#endif
 
 
 class TextInputHandler
