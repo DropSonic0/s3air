@@ -441,6 +441,8 @@
 	#define GL_TEXTURE0 0
 	#define GL_TEXTURE1 0x84C1
 	#define GL_TEXTURE2 0x84C2
+	#define GL_TEXTURE3 0x84C3
+	#define GL_TEXTURE4 0x84C4
 	#define GL_ONE 0
 	#define GL_ZERO 0
 	#define GL_SRC_ALPHA 0

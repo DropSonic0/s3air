@@ -254,11 +254,19 @@ void SpriteManager::addText(std::string_view fontKeyString, uint64 fontKeyHash, 
 		return;
 
 	renderitems::Text& newText = mPoolOfRenderItems.mTexts.createObject();
+#if defined(PLATFORM_PS3)
+	newText.mFontKeyString.assign(fontKeyString.data(), fontKeyString.length());
+#else
 	newText.mFontKeyString = fontKeyString;
+#endif
 	newText.mFontKeyHash = fontKeyHash;
 	newText.mPosition = position;
 	newText.mTextHash = textHash;
+#if defined(PLATFORM_PS3)
+	newText.mTextString.assign(textString.data(), textString.length());
+#else
 	newText.mTextString = textString;
+#endif
 	newText.mColor = color;
 	newText.mAlignment = alignment;
 	newText.mSpacing = spacing;

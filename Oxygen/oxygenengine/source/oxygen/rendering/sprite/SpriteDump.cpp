@@ -24,13 +24,13 @@ void SpriteDump::load()
 
 	for (auto it = root.begin(); it != root.end(); ++it)
 	{
-		const std::string categoryName = it.key().asString();
+		const std::string categoryName = it.key().asString().c_str();
 		Category& category = getOrCreateCategory(categoryName);
 		category.mName = categoryName;
 		for (auto it2 = it->begin(); it2 != it->end(); ++it2)
 		{
 			JsonHelper rootHelper(*it2);
-			const uint8 spriteNumber = (uint8)rmx::parseInteger("0x" + it2.key().asString());
+			const uint8 spriteNumber = (uint8)rmx::parseInteger(("0x" + std::string(it2.key().asString().c_str())).c_str());
 
 			Entry& entry = category.mEntries[spriteNumber];
 			entry.mSpriteNumber = spriteNumber;
@@ -64,9 +64,9 @@ void SpriteDump::save()
 			entryJson["SizeY"] = entry.mSize.y;
 			entryJson["OffsetX"] = entry.mOffset.x;
 			entryJson["OffsetY"] = entry.mOffset.y;
-			categoryJson[key] = entryJson;
+			categoryJson[key.c_str()] = entryJson;
 		}
-		root[category.mName] = categoryJson;
+		root[category.mName.c_str()] = categoryJson;
 
 		if (category.mChanged)
 		{
@@ -115,7 +115,8 @@ void SpriteDump::addSprite(const PaletteSprite& paletteSprite, std::string_view 
 void SpriteDump::addSpriteWithTranslation(const PaletteSprite& paletteSprite, std::string_view categoryName, uint8 spriteNumber, uint8 atex)
 {
 	// Translate category key
-	std::string translatedName = std::string(categoryName);
+	std::string translatedName;
+	translatedName.assign(categoryName.data(), categoryName.length());
 		 if (categoryName == "100000_148182_146620")  translatedName = "character_sonic";
 	else if (categoryName == "140060_148182_146620")  translatedName = "character_sonic";
 	else if (categoryName == "100000_148378_146816")  translatedName = "character_supersonic";
@@ -149,7 +150,7 @@ SpriteDump::Category& SpriteDump::getOrCreateCategory(std::string_view categoryN
 	if (it == mCategories.end())
 	{
 		Category& category = mCategories[keyHash];
-		category.mName = categoryName;
+		category.mName.assign(categoryName.data(), categoryName.length());
 		return category;
 	}
 	else

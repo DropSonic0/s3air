@@ -18,7 +18,11 @@ static constexpr uint16 SCROLL_OFFSET_VALUE_BITMASK = 0x0fff;
 
 
 ScrollOffsetsManager::ScrollOffsetsManager(PlaneManager& planeManager) :
-	mPlaneManager(planeManager)
+	mPlaneManager(planeManager),
+	mVerticalScrolling(false),
+	mHorizontalScrollMask(0xff),
+	mHorizontalScrollTableBase(0xf000),
+	mVerticalScrollOffsetBias(0)
 {
 	reset();
 }
@@ -27,12 +31,39 @@ void ScrollOffsetsManager::reset()
 {
 	mVerticalScrolling = false;
 	mHorizontalScrollMask = 0xff;
+	mHorizontalScrollTableBase = 0xf000;
 	mVerticalScrollOffsetBias = 0;
 
 	for (int index = 0; index < 4; ++index)
 	{
-		mSets[index] = { 0 };
-		mInterpolatedSets[index] = { 0 };
+		ScrollOffsetSet& set = mSets[index];
+		for (int i = 0; i < 0x100; ++i)
+		{
+			set.mScrollOffsetsH[i] = 0;
+			set.mExplicitOverwriteH[i] = false;
+		}
+		for (int i = 0; i < 0x20; ++i)
+		{
+			set.mScrollOffsetsV[i] = 0;
+			set.mExplicitOverwriteV[i] = false;
+		}
+		set.mHorizontalScrollNoRepeat = false;
+
+		InterpolatedScrollOffsetSet& interpSet = mInterpolatedSets[index];
+		interpSet.mValid = false;
+		interpSet.mHasLastScrollOffsets = false;
+		for (int i = 0; i < 0x100; ++i)
+		{
+			interpSet.mInterpolatedScrollOffsetsH[i] = 0;
+			interpSet.mLastScrollOffsetsH[i] = 0;
+			interpSet.mDifferenceScrollOffsetsH[i] = 0;
+		}
+		for (int i = 0; i < 0x20; ++i)
+		{
+			interpSet.mInterpolatedScrollOffsetsV[i] = 0;
+			interpSet.mLastScrollOffsetsV[i] = 0;
+			interpSet.mDifferenceScrollOffsetsV[i] = 0;
+		}
 	}
 }
 

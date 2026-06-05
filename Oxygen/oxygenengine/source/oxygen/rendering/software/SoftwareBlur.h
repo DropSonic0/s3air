@@ -113,5 +113,5 @@ private:
 	}
 
 private:
-	static inline Bitmap mTemp;
+	static Bitmap mTemp;
 };
