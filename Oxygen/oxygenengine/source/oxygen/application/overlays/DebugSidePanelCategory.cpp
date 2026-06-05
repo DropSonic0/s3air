@@ -17,23 +17,28 @@ CustomDebugSidePanelCategory::CustomDebugSidePanelCategory()
 
 void CustomDebugSidePanelCategory::onSetup()
 {
-	for (Option& option : mOptions)
+	for (size_t i = 0; i < mOptions.size(); ++i)
 	{
-		option.mUpdated = false;
+		mOptions[i].mUpdated = false;
 	}
-	for (Entry& entry : mEntries)
+	for (size_t i = 0; i < mEntries.size(); ++i)
 	{
-		entry.mUpdated = false;
-		entry.mLines.clear();
+		mEntries[i].mUpdated = false;
+		mEntries[i].mLines.clear();
 	}
 }
 
 bool CustomDebugSidePanelCategory::addOption(std::string_view text, bool defaultValue)
 {
 	// Exists already?
-	for (Option& option : mOptions)
+	for (size_t i = 0; i < mOptions.size(); ++i)
 	{
+		Option& option = mOptions[i];
+#if defined(PLATFORM_PS3)
+		if (option.mText == std::string(text.data(), text.length()))
+#else
 		if (option.mText == text)
+#endif
 		{
 			option.mUpdated = true;
 			return option.mChecked;
@@ -45,7 +50,11 @@ bool CustomDebugSidePanelCategory::addOption(std::string_view text, bool default
 		return false;
 
 	Option& option = vectorAdd(mOptions);
+#if defined(PLATFORM_PS3)
+	option.mText = std::string(text.data(), text.length());
+#else
 	option.mText = text;
+#endif
 	option.mChecked = defaultValue;
 	option.mUpdated = true;
 	option.mKey = 0x074244d9 + (uint64)(0x00502cad * mOptions.size());
@@ -58,8 +67,9 @@ bool CustomDebugSidePanelCategory::addOption(std::string_view text, bool default
 
 void CustomDebugSidePanelCategory::addEntry(uint64 key)
 {
-	for (Entry& entry : mEntries)
+	for (size_t i = 0; i < mEntries.size(); ++i)
 	{
+		Entry& entry = mEntries[i];
 		if (entry.mKey == key)
 		{
 			entry.mUpdated = true;
@@ -80,15 +90,20 @@ void CustomDebugSidePanelCategory::addLine(std::string_view text, int indent, co
 		return;
 
 	Line& line = vectorAdd(mCurrentEntry->mLines);
+#if defined(PLATFORM_PS3)
+	line.mText = std::string(text.data(), text.length());
+#else
 	line.mText = text;
+#endif
 	line.mIndent = indent;
 	line.mColor = color;
 }
 
 bool CustomDebugSidePanelCategory::isEntryHovered(uint64 key)
 {
-	for (Entry& entry : mEntries)
+	for (size_t i = 0; i < mEntries.size(); ++i)
 	{
+		Entry& entry = mEntries[i];
 		if (entry.mKey == key)
 		{
 			entry.mCanBeHovered = true;
@@ -103,12 +118,13 @@ void CustomDebugSidePanelCategory::buildCategoryContent(DebugSidePanel::Builder&
 	// Add checkboxes for the options
 	if (!mOptions.empty())
 	{
-		for (Option& option : mOptions)
+		for (size_t i = 0; i < mOptions.size(); ++i)
 		{
+			Option& option = mOptions[i];
 			if (!option.mUpdated)
 				continue;
 
-			option.mChecked = mOpenKeys.count(option.mKey);
+			option.mChecked = (mOpenKeys.count(option.mKey) != 0);
 			builder.addOption(option.mText, option.mChecked, Color::CYAN, 0, option.mKey);
 		}
 		builder.addSpacing(12);
@@ -122,8 +138,9 @@ void CustomDebugSidePanelCategory::buildCategoryContent(DebugSidePanel::Builder&
 	}
 
 	// Add entries
-	for (Entry& entry : mEntries)
+	for (size_t i = 0; i < mEntries.size(); ++i)
 	{
+		Entry& entry = mEntries[i];
 		if (!entry.mUpdated)
 			continue;
 
@@ -134,8 +151,9 @@ void CustomDebugSidePanelCategory::buildCategoryContent(DebugSidePanel::Builder&
 			entry.mIsHovered = (mouseOverKey == entry.mKey);
 		}
 
-		for (Line& line : entry.mLines)
+		for (size_t k = 0; k < entry.mLines.size(); ++k)
 		{
+			Line& line = entry.mLines[k];
 			builder.addLine(*String(0, "%s", line.mText.c_str()), line.mColor, line.mIndent, key);
 		}
 		builder.addSpacing(4);

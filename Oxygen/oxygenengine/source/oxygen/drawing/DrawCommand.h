@@ -94,7 +94,7 @@ class SetRenderTargetDrawCommand final : public DrawCommand
 friend class ObjectPoolBase<SetRenderTargetDrawCommand>;
 
 protected:
-	SetRenderTargetDrawCommand(DrawerTexture& texture, const Recti& viewport) : DrawCommand(Type::SET_RENDER_TARGET), mTexture(&texture), mViewport(viewport) {}
+	SetRenderTargetDrawCommand(const DrawerTexture& texture, const Recti& viewport) : DrawCommand(Type::SET_RENDER_TARGET), mTexture(const_cast<DrawerTexture*>(&texture)), mViewport(viewport) {}
 
 public:
 	DrawerTexture* mTexture = nullptr;
@@ -108,9 +108,9 @@ friend class ObjectPoolBase<RectDrawCommand>;
 
 protected:
 	RectDrawCommand(const Recti& rect, const Color& color) : DrawCommand(Type::RECT), mRect(rect), mColor(color) {}
-	RectDrawCommand(const Recti& rect, DrawerTexture& texture) : DrawCommand(Type::RECT), mRect(rect), mTexture(&texture) {}
-	RectDrawCommand(const Recti& rect, DrawerTexture& texture, const Color& tintColor) : DrawCommand(Type::RECT), mRect(rect), mTexture(&texture), mColor(tintColor) {}
-	RectDrawCommand(const Recti& rect, DrawerTexture& texture, const Vec2f& uv0, const Vec2f& uv1, const Color& tintColor) : DrawCommand(Type::RECT), mRect(rect), mTexture(&texture), mColor(tintColor), mUV0(uv0), mUV1(uv1) {}
+	RectDrawCommand(const Rectf& rect, const DrawerTexture& texture) : DrawCommand(Type::RECT), mRect(rect), mTexture(const_cast<DrawerTexture*>(&texture)) {}
+	RectDrawCommand(const Rectf& rect, const DrawerTexture& texture, const Color& tintColor) : DrawCommand(Type::RECT), mRect(rect), mTexture(const_cast<DrawerTexture*>(&texture)), mColor(tintColor) {}
+	RectDrawCommand(const Rectf& rect, const DrawerTexture& texture, const Vec2f& uv0, const Vec2f& uv1, const Color& tintColor) : DrawCommand(Type::RECT), mRect(rect), mTexture(const_cast<DrawerTexture*>(&texture)), mColor(tintColor), mUV0(uv0), mUV1(uv1) {}
 
 public:
 	Recti mRect;
@@ -126,7 +126,7 @@ class UpscaledRectDrawCommand final : public DrawCommand
 friend class ObjectPoolBase<UpscaledRectDrawCommand>;
 
 protected:
-	UpscaledRectDrawCommand(const Recti& rect, DrawerTexture& texture) : DrawCommand(Type::UPSCALED_RECT), mRect(rect), mTexture(&texture) {}
+	UpscaledRectDrawCommand(const Rectf& rect, const DrawerTexture& texture) : DrawCommand(Type::UPSCALED_RECT), mRect(rect), mTexture(const_cast<DrawerTexture*>(&texture)) {}
 
 public:
 	Recti mRect;
@@ -168,8 +168,7 @@ class MeshDrawCommand final : public DrawCommand
 friend class ObjectPoolBase<MeshDrawCommand>;
 
 protected:
-	MeshDrawCommand(const std::vector<DrawerMeshVertex>& triangles, DrawerTexture& texture) : DrawCommand(Type::MESH), mTriangles(triangles), mTexture(&texture) {}
-	MeshDrawCommand(std::vector<DrawerMeshVertex>&& triangles, DrawerTexture& texture) : DrawCommand(Type::MESH), mTriangles(triangles), mTexture(&texture) {}
+	MeshDrawCommand(const std::vector<DrawerMeshVertex>& triangles, const DrawerTexture& texture) : DrawCommand(Type::MESH), mTriangles(triangles), mTexture(const_cast<DrawerTexture*>(&texture)) {}
 
 public:
 	std::vector<DrawerMeshVertex> mTriangles;
@@ -231,15 +230,15 @@ class PrintTextDrawCommand final : public DrawCommand
 friend class ObjectPoolBase<PrintTextDrawCommand>;
 
 protected:
-	PrintTextDrawCommand(Font& font, const Recti& rect, const String& text, int alignment = 1, Color color = Color::WHITE) :
-		DrawCommand(Type::PRINT_TEXT), mFont(&font), mRect(rect), mText(text)
+	PrintTextDrawCommand(const Font& font, const Recti& rect, const String& text, const int& alignment = 1, const Color& color = Color::WHITE) :
+		DrawCommand(Type::PRINT_TEXT), mFont(const_cast<Font*>(&font)), mRect(rect), mText(text)
 	{
 		mPrintOptions.mAlignment = alignment;
 		mPrintOptions.mTintColor = color;
 	}
 
-	PrintTextDrawCommand(Font& font, const Recti& rect, const String& text, const DrawerPrintOptions& printOptions) :
-		DrawCommand(Type::PRINT_TEXT), mFont(&font), mRect(rect), mText(text), mPrintOptions(printOptions)
+	PrintTextDrawCommand(const Font& font, const Recti& rect, const String& text, const DrawerPrintOptions& printOptions) :
+		DrawCommand(Type::PRINT_TEXT), mFont(const_cast<Font*>(&font)), mRect(rect), mText(text), mPrintOptions(printOptions)
 	{}
 
 public:
@@ -255,15 +254,15 @@ class PrintTextWDrawCommand final : public DrawCommand
 friend class ObjectPoolBase<PrintTextWDrawCommand>;
 
 protected:
-	PrintTextWDrawCommand(Font& font, const Recti& rect, const WString& text, int alignment = 1, Color color = Color::WHITE) :
-		DrawCommand(Type::PRINT_TEXT_W), mFont(&font), mRect(rect), mText(text)
+	PrintTextWDrawCommand(const Font& font, const Recti& rect, const WString& text, const int& alignment = 1, const Color& color = Color::WHITE) :
+		DrawCommand(Type::PRINT_TEXT_W), mFont(const_cast<Font*>(&font)), mRect(rect), mText(text)
 	{
 		mPrintOptions.mAlignment = alignment;
 		mPrintOptions.mTintColor = color;
 	}
 
-	PrintTextWDrawCommand(Font& font, const Recti& rect, const WString& text, const DrawerPrintOptions& printOptions) :
-		DrawCommand(Type::PRINT_TEXT_W), mFont(&font), mRect(rect), mText(text), mPrintOptions(printOptions)
+	PrintTextWDrawCommand(const Font& font, const Recti& rect, const WString& text, const DrawerPrintOptions& printOptions) :
+		DrawCommand(Type::PRINT_TEXT_W), mFont(const_cast<Font*>(&font)), mRect(rect), mText(text), mPrintOptions(printOptions)
 	{}
 
 public:

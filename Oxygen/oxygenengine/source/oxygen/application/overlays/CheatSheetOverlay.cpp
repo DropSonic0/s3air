@@ -51,7 +51,7 @@ void CheatSheetOverlay::render()
 	Drawer& drawer = EngineMain::instance().getDrawer();
 	Font& font = EngineMain::getDelegate().getDebugFont(10);
 
-	static const std::vector<const char*> texts =
+	static const char* texts[] =
 	{
 		// Always available
 		"Alt+Enter", "Toggle fullscreen",
@@ -82,7 +82,7 @@ void CheatSheetOverlay::render()
 		"Alt+C",     "Change between debug visualizations",
 	};
 	const size_t NUM_TEXTS_NONDEV = 8;
-	const size_t NUM_TEXTS = EngineMain::getDelegate().useDeveloperFeatures() ? (texts.size() / 2) : NUM_TEXTS_NONDEV;
+	const size_t NUM_TEXTS = EngineMain::getDelegate().useDeveloperFeatures() ? (sizeof(texts) / sizeof(texts[0]) / 2) : NUM_TEXTS_NONDEV;
 
 	mRect.setSize(330, (float)(58 + NUM_TEXTS * 18));
 	mRect.setPos(((float)FTX::screenWidth() - mRect.width) * 0.95f, ((float)FTX::screenHeight() - mRect.height) * (1.0f - alpha * 0.1f));

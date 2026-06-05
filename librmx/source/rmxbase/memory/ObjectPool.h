@@ -288,7 +288,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C, typename D>
-	T& createObject(A& a, B& b, C& c, D& d)
+	T& createObject(const A& a, const B& b, const C& c, const D& d)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -306,7 +306,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C, typename D, typename E>
-	T& createObject(A& a, B& b, C& c, D& d, E& e)
+	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e)
 	{
 		// Get an unused item
 		Item& item = allocItem();
@@ -324,7 +324,7 @@ protected:
 	}
 
 	template<typename A, typename B, typename C, typename D, typename E, typename F>
-	T& createObject(A& a, B& b, C& c, D& d, E& e, F& f)
+	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e, const F& f)
 	{
 		// Get an unused item
 		Item& item = allocItem();

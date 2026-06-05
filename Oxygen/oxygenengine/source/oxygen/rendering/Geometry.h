@@ -82,7 +82,7 @@ public:
 class TexturedRectGeometry : public Geometry
 {
 public:
-	inline TexturedRectGeometry(const Recti& rect, DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor) : Geometry(Type::TEXTURED_RECT), mRect(rect), mDrawerTexture(drawerTexture), mTintColor(tintColor), mAddedColor(addedColor) {}
+	inline TexturedRectGeometry(const Recti& rect, const DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor) : Geometry(Type::TEXTURED_RECT), mRect(rect), mDrawerTexture(const_cast<DrawerTexture&>(drawerTexture)), mTintColor(tintColor), mAddedColor(addedColor) {}
 
 public:
 	Recti mRect;
@@ -130,7 +130,7 @@ public:
 		return mRectGeometryBuffer.createObject(rect, color);
 	}
 
-	TexturedRectGeometry& createTexturedRectGeometry(const Recti& rect, DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor)
+	TexturedRectGeometry& createTexturedRectGeometry(const Recti& rect, const DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor)
 	{
 		return mTexturedRectGeometryBuffer.createObject(rect, drawerTexture, tintColor, addedColor);
 	}

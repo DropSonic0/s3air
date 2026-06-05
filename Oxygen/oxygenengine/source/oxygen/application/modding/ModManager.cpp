@@ -39,7 +39,11 @@ void ModManager::startup()
 		const int numMods = activeMods.isArray() ? (int)activeMods.size() : 0;
 		for (int i = 0; i < numMods; ++i)
 		{
+#if defined(PLATFORM_PS3)
+			const std::wstring localPath = String(activeMods[i].asString().c_str()).toStdWString();
+#else
 			const std::wstring localPath = String(activeMods[i].asString()).toStdWString();
+#endif
 
 			// Search for this mod in the previously found mods
 			const uint64 hash = rmx::getMurmur2_64(localPath);
@@ -53,7 +57,7 @@ void ModManager::startup()
 				// Make this mod active
 				Mod* mod = it->second;
 				mod->mState = Mod::State::ACTIVE;
-				mActiveMods.emplace_back(mod);
+				mActiveMods.push_back(mod);
 			}
 		}
 	}
@@ -86,9 +90,14 @@ void ModManager::saveActiveMods()
 	Json::Value root;
 	{
 		Json::Value modNames(Json::arrayValue);
-		for (Mod* mod : mActiveMods)
+		for (size_t i = 0; i < mActiveMods.size(); ++i)
 		{
+			Mod* mod = mActiveMods[i];
+#if defined(PLATFORM_PS3)
+			modNames.append(WString(mod->mLocalDirectory).toStdString().c_str());
+#else
 			modNames.append(WString(mod->mLocalDirectory).toStdString());
+#endif
 		}
 		root["ActiveMods"] = modNames;
 		root["UseLegacyLoading"] = false;
@@ -241,7 +250,11 @@ bool ModManager::scanMods()
 				Json::Value value = metadataJson["GameVersion"];
 				if (value.isString())
 				{
+#if defined(PLATFORM_PS3)
+					const uint32 versionNumber = utils::getVersionNumberFromString(value.asString().c_str());
+#else
 					const uint32 versionNumber = utils::getVersionNumberFromString(value.asString());
+#endif
 					if (versionNumber != 0 && versionNumber > EngineMain::getDelegate().getAppMetaData().mBuildVersionNumber)
 					{
 						errorMessage = "Mod '" + directoryName + "' requires newer game version v" + utils::getVersionStringFromNumber(versionNumber) + ".";
@@ -274,7 +287,7 @@ bool ModManager::scanMods()
 			mod->mFullPath = mBasePath + localDirectory + L'/';
 			mod->mLocalDirectoryHash = localDirectoryHash;
 
-			mAllMods.emplace_back(mod);
+			mAllMods.push_back(mod);
 			mModsByLocalDirectoryHash[localDirectoryHash] = mod;
 			anyChange = true;
 
@@ -439,12 +452,13 @@ void ModManager::onActiveModsChanged(bool duringStartup)
 
 	// Rebuild lookup map
 	mActiveModsByNameHash.clear();
-	for (Mod* mod : mActiveMods)
+	for (size_t i = 0; i < mActiveMods.size(); ++i)
 	{
+		Mod* mod = mActiveMods[i];
 		// Add under all different names that can refer to the mod
-		mActiveModsByNameHash.emplace(rmx::getMurmur2_64(mod->mUniqueID), mod);
-		mActiveModsByNameHash.emplace(rmx::getMurmur2_64(mod->mDirectoryName), mod);
-		mActiveModsByNameHash.emplace(rmx::getMurmur2_64(mod->mDisplayName), mod);
+		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mUniqueID), mod));
+		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mDirectoryName), mod));
+		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mDisplayName), mod));
 	}
 
 	if (!duringStartup)		// Not needed during startup, as the engine performs the necessary loading steps anyways afterwards

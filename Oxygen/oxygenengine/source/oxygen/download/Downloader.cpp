@@ -50,8 +50,13 @@ Downloader::~Downloader()
 
 void Downloader::setupDownload(std::string_view url, std::wstring_view outputFilename)
 {
+#if defined(PLATFORM_PS3)
+	mURL = std::string(url.data(), url.length());
+	mOutputFilename = std::wstring(outputFilename.data(), outputFilename.length());
+#else
 	mURL = url;
 	mOutputFilename = outputFilename;
+#endif
 }
 
 void Downloader::startDownload()

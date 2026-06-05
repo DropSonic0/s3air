@@ -28,7 +28,7 @@ namespace
 		if (b1.x >= a2.x || b2.x <= a1.x || b1.y >= a2.y || b2.y <= a1.y)
 		{
 			// There's no intersection at all, output full A
-			outRects.emplace_back(rectA);
+			outRects.push_back(rectA);
 			return;
 		}
 
@@ -45,22 +45,22 @@ namespace
 		if (left > 0)
 		{
 			// Output the difference rect on the left (with full height of A)
-			outRects.emplace_back(a1.x, a1.y, left, rectA.height);
+			outRects.push_back(Recti(a1.x, a1.y, left, rectA.height));
 		}
 		if (right > 0)
 		{
 			// Output the difference rect on the right (with full height of A)
-			outRects.emplace_back(b2.x, a1.y, right, rectA.height);
+			outRects.push_back(Recti(b2.x, a1.y, right, rectA.height));
 		}
 		if (top > 0)
 		{
 			// Output the difference rect on the top (with only the width of B)
-			outRects.emplace_back(b1.x, a1.y, rectB.width, top);
+			outRects.push_back(Recti(b1.x, a1.y, rectB.width, top));
 		}
 		if (bottom > 0)
 		{
 			// Output the difference rect on the bottom (with only the width of B)
-			outRects.emplace_back(b1.x, b2.y, rectB.width, bottom);
+			outRects.push_back(Recti(b1.x, b2.y, rectB.width, bottom));
 		}
 	}
 }

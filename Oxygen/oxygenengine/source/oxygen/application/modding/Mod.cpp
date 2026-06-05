@@ -98,11 +98,19 @@ void Mod::loadFromJson(const Json::Value& json)
 					if (!it2->isString())
 						continue;
 
+#if defined(PLATFORM_PS3)
+					const std::string valueString = it2.key().asString().c_str();
+
+					Setting::Option& option = vectorAdd(setting.mOptions);
+					option.mDisplayName = it2->asString().c_str();
+					option.mValue = (uint32)rmx::parseInteger(valueString.c_str());
+#else
 					const std::string valueString = it2.key().asString();
 
 					Setting::Option& option = vectorAdd(setting.mOptions);
 					option.mDisplayName = it2->asString();
 					option.mValue = (uint32)rmx::parseInteger(valueString);
+#endif
 				}
 
 				// Sanity check: We need at least one option; though exactly one does not make that much sense
@@ -123,7 +131,11 @@ void Mod::loadFromJson(const Json::Value& json)
 			const Json::Value featureJson = *iteratorFeatures;
 			if (featureJson.isBool())
 			{
+#if defined(PLATFORM_PS3)
+				const std::string featureName = iteratorFeatures.key().asString().c_str();
+#else
 				const std::string featureName = iteratorFeatures.key().asString();
+#endif
 				const uint64 key = rmx::getMurmur2_64(featureName);
 				if (featureJson.asBool())
 				{
@@ -150,7 +162,11 @@ void Mod::loadFromJson(const Json::Value& json)
 				continue;
 
 			OtherModInfo& otherModInfo = vectorAdd(mOtherModInfos);
+#if defined(PLATFORM_PS3)
+			otherModInfo.mModID = iteratorOtherMods.key().asString().c_str();
+#else
 			otherModInfo.mModID = iteratorOtherMods.key().asString();
+#endif
 			otherModInfo.mModIDHash = rmx::getMurmur2_64(otherModInfo.mModID);
 
 			JsonHelper jsonHelper(modJson);
@@ -162,7 +178,11 @@ void Mod::loadFromJson(const Json::Value& json)
 			const Json::Value& priorityValue = modJson["Priority"];
 			if (priorityValue.isString())
 			{
+#if defined(PLATFORM_PS3)
+				String str = priorityValue.asString().c_str();
+#else
 				String str = priorityValue.asString();
+#endif
 				str.lowerCase();
 				if (str == "higher")
 					otherModInfo.mRelativePriority = +1;

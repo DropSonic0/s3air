@@ -48,6 +48,9 @@ namespace
 OpenGLRenderResources::OpenGLRenderResources(RenderParts& renderParts) :
 	mRenderParts(renderParts)
 {
+#if defined(PLATFORM_PS3)
+	memset(mPlanePatternsData, 0, sizeof(mPlanePatternsData));
+#endif
 	clearAllCaches();
 }
 
