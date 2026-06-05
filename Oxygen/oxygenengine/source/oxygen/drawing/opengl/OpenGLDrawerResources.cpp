@@ -49,7 +49,7 @@ void OpenGLDrawerResources::startup()
 		return;
 
 	openglresources::mInternal = new openglresources::Internal();
-	openglresources::State mState = openglresources::State();
+	openglresources::mState = openglresources::State();
 
 	// Load shaders
 	FileHelper::loadShader(openglresources::mInternal->mSimpleRectColoredShader, L"data/shader/simple_rect_colored.shader", "Standard");
@@ -72,7 +72,7 @@ void OpenGLDrawerResources::startup()
 			1.0f, 0.0f,		// Upper right
 			0.0f, 0.0f		// Upper left
 		};
-		vao.setup(opengl::VertexArrayObject::Format::P2);
+		vao.setup(opengl::VertexArrayObject::Format_P2);
 		vao.updateVertexData(vertexData, 6);
 	}
 }

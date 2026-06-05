@@ -61,10 +61,10 @@ namespace opengldrawer
 	{
 		switch (blendMode)
 		{
-			case Shader::BlendMode::OPAQUE:		OpenGLDrawerResources::setBlendMode(BlendMode::OPAQUE);		return true;
-			case Shader::BlendMode::ALPHA:		OpenGLDrawerResources::setBlendMode(BlendMode::ALPHA);		return true;
-			case Shader::BlendMode::ADD:		OpenGLDrawerResources::setBlendMode(BlendMode::ADDITIVE);	return true;
-			case Shader::BlendMode::UNDEFINED:	break;
+			case Shader::BlendMode_OPAQUE:		OpenGLDrawerResources::setBlendMode(BlendMode::OPAQUE);		return true;
+			case Shader::BlendMode_ALPHA:		OpenGLDrawerResources::setBlendMode(BlendMode::ALPHA);		return true;
+			case Shader::BlendMode_ADD:		OpenGLDrawerResources::setBlendMode(BlendMode::ADDITIVE);	return true;
+			case Shader::BlendMode_UNDEFINED:	break;
 		}
 		return false;
 	}
@@ -124,12 +124,14 @@ namespace opengldrawer
 			gladLoadGL();
 		#endif
 
+		#if !defined(PLATFORM_PS3)
 			// Register oxygen-specific callback for shader source code post-processing
 			//  -> Must be done before loading first shaders in "OpenGLDrawerResources::startup" and "Upscaler::startup"
 			Shader::mShaderSourcePostProcessCallback = std::bind(&opengldrawer::performShaderSourcePostProcessing, std::placeholders::_1, std::placeholders::_2);
 
 			// Also register callback for blend mode changes by shaders
 			Shader::mShaderApplyBlendModeCallback = std::bind(&opengldrawer::applyShaderBlendMode, std::placeholders::_1);
+		#endif
 
 		#ifdef USE_OPENGL_MESSAGE_CALLBACK
 			// Register OpenGL message callback for debugging
@@ -258,7 +260,7 @@ namespace opengldrawer
 			if (nullptr != fontOutput)
 				return *fontOutput;
 
-			const auto pair = mFontOutputMap.emplace(&font, font);
+			const auto pair = mFontOutputMap.insert(std::make_pair(&font, OpenGLFontOutput(font)));
 			return pair.first->second;
 		}
 
@@ -303,7 +305,7 @@ namespace opengldrawer
 						0.0f, 0.0f, uv0.x, uv0.y		// Upper left
 					};
 
-					mMeshVAO.setup(opengl::VertexArrayObject::Format::P2_T2);
+					mMeshVAO.setup(opengl::VertexArrayObject::Format_P2_T2);
 					mMeshVAO.updateVertexData(&vertexData[0], 6);
 					mMeshVAO.draw(GL_TRIANGLES);
 				}
@@ -375,7 +377,7 @@ namespace opengldrawer
 					dst[3] = src.mTexcoords.y;
 				}
 
-				mMeshVAO.setup(opengl::VertexArrayObject::Format::P2_T2);
+				mMeshVAO.setup(opengl::VertexArrayObject::Format_P2_T2);
 				mMeshVAO.updateVertexData(&vertexData[0], vertexGroup.mNumVertices);
 				mMeshVAO.draw(GL_TRIANGLES);
 			}
@@ -596,7 +598,7 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 					dst[3] = src.mTexcoords.y;
 				}
 
-				mInternal.mMeshVAO.setup(opengl::VertexArrayObject::Format::P2_T2);
+				mInternal.mMeshVAO.setup(opengl::VertexArrayObject::Format_P2_T2);
 				mInternal.mMeshVAO.updateVertexData(&vertexData[0], dc.mTriangles.size());
 				mInternal.mMeshVAO.draw(GL_TRIANGLES);
 				break;
@@ -629,7 +631,7 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 					dst[5] = src.mColor.a;
 				}
 
-				mInternal.mMeshVAO.setup(opengl::VertexArrayObject::Format::P2_C4);
+				mInternal.mMeshVAO.setup(opengl::VertexArrayObject::Format_P2_C4);
 				mInternal.mMeshVAO.updateVertexData(&vertexData[0], dc.mTriangles.size());
 				mInternal.mMeshVAO.draw(GL_TRIANGLES);
 				break;
@@ -689,7 +691,7 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 				{
 					scissorRect.intersect(mInternal.mScissorStack.back());
 				}
-				mInternal.mScissorStack.emplace_back(scissorRect);
+				mInternal.mScissorStack.push_back(scissorRect);
 
 				glScissor(scissorRect.x, scissorRect.y, std::max(scissorRect.width, 0), std::max(scissorRect.height, 0));
 				mInternal.mInvalidScissorRegion = scissorRect.empty();

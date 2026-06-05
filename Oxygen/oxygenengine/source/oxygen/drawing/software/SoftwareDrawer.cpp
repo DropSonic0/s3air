@@ -230,7 +230,11 @@ namespace softwaredrawer
 			// Copy over data and swap red and blue channels
 			//  -> Note that input and output may be identical, or must not overlap otherwise
 			int k = 0;
+	#if !defined(PLATFORM_PS3)
 			if constexpr (sizeof(void*) == 8)
+	#else
+		if (sizeof(void*) == 8)
+	#endif
 			{
 				// On 64-bit architectures: Process 2 pixels at once
 				for (; k < numPixels; k += 2)
@@ -651,7 +655,7 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 				PushScissorDrawCommand& dc = drawCommand->as<PushScissorDrawCommand>();
 
 				mInternal.mScissorRect.intersect(dc.mRect);
-				mInternal.mScissorStack.emplace_back(mInternal.mScissorRect);
+				mInternal.mScissorStack.push_back(mInternal.mScissorRect);
 				break;
 			}
 

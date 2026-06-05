@@ -164,8 +164,10 @@ void FilePackage::createFilePackage(const std::wstring& packageFilename, const s
 		serializer.writeAs<uint32>(0);		// Will get overwritten
 
 		serializer.writeAs<uint32>(packedFiles.size());
-		for (auto& [key, packedFile] : packedFiles)
+		for (std::map<std::wstring, PackedFile>::iterator it = packedFiles.begin(); it != packedFiles.end(); ++it)
 		{
+			const std::wstring& key = it->first;
+			PackedFile& packedFile = it->second;
 			serializer.write(key, 1024);
 			packedFile.mPositionInFile = (uint32)output.size();		// Temporarily misusing this variable to store the position where to write the content's position in file when it got determined
 			serializer.writeAs<uint32>(0);							// Will get overwritten
@@ -176,8 +178,9 @@ void FilePackage::createFilePackage(const std::wstring& packageFilename, const s
 		entryHeaderSize = output.size() - PackageHeader::HEADER_SIZE;
 		*(uint32*)&output[headerSizePosition] = (uint32)entryHeaderSize;
 
-		for (auto& [key, packedFile] : packedFiles)
+		for (std::map<std::wstring, PackedFile>::iterator it = packedFiles.begin(); it != packedFiles.end(); ++it)
 		{
+			PackedFile& packedFile = it->second;
 			const uint32 position = (uint32)output.size();
 			serializer.write(&packedFile.mContent[0], packedFile.mContent.size());
 			*(uint32*)&output[packedFile.mPositionInFile] = position;

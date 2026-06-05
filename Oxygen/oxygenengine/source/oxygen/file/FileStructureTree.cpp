@@ -35,7 +35,7 @@ uint64 FileStructureTree::getLowercaseStringHash(const std::wstring& string)
 FileStructureTree::FileStructureTree()
 {
 	// Create the root node
-	mNodes.emplace_back();
+	mNodes.push_back(Node());
 }
 
 void FileStructureTree::clear()
@@ -236,7 +236,7 @@ bool FileStructureTree::listDirectories(std::vector<std::wstring>& outDirectorie
 		outDirectories.reserve(outDirectories.size() + mTempBuffer.size());
 		for (size_t k = 0; k < mTempBuffer.size(); ++k)
 		{
-			outDirectories.emplace_back(mTempBuffer[k]->mName);
+			outDirectories.push_back(mTempBuffer[k]->mName);
 		}
 	}
 	return true;

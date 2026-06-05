@@ -56,7 +56,7 @@ public:
 	inline size_t read(void* dst, size_t len) override			{ return mIsValid ? MemInputStream::read(dst, len) : 0; }
 	inline void skip(size_t len) override						{ if (mIsValid) MemInputStream::skip(len); }
 	inline bool tryRead(const void* data, size_t len) override	{ return mIsValid ? MemInputStream::tryRead(data, len) : false; }
-	inline StreamingState getStreamingState() override			{ return mIsValid ? MemInputStream::getStreamingState() : StreamingState::COMPLETED; }
+	inline InputStream::StreamingState_t getStreamingState() override { return mIsValid ? MemInputStream::getStreamingState() : (InputStream::StreamingState_t)InputStream::StreamingState::COMPLETED; }
 
 public:
 	PackedFileProvider& mProvider;

@@ -332,6 +332,45 @@
 	#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "SDL_VIDEO_ALLOW_SCREENSAVER"
 	#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "SDL_ACCELEROMETER_AS_JOYSTICK"
 	#define SDL_HINT_RENDER_VSYNC "SDL_RENDER_VSYNC"
+
+	#define SDL_PIXELFORMAT_INDEX1LSB 0
+	#define SDL_PIXELFORMAT_INDEX1MSB 1
+	#define SDL_PIXELFORMAT_INDEX4LSB 2
+	#define SDL_PIXELFORMAT_INDEX4MSB 3
+	#define SDL_PIXELFORMAT_INDEX8 4
+	#define SDL_PIXELFORMAT_RGB332 5
+	#define SDL_PIXELFORMAT_RGB444 6
+	#define SDL_PIXELFORMAT_RGB555 7
+	#define SDL_PIXELFORMAT_BGR555 8
+	#define SDL_PIXELFORMAT_ARGB4444 9
+	#define SDL_PIXELFORMAT_RGBA4444 10
+	#define SDL_PIXELFORMAT_ABGR4444 11
+	#define SDL_PIXELFORMAT_BGRA4444 12
+	#define SDL_PIXELFORMAT_ARGB1555 13
+	#define SDL_PIXELFORMAT_RGBA5551 14
+	#define SDL_PIXELFORMAT_ABGR1555 15
+	#define SDL_PIXELFORMAT_BGRA5551 16
+	#define SDL_PIXELFORMAT_RGB565 17
+	#define SDL_PIXELFORMAT_BGR565 18
+	#define SDL_PIXELFORMAT_RGB24 19
+	#define SDL_PIXELFORMAT_BGR24 20
+	#define SDL_PIXELFORMAT_RGB888 21
+	#define SDL_PIXELFORMAT_RGBX8888 22
+	#define SDL_PIXELFORMAT_BGR888 23
+	#define SDL_PIXELFORMAT_BGRX8888 24
+	#define SDL_PIXELFORMAT_ARGB8888 25
+	#define SDL_PIXELFORMAT_RGBA8888 26
+	#define SDL_PIXELFORMAT_ABGR8888 27
+	#define SDL_PIXELFORMAT_BGRA8888 28
+	#define SDL_PIXELFORMAT_ARGB2101010 29
+	#define SDL_PIXELFORMAT_YV12 30
+	#define SDL_PIXELFORMAT_IYUV 31
+	#define SDL_PIXELFORMAT_YUY2 32
+	#define SDL_PIXELFORMAT_UYVY 33
+	#define SDL_PIXELFORMAT_YVYU 34
+	#define SDL_PIXELFORMAT_NV12 35
+	#define SDL_PIXELFORMAT_NV21 36
+
 	#define SDL_FALSE 0
 	#define SDL_TRUE 1
 	#define SDL_PRESSED 1
@@ -388,6 +427,7 @@
 	#define GL_ZERO 0
 	#define GL_SRC_ALPHA 0
 	#define GL_ONE_MINUS_SRC_ALPHA 0
+	#define GL_DST_COLOR 0
 	#define GL_COMPILE_STATUS 0
 	#define GL_LINK_STATUS 0
 	#define GL_INFO_LOG_LENGTH 0
@@ -397,6 +437,21 @@
 	#define GL_INVALID_VALUE 3
 	#define GL_OUT_OF_MEMORY 4
 	#define GL_INVALID_FRAMEBUFFER_OPERATION 5
+	#define GL_COLOR_ATTACHMENT0 0
+	#define GL_TEXTURE_MIN_FILTER 0
+	#define GL_TEXTURE_MAG_FILTER 0
+	#define GL_NEAREST 0
+	#define GL_LINEAR 1
+	#define GL_TEXTURE_WRAP_S 0
+	#define GL_TEXTURE_WRAP_T 0
+	#define GL_CLAMP_TO_EDGE 0
+	#define GL_REPEAT 1
+	#define GL_TRIANGLES 0
+	#define GL_BLEND 0
+	#define GL_FUNC_ADD 0
+	#define GL_FUNC_REVERSE_SUBTRACT 0
+	#define GL_MIN 0
+	#define GL_MAX 0
 	inline void glGenTextures(GLsizei n, GLuint* t) {}
 	inline void glDeleteTextures(GLsizei n, const GLuint* t) {}
 	inline void glGenVertexArrays(GLsizei n, GLuint* a) {}
@@ -411,12 +466,15 @@
 	inline void glBufferData(GLenum t, GLsizeiptr s, const void* d, GLenum u) {}
 	inline void glDrawArrays(GLenum m, GLint f, GLsizei c) {}
 	inline void glBindTexture(GLenum t, GLuint h) {}
+	inline void glTexParameteri(GLenum t, GLenum p, GLint v) {}
+	inline void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) {}
 	inline void glClearColor(float r, float g, float b, float a) {}
 	inline void glClear(int m) {}
 	inline void glEnable(GLenum cap) {}
 	inline void glDisable(GLenum cap) {}
 	inline void glViewport(int x, int y, int w, int h) {}
 	inline void glReadPixels(int x, int y, int w, int h, int f, int t, void* d) {}
+	inline void glGetTexImage(GLenum t, GLint l, GLenum f, GLenum ty, void* p) {}
 	inline void glScissor(int x, int y, int w, int h) {}
 	inline unsigned char glIsRenderbuffer(GLuint b) { return 0; }
 	inline void glGenRenderbuffers(GLsizei n, GLuint* b) {}
@@ -447,6 +505,7 @@
 	inline void glUniformMatrix4fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
 	inline void glActiveTexture(GLenum t) {}
 	inline void glBlendFunc(GLenum s, GLenum d) {}
+	inline void glBlendEquation(GLenum m) {}
 	inline void glUseProgram(GLuint p) {}
 	inline GLuint glCreateShader(GLenum t) { return 0; }
 	inline void glShaderSource(GLuint s, GLsizei c, const GLchar** st, const GLint* l) {}
@@ -479,8 +538,13 @@
 	#define SDL_GL_CONTEXT_MAJOR_VERSION 7
 	#define SDL_GL_CONTEXT_MINOR_VERSION 8
 
-	struct SDL_Surface { int w, h; void* pixels; };
+	struct SDL_PixelFormat { uint32 format; };
+	struct SDL_Surface { int w, h; void* pixels; SDL_PixelFormat* format; };
 	inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void* p, int w, int h, int d, int s, Uint32 r, Uint32 g, Uint32 b, Uint32 a) { return (SDL_Surface*)1; }
+	inline SDL_Surface* SDL_GetWindowSurface(SDL_Window* w) { return (SDL_Surface*)1; }
+	inline int SDL_LockSurface(SDL_Surface* s) { return 0; }
+	inline void SDL_UnlockSurface(SDL_Surface* s) {}
+	inline int SDL_UpdateWindowSurface(SDL_Window* w) { return 0; }
 	inline void SDL_SetWindowIcon(SDL_Window* w, SDL_Surface* i) {}
 	inline void SDL_FreeSurface(SDL_Surface* s) {}
 

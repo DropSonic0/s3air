@@ -424,7 +424,6 @@ bool Blitter::needsIntermediateProcessing(const Options& options)
 
 void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Options& options)
 {
-	const Options* useOptions = &options;
 	if (nullptr != options.mTintColor || nullptr != options.mAddedColor)
 	{
 		int mult[4];
@@ -508,7 +507,11 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 		{
 			uint32* dst = bitmap.getLinePointer(y);
 			int k = 0;
+		#if !defined(PLATFORM_PS3)
 			if constexpr (sizeof(void*) == 8)
+		#else
+			if (sizeof(void*) == 8)
+		#endif
 			{
 				// On 64-bit architectures: Process 2 pixels at once
 				for (; k < numPixels; k += 2)
