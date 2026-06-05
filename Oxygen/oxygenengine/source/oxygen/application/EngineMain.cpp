@@ -96,7 +96,7 @@ void EngineMain::execute(int argc, char** argv)
 	mArguments.reserve(argc);
 	for (int i = 0; i < argc; ++i)
 	{
-		mArguments.emplace_back(argv[i]);
+		mArguments.push_back(argv[i]);
 	}
 
 	// Startup the Oxygen engine part that is independent from the application / project
@@ -143,7 +143,7 @@ bool EngineMain::reloadFilePackage(std::wstring_view packageName, bool forceRelo
 	for (size_t index = 0; index < gameProfile.mDataPackages.size(); ++index)
 	{
 		const GameProfile::DataPackage& dataPackage = gameProfile.mDataPackages[index];
-		if (dataPackage.mFilename == packageName)
+		if (std::wstring(dataPackage.mFilename) == std::wstring(packageName.data(), packageName.length()))
 		{
 			return loadFilePackageByIndex(index, forceReload);
 		}
@@ -600,7 +600,7 @@ bool EngineMain::createWindow()
 
 	// Setup video config
 	rmx::VideoConfig videoConfig(config.mWindowMode != Configuration::WindowMode::WINDOWED, config.mWindowSize.x, config.mWindowSize.y, appMetaData.mTitle.c_str());
-	videoConfig.mRenderer = useOpenGL ? rmx::VideoConfig::Renderer::OPENGL : rmx::VideoConfig::Renderer::SOFTWARE;
+	videoConfig.mRenderer = useOpenGL ? rmx::VideoConfig::Renderer_OPENGL : rmx::VideoConfig::Renderer_SOFTWARE;
 	videoConfig.mResizeable = true;
 	videoConfig.mAutoClearScreen = useOpenGL;
 	videoConfig.mAutoSwapBuffers = false;

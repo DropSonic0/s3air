@@ -25,7 +25,11 @@ public:
 
 	struct PackageHeader
 	{
+#if defined(PLATFORM_PS3)
+		static const char SIGNATURE[5];
+#else
 		static constexpr char SIGNATURE[] = "OPCK";
+#endif
 		static constexpr uint32 CURRENT_FORMAT_VERSION = 3;
 		static constexpr size_t HEADER_SIZE = 20;
 

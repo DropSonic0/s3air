@@ -118,6 +118,96 @@
 	#define SDLK_F5 0x4000003e
 	#define SDLK_F8 0x40000041
 	#define SDLK_PRINTSCREEN 0x40000046
+	#define SDLK_TAB '\t'
+	#define SDLK_SPACE ' '
+	#define SDLK_EXCLAIM '!'
+	#define SDLK_QUOTEDBL '"'
+	#define SDLK_HASH '#'
+	#define SDLK_PERCENT '%'
+	#define SDLK_DOLLAR '$'
+	#define SDLK_AMPERSAND '&'
+	#define SDLK_QUOTE '\''
+	#define SDLK_LEFTPAREN '('
+	#define SDLK_RIGHTPAREN ')'
+	#define SDLK_ASTERISK '*'
+	#define SDLK_PLUS '+'
+	#define SDLK_COMMA ','
+	#define SDLK_MINUS '-'
+	#define SDLK_PERIOD '.'
+	#define SDLK_SLASH '/'
+	#define SDLK_0 '0'
+	#define SDLK_1 '1'
+	#define SDLK_2 '2'
+	#define SDLK_3 '3'
+	#define SDLK_4 '4'
+	#define SDLK_5 '5'
+	#define SDLK_6 '6'
+	#define SDLK_7 '7'
+	#define SDLK_8 '8'
+	#define SDLK_9 '9'
+	#define SDLK_COLON ':'
+	#define SDLK_SEMICOLON ';'
+	#define SDLK_LESS '<'
+	#define SDLK_EQUALS '='
+	#define SDLK_GREATER '>'
+	#define SDLK_QUESTION '?'
+	#define SDLK_AT '@'
+	#define SDLK_LEFTBRACKET '['
+	#define SDLK_BACKSLASH '\\'
+	#define SDLK_RIGHTBRACKET ']'
+	#define SDLK_CARET '^'
+	#define SDLK_UNDERSCORE '_'
+	#define SDLK_BACKQUOTE '`'
+	#define SDLK_a 'a'
+	#define SDLK_b 'b'
+	#define SDLK_c 'c'
+	#define SDLK_d 'd'
+	#define SDLK_e 'e'
+	#define SDLK_f 'f'
+	#define SDLK_g 'g'
+	#define SDLK_h 'h'
+	#define SDLK_i 'i'
+	#define SDLK_j 'j'
+	#define SDLK_k 'k'
+	#define SDLK_l 'l'
+	#define SDLK_m 'm'
+	#define SDLK_n 'n'
+	#define SDLK_o 'o'
+	#define SDLK_p 'p'
+	#define SDLK_q 'q'
+	#define SDLK_r 'r'
+	#define SDLK_s 's'
+	#define SDLK_t 't'
+	#define SDLK_u 'u'
+	#define SDLK_v 'v'
+	#define SDLK_w 'w'
+	#define SDLK_x 'x'
+	#define SDLK_y 'y'
+	#define SDLK_z 'z'
+	#define SDLK_CAPSLOCK 0x40000039
+	#define SDLK_INSERT 0x40000049
+	#define SDLK_DELETE 0x7f
+	#define SDLK_UP 0x40000052
+	#define SDLK_DOWN 0x40000051
+	#define SDLK_LEFT 0x40000050
+	#define SDLK_RIGHT 0x4000004f
+	#define SDLK_ESCAPE 0x1b
+	#define SDLK_BACKSPACE 0x08
+	#define SDLK_KP_ENTER 0x40000058
+	#define SDLK_KP_1 0x40000059
+	#define SDLK_KP_2 0x4000005a
+	#define SDLK_KP_3 0x4000005b
+	#define SDLK_KP_4 0x4000005c
+	#define SDLK_KP_5 0x4000005d
+	#define SDLK_KP_6 0x4000005e
+	#define SDLK_KP_7 0x4000005f
+	#define SDLK_KP_8 0x40000060
+	#define SDLK_KP_9 0x40000061
+	#define SDLK_KP_0 0x40000062
+	#define SDLK_KP_PERIOD 0x40000063
+	#define SDLK_RSHIFT 0x400000e5
+	#define SDLK_LCTRL 0x400000e0
+	#define SDLK_RCTRL 0x400000e4
 
 	inline void SDL_PauseAudioDevice(SDL_AudioDeviceID d, int p) {}
 	inline SDL_AudioStatus SDL_GetAudioStatus() { return (SDL_AudioStatus)0; }
@@ -135,6 +225,7 @@
 	inline int SDL_Init(int f) { return 0; }
 	inline void SDL_Quit() {}
 	inline char* SDL_GetError() { return (char*)""; }
+	inline int SDL_SetHint(const char* n, const char* v) { return 1; }
 	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
 	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) { return (SDL_Window*)1; }
 	inline int SDL_GetWindowID(SDL_Window* w) { return 1; }
@@ -166,6 +257,9 @@
 	#define SDL_JOYDEVICEADDED 11
 	#define SDL_JOYDEVICEREMOVED 12
 	#define SDL_APP_WILLENTERBACKGROUND 13
+	#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "SDL_VIDEO_ALLOW_SCREENSAVER"
+	#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "SDL_ACCELEROMETER_AS_JOYSTICK"
+	#define SDL_HINT_RENDER_VSYNC "SDL_RENDER_VSYNC"
 	#define SDL_FALSE 0
 	#define SDL_TRUE 1
 	#define SDL_PRESSED 1
@@ -182,6 +276,7 @@
 	#define SDL_WINDOWPOS_CENTERED_DISPLAY(X) (SDL_WINDOWPOS_CENTERED_MASK|(X))
 
 	inline void SDL_CloseAudioDevice(SDL_AudioDeviceID d) {}
+	inline void SDL_DisableScreenSaver() {}
 	#define SDL_AUDIO_ALLOW_ANY_CHANGE 0
 	inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 0; }
 	inline void SDL_Delay(unsigned int ms) {}
@@ -302,6 +397,20 @@
 	typedef void* SDL_GLContext;
 	inline SDL_GLContext SDL_GL_CreateContext(SDL_Window* w) { return 0; }
 	inline void SDL_GL_SetSwapInterval(int i) {}
+	inline int SDL_GL_SetAttribute(int a, int v) { return 0; }
+	#define SDL_GL_RED_SIZE 1
+	#define SDL_GL_GREEN_SIZE 2
+	#define SDL_GL_BLUE_SIZE 3
+	#define SDL_GL_DOUBLEBUFFER 4
+	#define SDL_GL_CONTEXT_PROFILE_MASK 5
+	#define SDL_GL_CONTEXT_PROFILE_CORE 6
+	#define SDL_GL_CONTEXT_MAJOR_VERSION 7
+	#define SDL_GL_CONTEXT_MINOR_VERSION 8
+
+	struct SDL_Surface { int w, h; void* pixels; };
+	inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void* p, int w, int h, int d, int s, Uint32 r, Uint32 g, Uint32 b, Uint32 a) { return (SDL_Surface*)1; }
+	inline void SDL_SetWindowIcon(SDL_Window* w, SDL_Surface* i) {}
+	inline void SDL_FreeSurface(SDL_Surface* s) {}
 
 #elif defined(PLATFORM_WINDOWS)
 	// Needed for MSYS2

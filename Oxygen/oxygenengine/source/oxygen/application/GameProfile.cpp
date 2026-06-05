@@ -109,7 +109,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 					{
 						const String address = value.getSubString(0, pos);
 						const String byteValue = value.getSubString(pos + 1, -1);
-						romInfo.mOverwrites.emplace_back((uint32)rmx::parseInteger(address), (uint8)rmx::parseInteger(byteValue));
+						romInfo.mOverwrites.push_back(std::make_pair((uint32)rmx::parseInteger(address), (uint8)rmx::parseInteger(byteValue)));
 					}
 				}
 
@@ -122,7 +122,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 					{
 						const String address1 = value.getSubString(0, pos);
 						const String address2 = value.getSubString(pos + 1, -1);
-						romInfo.mBlankRegions.emplace_back((uint32)rmx::parseInteger(address1), (uint32)rmx::parseInteger(address2));
+						romInfo.mBlankRegions.push_back(std::make_pair((uint32)rmx::parseInteger(address1), (uint32)rmx::parseInteger(address2)));
 					}
 				}
 
@@ -154,7 +154,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 		{
 			for (auto it = dataPackagesJson.begin(); it != dataPackagesJson.end(); ++it)
 			{
-				const std::string key = it.key().asString();
+				const std::string key = it.key().asString().c_str();
 				JsonHelper jsonHelper(*it);
 
 				DataPackage& dataPackage = vectorAdd(mDataPackages);
@@ -172,7 +172,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 			const Json::Value asmStackRangeJson = emulationJson["AsmStackRange"];
 			if (asmStackRangeJson.isString())
 			{
-				String str(asmStackRangeJson.asString());
+				String str(asmStackRangeJson.asString().c_str());
 				const int pos = str.findChar('-', 0, +1);
 				if (pos > 0 && pos < str.length() - 1)
 				{
@@ -209,7 +209,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 							if (pos >= 0)
 							{
 								entry.mFunctionName = *content.getSubString(0, pos);
-								if (entry.mFunctionName.back() == ' ')
+								if (!entry.mFunctionName.empty() && entry.mFunctionName[entry.mFunctionName.length() - 1] == ' ')
 									entry.mFunctionName.erase(pos-1);
 								entry.mLabelName = *content.getSubString(pos, -1);
 							}

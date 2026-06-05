@@ -11,6 +11,11 @@
 #include "oxygen/helper/Utils.h"
 
 
+#if defined(PLATFORM_PS3)
+const char FilePackage::PackageHeader::SIGNATURE[5] = "OPCK";
+#endif
+
+
 bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::wstring, PackedFile>& outPackedFiles, InputStream*& inputStream, bool forceLoadAll, bool showErrors)
 {
 	// Try to load the package
