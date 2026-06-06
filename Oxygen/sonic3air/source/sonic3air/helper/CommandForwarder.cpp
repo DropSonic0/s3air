@@ -124,7 +124,11 @@ void CommandForwarder::handleReceivedCommand(std::string_view command)
 		{
 			const std::string_view url = withoutPrefix.substr(4);
 			// TODO...
+		#if defined(PLATFORM_PS3)
+			RMX_ERROR("Received URL: " << std::string(url.data(), url.length()) << "\n(But it's not yet processed in any way", );
+		#else
 			RMX_ERROR("Received URL: " << url << "\n(But it's not yet processed in any way", );
+		#endif
 		}
 	}
 }

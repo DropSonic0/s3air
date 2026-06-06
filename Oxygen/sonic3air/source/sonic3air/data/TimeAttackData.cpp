@@ -19,13 +19,17 @@ std::map<uint32, TimeAttackData::Table> TimeAttackData::mTables;
 
 namespace
 {
-	const std::map<uint8, std::string> REC_PATH_CHAR_NAMES =
+	std::string getRecPathCharName(uint8 category)
 	{
-		{ 0x10, "sonic" },
-		{ 0x11, "sonic_max" },
-		{ 0x20, "tails" },
-		{ 0x30, "knuckles" }
-	};
+		switch (category)
+		{
+			case 0x10: return "sonic";
+			case 0x11: return "sonic_max";
+			case 0x20: return "tails";
+			case 0x30: return "knuckles";
+			default:   return "";
+		}
+	}
 
 	uint32 makeKey(uint16 zoneAndAct, uint8 category)
 	{
@@ -70,8 +74,8 @@ TimeAttackData::Table& TimeAttackData::loadTable(uint16 zoneAndAct, uint8 catego
 			if (file.isString())
 			{
 				Entry& entry = vectorAdd(timeAttackTable->mEntries);
-				entry.mFilename = *String(file.asString()).toWString();
-				entry.mTime = parseTimeString(time.asString());
+				entry.mFilename = *String(file.asString().c_str()).toWString();
+				entry.mTime = parseTimeString(time.asString().c_str());
 			}
 		}
 	}
@@ -91,7 +95,7 @@ void TimeAttackData::saveTable(uint16 zoneAndAct, uint8 category, const std::wst
 	{
 		Json::Value& rec = records.append(Json::Value());
 		rec["File"] = *WString(entry.mFilename).toString();
-		rec["Time"] = TimeAttackData::getTimeString(entry.mTime);
+		rec["Time"] = TimeAttackData::getTimeString(entry.mTime).c_str();
 	}
 
 	JsonHelper::saveFile(filename, root);
@@ -103,8 +107,12 @@ std::wstring TimeAttackData::getSavePath(uint16 zoneAndAct, uint8 category, std:
 	if (nullptr == currentZone)
 		return L"";
 
+#if defined(PLATFORM_PS3)
+	const std::string zoneAndActName = currentZone->mShortName + std::string(*String(0, "%d", (zoneAndAct & 0x01) + 1));
+#else
 	const std::string zoneAndActName = currentZone->mShortName + std::to_string((zoneAndAct & 0x01) + 1);
-	const std::string characterName = REC_PATH_CHAR_NAMES.at(category);
+#endif
+	const std::string characterName = getRecPathCharName(category);
 
 	if (nullptr != outRecBaseFilename)
 	{

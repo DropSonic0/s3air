@@ -1069,7 +1069,9 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				return types;
 			}
 
 		protected:
@@ -1100,7 +1102,10 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				return types;
 			}
 
 		protected:
@@ -1132,7 +1137,11 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				return types;
 			}
 
 		protected:
@@ -1165,7 +1174,12 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				return types;
 			}
 
 		protected:
@@ -1199,7 +1213,13 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				return types;
 			}
 
 		protected:
@@ -1234,7 +1254,14 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>(), traits::getDataType<F>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				types.push_back(traits::getDataType<F>());
+				return types;
 			}
 
 		protected:
@@ -1270,7 +1297,15 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>(), traits::getDataType<F>(), traits::getDataType<G>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				types.push_back(traits::getDataType<F>());
+				types.push_back(traits::getDataType<G>());
+				return types;
 			}
 
 		protected:
@@ -1307,7 +1342,16 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>(), traits::getDataType<F>(), traits::getDataType<G>(), traits::getDataType<H>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				types.push_back(traits::getDataType<F>());
+				types.push_back(traits::getDataType<G>());
+				types.push_back(traits::getDataType<H>());
+				return types;
 			}
 
 		protected:
@@ -1345,7 +1389,17 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>(), traits::getDataType<F>(), traits::getDataType<G>(), traits::getDataType<H>(), traits::getDataType<I>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				types.push_back(traits::getDataType<F>());
+				types.push_back(traits::getDataType<G>());
+				types.push_back(traits::getDataType<H>());
+				types.push_back(traits::getDataType<I>());
+				return types;
 			}
 
 		protected:
@@ -1384,7 +1438,18 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>(), traits::getDataType<F>(), traits::getDataType<G>(), traits::getDataType<H>(), traits::getDataType<I>(), traits::getDataType<J>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				types.push_back(traits::getDataType<F>());
+				types.push_back(traits::getDataType<G>());
+				types.push_back(traits::getDataType<H>());
+				types.push_back(traits::getDataType<I>());
+				types.push_back(traits::getDataType<J>());
+				return types;
 			}
 
 		protected:
@@ -1424,7 +1489,19 @@ namespace lemon
 
 			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override
 			{
-				return { traits::getDataType<A>(), traits::getDataType<B>(), traits::getDataType<C>(), traits::getDataType<D>(), traits::getDataType<E>(), traits::getDataType<F>(), traits::getDataType<G>(), traits::getDataType<H>(), traits::getDataType<I>(), traits::getDataType<J>(), traits::getDataType<K>() };
+				std::vector<const DataTypeDefinition*> types;
+				types.push_back(traits::getDataType<A>());
+				types.push_back(traits::getDataType<B>());
+				types.push_back(traits::getDataType<C>());
+				types.push_back(traits::getDataType<D>());
+				types.push_back(traits::getDataType<E>());
+				types.push_back(traits::getDataType<F>());
+				types.push_back(traits::getDataType<G>());
+				types.push_back(traits::getDataType<H>());
+				types.push_back(traits::getDataType<I>());
+				types.push_back(traits::getDataType<J>());
+				types.push_back(traits::getDataType<K>());
+				return types;
 			}
 
 		protected:

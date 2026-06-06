@@ -36,7 +36,11 @@ struct ModsMenuRenderContext : public GameMenuEntry::RenderContext
 class ModMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("ModMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0xe6d07ec9;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("ModMenuEntry");
+#endif
 
 public:
 	struct Remark

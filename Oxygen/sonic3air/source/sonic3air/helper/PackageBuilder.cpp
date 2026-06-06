@@ -27,29 +27,36 @@ void PackageBuilder::performPacking()
 
 	// "gamedata.bin" = data directory except audio and shaders
 	{
-		std::vector<std::wstring> includedPaths = { L"data/" };
-		std::vector<std::wstring> excludedPaths = { L"data/audio/", L"data/shader/", L"data/metadata.json" };
+		std::vector<std::wstring> includedPaths;
+		includedPaths.push_back(L"data/");
+		std::vector<std::wstring> excludedPaths;
+		excludedPaths.push_back(L"data/audio/");
+		excludedPaths.push_back(L"data/shader/");
+		excludedPaths.push_back(L"data/metadata.json");
 		FilePackage::createFilePackage(L"gamedata.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 
 	// "audiodata.bin" = emulated / original audio directory
 	{
-		std::vector<std::wstring> includedPaths = { L"data/audio/original/" };
-		std::vector<std::wstring> excludedPaths = { };
+		std::vector<std::wstring> includedPaths;
+		includedPaths.push_back(L"data/audio/original/");
+		std::vector<std::wstring> excludedPaths;
 		FilePackage::createFilePackage(L"audiodata.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 
 	// "audioremaster.bin" = remastered audio directory
 	{
-		std::vector<std::wstring> includedPaths = { L"data/audio/remastered/" };
-		std::vector<std::wstring> excludedPaths = { };
+		std::vector<std::wstring> includedPaths;
+		includedPaths.push_back(L"data/audio/remastered/");
+		std::vector<std::wstring> excludedPaths;
 		FilePackage::createFilePackage(L"audioremaster.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 
 	// "enginedata.bin" = shaders directory
 	{
-		std::vector<std::wstring> includedPaths = { L"data/shader/" };
-		std::vector<std::wstring> excludedPaths = { };
+		std::vector<std::wstring> includedPaths;
+		includedPaths.push_back(L"data/shader/");
+		std::vector<std::wstring> excludedPaths;
 		FilePackage::createFilePackage(L"enginedata.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 }

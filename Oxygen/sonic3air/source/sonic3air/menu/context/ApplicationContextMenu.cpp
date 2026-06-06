@@ -35,8 +35,8 @@ void ApplicationContextMenu::initialize()
 			#define DIRECTORY_STRING "directory"
 		#endif
 
-		mItems.emplace_back(Item { "Open saved data " DIRECTORY_STRING, Item::Function::OPEN_SAVED_DATA_DIRECTORY });
-		mItems.emplace_back(Item { "Open mods " DIRECTORY_STRING,		Item::Function::OPEN_MODS_DIRECTORY });
+		mItems.push_back(Item { "Open saved data " DIRECTORY_STRING, Item::Function::OPEN_SAVED_DATA_DIRECTORY });
+		mItems.push_back(Item { "Open mods " DIRECTORY_STRING,		Item::Function::OPEN_MODS_DIRECTORY });
 	#if 0
 		// TODO: This does not work well on Windows
 		mItems.emplace_back(Item { "Open log file",						Item::Function::OPEN_LOGFILE });
@@ -51,7 +51,11 @@ void ApplicationContextMenu::mouse(const rmx::MouseEvent& ev)
 {
 	if (ev.state)
 	{
+	#if defined(PLATFORM_PS3)
+		if (ev.button == rmx::MouseButton_Right && !FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
+	#else
 		if (ev.button == rmx::MouseButton::Right && !FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
+	#endif
 		{
 			mActive = !mActive;
 			if (mActive)
@@ -70,7 +74,11 @@ void ApplicationContextMenu::mouse(const rmx::MouseEvent& ev)
 			mContextMenuClick.set(-1, -1);
 			return;
 		}
+	#if defined(PLATFORM_PS3)
+		else if (ev.button == rmx::MouseButton_Left)
+	#else
 		else if (ev.button == rmx::MouseButton::Left)
+	#endif
 		{
 			if (mActive)
 			{

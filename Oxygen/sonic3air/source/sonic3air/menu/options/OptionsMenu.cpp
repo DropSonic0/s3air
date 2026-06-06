@@ -37,9 +37,9 @@ namespace
 		int mOptionId = 0;
 		bool mHideInGame = false;
 		bool mDependsOnSecret = false;
-		SharedDatabase::Secret::Type mSecret = (SharedDatabase::Secret::Type)0xff;
+		SharedDatabase::Secret::Type mSecret = (SharedDatabase::Secret::Type)0;
 
-		inline ConditionalOption(int optionId, bool hideInGame) : mOptionId(optionId), mHideInGame(hideInGame) {}
+		inline ConditionalOption(int optionId, bool hideInGame) : mOptionId(optionId), mHideInGame(hideInGame), mDependsOnSecret(false), mSecret((SharedDatabase::Secret::Type)0) {}
 		inline ConditionalOption(int optionId, bool hideInGame, SharedDatabase::Secret::Type secret) : mOptionId(optionId), mHideInGame(hideInGame), mDependsOnSecret(true), mSecret(secret) {}
 
 		bool shouldBeVisible(bool enteredFromIngame) const
@@ -55,40 +55,45 @@ namespace
 	// Hide certain options depending on:
 	//  - whether the options menu is opened from the pause menu (second parameter)
 	//  - and/or depending on secrets (third parameter)
-	static const std::vector<ConditionalOption> CONDITIONAL_OPTIONS =
+	const std::vector<ConditionalOption>& getConditionalOptions()
 	{
-		ConditionalOption(option::SOUNDTRACK,				 true),
-		ConditionalOption(option::SOUNDTRACK_DOWNLOAD,		 true),
-		ConditionalOption(option::SOUND_TEST,				 true),
-		ConditionalOption(option::TITLE_THEME,				 true),
-		ConditionalOption(option::OUTRO_MUSIC,				 true),
-		ConditionalOption(option::COMPETITION_MENU_MUSIC,	 true),
+		static std::vector<ConditionalOption> options;
+		if (options.empty())
+		{
+			options.push_back(ConditionalOption(option::SOUNDTRACK,				 true));
+			options.push_back(ConditionalOption(option::SOUNDTRACK_DOWNLOAD,		 true));
+			options.push_back(ConditionalOption(option::SOUND_TEST,				 true));
+			options.push_back(ConditionalOption(option::TITLE_THEME,				 true));
+			options.push_back(ConditionalOption(option::OUTRO_MUSIC,				 true));
+			options.push_back(ConditionalOption(option::COMPETITION_MENU_MUSIC,	 true));
 
-		ConditionalOption(option::ANTI_FLICKER,				 true),
-		ConditionalOption(option::ICZ_NIGHTTIME,			 true),
-		ConditionalOption(option::MONITOR_STYLE,			 true),
+			options.push_back(ConditionalOption(option::ANTI_FLICKER,				 true));
+			options.push_back(ConditionalOption(option::ICZ_NIGHTTIME,			 true));
+			options.push_back(ConditionalOption(option::MONITOR_STYLE,			 true));
 
-		ConditionalOption(option::LEVEL_LAYOUTS,			 true),
-		ConditionalOption(option::AIZ_BLIMPSEQUENCE,		 true),
-		ConditionalOption(option::LBZ_BIGARMS,				 true),
-		ConditionalOption(option::SOZ_GHOSTSPAWN,			 true),
-		ConditionalOption(option::LRZ2_BOSS,				 true),
-		ConditionalOption(option::TIMEATTACK_GHOSTS,		 true),
-		ConditionalOption(option::TIMEATTACK_INSTANTRESTART, true),
+			options.push_back(ConditionalOption(option::LEVEL_LAYOUTS,			 true));
+			options.push_back(ConditionalOption(option::AIZ_BLIMPSEQUENCE,		 true));
+			options.push_back(ConditionalOption(option::LBZ_BIGARMS,				 true));
+			options.push_back(ConditionalOption(option::SOZ_GHOSTSPAWN,			 true));
+			options.push_back(ConditionalOption(option::LRZ2_BOSS,				 true));
+			options.push_back(ConditionalOption(option::TIMEATTACK_GHOSTS,		 true));
+			options.push_back(ConditionalOption(option::TIMEATTACK_INSTANTRESTART, true));
 
-		ConditionalOption(option::DROP_DASH, 				 false, SharedDatabase::Secret::SECRET_DROPDASH),
-		ConditionalOption(option::SUPER_PEELOUT,			 false, SharedDatabase::Secret::SECRET_SUPER_PEELOUT),
+			options.push_back(ConditionalOption(option::DROP_DASH, 				 false, SharedDatabase::Secret::SECRET_DROPDASH));
+			options.push_back(ConditionalOption(option::SUPER_PEELOUT,			 false, SharedDatabase::Secret::SECRET_SUPER_PEELOUT));
 
-		ConditionalOption(option::DEBUG_MODE,				 false, SharedDatabase::Secret::SECRET_DEBUGMODE),
-		ConditionalOption(option::TITLE_SCREEN,				 true,  SharedDatabase::Secret::SECRET_TITLE_SK),
-		ConditionalOption(option::SHIELD_TYPES,				 true),
-		ConditionalOption(option::RANDOM_MONITORS,			 true),
-		ConditionalOption(option::MONITOR_BEHAVIOR,			 true),
-		ConditionalOption(option::RANDOM_SPECIALSTAGES,		 true),
-		ConditionalOption(option::SPECIAL_STAGE_REPEAT,		 true),
-		ConditionalOption(option::REGION,					 true),
-		ConditionalOption(option::GAME_SPEED,				 false, SharedDatabase::Secret::SECRET_GAME_SPEED)
-	};
+			options.push_back(ConditionalOption(option::DEBUG_MODE,				 false, SharedDatabase::Secret::SECRET_DEBUGMODE));
+			options.push_back(ConditionalOption(option::TITLE_SCREEN,				 true,  SharedDatabase::Secret::SECRET_TITLE_SK));
+			options.push_back(ConditionalOption(option::SHIELD_TYPES,				 true));
+			options.push_back(ConditionalOption(option::RANDOM_MONITORS,			 true));
+			options.push_back(ConditionalOption(option::MONITOR_BEHAVIOR,			 true));
+			options.push_back(ConditionalOption(option::RANDOM_SPECIALSTAGES,		 true));
+			options.push_back(ConditionalOption(option::SPECIAL_STAGE_REPEAT,		 true));
+			options.push_back(ConditionalOption(option::REGION,					 true));
+			options.push_back(ConditionalOption(option::GAME_SPEED,				 false, SharedDatabase::Secret::SECRET_GAME_SPEED));
+		}
+		return options;
+	}
 }
 
 
@@ -266,17 +271,17 @@ OptionsMenu::OptionsMenu(MenuBackground& menuBackground) :
 		entries.addEntry<LabelMenuEntry>().initEntry("These settings are meant only for debugging very specific issues.\nIt's recommended to leave them at their default values.", Color(1.0f, 0.8f, 0.6f));
 
 		entries.addEntry<AdvancedOptionMenuEntry>()
-			.setDefaultValue(-1)
+			.setDefaultValue(0xffffffff)
 			.initEntry("Script Optimization", option::SCRIPT_OPTIMIZATION)
-			.addOption("Auto (Default)", -1)
+			.addOption("Auto (Default)", 0xffffffff)
 			.addOption("Disabled", 0)
 			.addOption("Basic", 1)
 			.addOption("Full", 3);
 
 		entries.addEntry<AdvancedOptionMenuEntry>()
-			.setDefaultValue(-1)
+			.setDefaultValue(0xffffffff)
 			.initEntry("Debug Game Recording", option::GAME_RECORDING_MODE)
-			.addOption("Auto (Default)", -1)
+			.addOption("Auto (Default)", 0xffffffff)
 			.addOption("Disabled", 0)
 			.addOption("Enabled", 1);
 	}
@@ -650,17 +655,17 @@ OptionsMenu::OptionsMenu(MenuBackground& menuBackground) :
 
 		for (int k = 0; k < 2; ++k)
 		{
-			GameMenuEntry& entry = entries.addEntry<OptionsMenuEntry>().initEntry(*String(0, "Controller Player %d", k+1), option::CONTROLLER_PLAYER_1 + k);
+			GameMenuEntry& entry = entries.addEntry<OptionsMenuEntry>().initEntry(*String(0, "Controller Player %d", k+1), (option::Option)(option::CONTROLLER_PLAYER_1 + k));
 			if (Application::instance().hasVirtualGamepad())
-				entry.addOption("None (Touch only)", -1);
+				entry.addOption("None (Touch only)", 0xffffffff);
 			else
-				entry.addOption("None (Keyboard only)", -1);
+				entry.addOption("None (Keyboard only)", 0xffffffff);
 			// Actual options will get filled in inside "refreshGamepadLists"
 			mGamepadAssignmentEntries[k] = &entry;
 		}
 
 		entries.addEntry<OptionsMenuEntry>().initEntry("Other controllers", option::CONTROLLER_AUTOASSIGN)
-			.addOption("Not used", -1)
+			.addOption("Not used", 0xffffffff)
 			.addOption("Assign to Player 1", 0)
 			.addOption("Assign to Player 2", 1);
 
@@ -679,7 +684,7 @@ OptionsMenu::OptionsMenu(MenuBackground& menuBackground) :
 
 		for (int k = 0; k < 2; ++k)
 		{
-			GameMenuEntry& entry = entries.addEntry<OptionsMenuEntry>().initEntry(*String(0, "Rumble Player %d", k+1), option::CONTROLLER_RUMBLE_P1 + k);
+			GameMenuEntry& entry = entries.addEntry<OptionsMenuEntry>().initEntry(*String(0, "Rumble Player %d", k+1), (option::Option)(option::CONTROLLER_RUMBLE_P1 + k));
 			entry.addOption("Off", 0);
 			for (int i = 20; i <= 100; i += 20)
 				entry.addOption(*String(0, "%d %%", i), i);
@@ -988,9 +993,10 @@ void OptionsMenu::initialize()
 	{
 		mSoundTestAudioDefinitions.clear();
 		const bool devModeEnabled = Configuration::instance().mDevMode.mEnabled;
-		const auto& audioDefinitions = AudioOut::instance().getAudioCollection().getAudioDefinitions();
-		for (const auto& [key, audioDefinition] : audioDefinitions)
+		const std::map<uint64, AudioCollection::AudioDefinition>& audioDefinitions = AudioOut::instance().getAudioCollection().getAudioDefinitions();
+		for (std::map<uint64, AudioCollection::AudioDefinition>::const_iterator it = audioDefinitions.begin(); it != audioDefinitions.end(); ++it)
 		{
+			const AudioCollection::AudioDefinition& audioDefinition = it->second;
 			bool visible = false;
 			const AudioCollection::AudioDefinition::Visibility visibility = audioDefinition.mSoundTestVisibility;
 			switch (visibility)
@@ -1013,7 +1019,7 @@ void OptionsMenu::initialize()
 
 			if (visible)
 			{
-				mSoundTestAudioDefinitions.emplace_back(&audioDefinition);
+				mSoundTestAudioDefinitions.push_back(&audioDefinition);
 			}
 		}
 
@@ -1232,9 +1238,9 @@ void OptionsMenu::update(float timeElapsed)
 								{
 									mOptionEntries[selectedData].applyValue();
 
-									if (selectedData >= option::CONTROLLER_RUMBLE_P1 && selectedData <= option::CONTROLLER_RUMBLE_P2)
+							if (selectedData >= (uint32)option::CONTROLLER_RUMBLE_P1 && selectedData <= (uint32)option::CONTROLLER_RUMBLE_P2)
 									{
-										InputManager::instance().setControllerRumbleForPlayer(selectedData - option::CONTROLLER_RUMBLE_P1, 1.0f, 1.0f, 300);
+								InputManager::instance().setControllerRumbleForPlayer(selectedData - (uint32)option::CONTROLLER_RUMBLE_P1, 1.0f, 1.0f, 300);
 									}
 									else if (selectedData >= option::VGAMEPAD_DPAD_SIZE && selectedData <= option::VGAMEPAD_BUTTONS_SIZE)
 									{
@@ -1620,8 +1626,10 @@ void OptionsMenu::setupOptionsMenu(bool enteredFromIngame)
 {
 	mEnteredFromIngame = enteredFromIngame;
 
-	for (const ConditionalOption& option : CONDITIONAL_OPTIONS)
+	const std::vector<ConditionalOption>& conditionalOptions = getConditionalOptions();
+	for (size_t i = 0; i < conditionalOptions.size(); ++i)
 	{
+		const ConditionalOption& option = conditionalOptions[i];
 		OptionsMenuEntry& optionsMenuEntry = *static_cast<OptionsMenuEntry*>(mOptionEntries[option.mOptionId].mGameMenuEntry);
 		const bool visible = option.shouldBeVisible(enteredFromIngame) && optionsMenuEntry.shouldBeShown();
 		optionsMenuEntry.setVisible(visible);
@@ -1741,7 +1749,7 @@ void OptionsMenu::refreshGamepadLists(bool forceUpdate)
 		{
 			GameMenuEntry& entry = *mGamepadAssignmentEntries[playerIndex];
 			const int32 preferredValue = InputManager::instance().getPreferredGamepadByJoystickInstanceId(playerIndex);
-			const uint32 oldSelectedValue = (preferredValue >= 0) ? (uint32)preferredValue : entry.hasSelected() ? entry.selected().mValue : (uint32)-1;
+			const uint32 oldSelectedValue = (preferredValue >= 0) ? (uint32)preferredValue : entry.hasSelected() ? entry.selected().mValue : 0xffffffff;
 			entry.mOptions.resize(1);	// First entry is the "None" entry
 
 			for (const InputManager::RealDevice& gamepad : InputManager::instance().getGamepads())

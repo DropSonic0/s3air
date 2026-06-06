@@ -374,7 +374,11 @@ void SoundtrackDownloadMenuEntry::renderEntry(RenderContext& renderContext_)
 				break;
 
 			case RemasteredMusicDownload::State::DOWNLOAD_RUNNING:
+			#if defined(PLATFORM_PS3)
+				text = "Downloading... " + std::string(*String(0, "%u", download.getBytesDownloaded() / (1024*1024))) + " MB";
+			#else
 				text = "Downloading... " + std::to_string(download.getBytesDownloaded() / (1024*1024)) + " MB";
+			#endif
 				mText = "Stop download";
 				break;
 

@@ -38,7 +38,7 @@
 
 namespace
 {
-	const constexpr float CUTSCENE_SKIPPING_SPEED = 4.0f;	// Should be more or less "unique", not one of the debug game speeds (3.0f or 5.0f)
+	static constexpr float CUTSCENE_SKIPPING_SPEED = 4.0f;	// Should be more or less "unique", not one of the debug game speeds (3.0f or 5.0f)
 
 	void setDiscordDetails(lemon::StringRef text)
 	{

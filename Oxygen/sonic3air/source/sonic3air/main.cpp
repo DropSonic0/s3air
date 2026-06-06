@@ -16,12 +16,15 @@
 
 // HJW: I know it's sloppy to put this here... it'll get moved afterwards
 // Building with my env (msys2,gcc) requires this stub for some reason
+#if !defined(PLATFORM_PS3)
 #ifndef pathconf
+#include <errno.h>
 long pathconf(const char* path, int name)
 {
 	errno = ENOSYS;
 	return -1;
 }
+#endif
 #endif
 
 #if defined(PLATFORM_WINDOWS) & !defined(__GNUC__)
@@ -67,7 +70,9 @@ int main(int argc, char** argv)
 	}
 #endif
 
+#if !defined(PLATFORM_PS3)
 	try
+#endif
 	{
 		// Create engine delegate and engine main instance
 		EngineDelegate myDelegate;
@@ -90,10 +95,12 @@ int main(int argc, char** argv)
 		// Now run the game
 		myMain.execute(argc, argv);
 	}
+#if !defined(PLATFORM_PS3)
 	catch (const std::exception& e)
 	{
 		RMX_ERROR("Caught unhandled exception in main loop: " << e.what(), );
 	}
+#endif
 
 	return 0;
 }

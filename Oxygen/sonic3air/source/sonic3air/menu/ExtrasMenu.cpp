@@ -536,7 +536,7 @@ void ExtrasMenu::render()
 							textLines = &mDescriptionLinesCache[entry.mData];
 							utils::splitTextIntoLines(*textLines, achievement->mDescription, global::mOxyfontTiny, 260);
 							if (!achievement->mHint.empty())
-								textLines->emplace_back("Hint: " + achievement->mHint);
+								textLines->push_back("Hint: " + achievement->mHint);
 						}
 						else
 						{

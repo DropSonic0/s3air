@@ -42,14 +42,26 @@ GameMenuEntry& GameMenuEntry::addOption(const std::string& text, uint32 value)
 GameMenuEntry& GameMenuEntry::addNumberOptions(int minValue, int maxValue, int step)
 {
 	for (int value = minValue; value <= maxValue; value += step)
+	{
+	#if defined(PLATFORM_PS3)
+		addOptionRef(*String(0, "%d", value), value);
+	#else
 		addOptionRef(std::to_string(value), value);
+	#endif
+	}
 	return *this;
 }
 
 GameMenuEntry& GameMenuEntry::addPercentageOptions(int minValue, int maxValue, int step)
 {
 	for (int value = minValue; value <= maxValue; value += step)
+	{
+	#if defined(PLATFORM_PS3)
+		addOptionRef(std::string(*String(0, "%d", value)) + '%', value);
+	#else
 		addOptionRef(std::to_string(value) + '%', value);
+	#endif
+	}
 	return *this;
 }
 

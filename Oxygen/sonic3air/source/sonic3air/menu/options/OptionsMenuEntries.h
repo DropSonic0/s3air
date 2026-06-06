@@ -25,7 +25,11 @@ struct OptionsMenuRenderContext : public GameMenuEntry::RenderContext
 class TitleMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("TitleMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0x2d921dc3;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("TitleMenuEntry");
+#endif
 
 public:
 	TitleMenuEntry();
@@ -38,7 +42,11 @@ public:
 class ModTitleMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("ModTitleMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0x9bb222bf;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("ModTitleMenuEntry");
+#endif
 
 public:
 	ModTitleMenuEntry();
@@ -57,7 +65,11 @@ private:
 class LabelMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("LabelMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0xc308bfd3;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("LabelMenuEntry");
+#endif
 
 public:
 	LabelMenuEntry();

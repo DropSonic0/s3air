@@ -28,13 +28,13 @@ void GameMenuControlsDisplay::addControl(std::string_view displayText, bool alig
 	{
 		if (!control.mSpriteKeys.empty() && spriteKey == control.mSpriteKeys[0])
 		{
-			control.mDisplayText = displayText;
+			control.mDisplayText.assign(displayText.data(), displayText.length());
 			return;
 		}
 	}
 
 	Control& newControl = vectorAdd(mControls);
-	newControl.mDisplayText = displayText;
+	newControl.mDisplayText.assign(displayText.data(), displayText.length());
 	newControl.mAlignRight = alignRight;
 	newControl.mSpriteKeys.push_back(spriteKey);
 
@@ -63,9 +63,9 @@ void GameMenuControlsDisplay::render(Drawer& drawer, float visibility)
 
 	// Right-aligned entries (in reverse order)
 	pos.x = 400 - 8;
-	for (auto it = mControls.crbegin(); it != mControls.crend(); ++it)
+	for (int i = (int)mControls.size() - 1; i >= 0; --i)
 	{
-		const Control& control = *it;
+		const Control& control = mControls[i];
 		if (!control.mSpriteKeys.empty() && control.mAlignRight)
 		{
 			drawControl(control, drawer, pos);

@@ -28,7 +28,9 @@
 
 namespace
 {
+#if !defined(PLATFORM_PS3)
 	static constexpr int BACK = 0xffff;
+#endif
 
 	void moveFloatTowards(float& value, float target, float maxStep)
 	{
@@ -341,7 +343,7 @@ void ModsMenu::update(float timeElapsed)
 			const int entryChange = menuEntries.getEntryChangeByInput();
 			if (entryChange != 0)
 			{
-				const constexpr int NUM_QUICK_NAV_STEPS = 3;
+				static constexpr int NUM_QUICK_NAV_STEPS = 3;
 				for (int k = 0; k < NUM_QUICK_NAV_STEPS; ++k)
 				{
 					if (!menuEntries.changeSelectedIndex(entryChange, false))
@@ -907,7 +909,9 @@ void ModsMenu::refreshDependencies(ModMenuEntry& modMenuEntry, size_t modIndex)
 	for (const Mod::OtherModInfo& otherModInfo : modMenuEntry.getMod().mOtherModInfos)
 	{
 		const Mod* otherMod = modManager.findModByIDHash(otherModInfo.mModIDHash);
+	#if !defined(PLATFORM_PS3)
 		ModEntry* foundOtherMod = nullptr;
+	#endif
 		size_t foundIndex = ~0;
 		if (nullptr != otherMod)
 		{

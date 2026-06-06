@@ -16,7 +16,11 @@
 class InputFieldMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("InputFieldMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0x512cb2e5;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("InputFieldMenuEntry");
+#endif
 
 public:
 	InputFieldMenuEntry();
