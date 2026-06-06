@@ -20,7 +20,14 @@ namespace lowlevel
 	struct PacketBase
 	{
 	public:
+#if defined(PLATFORM_PS3)
+		static const VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS;
+#else
 		static constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS { 1, 1 };
+#endif
+
+	public:
+		virtual ~PacketBase() {}
 
 	public:
 		bool serializePacket(VectorBinarySerializer& serializer, uint8 protocolVersion)
@@ -42,6 +49,8 @@ namespace lowlevel
 		VersionRange<uint8> mLowLevelProtocolVersionRange;
 		VersionRange<uint8> mHighLevelProtocolVersionRange;
 
+		virtual ~StartConnectionPacket() {}
+
 		static constexpr uint16 SIGNATURE = 0x87a1;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
@@ -58,6 +67,8 @@ namespace lowlevel
 		uint8 mLowLevelProtocolVersion = 0;
 		uint8 mHighLevelProtocolVersion = 0;
 
+		virtual ~AcceptConnectionPacket() {}
+
 		static constexpr uint16 SIGNATURE = 0x1b22;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
@@ -71,6 +82,8 @@ namespace lowlevel
 
 	struct ErrorPacket : public PacketBase
 	{
+		virtual ~ErrorPacket() {}
+
 		enum class ErrorCode : uint8
 		{
 			// The errors marking with (*) are sent without an actual establishes connection - that means they do not include a proper local connection ID and just re-use the received remote connection ID
@@ -97,6 +110,8 @@ namespace lowlevel
 
 	struct HighLevelPacket : public PacketBase
 	{
+		virtual ~HighLevelPacket() {}
+
 		struct Flags
 		{
 			// None defined yet
@@ -122,6 +137,7 @@ namespace lowlevel
 	struct RequestQueryPacket : public HighLevelPacket
 	{
 		// No need for any custom members here
+		virtual ~RequestQueryPacket() {}
 
 		static constexpr uint16 SIGNATURE = 0x0c7a;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
@@ -138,6 +154,8 @@ namespace lowlevel
 		// Extension to the high level packet
 		uint32 mUniqueRequestID = 0;
 
+		virtual ~RequestResponsePacket() {}
+
 		static constexpr uint16 SIGNATURE = 0xd028;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
@@ -152,6 +170,8 @@ namespace lowlevel
 	struct ReceiveConfirmationPacket : public PacketBase
 	{
 		uint32 mUniquePacketID = 0;
+
+		virtual ~ReceiveConfirmationPacket() {}
 
 		static constexpr uint16 SIGNATURE = 0x276f;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }

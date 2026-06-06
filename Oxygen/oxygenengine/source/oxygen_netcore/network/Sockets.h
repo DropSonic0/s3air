@@ -20,17 +20,29 @@ public:
 	static bool resolveToIP(const std::string& hostName, std::string& outIP);
 
 public:
+#if defined(PLATFORM_PS3)
+	static rmx::ErrorHandling::LoggerInterface* mLogger;
+#else
 	static inline rmx::ErrorHandling::LoggerInterface* mLogger = nullptr;
+#endif
 
 private:
+#if defined(PLATFORM_PS3)
+	static bool mIsInitialized;
+#else
 	static inline bool mIsInitialized = false;
+#endif
 };
 
 
 struct SocketAddress
 {
 public:
+#if defined(PLATFORM_PS3)
+	static bool mPreventIPLogging;
+#else
 	static inline bool mPreventIPLogging = false;
+#endif
 
 public:
 	inline SocketAddress() :
@@ -51,7 +63,15 @@ public:
 
 	inline const std::string& getIP() const	 { assureIpPort();  return mIP; }
 	inline uint16 getPort() const			 { assureIpPort();  return mPort; }
-	inline std::string toString() const		 { assureIpPort();  return mIP + ':' + std::to_string(mPort); }
+	inline std::string toString() const
+	{
+		assureIpPort();
+#if defined(PLATFORM_PS3)
+		return mIP + ':' + std::string(*String(0, "%u", mPort));
+#else
+		return mIP + ':' + std::to_string(mPort);
+#endif
+	}
 	std::string toLoggedString() const;
 
 	inline bool isValid() const  { return (mHasSockAddr || mHasIpPort); }

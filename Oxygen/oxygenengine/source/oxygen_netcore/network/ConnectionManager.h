@@ -35,6 +35,10 @@ public:
 public:
 	ConnectionManager(UDPSocket* udpSocket, TCPSocket* tcpListenSocket, ConnectionListenerInterface& listener, VersionRange<uint8> highLevelProtocolVersionRange);
 
+#if defined(PLATFORM_PS3)
+	ConnectionManager(UDPSocket* udpSocket, TCPSocket* tcpListenSocket, ConnectionListenerInterface& listener, uint8 minVersion, uint8 maxVersion);
+#endif
+
 	inline bool hasUDPSocket() const			  { return (nullptr != mUDPSocket); }
 	inline UDPSocket* getUDPSocket() const		  { return mUDPSocket; }
 	inline TCPSocket* getTCPListenSocket() const  { return mTCPListenSocket; }
@@ -82,7 +86,11 @@ private:
 	UDPSocket* mUDPSocket = nullptr;		// Only set if UDP is used (or both UDP and TCP)
 	TCPSocket* mTCPListenSocket = nullptr;	// Only set if TCP is used (or both UDP and TCP)
 	ConnectionListenerInterface& mListener;
+#if defined(PLATFORM_PS3)
+	VersionRange<uint8> mHighLevelProtocolVersionRange;
+#else
 	VersionRange<uint8> mHighLevelProtocolVersionRange = { 1, 1 };
+#endif
 
 	std::unordered_map<uint16, NetConnection*> mActiveConnections;		// Using local connection ID as key
 	std::unordered_map<uint64, NetConnection*> mConnectionsBySender;	// Using a sender key (= hash for the sender address + remote connection ID) as key

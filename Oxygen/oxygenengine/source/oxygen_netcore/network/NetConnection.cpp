@@ -539,7 +539,11 @@ bool NetConnection::sendHighLevelPacket(lowlevel::HighLevelPacket& lowLevelPacke
 
 void NetConnection::handleHighLevelPacket(ReceivedPacket& receivedPacket, const lowlevel::HighLevelPacket& highLevelPacket, VectorBinarySerializer& serializer, uint32 uniqueResponseID)
 {
+#if defined(PLATFORM_PS3)
+	const std::string signatureString = "HighLevel_" + std::string(*String(0, "%u", highLevelPacket.mPacketType));
+#else
 	const std::string signatureString = "HighLevel_" + std::to_string(highLevelPacket.mPacketType);
+#endif
 	LAG_STOPWATCH(signatureString.c_str(), 1000);
 
 	// Is this a tracked packet at all?

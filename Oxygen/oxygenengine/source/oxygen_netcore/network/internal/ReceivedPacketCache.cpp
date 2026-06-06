@@ -65,12 +65,12 @@ bool ReceivedPacketCache::enqueuePacket(ReceivedPacket& receivedPacket, const lo
 			// TODO: Check if that would create a very large gap
 			for (size_t k = 0; k < indexAfterQueue; ++k)
 			{
-				mQueue.emplace_back();
+				mQueue.push_back(CacheItem());
 			}
 		}
 
 		// Enqueue the packet content
-		mQueue.emplace_back();
+		mQueue.push_back(CacheItem());
 		itemToFill = &mQueue.back();
 	}
 

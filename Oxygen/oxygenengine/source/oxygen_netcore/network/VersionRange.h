@@ -14,11 +14,15 @@
 template<typename T>
 struct VersionRange
 {
-	T mMinimum = 0;		// Both minimum and maximum value are meant to be inclusive (see "contains()")
-	T mMaximum = 0;
+	T mMinimum;		// Both minimum and maximum value are meant to be inclusive (see "contains()")
+	T mMaximum;
 
-	inline VersionRange() {}
+	inline VersionRange() : mMinimum(0), mMaximum(0) {}
+#if defined(PLATFORM_PS3)
+	inline VersionRange(T minimum, T maximum) : mMinimum(minimum), mMaximum(maximum) {}
+#else
 	inline constexpr VersionRange(T minimum, T maximum) : mMinimum(minimum), mMaximum(maximum) {}
+#endif
 
 	inline bool isValid() const  { return (mMinimum <= mMaximum); }
 

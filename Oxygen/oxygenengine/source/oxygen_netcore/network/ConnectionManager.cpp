@@ -19,8 +19,20 @@ ConnectionManager::ConnectionManager(UDPSocket* udpSocket, TCPSocket* tcpListenS
 	mListener(listener),
 	mHighLevelProtocolVersionRange(highLevelProtocolVersionRange)
 {
+#if !defined(PLATFORM_PS3)
 	mActiveConnections.reserve(16);
+#endif
 }
+
+#if defined(PLATFORM_PS3)
+ConnectionManager::ConnectionManager(UDPSocket* udpSocket, TCPSocket* tcpListenSocket, ConnectionListenerInterface& listener, uint8 minVersion, uint8 maxVersion) :
+	mUDPSocket(udpSocket),
+	mTCPListenSocket(tcpListenSocket),
+	mListener(listener),
+	mHighLevelProtocolVersionRange(minVersion, maxVersion)
+{
+}
+#endif
 
 void ConnectionManager::updateConnections(uint64 currentTimestamp)
 {
@@ -76,7 +88,7 @@ bool ConnectionManager::updateReceivePackets()
 
 			RMX_LOG_INFO("Accepted TCP connection");
 			anyActivity = true;
-			mIncomingTCPConnections.emplace_back();
+			mIncomingTCPConnections.push_back(TCPSocket());
 			mIncomingTCPConnections.back().swapWith(newSocket);
 		}
 	}
@@ -300,7 +312,7 @@ void ConnectionManager::receivedPacketInternal(const std::vector<uint8>& buffer,
 		receivedPacket.mLowLevelSignature = lowLevelSignature;
 		receivedPacket.mSenderAddress = senderAddress;
 		receivedPacket.mConnection = connection;
-		mReceivedPackets.mWorkerQueue.emplace_back(&receivedPacket);
+		mReceivedPackets.mWorkerQueue.push_back(&receivedPacket);
 	}
 	else
 	{
@@ -380,7 +392,7 @@ void ConnectionManager::receivedPacketInternal(const std::vector<uint8>& buffer,
 					receivedPacket.mLowLevelSignature = lowLevelSignature;
 					receivedPacket.mSenderAddress = senderAddress;
 					receivedPacket.mConnection = connection;
-					mReceivedPackets.mWorkerQueue.emplace_back(&receivedPacket);
+					mReceivedPackets.mWorkerQueue.push_back(&receivedPacket);
 				}
 			}
 		}
