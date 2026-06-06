@@ -25,7 +25,7 @@ bool SocketAddress::mPreventIPLogging = false;
 	#pragma comment (lib, "Mswsock.lib")
 	#pragma comment (lib, "AdvApi32.lib")
 
-#else
+#elif !defined(PLATFORM_PS3)
 	// Use POSIX sockets
 	#include <sys/socket.h>
 	#include <sys/select.h>
@@ -37,6 +37,10 @@ bool SocketAddress::mPreventIPLogging = false;
 	#define SOCKET int
 	#define INVALID_SOCKET -1
 
+#else
+	// Stubs for PS3
+	#define SOCKET int
+	#define INVALID_SOCKET -1
 #endif
 
 
@@ -66,10 +70,13 @@ void Sockets::shutdownSockets()
 
 bool Sockets::resolveToIP(const std::string& hostName, std::string& outIP)
 {
-#ifdef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__)
 	// Just return the input
 	outIP = hostName;
 	return true;
+#elif defined(PLATFORM_PS3)
+	// Not supported on PS3
+	return false;
 #else
 
 	// Resolve host name to an IP
@@ -163,6 +170,7 @@ void SocketAddress::assureSockAddr() const
 	if (!mHasSockAddr)
 	{
 		memset(&mSockAddr, 0, sizeof(mSockAddr));
+#if !defined(PLATFORM_PS3)
 		bool success = false;
 		{
 			// IPv6
@@ -179,6 +187,7 @@ void SocketAddress::assureSockAddr() const
 			addr.sin_port = htons(mPort);
 			inet_pton(addr.sin_family, mIP.c_str(), &addr.sin_addr);
 		}
+#endif
 		mHasSockAddr = true;
 	}
 }
@@ -189,10 +198,12 @@ void SocketAddress::assureIpPort() const
 	{
 		if (mHasSockAddr)
 		{
+#if !defined(PLATFORM_PS3)
 			char myIP[512];
 			inet_ntop(reinterpret_cast<sockaddr_storage&>(mSockAddr).ss_family, &(reinterpret_cast<sockaddr_in&>(mSockAddr).sin_addr), myIP, sizeof(myIP));
 			mIP = myIP;
 			mPort = ntohs(reinterpret_cast<sockaddr_in&>(mSockAddr).sin_port);
+#endif
 		}
 		else
 		{
@@ -243,7 +254,7 @@ void TCPSocket::close()
 	{
 		status = ::closesocket(mInternal->mSocket);
 	}
-#else
+#elif !defined(PLATFORM_PS3)
 	int status = shutdown(mInternal->mSocket, SHUT_RDWR);
 	if (status == 0)
 	{
@@ -279,6 +290,7 @@ bool TCPSocket::setupServer(uint16 serverPort)
 		close();
 	}
 
+#if !defined(PLATFORM_PS3)
 	addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -349,10 +361,14 @@ bool TCPSocket::setupServer(uint16 serverPort)
 	#endif
 
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool TCPSocket::acceptConnection(TCPSocket& outSocket)
 {
+#if !defined(PLATFORM_PS3)
 	fd_set socketSet;
 	FD_ZERO(&socketSet);
 	FD_SET(mInternal->mSocket, &socketSet);
@@ -402,6 +418,9 @@ bool TCPSocket::acceptConnection(TCPSocket& outSocket)
 
 	outSocket.mInternal->mRemoteAddress.onSockAddrSet();
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool TCPSocket::connectTo(const std::string& serverAddress, uint16 serverPort)
@@ -415,6 +434,7 @@ bool TCPSocket::connectTo(const std::string& serverAddress, uint16 serverPort)
 		close();
 	}
 
+#if !defined(PLATFORM_PS3)
 	// Resolve the server address
 	addrinfo* addressInfos = nullptr;
 	{
@@ -455,6 +475,9 @@ bool TCPSocket::connectTo(const std::string& serverAddress, uint16 serverPort)
 
 	::freeaddrinfo(addressInfos);
 	return (mInternal->mSocket != INVALID_SOCKET);
+#else
+	return false;
+#endif
 }
 
 bool TCPSocket::sendData(const uint8* data, size_t length)
@@ -462,8 +485,12 @@ bool TCPSocket::sendData(const uint8* data, size_t length)
 	if (!isValid())
 		return false;
 
+#if !defined(PLATFORM_PS3)
 	const int result = ::send(mInternal->mSocket, (const char*)data, (int)length, 0);
 	return (result >= 0);
+#else
+	return false;
+#endif
 }
 
 bool TCPSocket::sendData(const std::vector<uint8>& data)
@@ -479,6 +506,7 @@ bool TCPSocket::receiveBlocking(ReceiveResult& outReceiveResult)
 	if (!isValid())
 		return false;
 
+#if !defined(PLATFORM_PS3)
 #ifndef _WIN32
 	if (!mInternal->mIsBlockingSocket)
 	{
@@ -490,6 +518,9 @@ bool TCPSocket::receiveBlocking(ReceiveResult& outReceiveResult)
 #endif
 
 	return receiveInternal(outReceiveResult);
+#else
+	return false;
+#endif
 }
 
 bool TCPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult)
@@ -509,7 +540,7 @@ bool TCPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult)
 		}
 	}
 
-#else
+#elif !defined(PLATFORM_PS3)
 	if (mInternal->mIsBlockingSocket)
 	{
 		// Set to non-blocking
@@ -527,6 +558,7 @@ bool TCPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult)
 
 bool TCPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 {
+#if !defined(PLATFORM_PS3)
 	size_t bytesRead = 0;
 	while (true)
 	{
@@ -564,6 +596,9 @@ bool TCPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 			return false;
 		}
 	}
+#else
+	return false;
+#endif
 }
 
 
@@ -602,7 +637,7 @@ void UDPSocket::close()
 	{
 		result = closesocket(mInternal->mSocket);
 	}
-#else
+#elif !defined(PLATFORM_PS3)
 	int result = shutdown(mInternal->mSocket, SHUT_RDWR);
 	if (result == 0)
 	{
@@ -625,6 +660,7 @@ bool UDPSocket::bindToPort(uint16 port)
 		close();
 	}
 
+#if !defined(PLATFORM_PS3)
 	addrinfo hints;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -678,6 +714,9 @@ bool UDPSocket::bindToPort(uint16 port)
 	::setsockopt(mInternal->mSocket, SOL_SOCKET, SO_SNDBUF, (const char*)&bufsize, sizeof(bufsize));
 	::setsockopt(mInternal->mSocket, SOL_SOCKET, SO_RCVBUF, (const char*)&bufsize, sizeof(bufsize));
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool UDPSocket::bindToAnyPort()
@@ -691,6 +730,7 @@ bool UDPSocket::bindToAnyPort()
 		close();
 	}
 
+#if !defined(PLATFORM_PS3)
 	// Create a socket
 	mInternal->mSocket = ::socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (mInternal->mSocket < 0)
@@ -707,6 +747,9 @@ bool UDPSocket::bindToAnyPort()
 	::setsockopt(mInternal->mSocket, SOL_SOCKET, SO_SNDBUF, (const char*)&bufsize, sizeof(bufsize));
 	::setsockopt(mInternal->mSocket, SOL_SOCKET, SO_RCVBUF, (const char*)&bufsize, sizeof(bufsize));
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool UDPSocket::sendData(const uint8* data, size_t length, const SocketAddress& destinationAddress)
@@ -714,6 +757,7 @@ bool UDPSocket::sendData(const uint8* data, size_t length, const SocketAddress& 
 	if (!isValid())
 		return false;
 
+#if !defined(PLATFORM_PS3)
 	const int result = ::sendto(mInternal->mSocket, (const char*)data, (int)length, 0, (sockaddr*)destinationAddress.getSockAddr(), (int)sizeof(sockaddr));
 	if (result >= 0)
 		return true;
@@ -724,6 +768,7 @@ bool UDPSocket::sendData(const uint8* data, size_t length, const SocketAddress& 
 #else
 	const int errorCode = errno;
 	RMX_LOG_INFO("sendto failed with error: " << errorCode);
+#endif
 #endif
 	return false;
 }
@@ -741,6 +786,7 @@ bool UDPSocket::receiveBlocking(ReceiveResult& outReceiveResult)
 	if (!isValid())
 		return false;
 
+#if !defined(PLATFORM_PS3)
 #ifndef _WIN32
 	if (!mInternal->mIsBlockingSocket)
 	{
@@ -752,6 +798,9 @@ bool UDPSocket::receiveBlocking(ReceiveResult& outReceiveResult)
 #endif
 
 	return receiveInternal(outReceiveResult);
+#else
+	return false;
+#endif
 }
 
 bool UDPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult)
@@ -771,7 +820,7 @@ bool UDPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult)
 		}
 	}
 
-#else
+#elif !defined(PLATFORM_PS3)
 	if (mInternal->mIsBlockingSocket)
 	{
 		// Set to non-blocking
@@ -789,6 +838,7 @@ bool UDPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult)
 
 bool UDPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 {
+#if !defined(PLATFORM_PS3)
 	size_t bytesRead = 0;
 	while (true)
 	{
@@ -832,4 +882,7 @@ bool UDPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 		outReceiveResult.mBuffer.resize(bytesRead);
 		return true;
 	}
+#else
+	return false;
+#endif
 }
