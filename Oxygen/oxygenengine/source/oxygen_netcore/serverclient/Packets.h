@@ -51,7 +51,11 @@ namespace network
 			}
 		};
 
+#if defined(PLATFORM_PS3)
+		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3("GetServerFeaturesRequest", 0x42cb44eb, 0x167ef506)
+#else
 		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY("GetServerFeaturesRequest")
+#endif
 	};
 
 
@@ -94,7 +98,11 @@ namespace network
 			}
 		};
 
+#if defined(PLATFORM_PS3)
+		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3("AppUpdateCheck", 0x92cfcfb6, 0x6897d27d)
+#else
 		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY("AppUpdateCheck")
+#endif
 	};
 
 }

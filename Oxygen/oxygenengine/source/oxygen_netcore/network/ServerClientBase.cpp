@@ -50,7 +50,11 @@ namespace
 
 uint64 ServerClientBase::getCurrentTimestamp()
 {
+#if defined(PLATFORM_PS3)
+	return 0;
+#else
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+#endif
 }
 
 bool ServerClientBase::updateReceivePackets(ConnectionManager& connectionManager)

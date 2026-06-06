@@ -59,14 +59,22 @@ namespace network
 			}
 		};
 
+#if defined(PLATFORM_PS3)
+		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3("FileDownloadRequest", 0x2b866715, 0x8538b85c)
+#else
 		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY("FileDownloadRequest")
+#endif
 	};
 
 
 	// Request new pieces of a file download
 	struct FileTransferRequestPiecesPacket : public highlevel::PacketBase
 	{
+#if defined(PLATFORM_PS3)
+		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3("FileTransferRequestPiecesPacket", 0xd85cce05);
+#else
 		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE("FileTransferRequestPiecesPacket");
+#endif
 
 		struct PieceInfo
 		{
@@ -100,9 +108,17 @@ namespace network
 	// Transfer a single piece of a file download
 	struct FileTransferPiecePacket : public highlevel::PacketBase
 	{
+#if defined(PLATFORM_PS3)
+		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3("FileTransferPiecePacket", 0x19145d4d);
+#else
 		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE("FileTransferPiecePacket");
+#endif
 
+#if defined(PLATFORM_PS3)
+		enum { MAX_PIECE_SIZE = 0x7f00 };	// Limited by the maximum packet size of 0x8000 that our socket classes can send/receive and the overhead of other packet content
+#else
 		static inline constexpr size_t MAX_PIECE_SIZE = 0x7f00;	// Limited by the maximum packet size of 0x8000 that our socket classes can send/receive and the overhead of other packet content
+#endif
 
 		uint32 mTransferHandle = 0;
 		uint16 mChunkIndex = 0;

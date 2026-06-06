@@ -77,6 +77,8 @@ struct ReceivedRequestEvaluation
 
 struct ConnectionListenerInterface
 {
+	virtual ~ConnectionListenerInterface() {}
+
 	virtual bool onReceivedPacket(ReceivedPacketEvaluation& evaluation)			  { return false; }
 	virtual bool onReceivedRequestQuery(ReceivedQueryEvaluation& evaluation)	  { return false; }
 	virtual void onReceivedRequestResponse(ReceivedRequestEvaluation& evaluation) {}

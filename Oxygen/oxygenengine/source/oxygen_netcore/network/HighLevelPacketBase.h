@@ -10,6 +10,12 @@
 
 #include <rmxbase.h>
 
+#if defined(PLATFORM_PS3)
+#include <map>
+#else
+#include <unordered_map>
+#endif
+
 
 namespace highlevel
 {
@@ -38,7 +44,7 @@ namespace highlevel
 
 	public:
 #if defined(PLATFORM_PS3)
-		static std::unordered_map<uint32, std::string> mPacketTypeRegistry;
+		static std::map<uint32, std::string> mPacketTypeRegistry;
 #else
 		static inline std::unordered_map<uint32, std::string> mPacketTypeRegistry;
 #endif
@@ -58,11 +64,20 @@ namespace highlevel
 
 
 #if defined(PLATFORM_PS3)
+#define HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3(_name_, _hash_) \
+	public: \
+		static const std::string PACKET_NAME; \
+		enum { PACKET_TYPE = (uint32)(_hash_) }; \
+		virtual uint32 getPacketType() const override  { return PACKET_TYPE; } \
+	private: \
+		static highlevel::PacketTypeRegistration mPacketTypeRegistration; \
+	public:
+
 #define HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE(_name_) \
 	public: \
 		static const std::string PACKET_NAME; \
 		enum { PACKET_TYPE = rmx::compileTimeFNV_32(_name_) }; \
-		virtual uint32 getPacketType() const override  { return PACKET_TYPE; } \
+		virtual uint32 getPacketType() const override  { return (uint32)PACKET_TYPE; } \
 	private: \
 		static highlevel::PacketTypeRegistration mPacketTypeRegistration; \
 	public:

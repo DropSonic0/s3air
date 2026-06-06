@@ -9,12 +9,22 @@
 #pragma once
 
 #include <rmxbase.h>
+
+#if !defined(PLATFORM_PS3)
 #include <chrono>
+#endif
 
 
 class LagStopwatch
 {
 public:
+#if defined(PLATFORM_PS3)
+	inline LagStopwatch(const char* text, int maxMs = 2000) : mText(text), mMaximumMilliseconds(maxMs), mStartTime(0) {}
+
+	inline ~LagStopwatch()
+	{
+	}
+#else
 	inline LagStopwatch(const char* text, int maxMs = 2000) : mText(text), mMaximumMilliseconds(maxMs), mStartTime(std::chrono::steady_clock::now()) {}
 
 	inline ~LagStopwatch()
@@ -23,11 +33,16 @@ public:
 		if (milliseconds > mMaximumMilliseconds)
 			RMX_LOG_INFO("LagStopwatch: " << mText << " took " << milliseconds << " ms");
 	}
+#endif
 
 private:
 	const char* mText;
 	int mMaximumMilliseconds = 2000;
+#if defined(PLATFORM_PS3)
+	uint32 mStartTime;
+#else
 	std::chrono::steady_clock::time_point mStartTime;
+#endif
 };
 
 #ifdef OXYGEN_SERVER

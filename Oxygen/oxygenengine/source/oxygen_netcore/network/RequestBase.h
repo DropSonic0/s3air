@@ -51,6 +51,28 @@ namespace highlevel
 
 	// Excuse the quite ugly macro here, but it makes definitions of request classes SO MUCH more compact and less prone to mistakes
 #if defined(PLATFORM_PS3)
+	#define HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3(_classname_, _queryhash_, _responsehash_) \
+		public: \
+			struct Query : public highlevel::PacketBase, public QueryData \
+			{ \
+				HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3(_classname_ "::Query", _queryhash_) \
+				virtual ~Query() {} \
+				virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override  { serializeData(serializer, protocolVersion); } \
+			}; \
+			struct Response : public highlevel::PacketBase, public ResponseData \
+			{ \
+				HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3(_classname_ "::Response", _responsehash_) \
+				virtual ~Response() {} \
+				virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override  { serializeData(serializer, protocolVersion); } \
+			}; \
+			\
+			Query mQuery; \
+			Response mResponse; \
+			\
+		protected: \
+			inline virtual highlevel::PacketBase& getQueryPacket() override	{ return mQuery; } \
+				inline virtual highlevel::PacketBase& getResponsePacket() override	{ return mResponse; }
+
 	#define HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY(_classname_) \
 		public: \
 			struct Query : public highlevel::PacketBase, public QueryData \

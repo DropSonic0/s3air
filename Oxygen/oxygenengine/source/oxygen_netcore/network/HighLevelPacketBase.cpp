@@ -10,15 +10,16 @@
 #include "oxygen_netcore/network/HighLevelPacketBase.h"
 
 #if defined(PLATFORM_PS3)
+#include <map>
 #include "oxygen_netcore/serverclient/ChannelBroadcastPackets.h"
 #include "oxygen_netcore/serverclient/FileTransferPackets.h"
 #include "oxygen_netcore/serverclient/Packets.h"
 
-std::unordered_map<uint32, std::string> highlevel::PacketBase::mPacketTypeRegistry;
+std::map<uint32, std::string> highlevel::PacketBase::mPacketTypeRegistry;
 
 #define HIGHLEVEL_PACKET_IMPLEMENT_PACKET_TYPE(_class_, _name_) \
 	const std::string _class_::PACKET_NAME = _name_; \
-	highlevel::PacketTypeRegistration _class_::mPacketTypeRegistration { _class_::PACKET_TYPE, _class_::PACKET_NAME };
+	highlevel::PacketTypeRegistration _class_::mPacketTypeRegistration { (uint32)_class_::PACKET_TYPE, _class_::PACKET_NAME };
 
 // network::ChannelErrorPacket
 HIGHLEVEL_PACKET_IMPLEMENT_PACKET_TYPE(network::ChannelErrorPacket, "ChannelErrorPacket")
