@@ -27,6 +27,7 @@
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\JsonHelper.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\RealFileProvider.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\math\Math.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\math\Vec2.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\BinarySerializer.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\InputStream.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\OneTimeAllocPool.cpp" />

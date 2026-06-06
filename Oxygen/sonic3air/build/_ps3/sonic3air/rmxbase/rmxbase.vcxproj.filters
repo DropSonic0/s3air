@@ -127,6 +127,9 @@
       <Filter>tools</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\rmxbase.cpp" />
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\math\Vec2.cpp">
+      <Filter>math</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_tool.h">

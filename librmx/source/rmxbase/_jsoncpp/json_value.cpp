@@ -53,6 +53,28 @@ int JSON_API msvc_pre1900_c99_snprintf(char* outBuf, size_t size,
 #define JSON_ASSERT_UNREACHABLE assert(false)
 
 namespace Json {
+
+#if defined(PLATFORM_PS3)
+const LargestInt Value::minLargestInt = LargestInt(~(LargestUInt(-1) >> 1));
+const LargestInt Value::maxLargestInt = LargestInt(LargestUInt(-1) >> 1);
+const LargestUInt Value::maxLargestUInt = LargestUInt(-1);
+
+const Int Value::minInt = Int(~(UInt(-1) >> 1));
+const Int Value::maxInt = Int(UInt(-1) >> 1);
+const UInt Value::maxUInt = UInt(-1);
+
+#if defined(JSON_HAS_INT64)
+const Int64 Value::minInt64 = Int64(~(UInt64(-1) >> 1));
+const Int64 Value::maxInt64 = Int64(UInt64(-1) >> 1);
+const UInt64 Value::maxUInt64 = UInt64(-1);
+#endif
+
+const UInt Value::defaultRealPrecision = 17;
+const double Value::maxUInt64AsDouble = 18446744073709551615.0;
+
+Value::Comments::Comments() throw() : ptr_(0) {}
+#endif
+
 template <typename T>
 static std::unique_ptr<T> cloneUnique(const std::unique_ptr<T>& p) {
   std::unique_ptr<T> r;

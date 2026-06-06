@@ -165,6 +165,11 @@ namespace
 namespace rmx
 {
 
+#if defined(PLATFORM_PS3)
+	ErrorHandling::LoggerInterface* ErrorHandling::mLogger = 0;
+	ErrorHandling::MessageBoxInterface* ErrorHandling::mMessageBoxImplementation = 0;
+#endif
+
 	bool ErrorHandling::isDebuggerAttached()
 	{
 	#if defined(PLATFORM_WINDOWS)

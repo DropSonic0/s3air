@@ -407,7 +407,11 @@ int OggLoader::seekInternal(float targetTime, std::streamsize& rangeMin, std::st
 					if (phase == 1)
 					{
 						// Phase 1: Check if we're roughly at the right position, and find out what's the granule position just before the target time
+#if defined(PLATFORM_PS3)
+						const float foundTime = (float)oggPacket.granulepos / (float)mVorbisInfo.rate;
+#else
 						const float foundTime = (float)vorbis_granule_time(&mVorbisDspState, oggPacket.granulepos);
+#endif
 						if (granulePosFormer == -1)
 						{
 							// Too early?
@@ -468,7 +472,11 @@ float OggLoader::getVorbisPosition()
 {
 	if (!mIsStreaming)
 		return 0.0f;
+#if defined(PLATFORM_PS3)
+	return (float)mVorbisGranulePos / (float)mVorbisInfo.rate;
+#else
 	return (float)vorbis_granule_time(&mVorbisDspState, mVorbisGranulePos);
+#endif
 }
 
 float OggLoader::getFilePosition()

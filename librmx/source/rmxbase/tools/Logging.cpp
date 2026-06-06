@@ -25,6 +25,10 @@
 
 namespace rmx
 {
+#if defined(PLATFORM_PS3)
+	std::vector<LoggerBase*> Logging::mLoggers;
+#endif
+
 	namespace detail
 	{
 		std::string getTimestampString()
