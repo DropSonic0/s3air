@@ -14,6 +14,11 @@
 	#include <unistd.h>
 	#include <limits.h>
 	#include <stdio.h>
+
+	// SNC/PS3 Toolchain missing defines
+	#ifndef PATH_MAX
+		#define PATH_MAX 1024
+	#endif
 #endif
 
 #ifdef PLATFORM_WINDOWS
@@ -565,7 +570,8 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		return std_filesystem::current_path().wstring();
 	#elif defined(PLATFORM_PS3)
-		// chdir and getcwd are not always available on PS3 toolchains
+		// On PS3, we don't have a reliable getcwd/chdir in the standard library.
+		// However, we can use the environment or just return an empty string to trigger fallbacks.
 		return L"";
 	#else
 		return L"";
@@ -578,7 +584,7 @@ namespace rmx
 		const std_filesystem::path fspath(WString(path).toStdWString());
 		std_filesystem::current_path(fspath);
 	#elif defined(PLATFORM_PS3)
-		// chdir and getcwd are not always available on PS3 toolchains
+		// Not supported
 	#endif
 	}
 

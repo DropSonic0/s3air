@@ -62,7 +62,7 @@
       <OptimizationLevel>Level2</OptimizationLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CppLanguageStd>Cpp11</CppLanguageStd>
-      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\librmx\source;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\librmx\source;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include;C:\sonic3air-24.02.02.0-stable\Oxygen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>

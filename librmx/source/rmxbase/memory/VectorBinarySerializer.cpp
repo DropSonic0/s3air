@@ -26,7 +26,7 @@ namespace
 		{
 			const size_t oldSize = buffer.size();
 			buffer.resize(oldSize + sizeof(T));
-			*(T*)&buffer[oldSize] = value;
+			memcpy(&buffer[oldSize], &value, sizeof(T));
 		}
 		return true;
 	}

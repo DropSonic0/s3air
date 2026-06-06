@@ -224,6 +224,34 @@ bool EngineMain::startupEngine()
 
 	PlatformFunctions::onEngineStartup();
 
+	// Determine verious directory and file paths in config
+	initDirectories();
+
+	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
+	Configuration& config = Configuration::instance();
+
+	// Startup logging
+	{
+	#if defined(PLATFORM_PS3)
+		oxygen::Logging::startup(config.mAppDataPath + L"log.txt");
+	#else
+		oxygen::Logging::startup(config.mAppDataPath + L"logfile.txt");
+	#endif
+		RMX_LOG_INFO("--- STARTUP ---");
+		RMX_LOG_INFO("Logging started");
+		RMX_LOG_INFO("Application version: " << appMetaData.mBuildVersionString);
+
+		String commandLine;
+		for (std::string& arg : mArguments)
+		{
+			if (!commandLine.empty())
+				commandLine.add(' ');
+			commandLine.add(arg);
+		}
+		RMX_LOG_INFO("Command line:  " << commandLine.toStdString());
+		RMX_LOG_INFO("App data path: " << WString(config.mAppDataPath).toStdString());
+	}
+
 	if (!mDelegate.onEnginePreStartup())
 		return false;
 
@@ -250,40 +278,12 @@ bool EngineMain::startupEngine()
 	}
 #endif
 
-	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
-	Configuration& config = Configuration::instance();
-
 	// Don't use the accelerometer as a joystick on mobile devices, that's just confusing
 	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
 
 	// Disable the screen saver and hopefully also system sleep (which makes especially sense when playing with a game controller)
 	//  -> It should be disabled by default according to the SDL2 docs, but that does not seem to be always the case
 	SDL_DisableScreenSaver();
-
-	// Determine verious directory and file paths in config
-	initDirectories();
-
-	// Startup logging
-	{
-	#if defined(PLATFORM_PS3)
-		oxygen::Logging::startup(config.mAppDataPath + L"log.txt");
-	#else
-		oxygen::Logging::startup(config.mAppDataPath + L"logfile.txt");
-	#endif
-		RMX_LOG_INFO("--- STARTUP ---");
-		RMX_LOG_INFO("Logging started");
-		RMX_LOG_INFO("Application version: " << appMetaData.mBuildVersionString);
-
-		String commandLine;
-		for (std::string& arg : mArguments)
-		{
-			if (!commandLine.empty())
-				commandLine.add(' ');
-			commandLine.add(arg);
-		}
-		RMX_LOG_INFO("Command line:  " << commandLine.toStdString());
-		RMX_LOG_INFO("App data path: " << WString(config.mAppDataPath).toStdString());
-	}
 
 	// Load configuration and settings
 	if (!initConfigAndSettings(argumentProjectPath))
@@ -378,6 +378,9 @@ void EngineMain::initDirectories()
 
 #if !defined(PLATFORM_ANDROID)
 	config.mExePath = *String(mArguments[0]).toWString();
+	#if defined(PLATFORM_PS3)
+		rmx::FileSystem::normalizePath(config.mExePath, false);
+	#endif
 #endif
 
 	// Get app data path
@@ -385,6 +388,15 @@ void EngineMain::initDirectories()
 	#if defined(PLATFORM_PS3)
 		// PlayStation 3
 		config.mAppDataPath = L"/dev_hdd0/game/" + appMetaData.mAppDataFolder + L"/USRDIR/";
+
+		const std::wstring& exePath = config.mExePath;
+		const size_t slashPos = exePath.find_last_of(L'/');
+		if (slashPos != std::wstring::npos)
+		{
+			config.mAppDataPath = exePath.substr(0, slashPos + 1);
+		// On PS3, we want to make sure the app data path is normalized and does not end in double slashes
+		rmx::FileSystem::normalizePath(config.mAppDataPath, true);
+		}
 	#elif defined(PLATFORM_ANDROID)
 		// Android
 		// TODO: Use internal storage path as a fallback?
@@ -437,9 +449,10 @@ void EngineMain::initDirectories()
 #if defined(PLATFORM_PS3)
 	// On PS3, we also need to add a mount point for the app data path to the filesystem
 	// (Otherwise it might not be able to create files there, as it only knows about the initial root mount)
+	// We mount it as a root replacement so that relative paths are correctly resolved to the USRDIR
 	rmx::RealFileProvider* provider = new rmx::RealFileProvider();
 	FTX::FileSystem->addManagedFileProvider(*provider);
-	FTX::FileSystem->addMountPoint(*provider, config.mAppDataPath, config.mAppDataPath, 0x10);
+	FTX::FileSystem->addMountPoint(*provider, L"", config.mAppDataPath, 0x10);
 #endif
 }
 
@@ -589,7 +602,7 @@ bool EngineMain::loadFilePackageByIndex(size_t index, bool forceReload)
 	if (nullptr == provider)
 	{
 		// Then try loading from save data (e.g. downloaded packages)
-		const std::wstring saveDataBasePath = config.mAppDataPath + L"/data/";
+		const std::wstring saveDataBasePath = config.mAppDataPath + L"data/";
 		provider = PackedFileProvider::createPackedFileProvider(saveDataBasePath + dataPackage.mFilename);
 	}
 

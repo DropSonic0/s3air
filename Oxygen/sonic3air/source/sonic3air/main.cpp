@@ -40,16 +40,23 @@ int main(int argc, char** argv)
 {
 	EngineMain::earlySetup();
 
-#if defined(PLATFORM_PS3)
-	// Startup logging as early as possible to catch issues
-	// We use a fixed path here because we don't have a configuration yet
-	oxygen::Logging::startup(L"/dev_hdd0/game/SONIC3AIR/USRDIR/log.txt");
-	RMX_LOG_INFO("--- EARLY LOGGING START ---");
-#endif
-
 	// Read command line arguments
 	ArgumentsReader arguments;
 	arguments.read(argc, argv);
+
+#if defined(PLATFORM_PS3)
+	// Startup logging as early as possible to catch issues
+	// We try to derive the path from the executable call path
+	std::wstring logPath = L"/dev_hdd0/game/SONIC3AIR/USRDIR/log.txt";
+	const size_t slashPos = arguments.mExecutableCallPath.find_last_of(L'/');
+	if (slashPos != std::wstring::npos)
+	{
+		logPath = arguments.mExecutableCallPath.substr(0, slashPos + 1) + L"log.txt";
+	}
+
+	oxygen::Logging::startup(logPath);
+	RMX_LOG_INFO("--- EARLY LOGGING START ---");
+#endif
 
 	// For certain arguments, just try to forward them to an already running instance of S3AIR
 	if (!arguments.mUrl.empty())

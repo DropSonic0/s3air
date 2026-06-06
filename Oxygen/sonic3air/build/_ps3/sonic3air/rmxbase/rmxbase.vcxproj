@@ -170,7 +170,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <OptimizationLevel>Level2</OptimizationLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\librmx\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\librmx\source;C:\sonic3air-24.02.02.0-stable\Oxygen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SystemIncludeDirectories>
       </SystemIncludeDirectories>
       <CppLanguageStd>Cpp11</CppLanguageStd>

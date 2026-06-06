@@ -73,13 +73,25 @@ bool EngineDelegate::onEnginePreStartup()
 	#if (defined(PLATFORM_MAC) || defined(PLATFORM_IOS)) && defined(ENDUSER)
 		Configuration& config = Configuration::instance();
 		const bool check = FTX::FileSystem->exists(config.mGameDataPath + L"/gamedata.bin");
+	#elif defined(PLATFORM_PS3)
+		RMX_LOG_INFO("Checking for game data...");
+		RMX_LOG_INFO("App data path: " << WString(Configuration::instance().mAppDataPath).toStdString());
+		const bool check1 = FTX::FileSystem->exists(L"data/content.json");
+		const bool check2 = FTX::FileSystem->exists(L"data/gamedata.bin");
+		const bool check3 = FTX::FileSystem->exists(Configuration::instance().mAppDataPath + L"data/content.json");
+		const bool check4 = FTX::FileSystem->exists(Configuration::instance().mAppDataPath + L"data/gamedata.bin");
+		RMX_LOG_INFO("Check: " << check1 << ", " << check2 << ", " << check3 << ", " << check4);
+		const bool check = (check1 || check2 || check3 || check4);
+		RMX_LOG_INFO("Final check result: " << check);
 	#else
 		const bool check = (FTX::FileSystem->exists(L"data/content.json") || FTX::FileSystem->exists(L"data/gamedata.bin"));
 	#endif
 		if (!check)
 		{
-		#ifdef PLATFORM_WINDOWS
+		#if defined(PLATFORM_WINDOWS)
 			RMX_ERROR("Seems like you launched the Sonic3AIR.exe from inside the downloaded ZIP file.\n\nMake sure to first extract the ZIP somewhere like on your desktop, then start the Sonic3AIR.exe in the extracted folder.", );
+		#elif defined(PLATFORM_PS3)
+			RMX_ERROR("Could not find the game data in the 'data' folder.\n\nMake sure that all required files (including 'gamedata.bin' and the 'data' folder itself) are correctly placed in your game's USRDIR.", );
 		#else
 			RMX_ERROR("Seems like you launched the Sonic3AIR executable from inside the downloaded ZIP file.\n\nMake sure to first extract the ZIP somewhere like on your desktop, then start the Sonic3AIR executable in the extracted folder.", );
 		#endif
