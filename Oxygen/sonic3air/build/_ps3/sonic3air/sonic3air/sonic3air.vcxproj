@@ -65,6 +65,8 @@
     </ClCompile>
     <Link>
       <OutputFormat>ELFFile</OutputFormat>
+      <AdditionalDependencies>rmxbase.a;rmxext_oggvorbis.a;rmxmedia.a;lemonscript.a;oxygen.a;oxygen_netcore.a;libcs.a;libsn.a;libivorbis.a;libogg.a;libPSGL.a;libPSGLU.a;libPSGLFX.a;libPSGLcgc.a;libsysmodule_stub.a;libresc_stub.a;libm.a;libdbgfont.a;libsysutil_stub.a;libio_stub.a;libaudio_stub.a;libpthread.a;libsysutil_game_stub.a;libnet_stub.a;libcgc.a;libgcm_cmd.a;libgcm_sys_stub.a;libstdc++.a;libnetctl_stub.a;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\usr\local\cell\target\ppu\lib\PSGL\RSX\ultra-opt;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
