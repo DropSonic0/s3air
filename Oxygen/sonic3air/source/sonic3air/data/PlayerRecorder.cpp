@@ -90,7 +90,6 @@ std::wstring PlayerRecorder::getUnusedRecordingFilename(const std::wstring& path
 			return filename;
 		++nextRecordingIndex;
 	}
-	return basename;
 }
 
 
@@ -152,12 +151,12 @@ void PlayerRecorder::initRecording(const std::wstring& filename, uint16 zoneAndA
 
 	// Save settings
 	const auto& settingsMap = SharedDatabase::getSettings();
-	for (const auto& pair : settingsMap)
+	for (std::map<uint32, SharedDatabase::Setting>::const_iterator it = settingsMap.begin(); it != settingsMap.end(); ++it)
 	{
-		const SharedDatabase::Setting& setting = pair.second;
+		const SharedDatabase::Setting& setting = it->second;
 		if (setting.mSerializationType != SharedDatabase::Setting::SerializationType::NONE && setting.mCurrentValue != setting.mDefaultValue)
 		{
-			mCurrentRecording.mSettings.emplace_back(pair.first, setting.mCurrentValue);
+			mCurrentRecording.mSettings.push_back(std::make_pair(it->first, setting.mCurrentValue));
 		}
 	}
 }
@@ -306,7 +305,7 @@ void PlayerRecorder::updateRecording(Recording& recording, uint16 frameNumber)
 	{
 		EmulatorInterface& emulatorInterface = *mEmulatorInterface;
 
-		recording.mFrames.emplace_back();
+		recording.mFrames.push_back(Frame());
 		Frame& frame = recording.mFrames.back();
 
 		// Collect data
@@ -410,8 +409,9 @@ bool PlayerRecorder::serializeRecording(VectorBinarySerializer& serializer, Reco
 	if (formatVersion >= 0x0106)
 	{
 		serializer.serializeArraySize(recording.mSettings);
-		for (auto& pair : recording.mSettings)
+		for (size_t i = 0; i < recording.mSettings.size(); ++i)
 		{
+			std::pair<uint32, uint8>& pair = recording.mSettings[i];
 			serializer.serialize(pair.first);
 			serializer.serialize(pair.second);
 		}

@@ -22,9 +22,12 @@ protected:
 	void performAudioMix(const MixerParameters& parameters) override;
 
 private:
-	static inline const constexpr size_t MAX_NUM_CHANNELS = 2;
-	static inline const constexpr size_t OUTPUT_BUFFER_SIZE = 1024;
-	static inline const constexpr size_t ACCUMULATION_BUFFER_SIZE = 128;
+	enum
+	{
+		MAX_NUM_CHANNELS = 2,
+		OUTPUT_BUFFER_SIZE = 1024,
+		ACCUMULATION_BUFFER_SIZE = 128
+	};
 
 	int mUnderwaterEffect = 0;
 	float mVolumeMultiplier = 1.0f;

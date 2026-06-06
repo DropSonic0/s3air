@@ -21,7 +21,9 @@
 
 namespace
 {
-	static const constexpr float FASTMUSIC_SPEED_FACTOR = 1.25f;
+#if !defined(PLATFORM_PS3)
+	static constexpr float FASTMUSIC_SPEED_FACTOR = 1.25f;
+#endif
 }
 
 

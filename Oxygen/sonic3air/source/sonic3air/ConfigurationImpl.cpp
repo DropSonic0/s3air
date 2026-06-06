@@ -19,7 +19,7 @@ namespace
 {
 	int getReleaseChannelValueForBuild()
 	{
-		const constexpr uint32 buildVariantHash = rmx::compileTimeFNV_32(BUILD_VARIANT);
+		constexpr uint32 buildVariantHash = rmx::compileTimeFNV_32(BUILD_VARIANT);
 		if (buildVariantHash == rmx::compileTimeFNV_32("TEST"))
 			return 2;
 		else if (buildVariantHash == rmx::compileTimeFNV_32("PREVIEW") || buildVariantHash == rmx::compileTimeFNV_32("BETA"))	// Treat betas as previews
@@ -42,7 +42,7 @@ void ConfigurationImpl::fillDefaultGameProfile(GameProfile& gameProfile)
 	gameProfile.mRomInfos[0].mSteamGameName = "Sonic 3 & Knuckles";
 	gameProfile.mRomInfos[0].mSteamRomName = L"Sonic_Knuckles_wSonic3.bin";
 	gameProfile.mRomInfos[0].mOverwrites.clear();
-	gameProfile.mRomInfos[0].mOverwrites.emplace_back(0x2001f0, 0x4a);
+	gameProfile.mRomInfos[0].mOverwrites.push_back(std::make_pair((uint32)0x2001f0, (uint8)0x4a));
 }
 
 ConfigurationImpl::ConfigurationImpl()
@@ -114,14 +114,15 @@ bool ConfigurationImpl::loadSettingsInternal(JsonHelper& rootHelper, SettingsTyp
 			const auto& settingsMap = SharedDatabase::getSettings();
 
 			// Load settings as uint32 values
-			for (auto& pair : settingsMap)
+			for (std::map<uint32, SharedDatabase::Setting>::const_iterator it = settingsMap.begin(); it != settingsMap.end(); ++it)
 			{
-				if (pair.second.mSerializationType != SharedDatabase::Setting::SerializationType::NONE)
+				const SharedDatabase::Setting& setting = it->second;
+				if (setting.mSerializationType != SharedDatabase::Setting::SerializationType::NONE)
 				{
 					int value = 0;
-					if (gameSettingsHelper.tryReadInt(pair.second.mIdentifier, value))
+					if (gameSettingsHelper.tryReadInt(setting.mIdentifier, value))
 					{
-						pair.second.mCurrentValue = (uint32)value;
+						const_cast<SharedDatabase::Setting&>(setting).mCurrentValue = (uint32)value;
 					}
 				}
 			}
@@ -162,7 +163,7 @@ void ConfigurationImpl::saveSettingsInternal(Json::Value& root, SettingsType set
 
 	// Format info & metadata
 	root["GameVersion"] = BUILD_STRING;
-	root["GameExePath"] = WString(mExePath).toStdString();
+	root["GameExePath"] = WString(mExePath).toStdString().c_str();
 
 	// Audio
 	root["Audio_MusicVolume"] = mMusicVolume;
@@ -185,14 +186,14 @@ void ConfigurationImpl::saveSettingsInternal(Json::Value& root, SettingsType set
 	{
 		Json::Value gameSettingsJson;
 		const auto& settingsMap = SharedDatabase::getSettings();
-		for (auto& pair : settingsMap)
+		for (std::map<uint32, SharedDatabase::Setting>::const_iterator it = settingsMap.begin(); it != settingsMap.end(); ++it)
 		{
-			const SharedDatabase::Setting& setting = pair.second;
+			const SharedDatabase::Setting& setting = it->second;
 			if (setting.mSerializationType == SharedDatabase::Setting::SerializationType::NONE)
 				continue;
 			if (setting.mSerializationType == SharedDatabase::Setting::SerializationType::HIDDEN && setting.mCurrentValue == setting.mDefaultValue)
 				continue;
-			gameSettingsJson[setting.mIdentifier] = setting.mCurrentValue;
+			gameSettingsJson[setting.mIdentifier.c_str()] = setting.mCurrentValue;
 		}
 		root["GameSettings"] = gameSettingsJson;
 	}
@@ -201,14 +202,14 @@ void ConfigurationImpl::saveSettingsInternal(Json::Value& root, SettingsType set
 	{
 		Json::Value gameServerJson;
 		{
-			gameServerJson["ServerAddress"] = mGameServer.mServerHostName;
+			gameServerJson["ServerAddress"] = mGameServer.mServerHostName.c_str();
 			gameServerJson["ServerPortUDP"] = mGameServer.mServerPortUDP;
 			gameServerJson["ServerPortTCP"] = mGameServer.mServerPortTCP;
 			gameServerJson["ServerPortWSS"] = mGameServer.mServerPortWSS;
 
 			Json::Value ghostSyncJson;
 			ghostSyncJson["Enabled"] = mGameServer.mGhostSync.mEnabled ? 1 : 0;
-			ghostSyncJson["ChannelName"] = mGameServer.mGhostSync.mChannelName;
+			ghostSyncJson["ChannelName"] = mGameServer.mGhostSync.mChannelName.c_str();
 			ghostSyncJson["ShowOffscreenGhosts"] = mGameServer.mGhostSync.mShowOffscreenGhosts ? 1 : 0;
 			ghostSyncJson["GhostRendering"] = mGameServer.mGhostSync.mGhostRendering;
 			gameServerJson["GhostSync"] = ghostSyncJson;

@@ -21,8 +21,8 @@
 
 namespace
 {
-	static const constexpr uint32 GHOSTSYNC_BROADCAST_MESSAGE_TYPE = rmx::compileTimeFNV_32("S3AIR_GhostSync");
-	static const constexpr uint8 GHOSTSYNC_BROADCAST_MESSAGE_VERSION = 1;
+	static constexpr uint32 GHOSTSYNC_BROADCAST_MESSAGE_TYPE = rmx::compileTimeFNV_32("S3AIR_GhostSync");
+	static constexpr uint8 GHOSTSYNC_BROADCAST_MESSAGE_VERSION = 1;
 }
 
 
@@ -231,7 +231,7 @@ bool GhostSync::onReceivedPacket(ReceivedPacketEvaluation& evaluation)
 			}
 			for (size_t k = 0; k < count; ++k)
 			{
-				playerData->mGhostDataQueue.emplace_back();
+				playerData->mGhostDataQueue.push_back(GhostData());
 				serializeGhostData(serializer, playerData->mGhostDataQueue.back());
 				playerData->mGhostDataQueue.back().mValid = true;
 			}
@@ -273,7 +273,7 @@ void GhostSync::updateSending()
 	if (emulatorInterface.readMemory8(0xffffb046) == 0x0e)						 { mOwnGhostData.mFlags |= GhostData::FLAG_LAYER; }
 	if (emulatorInterface.readMemory16(0xfffffe10) != mOwnGhostData.mZoneAndAct) { mOwnGhostData.mFlags |= GhostData::FLAG_ACT_TRANSITION; }
 
-	mOwnUnsentGhostData.emplace_back(mOwnGhostData);
+	mOwnUnsentGhostData.push_back(mOwnGhostData);
 	if (mOwnUnsentGhostData.size() >= 6)
 	{
 		// Send ghost data for the last frames

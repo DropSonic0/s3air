@@ -70,6 +70,6 @@ private:
 	float			  mSoundVolume = 1.0f;
 
 	std::set<uint32>  mPausedContexts;
-	uint64			  mMenuMusicId = -1;
+	uint64			  mMenuMusicId = 0xffffffffffffffffULL;
 	CustomAudioMixer* mIngameAudioMixer = nullptr;
 };

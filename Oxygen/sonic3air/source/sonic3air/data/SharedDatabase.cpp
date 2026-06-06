@@ -29,20 +29,20 @@ void SharedDatabase::initialize()
 
 	// Setup list of zones
 	{
-		mAllZones.emplace_back("aiz", "zone01_aiz", "Angel Island Zone",	0x00, 2, 2);
-		mAllZones.emplace_back("hcz", "zone02_hcz", "Hydrocity Zone",		0x01, 2, 2);
-		mAllZones.emplace_back("mgz", "zone03_mgz", "Marble Garden Zone",	0x02, 2, 2);
-		mAllZones.emplace_back("cnz", "zone04_cnz", "Carnival Night Zone",	0x03, 2, 2);
-		mAllZones.emplace_back("icz", "zone05_icz", "IceCap Zone",			0x05, 2, 2);
-		mAllZones.emplace_back("lbz", "zone06_lbz", "Launch Base Zone",		0x06, 2, 2);
-		mAllZones.emplace_back("mhz", "zone07_mhz", "Mushroom Hill Zone",	0x07, 2, 2);
-		mAllZones.emplace_back("fbz", "zone08_fbz", "Flying Battery Zone",	0x04, 2, 2);
-		mAllZones.emplace_back("soz", "zone09_soz", "Sandopolis Zone",		0x08, 2, 2);
-		mAllZones.emplace_back("lrz", "zone10_lrz", "Lava Reef Zone",		0x09, 2, 2);
-		mAllZones.emplace_back("hpz", "zone11_hpz", "Hidden Palace Zone",	0x16, 1, 0);	// Not for Time Attack
-		mAllZones.emplace_back("ssz", "zone12_ssz", "Sky Sanctuary Zone",	0x0a, 1, 1);	// Only Act 1
-		mAllZones.emplace_back("dez", "zone13_dez", "Death Egg Zone",		0x0b, 2, 2);
-		mAllZones.emplace_back("ddz", "zone14_ddz", "Doomsday Zone",		0x0c, 1, 0);
+		mAllZones.push_back(Zone("aiz", "zone01_aiz", "Angel Island Zone",	0x00, 2, 2));
+		mAllZones.push_back(Zone("hcz", "zone02_hcz", "Hydrocity Zone",		0x01, 2, 2));
+		mAllZones.push_back(Zone("mgz", "zone03_mgz", "Marble Garden Zone",	0x02, 2, 2));
+		mAllZones.push_back(Zone("cnz", "zone04_cnz", "Carnival Night Zone",	0x03, 2, 2));
+		mAllZones.push_back(Zone("icz", "zone05_icz", "IceCap Zone",			0x05, 2, 2));
+		mAllZones.push_back(Zone("lbz", "zone06_lbz", "Launch Base Zone",		0x06, 2, 2));
+		mAllZones.push_back(Zone("mhz", "zone07_mhz", "Mushroom Hill Zone",	0x07, 2, 2));
+		mAllZones.push_back(Zone("fbz", "zone08_fbz", "Flying Battery Zone",	0x04, 2, 2));
+		mAllZones.push_back(Zone("soz", "zone09_soz", "Sandopolis Zone",		0x08, 2, 2));
+		mAllZones.push_back(Zone("lrz", "zone10_lrz", "Lava Reef Zone",		0x09, 2, 2));
+		mAllZones.push_back(Zone("hpz", "zone11_hpz", "Hidden Palace Zone",	0x16, 1, 0));	// Not for Time Attack
+		mAllZones.push_back(Zone("ssz", "zone12_ssz", "Sky Sanctuary Zone",	0x0a, 1, 1));	// Only Act 1
+		mAllZones.push_back(Zone("dez", "zone13_dez", "Death Egg Zone",		0x0b, 2, 2));
+		mAllZones.push_back(Zone("ddz", "zone14_ddz", "Doomsday Zone",		0x0c, 1, 0));
 	}
 
 	// Setup gameplay settings
@@ -81,8 +81,9 @@ void SharedDatabase::initialize()
 		addAchievement(Achievement::ACHIEVEMENT_FBZ_FREE_ANIMALS,		"Squirrels on a plane", "Free 35 animals in Flying Battery Zone Act 1 before the boss.", "", "animals");
 		addAchievement(Achievement::ACHIEVEMENT_SSZ_DECOYS,				"No touchy", "Fight the second boss in Sonic's Sky Sanctuary but pop at most one of the inflatable Mechas.", "", "decoys");
 
-		for (Achievement& achievement : mAchievements)
+		for (size_t i = 0; i < mAchievements.size(); ++i)
 		{
+			Achievement& achievement = mAchievements[i];
 			mAchievementMap[achievement.mType] = &achievement;
 		}
 	}
@@ -122,8 +123,10 @@ void SharedDatabase::initialize()
 
 const SharedDatabase::Zone* SharedDatabase::getZoneByInternalIndex(uint8 index)
 {
-	for (const SharedDatabase::Zone& zone : SharedDatabase::getAllZones())
+	const std::vector<Zone>& allZones = SharedDatabase::getAllZones();
+	for (size_t i = 0; i < allZones.size(); ++i)
 	{
+		const SharedDatabase::Zone& zone = allZones[i];
 		if (zone.mInternalIndex == index)
 		{
 			return &zone;
@@ -240,17 +243,18 @@ const std::vector<SharedDatabase::Achievement>& SharedDatabase::getAchievements(
 
 void SharedDatabase::resetAchievementValues()
 {
-	for (Achievement& achievement : mAchievements)
+	for (size_t i = 0; i < mAchievements.size(); ++i)
 	{
-		achievement.mValue = 0;
+		mAchievements[i].mValue = 0;
 	}
 }
 
 SharedDatabase::Secret* SharedDatabase::getSecret(uint32 secretId)
 {
 	// No additional std::map used to optimize this, as the number of secrets is very low
-	for (Secret& secret : mSecrets)
+	for (size_t i = 0; i < mSecrets.size(); ++i)
 	{
+		Secret& secret = mSecrets[i];
 		if (secret.mType == secretId)
 			return &secret;
 	}

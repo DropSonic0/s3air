@@ -74,8 +74,8 @@ void CrowdControlClient::updateConnection(float timeElapsed)
 void CrowdControlClient::evaluateMessage(const Json::Value& message)
 {
 	// Read properties from the JSON message
-	const std::string code = message["code"].asString();
-	const std::string viewer = message["viewer"].asString();
+	const std::string code = message["code"].asString().c_str();
+	const std::string viewer = message["viewer"].asString().c_str();
 	// TODO: https://github.com/BttrDrgn/ccpp/blob/master/ccpp.cpp removes double quotes " here for code and viewer, is this needed for us as well?
 	const int id = message["id"].asInt();
 
@@ -83,7 +83,7 @@ void CrowdControlClient::evaluateMessage(const Json::Value& message)
 	const StatusCode statusCode = triggerEffect(code);
 
 	// Send back a response
-	const std::string response = "{\"id\":" + std::to_string(id) + ",\"status\":" + std::to_string((int)statusCode) + "}";
+	const std::string response = std::string("{\"id\":") + *String(0, "%d", id) + ",\"status\":" + *String(0, "%d", (int)statusCode) + "}";
 	mSocket.sendData((const uint8*)response.c_str(), response.length() + 1);
 }
 
