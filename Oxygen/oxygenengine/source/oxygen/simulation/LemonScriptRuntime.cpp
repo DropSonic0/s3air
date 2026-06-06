@@ -43,10 +43,12 @@ namespace
 	};
 
 
+#if !defined(PLATFORM_PS3)
 	bool isOperatorToken(const lemon::Token& token, lemon::Operator op)
 	{
 		return token.isA<lemon::OperatorToken>() && (token.as<lemon::OperatorToken>().mOperator == op);
 	}
+#endif
 
 }
 
@@ -211,11 +213,14 @@ bool LemonScriptRuntime::callFunctionByNameAtLabel(lemon::FlyweightString functi
 	{
 		if (labelName.isEmpty())
 		{
-			RMX_ERROR("Failed to call function '" << functionName.getString() << "'", );
+			const std::string_view funcName = functionName.getString();
+			RMX_ERROR("Failed to call function '" << std::string(funcName.data(), funcName.length()) << "'", );
 		}
 		else
 		{
-			RMX_ERROR("Failed to call label '" << labelName.getString() << "' in '" << functionName.getString() << "'", );
+			const std::string_view lblName = labelName.getString();
+			const std::string_view funcName = functionName.getString();
+			RMX_ERROR("Failed to call label '" << std::string(lblName.data(), lblName.length()) << "' in '" << std::string(funcName.data(), funcName.length()) << "'", );
 		}
 	}
 	return success;
@@ -242,12 +247,15 @@ void LemonScriptRuntime::getCallStackWithLabels(CallStackWithLabels& outCallStac
 	outCallStack.clear();
 	std::vector<lemon::ControlFlow::Location> locations;
 	mInternal.mRuntime.getMainControlFlow().getCallStack(locations);
-	for (const lemon::ControlFlow::Location& location : locations)
+	for (size_t i = 0; i < locations.size(); ++i)
 	{
+		const lemon::ControlFlow::Location& location = locations[i];
 		const lemon::ScriptFunction::Label* label = location.mFunction->findLabelByOffset(location.mProgramCounter);
 		if (nullptr != label)
 		{
-			outCallStack.push_back(std::make_pair(std::string(location.mFunction->getName().getString()), std::string(label->mName.getString())));
+			const std::string_view funcName = location.mFunction->getName().getString();
+			const std::string_view lblName = label->mName.getString();
+			outCallStack.push_back(std::make_pair(std::string(funcName.data(), funcName.length()), std::string(lblName.data(), lblName.length())));
 		}
 	}
 }
@@ -297,11 +305,12 @@ std::string LemonScriptRuntime::buildScriptLocationString(const lemon::ControlFl
 	if (nullptr == location.mFunction)
 		return "";
 
-	const std::string functionName(location.mFunction->getName().getString());
+	const std::string_view functionNameStringView = location.mFunction->getName().getString();
+	const std::string functionName(functionNameStringView.data(), functionNameStringView.length());
 	const std::wstring& fileName = location.mFunction->mSourceFileInfo->mFilename;
 	const uint32 lineNumber = getLineNumberInFile(*location.mFunction, location.mProgramCounter);
 	const std::string& moduleName = location.mFunction->getModule().getModuleName();
-	return "function '" + functionName + "' at line " + std::string(String(0, "%u", lineNumber)) + " of file '" + WString(fileName).toStdString() + "' in module '" + moduleName + "'";
+	return "function '" + functionName + "' at line " + std::string(*String(0, "%u", lineNumber)) + " of file '" + WString(fileName).toStdString() + "' in module '" + moduleName + "'";
 }
 
 uint32 LemonScriptRuntime::getLineNumberInFile(const lemon::ScriptFunction& function, size_t programCounter)

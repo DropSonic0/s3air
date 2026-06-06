@@ -182,7 +182,8 @@ void Simulation::resetIntoGame(const std::vector<std::pair<std::string, std::str
 
 void Simulation::resetIntoGame(const std::string& entryFunctionName)
 {
-	const std::vector<std::pair<std::string, std::string>> enforcedCallStack = { { entryFunctionName, "" } };
+	std::vector<std::pair<std::string, std::string> > enforcedCallStack;
+	enforcedCallStack.push_back(std::make_pair(entryFunctionName, std::string("")));
 	resetIntoGame(&enforcedCallStack);
 }
 

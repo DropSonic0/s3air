@@ -212,7 +212,7 @@ const SpriteCache::CacheItem* SpriteCache::getSprite(uint64 key)
 			const std::string_view* str = LemonScriptRuntime::tryResolveStringHash(key);
 			if (nullptr != str)
 			{
-				RMX_ERROR("Invalid sprite cache key with string '" << *str << "'", );
+				RMX_ERROR("Invalid sprite cache key with string '" << std::string(str->data(), str->length()) << "'", );
 			}
 			else
 			{
@@ -322,7 +322,7 @@ void SpriteCache::dumpSprite(uint64 key, std::string_view categoryKey, uint8 spr
 		}
 		else
 		{
-			RMX_ERROR("Can't dump component sprites (attempted to dump '" << categoryKey << "' sprite " << rmx::hexString(spriteNumber, 2) << ")", );
+			RMX_ERROR("Can't dump component sprites (attempted to dump '" << std::string(categoryKey.data(), categoryKey.length()) << "' sprite " << rmx::hexString(spriteNumber, 2) << ")", );
 		}
 		item->mGotDumped = true;
 	}
@@ -354,12 +354,13 @@ void SpriteCache::loadSpriteDefinitions(const std::wstring& path)
 		return;
 
 	++mGlobalChangeCounter;
-	for (const rmx::FileIO::FileEntry& fileEntry : fileEntries)
+	for (size_t i = 0; i < fileEntries.size(); ++i)
 	{
+		const rmx::FileIO::FileEntry& fileEntry = fileEntries[i];
 		const Json::Value spritesJson = JsonHelper::loadFile(fileEntry.mPath + fileEntry.mFilename);
 		for (auto iterator = spritesJson.begin(); iterator != spritesJson.end(); ++iterator)
 		{
-			const String identifier(iterator.key().asString());
+			const String identifier(iterator.key().asString().c_str());
 			uint64 key = 0;
 			{
 				// Check if it's an hex identifier or a string
@@ -394,12 +395,12 @@ void SpriteCache::loadSpriteDefinitions(const std::wstring& path)
 			{
 				if (it.key().asString() == "File" && !it->asString().empty())
 				{
-					filename = *String(it->asString()).toWString();
+					filename = *String(it->asString().c_str()).toWString();
 				}
 				else if (it.key().asString() == "Center" && !it->asString().empty())
 				{
 					std::vector<String> parts;
-					String(it->asString()).split(parts, ',');
+					String(it->asString().c_str()).split(parts, ',');
 					if (parts.size() == 2)
 					{
 						center.x = parts[0].parseInt();
@@ -409,7 +410,7 @@ void SpriteCache::loadSpriteDefinitions(const std::wstring& path)
 				else if (it.key().asString() == "Rect" && !it->asString().empty())
 				{
 					std::vector<String> parts;
-					String(it->asString()).split(parts, ',');
+					String(it->asString().c_str()).split(parts, ',');
 					if (parts.size() == 4)
 					{
 						rect.x = parts[0].parseInt();

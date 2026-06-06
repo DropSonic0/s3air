@@ -63,7 +63,7 @@ void PersistentData::setData(std::string_view key, const std::vector<uint8>& dat
 	if (it == mEntries.end())
 	{
 		Entry& entry = mEntries[keyHash];
-		entry.mKey = key;
+		entry.mKey.assign(key.data(), key.length());
 		entry.mData = data;
 		saveToFile();
 	}
@@ -128,11 +128,11 @@ bool PersistentData::serialize(VectorBinarySerializer& serializer)
 	else
 	{
 		serializer.writeAs<uint32>(mEntries.size());
-		for (const auto& pair : mEntries)
+		for (std::map<uint64, Entry>::const_iterator it = mEntries.begin(); it != mEntries.end(); ++it)
 		{
-			serializer.write(pair.second.mKey);
-			serializer.writeAs<uint32>(pair.second.mData.size());
-			serializer.write(&pair.second.mData[0], pair.second.mData.size());
+			serializer.write(it->second.mKey);
+			serializer.writeAs<uint32>(it->second.mData.size());
+			serializer.write(&it->second.mData[0], it->second.mData.size());
 		}
 	}
 

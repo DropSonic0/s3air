@@ -57,6 +57,7 @@ namespace
 		return nullptr;
 	}
 
+#if !defined(PLATFORM_PS3)
 	const std::vector<GameProfile::LemonStackEntry>* findCurrentLemonStack(const std::vector<uint32>& asmStack)
 	{
 		// Try to find the right stack
@@ -83,6 +84,7 @@ namespace
 
 		return nullptr;
 	}
+#endif
 
 	const uint8* getCallingPCAfterCall()
 	{
@@ -235,7 +237,7 @@ void CodeExec::CallFrameTracking::writeCurrentCallStack(std::vector<std::string>
 	for (int i = (int)mCallStack.size() - 1; i >= 0; --i)
 	{
 		const lemon::Function* function = mCallFrames[mCallStack[i]].mFunction;
-		outCallStack.push_back((nullptr != function) ? std::string(function->getName().getString()) : "");
+		outCallStack.push_back((nullptr != function) ? std::string(function->getName().getString().data(), function->getName().getString().length()) : "");
 	}
 }
 
@@ -579,7 +581,7 @@ bool CodeExec::executeScriptFunction(const std::string& functionName, bool showE
 
 void CodeExec::setupCallFrame(std::string_view functionName, std::string_view labelName)
 {
-	mCallFramesToAdd.push_back(std::make_pair(std::string(functionName), std::string(labelName)));
+	mCallFramesToAdd.push_back(std::make_pair(std::string(functionName.data(), functionName.length()), std::string(labelName.data(), labelName.length())));
 	mHasCallFramesToAdd = true;
 }
 
@@ -645,7 +647,9 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 	{
 		// Execute next runtime steps
 		size_t stepsExecutedThisCall;
+#if !defined(PLATFORM_PS3)
 		try
+#endif
 		{
 			const bool success = (nullptr != mActiveCallFrameTracking) ? executeRuntimeStepsDev(stepsExecutedThisCall, abortOnCallStackSize) : executeRuntimeSteps(stepsExecutedThisCall, abortOnCallStackSize);
 			if (!success)
@@ -677,10 +681,12 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 				break;
 			}
 		}
+#if !defined(PLATFORM_PS3)
 		catch (const std::exception& e)
 		{
 			RMX_ERROR("Caught exception during script execution: " << e.what(), );
 		}
+#endif
 
 		// Regularly check if we should better interrupt execution
 		stepsCounter += stepsExecutedThisCall;

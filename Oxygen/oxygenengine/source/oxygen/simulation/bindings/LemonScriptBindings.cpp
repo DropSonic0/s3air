@@ -92,7 +92,8 @@ namespace
 
 			if (text.isValid())
 			{
-				RMX_ERROR("Script assertion failed:\n'" << text.getString() << "'.\nIn " << locationText << ".", );
+				const std::string_view textString = text.getString();
+				RMX_ERROR("Script assertion failed:\n'" << std::string(textString.data(), textString.length()) << "'.\nIn " << locationText << ".", );
 			}
 			else
 			{
@@ -467,12 +468,14 @@ namespace
 		}
 	}
 
+#if !defined(PLATFORM_PS3)
 	void debugLogValueStack()
 	{
 		const size_t valueStackSize = Application::instance().getSimulation().getCodeExec().getLemonScriptRuntime().getInternalLemonRuntime().getActiveControlFlow()->getValueStackSize();
 		const std::string valueString = *String(0, "Value Stack Size = %d", valueStackSize);
 		debugLogInternal(valueString);
 	}
+#endif
 
 
 	uint16 Input_getController(uint8 controllerIndex)
@@ -579,10 +582,20 @@ namespace
 					const std::string_view textString = str->getString();
 
 					// Does the string contain any uppercase letters?
-					if (containsByPredicate(textString, [](char ch) { return (ch >= 'A' && ch <= 'Z'); } ))
+					bool hasUppercase = false;
+					for (size_t i = 0; i < textString.length(); ++i)
+					{
+						if (textString[i] >= 'A' && textString[i] <= 'Z')
+						{
+							hasUppercase = true;
+							break;
+						}
+					}
+
+					if (hasUppercase)
 					{
 						// Convert to lowercase and try again
-						String tempStr = textString;
+						String tempStr(0, "%.*s", (int)textString.length(), textString.data());
 						tempStr.lowerCase();
 						sfxId = rmx::getMurmur2_64(tempStr);
 						EngineMain::instance().getAudioOut().playAudioBase(sfxId, contextId);
@@ -710,8 +723,9 @@ namespace
 
 			if (filename.isValid())
 			{
+				const std::string_view filenameString = filename.getString();
 				const uint8* src = emulatorInterface.getMemoryPointer(startAddress, false, bytes);
-				FTX::FileSystem->saveFile(filename.getString(), src, (size_t)bytes);
+				FTX::FileSystem->saveFile(std::string(filenameString.data(), filenameString.length()), src, (size_t)bytes);
 			}
 		}
 	}
@@ -868,6 +882,7 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		const std::string registerNamesDAR[16] = { "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
 		for (size_t i = 0; i < 16; ++i)
 		{
+#if !defined(PLATFORM_PS3)
 			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   std::bind(accessRegister, i));
@@ -875,6 +890,10 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  std::bind(accessRegister, i));
+#else
+			// On PS3, we can't use std::bind here, and the addExternalVariable API for PS3 expects a raw function pointer (which doesn't support context)
+			//  -> This means that register access via external variables is currently not supported on PS3
+#endif
 		}
 
 		// Query flags
@@ -1117,11 +1136,15 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug log output
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Log", &lemon::PredefinedDataTypes::UINT_32);
+#if !defined(PLATFORM_PS3)
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, false);
+#endif
 		}
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("LogDec", &lemon::PredefinedDataTypes::UINT_32);
+#if !defined(PLATFORM_PS3)
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, true);
+#endif
 		}
 
 		module.addNativeFunction("debugLog", lemon::wrap(&debugLog), defaultFlags)
@@ -1141,8 +1164,10 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug keys
 		for (int i = 0; i < 10; ++i)
 		{
-			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::string(String(0, "%d", i)), &lemon::PredefinedDataTypes::UINT_8);
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::string(*String(0, "%d", i)), &lemon::PredefinedDataTypes::UINT_8);
+#if !defined(PLATFORM_PS3)
 			var.mGetter = std::bind(debugKeyGetter, i);
+#endif
 		}
 
 

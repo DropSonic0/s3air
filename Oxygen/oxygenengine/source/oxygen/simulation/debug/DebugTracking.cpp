@@ -41,7 +41,8 @@ const std::string& DebugTracking::Location::toString(CodeExec& codeExec) const
 			{
 				codeExec.getLemonScriptProgram().resolveLocation(*mFunction, 0, scriptFilename, lineNumber);
 			}
-			mResolvedString = mFunction->getName().getString();
+			const std::string_view functionName = mFunction->getName().getString();
+			mResolvedString.assign(functionName.data(), functionName.length());
 		}
 	}
 	return mResolvedString;
@@ -77,11 +78,12 @@ void DebugTracking::clear()
 void DebugTracking::onBeginFrame()
 {
 	// Reset script logging
-	for (auto& [key, entry] : mScriptLogEntries)
+	for (ScriptLogEntryMap::iterator it = mScriptLogEntries.begin(); it != mScriptLogEntries.end(); ++it)
 	{
-		for (ScriptLogSingleEntry& singleEntry : entry.mEntries)
+		ScriptLogEntry& entry = it->second;
+		for (size_t i = 0; i < entry.mEntries.size(); ++i)
 		{
-			singleEntry.mCallFrameIndex = -1;
+			entry.mEntries[i].mCallFrameIndex = -1;
 		}
 	}
 
@@ -119,14 +121,14 @@ void DebugTracking::clearScriptLogValue(const std::string& key)
 DebugTracking::ScriptLogSingleEntry& DebugTracking::updateScriptLogValue(std::string_view key, std::string_view value)
 {
 	const uint32 frameNumber = Application::instance().getSimulation().getFrameNumber();
-	ScriptLogEntry& entry = mScriptLogEntries[std::string(key)];
+	ScriptLogEntry& entry = mScriptLogEntries[std::string(key.data(), key.length())];
 	if (frameNumber != entry.mLastUpdate)
 	{
 		entry.mEntries.clear();
 		entry.mLastUpdate = frameNumber;
 	}
 	ScriptLogSingleEntry& singleEntry = vectorAdd(entry.mEntries);
-	singleEntry.mValue = value;
+	singleEntry.mValue.assign(value.data(), value.length());
 	return singleEntry;
 }
 
@@ -145,7 +147,7 @@ void DebugTracking::addColorLogEntry(std::string_view name, uint32 startAddress,
 	EmulatorInterface& emulatorInterface = mCodeExec.getEmulatorInterface();
 
 	DebugTracking::ColorLogEntry entry;
-	entry.mName = name;
+	entry.mName.assign(name.data(), name.length());
 	entry.mColors.reserve(numColors);
 	for (uint8 i = 0; i < numColors; ++i)
 	{
@@ -161,10 +163,10 @@ void DebugTracking::updateWatches()
 {
 	if (!mWatchHitsThisUpdate.empty())
 	{
-		for (auto& pair : mWatchHitsThisUpdate)
+		for (size_t i = 0; i < mWatchHitsThisUpdate.size(); ++i)
 		{
-			Watch& watch = *pair.first;
-			Watch::Hit& hit = *pair.second;
+			Watch& watch = *mWatchHitsThisUpdate[i].first;
+			Watch::Hit& hit = *mWatchHitsThisUpdate[i].second;
 			hit.mWrittenValue = (watch.mBytes <= 4) ? getCurrentWatchValue(watch.mAddress, watch.mBytes) : getCurrentWatchValue(hit.mAddress, hit.mBytes);
 		}
 		mWatchHitsThisUpdate.clear();
@@ -192,9 +194,9 @@ void DebugTracking::clearWatches(bool clearPersistent)
 	mWatches.clear();
 	mEmulatorInterface.getWatches().clear();
 
-	for (const auto& pair : reAddWatches)
+	for (size_t i = 0; i < reAddWatches.size(); ++i)
 	{
-		addWatch(pair.first, pair.second, true);
+		addWatch(reAddWatches[i].first, reAddWatches[i].second, true);
 	}
 }
 

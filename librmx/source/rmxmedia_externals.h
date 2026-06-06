@@ -475,6 +475,10 @@
 	#define GL_GEQUAL 0x0206
 	#define GL_TEXTURE_BUFFER 0x8C2A
 	#define GL_LUMINANCE 0x1909
+	#define GL_LUMINANCE_ALPHA 0x190A
+	#define GL_R8UI 0x8232
+	#define GL_R16I 0x8233
+	#define GL_R16UI 0x8234
 	#define GL_BLEND 0
 	#define GL_FUNC_ADD 0
 	#define GL_FUNC_REVERSE_SUBTRACT 0
@@ -497,6 +501,7 @@
 	inline void glTexParameteri(GLenum t, GLenum p, GLint v) {}
 	inline void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) {}
 	inline void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {}
+	inline void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {}
 	inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
 	inline void glClearColor(float r, float g, float b, float a) {}
 	inline void glClear(int m) {}

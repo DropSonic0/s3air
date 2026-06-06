@@ -108,7 +108,9 @@ bool LemonScriptProgram::hasValidProgram() const
 
 bool LemonScriptProgram::loadScriptModule(lemon::Module& module, lemon::GlobalsLookup& globalsLookup, const std::wstring& filename)
 {
+#if !defined(PLATFORM_PS3)
 	try
+#endif
 	{
 		// Compile script source
 		lemon::CompileOptions options;
@@ -140,15 +142,17 @@ bool LemonScriptProgram::loadScriptModule(lemon::Module& module, lemon::GlobalsL
 			if (error.mFilename.empty())
 				text += "Caused in module " + module.getModuleName() + ".";
 			else
-				text += "Caused in file '" + WString(error.mFilename).toStdString() + "', line " + std::string(String(0, "%u", error.mError.mLineNumber)) + ", of module '" + module.getModuleName() + "'.";
+				text += "Caused in file '" + WString(error.mFilename).toStdString() + "', line " + std::string(*String(0, "%u", error.mError.mLineNumber)) + ", of module '" + module.getModuleName() + "'.";
 			RMX_ERROR(text, );
 			return false;
 		}
 	}
+#if !defined(PLATFORM_PS3)
 	catch (...)
 	{
 		return false;
 	}
+#endif
 
 	return true;
 }
@@ -440,7 +444,7 @@ void LemonScriptProgram::evaluateDefines()
 	}
 
 	// Sort alphabetically
-	std::sort(mGlobalDefines.begin(), mGlobalDefines.end(), [](const GlobalDefine& a, const GlobalDefine& b) { return a.mName.getString() < b.mName.getString(); } );
+	std::sort(mGlobalDefines.begin(), mGlobalDefines.end(), [](const GlobalDefine& a, const GlobalDefine& b) { return a.mName.getString().compare(b.mName.getString()) < 0; } );
 }
 
 LemonScriptProgram::Hook& LemonScriptProgram::addHook(Hook::Type type, uint32 address)
