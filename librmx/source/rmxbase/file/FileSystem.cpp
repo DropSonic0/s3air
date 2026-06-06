@@ -15,7 +15,13 @@ namespace rmx
 	FileSystem::FileSystem()
 	{
 		// By default, add a real file provider with mounted at root
+	#if defined(PLATFORM_PS3)
+		// On PS3, we want the root mount point to point directly to the game's USRDIR
+		// (Otherwise the engine might try to access files on paths it doesn't have permission for)
+		addMountPoint(mDefaultRealFileProvider, L"", L"/dev_hdd0/game/SONIC3AIR/USRDIR/", 0);
+	#else
 		addMountPoint(mDefaultRealFileProvider, L"", L"", 0);
+	#endif
 	}
 
 	FileSystem::~FileSystem()

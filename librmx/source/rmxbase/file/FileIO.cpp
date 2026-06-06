@@ -9,6 +9,12 @@
 #include "rmxbase.h"
 #include <fstream>
 
+#if defined(PLATFORM_PS3)
+	#include <sys/stat.h>
+	#include <unistd.h>
+	#include <limits.h>
+#endif
+
 #ifdef PLATFORM_WINDOWS
 	#include <filesystem>
 	namespace std_filesystem = std::filesystem;
@@ -57,7 +63,7 @@ namespace rmx
 	{
 		bool createDir(const WString& path, bool recursive)
 		{
-		#ifdef USE_STD_FILESYSTEM
+		#if defined(USE_STD_FILESYSTEM) || defined(PLATFORM_PS3)
 			// Create directory or hierarchy of directories (if recursive == true)
 			if (recursive)
 			{
@@ -68,7 +74,11 @@ namespace rmx
 				{
 					pos = path.findChars(L"/\\", pos + 1, +1);
 					subpath.makeSubString(path, 0, pos);
+				#if defined(PLATFORM_PS3)
+					if (!FileIO::exists(*subpath))
+				#else
 					if (!std_filesystem::exists(*subpath))
+				#endif
 					{
 						if (!createDir(subpath, false))
 							return false;
@@ -81,11 +91,10 @@ namespace rmx
 				// Create a single directory
 			#ifdef PLATFORM_WINDOWS
 				return (_wmkdir(*path) == 0);
+			#elif defined(PLATFORM_PS3)
+				return (mkdir(*path.toUTF8(), 0777) == 0);
 			#elif defined(USE_UTF8_PATHS)
 				return (mkdir(*path.toUTF8(), 0777) == 0);		// Probably the only time I ever used octal notation...
-			#elif defined(PLATFORM_PS3)
-				// TODO: PS3-specific directory creation
-				return false;
 			#else
 				#error "Unsupported platform"
 			#endif
@@ -158,7 +167,7 @@ namespace rmx
 			}
 			_findclose(handle);
 
-		#elif defined(USE_UTF8_PATHS)
+		#elif defined(USE_UTF8_PATHS) && !defined(PLATFORM_PS3)
 
 			const std::string basePathUTF8 = *WString(basePath).toUTF8();
 			DIR* dp = opendir(basePathUTF8.c_str());
@@ -209,7 +218,7 @@ namespace rmx
 			closedir(dp);
 
 		#elif defined(PLATFORM_PS3)
-			// TODO: PS3-specific directory listing
+			// TODO: PS3-specific directory listing (requires cellFsGetDirectoryEntries)
 		#else
 			#error "Unsupported platform"
 		#endif
@@ -231,6 +240,9 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		const std_filesystem::path fspath(WString(path).toStdWString());
 		return std_filesystem::exists(fspath);
+	#elif defined(PLATFORM_PS3)
+		struct stat st;
+		return (stat(*WString(path).toUTF8(), &st) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::exists");
 		return false;
@@ -247,6 +259,12 @@ namespace rmx
 			return false;
 		outSize = (uint64)size;
 		return true;
+	#elif defined(PLATFORM_PS3)
+		struct stat st;
+		if (stat(*WString(filename).toUTF8(), &st) != 0)
+			return false;
+		outSize = (uint64)st.st_size;
+		return true;
 	#else
 		FileHandle file(WString(filename), FILE_ACCESS_READ);
 		if (!file.isOpen())
@@ -258,7 +276,7 @@ namespace rmx
 
 	bool FileIO::getFileTime(std::wstring_view filename, time_t& outTime)
 	{
-	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
+	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC) && !defined(PLATFORM_PS3)
 		const std_filesystem::path fspath(WString(filename).toStdWString());
 		std::error_code errorCode;
 		const std::filesystem::file_time_type time = std_filesystem::last_write_time(fspath, errorCode);
@@ -268,6 +286,12 @@ namespace rmx
 		// This is the C++17 solution for converting the time -- see https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
 		const std::chrono::system_clock::time_point timePoint = std::chrono::time_point_cast<std::chrono::system_clock::duration>(time - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
 		outTime = std::chrono::system_clock::to_time_t(timePoint);
+		return true;
+	#elif defined(PLATFORM_PS3)
+		struct stat st;
+		if (stat(*WString(filename).toUTF8(), &st) != 0)
+			return false;
+		outTime = st.st_mtime;
 		return true;
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::getFileTime");
@@ -535,6 +559,9 @@ namespace rmx
 	{
 	#ifdef USE_STD_FILESYSTEM
 		return std_filesystem::current_path().wstring();
+	#elif defined(PLATFORM_PS3)
+		// chdir and getcwd are not always available on PS3 toolchains
+		return L"";
     #else
 		return L"";
 	#endif
@@ -545,6 +572,8 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		const std_filesystem::path fspath(WString(path).toStdWString());
 		std_filesystem::current_path(fspath);
+	#elif defined(PLATFORM_PS3)
+		// chdir and getcwd are not always available on PS3 toolchains
 	#endif
 	}
 

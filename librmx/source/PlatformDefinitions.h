@@ -23,6 +23,7 @@
 // Platform specific
 #if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
 	#define PLATFORM_PS3
+	#define USE_UTF8_PATHS
 	#define NO_UNORDERED_CONTAINERS
 	#include <stddef.h>
 	#include <stdlib.h>

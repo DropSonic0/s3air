@@ -339,6 +339,10 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 		const std::wstring path = std::wstring(executableCallPath.substr(0, slashPos + 1));
 		rmx::FileSystem::setCurrentDirectory(path);
 	}
+#elif defined(PLATFORM_PS3)
+	// We could use AppMetaData here, but for now let's use a standard path that matches what's usually expected for PS3 USRDIR access
+	// (Note: it might be better to use a relative path or just stay in the default startup directory)
+	rmx::FileSystem::setCurrentDirectory(L"/dev_hdd0/game/SONIC3AIR/USRDIR/");
 #endif
 }
 

@@ -265,7 +265,11 @@ bool EngineMain::startupEngine()
 
 	// Startup logging
 	{
+	#if defined(PLATFORM_PS3)
+		oxygen::Logging::startup(config.mAppDataPath + L"log.txt");
+	#else
 		oxygen::Logging::startup(config.mAppDataPath + L"logfile.txt");
+	#endif
 		RMX_LOG_INFO("--- STARTUP ---");
 		RMX_LOG_INFO("Logging started");
 		RMX_LOG_INFO("Application version: " << appMetaData.mBuildVersionString);
@@ -378,7 +382,10 @@ void EngineMain::initDirectories()
 
 	// Get app data path
 	{
-	#if defined(PLATFORM_ANDROID)
+	#if defined(PLATFORM_PS3)
+		// PlayStation 3
+		config.mAppDataPath = L"/dev_hdd0/game/" + appMetaData.mAppDataFolder + L"/USRDIR/";
+	#elif defined(PLATFORM_ANDROID)
 		// Android
 		// TODO: Use internal storage path as a fallback?
 		WString storagePath = String(SDL_AndroidGetExternalStoragePath()).toWString();
@@ -426,6 +433,14 @@ void EngineMain::initDirectories()
 	config.mSaveStatesDirLocal = config.mAppDataPath + L"savestates/";
 	config.mSRamFilename = config.mAppDataPath + L"sram.bin";
 	config.mPersistentDataFilename = config.mAppDataPath + L"persistentdata.bin";
+
+#if defined(PLATFORM_PS3)
+	// On PS3, we also need to add a mount point for the app data path to the filesystem
+	// (Otherwise it might not be able to create files there, as it only knows about the initial root mount)
+	rmx::RealFileProvider* provider = new rmx::RealFileProvider();
+	FTX::FileSystem->addManagedFileProvider(*provider);
+	FTX::FileSystem->addMountPoint(*provider, config.mAppDataPath, config.mAppDataPath, 0x10);
+#endif
 }
 
 bool EngineMain::initConfigAndSettings(const std::wstring& argumentProjectPath)

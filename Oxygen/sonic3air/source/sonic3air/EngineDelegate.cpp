@@ -43,7 +43,11 @@ const EngineDelegateInterface::AppMetaData& EngineDelegate::getAppMetaData()
 		mAppMetaData.mWindowsIconResource = 101;
 		mAppMetaData.mBuildVersionString = BUILD_STRING;
 		mAppMetaData.mBuildVersionNumber = BUILD_NUMBER;
+	#if defined(PLATFORM_PS3)
+		mAppMetaData.mAppDataFolder = L"SONIC3AIR";
+	#else
 		mAppMetaData.mAppDataFolder = L"Sonic3AIR";
+	#endif
 	}
 	return mAppMetaData;
 }
