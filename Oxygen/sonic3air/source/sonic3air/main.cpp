@@ -40,6 +40,13 @@ int main(int argc, char** argv)
 {
 	EngineMain::earlySetup();
 
+#if defined(PLATFORM_PS3)
+	// Startup logging as early as possible to catch issues
+	// We use a fixed path here because we don't have a configuration yet
+	oxygen::Logging::startup(L"/dev_hdd0/game/SONIC3AIR/USRDIR/log.txt");
+	RMX_LOG_INFO("--- EARLY LOGGING START ---");
+#endif
+
 	// Read command line arguments
 	ArgumentsReader arguments;
 	arguments.read(argc, argv);

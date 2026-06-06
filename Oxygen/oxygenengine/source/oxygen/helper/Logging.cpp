@@ -85,8 +85,17 @@ namespace
 
 namespace oxygen
 {
+	namespace
+	{
+		bool g_loggingStarted = false;
+	}
+
 	void Logging::startup(const std::wstring& filename)
 	{
+		if (g_loggingStarted)
+			return;
+		g_loggingStarted = true;
+
 		rmx::Logging::addLogger(*new rmx::StdCoutLogger());
 		rmx::Logging::addLogger(*new rmx::FileLogger(filename, true));
 
@@ -98,6 +107,7 @@ namespace oxygen
 	void Logging::shutdown()
 	{
 		rmx::Logging::clear();
+		g_loggingStarted = false;
 	}
 
 	void Logging::setAssertBreakCaption(const std::string& caption)

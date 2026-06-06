@@ -13,6 +13,7 @@
 	#include <sys/stat.h>
 	#include <unistd.h>
 	#include <limits.h>
+	#include <stdio.h>
 #endif
 
 #ifdef PLATFORM_WINDOWS
@@ -366,6 +367,8 @@ namespace rmx
 		std::error_code errorCode;
 		std_filesystem::rename(fspathOld, fspathNew, errorCode);
 		return !errorCode;
+	#elif defined(PLATFORM_PS3)
+		return (rename(*WString(oldFilename).toUTF8(), *WString(newFilename).toUTF8()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::renameFile");
 		return false;
@@ -379,6 +382,8 @@ namespace rmx
 		std::error_code errorCode;
 		std_filesystem::remove(fspath, errorCode);
 		return !errorCode;
+	#elif defined(PLATFORM_PS3)
+		return (unlink(*WString(path).toUTF8()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::removeFile");
 		return false;
@@ -562,7 +567,7 @@ namespace rmx
 	#elif defined(PLATFORM_PS3)
 		// chdir and getcwd are not always available on PS3 toolchains
 		return L"";
-    #else
+	#else
 		return L"";
 	#endif
 	}
