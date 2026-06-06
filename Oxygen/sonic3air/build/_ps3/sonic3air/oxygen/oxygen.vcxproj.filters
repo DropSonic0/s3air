@@ -481,6 +481,9 @@
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\simulation\Simulation.cpp">
       <Filter>simulation</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\software\SoftwareBlur.cpp">
+      <Filter>rendering\software</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\pch.h" />

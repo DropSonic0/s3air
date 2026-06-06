@@ -1,0 +1,40 @@
+﻿Build started 6/6/2026 00:09:09.
+     1>Project "C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\sonic3air.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         AudioOut.cpp
+         ps3ppusnc.exe -DNDEBUG -D__PS3__ -o PS3_Release\AudioOut.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\sonic3air-24.02.02.0-stable\librmx\source" -I"C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib" -I"C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include" -I"C:\sonic3air-24.02.02.0-stable\librmx\source\rmxmedia\_glew" -I"C:\sonic3air-24.02.02.0-stable\Oxygen\lemonscript\source" -I"C:\sonic3air-24.02.02.0-stable\Oxygen\oxygenengine\source" -I"C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xstd=cpp11 -Xc-=rtti C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\AudioOut.cpp
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air/audio/AudioOut.h(73,27): warning 68: integer conversion resulted in a change of sign
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air/audio/CustomAudioMixer.h(25,21): warning 84: type qualifier specified more than once
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(25,1): error 326: inline specifier allowed on function declarations only
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(25,55): error 65: expected a ";"
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(26,21): warning 84: type qualifier specified more than once
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(26,1): error 326: inline specifier allowed on function declarations only
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(26,57): error 65: expected a ";"
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(27,21): warning 84: type qualifier specified more than once
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(27,1): error 326: inline specifier allowed on function declarations only
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(27,63): error 65: expected a ";"
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(34,22): error 20: identifier "OUTPUT_BUFFER_SIZE" is undefined
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(35,23): error 20: identifier "ACCUMULATION_BUFFER_SIZE" is undefined
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\CustomAudioMixer.h(39,26): error 20: identifier "MAX_NUM_CHANNELS" is undefined
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\AudioOut.cpp(24,14): warning 84: type qualifier specified more than once
+         
+     1>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\source\sonic3air\audio\AudioOut.cpp(24,30): warning 178: variable "<unnamed>::FASTMUSIC_SPEED_FACTOR" was declared but never referenced
+         
+     1>Done Building Project "C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\sonic3air.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:02.53

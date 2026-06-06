@@ -169,6 +169,7 @@
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\parts\ScrollOffsetsManager.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\parts\SpriteManager.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\RenderResources.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\software\SoftwareBlur.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\software\SoftwareRenderer.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\sprite\ComponentSprite.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\sprite\PaletteSprite.cpp" />

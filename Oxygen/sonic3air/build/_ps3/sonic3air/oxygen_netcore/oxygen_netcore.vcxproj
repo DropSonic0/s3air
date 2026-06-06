@@ -62,9 +62,50 @@
       <OptimizationLevel>Level2</OptimizationLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CppLanguageStd>Cpp11</CppLanguageStd>
+      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\librmx\source;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include;C:\sonic3air-24.02.02.0-stable\librmx\source\rmxmedia\_glew;C:\sonic3air-24.02.02.0-stable\Oxygen\lemonscript\source;C:\sonic3air-24.02.02.0-stable\Oxygen\oxygenengine\source;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\ConnectionManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\HighLevelPacketBase.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\CryptoFunctions.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\ReceivedPacketCache.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\SentPacketCache.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketClient.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketWrapper.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\LowLevelPackets.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\NetConnection.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\NetConnection_Statics.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\RequestBase.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\ServerClientBase.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\Sockets.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\pch.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\serverclient\PacketDefinitions_PS3.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\base\HandleProvider.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\ConnectionListener.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\ConnectionManager.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\HighLevelPacketBase.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\CryptoFunctions.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\ReceivedPacket.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\ReceivedPacketCache.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\SentPacket.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\SentPacketCache.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketClient.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketWrapper.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\LagStopwatch.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\LowLevelPackets.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\NetConnection.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\RequestBase.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\ServerClientBase.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\Sockets.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\VersionRange.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\pch.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\serverclient\ChannelBroadcastPackets.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\serverclient\FileTransferPackets.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\serverclient\Packets.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\serverclient\ProtocolVersion.h" />
   </ItemGroup>
   <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
