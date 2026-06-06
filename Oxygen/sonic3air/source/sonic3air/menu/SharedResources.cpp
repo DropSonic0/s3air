@@ -51,6 +51,18 @@ namespace global
 
 	void loadSharedResources()
 	{
+#if defined(PLATFORM_PS3)
+		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor  = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.5f, 0.8f));
+		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor2 = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.5f, 1.0f));
+		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor3 = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.5f, 0.6f));
+		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor4 = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.0f, 1.0f));
+
+		std::shared_ptr<OutlineFontProcessor> outlineFontProcessor = std::shared_ptr<OutlineFontProcessor>(new OutlineFontProcessor());
+		std::shared_ptr<OutlineFontProcessor> outlineFontProcessorTransparent = std::shared_ptr<OutlineFontProcessor>(new OutlineFontProcessor(Color(0.0f, 0.0f, 0.0f, 0.5f)));
+		std::shared_ptr<OutlineFontProcessor> outlineFontProcessorRect = std::shared_ptr<OutlineFontProcessor>(new OutlineFontProcessor(Color::BLACK, 1, true));
+
+		std::shared_ptr<GradientFontProcessor> gradientFontProcessor = std::shared_ptr<GradientFontProcessor>(new GradientFontProcessor());
+#else
 		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor  = std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 0.5f, 0.8f);
 		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor2 = std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 0.5f, 1.0f);
 		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor3 = std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 0.5f, 0.6f);
@@ -61,6 +73,7 @@ namespace global
 		std::shared_ptr<OutlineFontProcessor> outlineFontProcessorRect = std::make_shared<OutlineFontProcessor>(Color::BLACK, 1, true);
 
 		std::shared_ptr<GradientFontProcessor> gradientFontProcessor = std::make_shared<GradientFontProcessor>();
+#endif
 
 		FontCollection& fontCollection = FontCollection::instance();
 

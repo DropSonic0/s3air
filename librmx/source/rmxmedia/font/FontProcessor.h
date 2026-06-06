@@ -63,7 +63,7 @@ class OutlineFontProcessor : public FontProcessor
 {
 public:
 	virtual ~OutlineFontProcessor() {}
-	inline explicit OutlineFontProcessor(Color outlineColor, int range, bool rectangularOutline) :
+	inline explicit OutlineFontProcessor(Color outlineColor = Color::BLACK, int range = 1, bool rectangularOutline = false) :
 		mOutlineColor(outlineColor),
 		mRange(range),
 		mRectangularOutline(rectangularOutline)
