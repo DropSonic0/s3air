@@ -269,6 +269,14 @@ bool ResourcesCache::applyRomModifications(const GameProfile::RomInfo& romInfo)
 		if (content->size() != mRom.size())
 			return false;
 
+#if defined(PLATFORM_PS3)
+		// On PS3, we want to avoid alignment issues and ensure endian-safe XORing
+		// (The diff files are usually created as Little-Endian uint64 streams)
+		for (size_t i = 0; i < content->size(); ++i)
+		{
+			mRom[i] ^= (*content)[i];
+		}
+#else
 		uint64* ptr = (uint64*)&mRom[0];
 		uint64* diff = (uint64*)&(*content)[0];
 		const size_t count = content->size() / 8;
@@ -276,6 +284,7 @@ bool ResourcesCache::applyRomModifications(const GameProfile::RomInfo& romInfo)
 		{
 			ptr[i] ^= diff[i];
 		}
+#endif
 	}
 
 	for (auto& pair : romInfo.mBlankRegions)

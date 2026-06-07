@@ -13,6 +13,11 @@
 
 #include "oxygen/platform/PlatformFunctions.h"
 
+#if defined(PLATFORM_PS3)
+#include <sys/process.h>
+SYS_PROCESS_PARAM(1001, 1024 * 1024)
+#endif
+
 
 // HJW: I know it's sloppy to put this here... it'll get moved afterwards
 // Building with my env (msys2,gcc) requires this stub for some reason
