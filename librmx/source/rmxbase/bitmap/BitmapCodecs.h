@@ -10,6 +10,12 @@
 
 #include "Bitmap.h"
 
+#if defined(PLATFORM_PS3)
+namespace rmx {
+	bool decodeWithStbImage(Bitmap& bitmap, const void* data, size_t size, Bitmap::LoadResult& outResult);
+}
+#endif
+
 
 class IBitmapCodec
 {

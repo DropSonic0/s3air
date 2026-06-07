@@ -808,8 +808,13 @@ bool BitmapCodecJPG::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 {
 	// Load JPEG from memory
 	MemInputStream mstream(stream);
+
+#if defined(PLATFORM_PS3)
+	return rmx::decodeWithStbImage(bitmap, mstream.getCursor(), mstream.getRemaining(), outResult);
+#else
 	BitmapJPG codec;
 	return codec.decode(bitmap, mstream.getCursor(), mstream.getSize(), outResult);
+#endif
 }
 
 bool BitmapCodecJPG::encode(const Bitmap& bitmap, OutputStream& stream)

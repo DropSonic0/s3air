@@ -8,7 +8,6 @@
 
 #include "rmxbase.h"
 
-
 #pragma pack(1)
 struct BmpHeader
 {
@@ -56,6 +55,10 @@ bool BitmapCodecBMP::canEncode(const String& format) const
 
 bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult)
 {
+#if defined(PLATFORM_PS3)
+	MemInputStream mstream(stream);
+	return rmx::decodeWithStbImage(bitmap, mstream.getCursor(), mstream.getRemaining(), outResult);
+#else
 	// Read header
 	BmpHeader header;
 	stream >> header;
@@ -152,6 +155,7 @@ bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 	}
 
 	RETURN(Bitmap::LoadResult::Error::OK);
+#endif
 }
 
 bool BitmapCodecBMP::encode(const Bitmap& bitmap, OutputStream& stream)

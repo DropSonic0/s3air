@@ -69,6 +69,10 @@ bool BitmapCodecPNG::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 {
 	// Load from PNG image data in memory
 	MemInputStream mstream(stream);
+
+#if defined(PLATFORM_PS3)
+	return rmx::decodeWithStbImage(bitmap, mstream.getCursor(), mstream.getRemaining(), outResult);
+#else
 	if (mstream.getRemaining() < 8)
 		RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
 
@@ -345,6 +349,7 @@ bool BitmapCodecPNG::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 	delete[] output;
 #endif
 	RETURN(Bitmap::LoadResult::Error::OK);
+#endif
 }
 
 bool BitmapCodecPNG::encode(const Bitmap& bitmap, OutputStream& stream)
