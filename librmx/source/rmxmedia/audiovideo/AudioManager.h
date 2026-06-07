@@ -21,6 +21,9 @@ namespace rmx
 
 	// Audio manager
 	class API_EXPORT AudioManager
+#if defined(PLATFORM_PS3)
+		: public ThreadBase
+#endif
 	{
 	public:
 		struct AudioInstance
@@ -117,10 +120,18 @@ namespace rmx
 		static void mixAudioStatic(void* _userdata, uint8* outputStream, int outputBytes);
 		void mixAudio(uint8* outputStream, int outputBytes);
 
+#if defined(PLATFORM_PS3)
+	protected:
+		virtual void threadFunc() override;
+#endif
+
 	private:
 		SDL_AudioDeviceID mAudioDeviceID;		// Audio device opened by SDL
 		SDL_AudioSpec mFormat;						// Audio format
 		uint32 mAudioLocks;						// Set if audio device is locked right now (needed to allow for nested audio locking)
+#if defined(PLATFORM_PS3)
+		SDL_mutex* mMutex;
+#endif
 		std::map<int, AudioInstance> mInstances;	// Map of all active audio instances by their ID
 		std::vector<int> mRemoveIDs;				// Audio instance IDs that got invalid during audio mixing
 		int mNextFreeID;						// ID to use for next audio instance created
@@ -128,6 +139,12 @@ namespace rmx
 		uint32 mPlayedSamples;					// Number of samples played (this takes about one day to overflow at 48 kHz)
 
 		float mTimeSinceLastUpdate;
+
+#if defined(PLATFORM_PS3)
+		uint32 mAudioPort;
+		bool mAudioInitialized;
+		bool mAudioStarted;
+#endif
 
 		// Mixers
 		std::map<int, AudioMixer*> mAudioMixers;

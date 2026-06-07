@@ -13,12 +13,23 @@ namespace rmx
 {
 
 	AudioManager::AudioManager() :
+#if defined(PLATFORM_PS3)
+		ThreadBase("Audio Mixer Thread"),
+#endif
 		mAudioDeviceID(0),
 		mAudioLocks(0),
+#if defined(PLATFORM_PS3)
+		mMutex(SDL_CreateMutex()),
+#endif
 		mNextFreeID(1),
 		mChangeCounter(0),
 		mPlayedSamples(0),
 		mTimeSinceLastUpdate(0.0f),
+#if defined(PLATFORM_PS3)
+		mAudioPort(0),
+		mAudioInitialized(false),
+		mAudioStarted(false),
+#endif
 		mRootMixer(*new AudioMixer(0))	// Root mixer always uses ID 0
 	{
 		mAudioMixers[0] = &mRootMixer;
@@ -28,6 +39,10 @@ namespace rmx
 	AudioManager::~AudioManager()
 	{
 		RMX_ASSERT(mAudioLocks == 0, "Pending audio locks");
+
+#if defined(PLATFORM_PS3)
+		SDL_DestroyMutex(mMutex);
+#endif
 
 		// Delete all audio mixers (including the root mixer)
 		for (std::map<int, AudioMixer*>::iterator it = mAudioMixers.begin(); it != mAudioMixers.end(); ++it)
@@ -45,6 +60,35 @@ namespace rmx
 		mInstances.clear();
 		mRootMixer.clearAudioInstances();
 
+#if defined(PLATFORM_PS3)
+		mFormat.freq = 48000;	// PS3 expects 48kHz
+		mFormat.format = AUDIO_S16LSB;
+		mFormat.channels = 2;
+		mFormat.samples = 1024;
+
+		if (cellAudioInit() == CELL_OK)
+		{
+			mAudioInitialized = true;
+			CellAudioPortParam params;
+			params.nChannel = 2;
+			params.nBlock = 8;
+			params.attr = 0;
+
+			if (cellAudioPortOpen(&params, &mAudioPort) == CELL_OK)
+			{
+				startThread();
+				playAudio(true);
+			}
+			else
+			{
+				RMX_ERROR("Failed to open CellAudio port", );
+			}
+		}
+		else
+		{
+			RMX_ERROR("Failed to initialize CellAudio", );
+		}
+#else
 		// Open audio device
 		SDL_AudioSpec desired;
 		memset(&desired, 0, sizeof(desired));
@@ -67,15 +111,35 @@ namespace rmx
 
 		// Success!
 		playAudio(true);
+#endif
 	}
 
 	void AudioManager::exit()
 	{
+#if defined(PLATFORM_PS3)
+		signalStopThread(true);
+		if (mAudioStarted)
+		{
+			cellAudioPortStop(mAudioPort);
+			mAudioStarted = false;
+		}
+		if (mAudioPort != 0)
+		{
+			cellAudioPortClose(mAudioPort);
+			mAudioPort = 0;
+		}
+		if (mAudioInitialized)
+		{
+			cellAudioQuit();
+			mAudioInitialized = false;
+		}
+#else
 		if (mAudioDeviceID != 0)
 		{
 			SDL_CloseAudioDevice(mAudioDeviceID);
 			mAudioDeviceID = 0;
 		}
+#endif
 	}
 
 	void AudioManager::clear()
@@ -97,20 +161,41 @@ namespace rmx
 
 	void AudioManager::playAudio(bool onoff)
 	{
+#if defined(PLATFORM_PS3)
+		if (onoff && !mAudioStarted && mAudioPort != 0)
+		{
+			cellAudioPortStart(mAudioPort);
+			mAudioStarted = true;
+		}
+		else if (!onoff && mAudioStarted && mAudioPort != 0)
+		{
+			cellAudioPortStop(mAudioPort);
+			mAudioStarted = false;
+		}
+#else
 		SDL_PauseAudioDevice(mAudioDeviceID, onoff ? 0 : 1);
+#endif
 	}
 
 	bool AudioManager::getAudioState()
 	{
+#if defined(PLATFORM_PS3)
+		return mAudioStarted;
+#else
 		return (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING);
+#endif
 	}
 
 	void AudioManager::lockAudio()
 	{
+#if defined(PLATFORM_PS3)
+		SDL_LockMutex(mMutex);
+#else
 		if (mAudioLocks == 0)
 		{
 			SDL_LockAudioDevice(mAudioDeviceID);
 		}
+#endif
 		++mAudioLocks;
 	}
 
@@ -118,14 +203,21 @@ namespace rmx
 	{
 		RMX_ASSERT(mAudioLocks > 0, "Called 'AudioManager::unlockAudio' without locking");
 		--mAudioLocks;
+#if defined(PLATFORM_PS3)
+		SDL_UnlockMutex(mMutex);
+#else
 		if (mAudioLocks == 0)
 		{
 			SDL_UnlockAudioDevice(mAudioDeviceID);
 		}
+#endif
 	}
 
 	void AudioManager::regularUpdate(float timeElapsed)
 	{
+		// Make sure removed IDs are processed regularly
+		processRemoveIDs();
+
 		// Do the following cleanup only every 0.5 seconds
 		mTimeSinceLastUpdate += timeElapsed;
 		if (mTimeSinceLastUpdate >= 0.5f)
@@ -373,6 +465,93 @@ namespace rmx
 	{
 		static_cast<AudioManager*>(_userdata)->mixAudio(outputStream, outputBytes);
 	}
+
+#if defined(PLATFORM_PS3)
+	void AudioManager::threadFunc()
+	{
+		sys_event_queue_t event_queue;
+		sys_ipc_key_t key;
+		cellAudioCreateNotifyEventQueue(&event_queue, &key);
+		cellAudioSetNotifyEventQueue(key);
+
+		const int outputSamples = 256;
+		float outputBuffer[256 * 2] __attribute__((aligned(16)));
+
+		while (mShouldBeRunning)
+		{
+			sys_event_t event;
+			// Use a 10ms timeout to ensure the thread can exit even if no audio events are received
+			if (sys_event_queue_receive(event_queue, &event, 10000) != CELL_OK)
+				continue;
+
+			if (!mAudioStarted)
+				continue;
+
+			// Setup intermediate buffer
+			int32 fullOutputBuffer[256 * 2];
+			memset(fullOutputBuffer, 0, sizeof(fullOutputBuffer));
+
+			AudioMixer::MixerParameters parameters;
+			parameters.mOutputBuffers[0] = &fullOutputBuffer[0];
+			parameters.mOutputBuffers[1] = &fullOutputBuffer[outputSamples];
+			parameters.mOutputSamples = outputSamples;
+			parameters.mOutputFormat = &mFormat;
+			parameters.mAccumulatedVolume = 1.0f;
+
+			lockAudio();
+			mRootMixer.performAudioMix(parameters);
+			unlockAudio();
+
+			// Copy results into the output stream and convert to float
+			for (int i = 0; i < outputSamples; ++i)
+			{
+				for (int channelIndex = 0; channelIndex < 2; ++channelIndex)
+				{
+					int32 sample = fullOutputBuffer[channelIndex * outputSamples + i];
+					// PS3 CellAudio expects floats in range [-1.0, 1.0]
+					// The internal mixing uses 24-bit fixed point (effectively)
+					// (Division by 2^23 = 8388608.0f, but we'll stick to the original logic and ensure it matches expected levels)
+					outputBuffer[i * 2 + channelIndex] = (float)sample / 8388608.0f;
+				}
+			}
+
+			cellAudioAddData(mAudioPort, outputBuffer, outputSamples, 1.0);
+
+			mPlayedSamples += (uint32)outputSamples;
+
+			// Remove instance that are done playing
+			if (mChangeCounter != 0) // Optimization: only check if something changed
+			{
+				lockAudio();
+				for (std::map<int, AudioInstance>::iterator it = mInstances.begin(); it != mInstances.end(); ++it)
+				{
+					if (it->second.mPlaybackDone)
+					{
+						if (!containsElement(mRemoveIDs, it->first))
+						{
+							mRemoveIDs.push_back(it->first);
+						}
+					}
+				}
+				unlockAudio();
+			}
+
+			// Periodically clean up removed IDs
+			// Note: This is usually done in processRemoveIDs which is called from findInstance (main thread).
+			// We can trigger it here to ensure it's kept clean even if findInstance isn't called.
+			if (!mRemoveIDs.empty())
+			{
+				// We don't want to block the audio thread too much with deletions, 
+				// but we need to ensure mInstances doesn't leak.
+				// For PS3, we'll let the main thread handle the actual removal through processRemoveIDs 
+				// when it calls findInstance or we can explicitly call it here if safe.
+			}
+		}
+
+		cellAudioRemoveNotifyEventQueue(key);
+		sys_event_queue_destroy(event_queue, SYS_EVENT_QUEUE_DESTROY_FORCE);
+	}
+#endif
 
 	void AudioManager::mixAudio(uint8* outputStream, int outputBytes)
 	{

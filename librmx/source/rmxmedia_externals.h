@@ -32,13 +32,23 @@
 	// We include this early so we can use its types and avoid conflicts
 	#include <PSGL/psgl.h>
 	#include <PSGL/psglu.h>
+	#include <pthread.h>
+	#include <unistd.h>
+	#include <cell/audio.h>
+	#include <sys/event.h>
+	#include <sys/timer.h>
+	#include <time.h>
+	#include <stdint.h>
+	#include <sys/sys_time.h>
+
+	#define usleep sys_timer_usleep
 
 	// SDL Shims for PS3
 	typedef uint32 Uint32;
 	typedef int SDL_Keycode;
-	typedef int SDL_mutex;
-	typedef int SDL_cond;
-	typedef int SDL_Thread;
+	typedef pthread_mutex_t SDL_mutex;
+	typedef pthread_cond_t SDL_cond;
+	typedef pthread_t SDL_Thread;
 	typedef int SDL_AudioDeviceID;
 	typedef int SDL_AudioStatus;
 	#define SDL_AUDIO_STOPPED 0
@@ -84,17 +94,39 @@
 	};
 	struct SDL_Window { int unused; };
 
-	inline SDL_mutex* SDL_CreateMutex() { return (SDL_mutex*)1; }
-	inline void SDL_DestroyMutex(SDL_mutex* m) {}
-	inline void SDL_LockMutex(SDL_mutex* m) {}
-	inline void SDL_UnlockMutex(SDL_mutex* m) {}
-	inline SDL_cond* SDL_CreateCond() { return (SDL_cond*)1; }
-	inline void SDL_DestroyCond(SDL_cond* c) {}
-	inline void SDL_CondSignal(SDL_cond* c) {}
-	inline void SDL_CondWait(SDL_cond* c, SDL_mutex* m) {}
-	inline int  SDL_CondWaitTimeout(SDL_cond* c, SDL_mutex* m, unsigned int ms) { return 0; }
-	inline SDL_Thread* SDL_CreateThread(int (*f)(void*), const char* n, void* d) { return (SDL_Thread*)1; }
-	inline void SDL_WaitThread(SDL_Thread* t, int* s) {}
+	inline SDL_mutex* SDL_CreateMutex() {
+		SDL_mutex* m = new SDL_mutex;
+		pthread_mutexattr_t attr;
+		pthread_mutexattr_init(&attr);
+		pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+		pthread_mutex_init(m, &attr);
+		pthread_mutexattr_destroy(&attr);
+		return m;
+	}
+	inline void SDL_DestroyMutex(SDL_mutex* m) { pthread_mutex_destroy(m); delete m; }
+	inline void SDL_LockMutex(SDL_mutex* m) { pthread_mutex_lock(m); }
+	inline void SDL_UnlockMutex(SDL_mutex* m) { pthread_mutex_unlock(m); }
+	inline SDL_cond* SDL_CreateCond() { SDL_cond* c = new SDL_cond; pthread_cond_init(c, NULL); return c; }
+	inline void SDL_DestroyCond(SDL_cond* c) { pthread_cond_destroy(c); delete c; }
+	inline void SDL_CondSignal(SDL_cond* c) { pthread_cond_signal(c); }
+	inline void SDL_CondWait(SDL_cond* c, SDL_mutex* m) { pthread_cond_wait(c, m); }
+	inline int  SDL_CondWaitTimeout(SDL_cond* c, SDL_mutex* m, unsigned int ms) {
+		sys_time_sec_t sec;
+		sys_time_nsec_t nsec;
+		sys_time_get_current_time(&sec, &nsec);
+		struct timespec ts;
+		ts.tv_sec = sec + ms / 1000;
+		ts.tv_nsec = nsec + (ms % 1000) * 1000000;
+		if (ts.tv_nsec >= 1000000000) { ts.tv_sec++; ts.tv_nsec -= 1000000000; }
+		return pthread_cond_timedwait(c, m, &ts);
+	}
+	inline SDL_Thread* SDL_CreateThread(int (*f)(void*), const char* n, void* d) {
+		SDL_Thread* t = new SDL_Thread;
+		typedef void* (*pthread_func)(void*);
+		if (pthread_create(t, NULL, (pthread_func)f, d) != 0) { delete t; return nullptr; }
+		return t;
+	}
+	inline void SDL_WaitThread(SDL_Thread* t, int* s) { pthread_join(*t, NULL); delete t; }
 	inline void* SDL_RWFromFile(const char* f, const char* m) { return 0; }
 	inline void SDL_RWclose(void* c) {}
 	inline size_t SDL_RWsize(void* c) { return 0; }
@@ -226,8 +258,8 @@
 
 	inline void SDL_PauseAudioDevice(SDL_AudioDeviceID d, int p) {}
 	inline SDL_AudioStatus SDL_GetAudioStatus() { return (SDL_AudioStatus)0; }
-	inline void SDL_LockAudioDevice(SDL_AudioDeviceID d) {}
-	inline void SDL_UnlockAudioDevice(SDL_AudioDeviceID d) {}
+	inline void SDL_LockAudioDevice(SDL_AudioDeviceID d) { /* Handled in AudioManager */ }
+	inline void SDL_UnlockAudioDevice(SDL_AudioDeviceID d) { /* Handled in AudioManager */ }
 	inline int SDL_LoadWAV(const char* f, SDL_AudioSpec* s, unsigned char** d, unsigned int* l) { return 0; }
 	inline void SDL_FreeWAV(unsigned char* d) {}
 	inline int SDL_BuildAudioCVT(SDL_AudioCVT* c, int sf, int sc, int sr, int df, int dc, int dr) { return 0; }
@@ -329,7 +361,12 @@
 	struct SDL_DisplayMode { int w, h; };
 	inline int SDL_GetDesktopDisplayMode(int i, SDL_DisplayMode* m) { if (m) { m->w = 1920; m->h = 1080; } return 0; }
 
-	inline unsigned int SDL_GetTicks() { return 0; }
+	inline unsigned int SDL_GetTicks() {
+		sys_time_sec_t sec;
+		sys_time_nsec_t nsec;
+		sys_time_get_current_time(&sec, &nsec);
+		return (unsigned int)(sec * 1000 + nsec / 1000000);
+	}
 	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
 	#define SDL_QUIT 1
 	#define SDL_WINDOWEVENT 2
@@ -408,8 +445,8 @@
 	inline void SDL_CloseAudioDevice(SDL_AudioDeviceID d) {}
 	inline void SDL_DisableScreenSaver() {}
 	#define SDL_AUDIO_ALLOW_ANY_CHANGE 0
-	inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 0; }
-	inline void SDL_Delay(unsigned int ms) {}
+	inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 1; }
+	inline void SDL_Delay(unsigned int ms) { sys_timer_usleep(ms * 1000); }
 
 	// Missing OpenGL identifiers / shims for PS3 (Guarded)
 	#ifndef GL_TEXTURE_BUFFER
