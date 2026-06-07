@@ -40,7 +40,7 @@ namespace opengl
 		void bind();
 		void unbind();
 
-		void draw(int mode);		// Shortcut for "bind()" + "glDrawArrays(mode, 0, mNumBufferedVertices)"
+		void draw(unsigned int mode);		// Shortcut for "bind()" + "glDrawArrays(mode, 0, mNumBufferedVertices)"
 
 	private:
 		unsigned int mHandle;						// Vertex array object handle

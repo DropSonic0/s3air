@@ -234,6 +234,7 @@ bool EngineMain::startupEngine()
 	{
 	#if defined(PLATFORM_PS3)
 		oxygen::Logging::startup(config.mAppDataPath + L"log.txt");
+		RMX_LOG_INFO("--- EARLY LOGGING START ---");
 	#else
 		oxygen::Logging::startup(config.mAppDataPath + L"logfile.txt");
 	#endif
@@ -380,6 +381,7 @@ void EngineMain::initDirectories()
 	config.mExePath = *String(mArguments[0]).toWString();
 	#if defined(PLATFORM_PS3)
 		rmx::FileSystem::normalizePath(config.mExePath, false);
+		RMX_LOG_INFO("Executable path: " << WString(config.mExePath).toStdString());
 	#endif
 #endif
 
@@ -387,15 +389,21 @@ void EngineMain::initDirectories()
 	{
 	#if defined(PLATFORM_PS3)
 		// PlayStation 3
-		config.mAppDataPath = L"/dev_hdd0/game/" + appMetaData.mAppDataFolder + L"/USRDIR/";
+		std::wstring initialPath = L"/dev_hdd0/game/" + appMetaData.mAppDataFolder + L"/USRDIR/";
+		config.mAppDataPath = initialPath;
 
 		const std::wstring& exePath = config.mExePath;
 		const size_t slashPos = exePath.find_last_of(L'/');
 		if (slashPos != std::wstring::npos)
 		{
 			config.mAppDataPath = exePath.substr(0, slashPos + 1);
-		// On PS3, we want to make sure the app data path is normalized and does not end in double slashes
-		rmx::FileSystem::normalizePath(config.mAppDataPath, true);
+			// On PS3, we want to make sure the app data path is normalized and does not end in double slashes
+			rmx::FileSystem::normalizePath(config.mAppDataPath, true);
+			RMX_LOG_INFO("Derived app data path from executable: " << WString(config.mAppDataPath).toStdString());
+		}
+		else
+		{
+			RMX_LOG_INFO("Using default app data path: " << WString(config.mAppDataPath).toStdString());
 		}
 	#elif defined(PLATFORM_ANDROID)
 		// Android
@@ -436,8 +444,12 @@ void EngineMain::initDirectories()
 
 			rmx::FileSystem::normalizePath(redirectedPath, true);
 			if (!FTX::FileSystem->exists(redirectedPath))
+			{
+				RMX_LOG_INFO("Redirection failed, path does not exist: " << WString(redirectedPath).toStdString());
 				break;
+			}
 
+			RMX_LOG_INFO("Redirecting app data path to: " << WString(redirectedPath).toStdString());
 			config.mAppDataPath = redirectedPath;
 		}
 	}
@@ -465,13 +477,16 @@ bool EngineMain::initConfigAndSettings(const std::wstring& argumentProjectPath)
 	RMX_LOG_INFO("Loading configuration");
 	if (FTX::FileSystem->exists(config.mAppDataPath + L"config.json"))
 	{
+		RMX_LOG_INFO("Loading config.json from app data path");
 		config.loadConfiguration(config.mAppDataPath + L"config.json");
 	}
 	else
 	{
 #if (defined(PLATFORM_MAC) || defined(PLATFORM_IOS)) && defined(ENDUSER)
+		RMX_LOG_INFO("Loading config.json from game data path");
 		config.loadConfiguration(config.mGameDataPath + L"/config.json");
 #else
+		RMX_LOG_INFO("Loading local config.json");
 		config.loadConfiguration(L"config.json");
 #endif
 	}
@@ -493,10 +508,11 @@ bool EngineMain::initConfigAndSettings(const std::wstring& argumentProjectPath)
 		}
 	}
 
-	RMX_LOG_INFO("Loading settings");
+	RMX_LOG_INFO("Loading settings from: " << WString(config.mAppDataPath).toStdString());
 	const bool loadedSettings = config.loadSettings(config.mAppDataPath + L"settings.json", Configuration::SettingsType::STANDARD);
 	config.loadSettings(config.mAppDataPath + L"settings_input.json", Configuration::SettingsType::INPUT);
 	config.loadSettings(config.mAppDataPath + L"settings_global.json", Configuration::SettingsType::GLOBAL);
+	RMX_LOG_INFO("Settings loaded: " << (loadedSettings ? "SUCCESS" : "FAILED (using defaults)"));
 	if (!loadedSettings)
 	{
 		// Save default settings once immediately
@@ -535,12 +551,15 @@ bool EngineMain::initFileSystem()
 {
 	// Create mod data folder (the default mod directory)
 	Configuration& config = Configuration::instance();
+	RMX_LOG_INFO("Creating mods directory at: " << WString(config.mAppDataPath + L"mods").toStdString());
 	FTX::FileSystem->createDirectory(config.mAppDataPath + L"mods");
 
 	// Add real file system provider for the game data path, if it isn't located in local "data" directory
 	//  -> This is relevant for Oxygen Engine using an external game data path
+	RMX_LOG_INFO("Game data path: " << WString(config.mGameDataPath).toStdString());
 	if (config.mGameDataPath != L"data" && config.mGameDataPath != L"./data")
 	{
+		RMX_LOG_INFO("Mounting external game data path: " << WString(config.mGameDataPath).toStdString());
 		rmx::RealFileProvider* provider = new rmx::RealFileProvider();
 		FTX::FileSystem->addManagedFileProvider(*provider);
 		FTX::FileSystem->addMountPoint(*provider, L"data/", config.mGameDataPath + L'/', 0x10);
@@ -598,16 +617,21 @@ bool EngineMain::loadFilePackageByIndex(size_t index, bool forceReload)
 
 	// First try loading from game installation
 	const std::wstring gameDataBasePath = config.mGameDataPath + L"/";
-	PackedFileProvider* provider = PackedFileProvider::createPackedFileProvider(gameDataBasePath + dataPackage.mFilename);
+	const std::wstring fullPackagePath = gameDataBasePath + dataPackage.mFilename;
+	RMX_LOG_INFO("Trying to load package: " << WString(fullPackagePath).toStdString());
+	PackedFileProvider* provider = PackedFileProvider::createPackedFileProvider(fullPackagePath);
 	if (nullptr == provider)
 	{
 		// Then try loading from save data (e.g. downloaded packages)
 		const std::wstring saveDataBasePath = config.mAppDataPath + L"data/";
-		provider = PackedFileProvider::createPackedFileProvider(saveDataBasePath + dataPackage.mFilename);
+		const std::wstring fullSavePackagePath = saveDataBasePath + dataPackage.mFilename;
+		RMX_LOG_INFO("Trying to load package from app data: " << WString(fullSavePackagePath).toStdString());
+		provider = PackedFileProvider::createPackedFileProvider(fullSavePackagePath);
 	}
 
 	if (nullptr != provider)
 	{
+		RMX_LOG_INFO("Successfully loaded package: " << WString(dataPackage.mFilename).toStdString());
 		// Mount to "data" in any case, otherwise OxygenApp won't work when the game data path is somewhere different
 		FTX::FileSystem->addManagedFileProvider(*provider);
 		FTX::FileSystem->addMountPoint(*provider, L"data/", L"data/", 0x20 + (int)index);
@@ -616,6 +640,7 @@ bool EngineMain::loadFilePackageByIndex(size_t index, bool forceReload)
 	}
 
 	// Failed
+	RMX_LOG_INFO("Failed to load package: " << WString(dataPackage.mFilename).toStdString());
 	return false;
 }
 
@@ -745,7 +770,45 @@ bool EngineMain::createWindow()
 		if (useOpenGL)
 		{
 			RMX_LOG_INFO("Creating OpenGL context...");
+		#if defined(PLATFORM_PS3)
+			PSGLinitOptions options =
+			{
+				enable: PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE,
+				maxSPUs: 1,
+				initializeSPUs: false,
+				persistentMemorySize: 0,
+				transientMemorySize: 0,
+				errorConsole: 0,
+				fifoSize: 0,
+				hostMemorySize: 8 * 1024 * 1024
+			};
+			psglInit(&options);
+
+			PSGLdeviceParameters params;
+			params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO;
+			params.bufferingMode = PSGL_BUFFERING_MODE_TRIPLE;
+			params.colorFormat = GL_ARGB_SCE;
+			params.depthFormat = GL_NONE;
+			params.multisamplingMode = GL_MULTISAMPLING_NONE_SCE;
+			params.enable |= PSGL_DEVICE_PARAMETERS_RESC_RATIO_MODE;
+			params.rescRatioMode = RESC_RATIO_MODE_FULLSCREEN;
+
+			PSGLdevice* device = psglCreateDeviceExtended(&params);
+			PSGLcontext* context = psglCreateContext();
+			psglMakeCurrent(context, device);
+			psglResetCurrentContext();
+
+			if (nullptr != context)
+			{
+				GLuint w, h;
+				psglGetDeviceDimensions(device, &w, &h);
+				videoConfig.mWindowRect.width = (int)w;
+				videoConfig.mWindowRect.height = (int)h;
+				RMX_LOG_INFO("PSGL context created with resolution " << w << "x" << h);
+			}
+		#else
 			SDL_GLContext context = SDL_GL_CreateContext(mSDLWindow);
+		#endif
 			if (nullptr != context)
 			{
 				RMX_LOG_INFO("Vsync setup...");

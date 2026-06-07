@@ -20,7 +20,7 @@ namespace rmx
 	template<typename T>
 	T readMemoryUnalignedSwapped(const void* pointer) { return swapBytes<T>(*(T*)pointer); }
 
-#if defined(__arm__)
+#if defined(__arm__) || defined(PLATFORM_PS3)
 	template<> uint16 readMemoryUnaligned(const void* pointer);
 	template<> uint32 readMemoryUnaligned(const void* pointer);
 	template<> uint64 readMemoryUnaligned(const void* pointer);

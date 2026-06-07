@@ -720,7 +720,11 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 
 void OpenGLDrawer::presentScreen()
 {
+#if defined(PLATFORM_PS3)
+	psglSwap();
+#else
 	SDL_GL_SwapWindow(mInternal.mOutputWindow);
+#endif
 }
 
 #endif

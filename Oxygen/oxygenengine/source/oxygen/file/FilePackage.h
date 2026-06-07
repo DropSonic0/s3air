@@ -37,6 +37,7 @@ public:
 		uint32 mContentVersion = 0;
 		uint32 mEntryHeaderSize = 0;		// Including the meta data for entries, but excluding their contents
 		size_t mNumEntries = 0;
+		bool mBigEndian = false;
 	};
 
 public:

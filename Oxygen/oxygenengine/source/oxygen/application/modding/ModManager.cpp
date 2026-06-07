@@ -25,18 +25,22 @@ void ModManager::startup()
 {
 	// Update base path (actually only needs to be done once, it shouldn't change afterwards anyways)
 	mBasePath = Configuration::instance().mAppDataPath + L"mods/";
+	RMX_LOG_INFO("ModManager startup, base path: " << WString(mBasePath).toStdString());
 
 	// First go through all mod directories recursively to gather all installed mods
 	scanMods();
 
 	// Now get the list of active mods
 	//  -> Check if there's an "active-mods.json" file and read it
-	if (FTX::FileSystem->exists(mBasePath + L"active-mods.json"))
+	const std::wstring activeModsFile = mBasePath + L"active-mods.json";
+	if (FTX::FileSystem->exists(activeModsFile))
 	{
-		Json::Value json = JsonHelper::loadFile(mBasePath + L"active-mods.json");
+		RMX_LOG_INFO("Loading active mods from: " << WString(activeModsFile).toStdString());
+		Json::Value json = JsonHelper::loadFile(activeModsFile);
 
 		Json::Value activeMods = json["ActiveMods"];
 		const int numMods = activeMods.isArray() ? (int)activeMods.size() : 0;
+		RMX_LOG_INFO("Found " << numMods << " active mods in JSON");
 		for (int i = 0; i < numMods; ++i)
 		{
 #if defined(PLATFORM_PS3)
@@ -50,12 +54,13 @@ void ModManager::startup()
 			const auto it = mModsByLocalDirectoryHash.find(hash);
 			if (it == mModsByLocalDirectoryHash.end())
 			{
-				// Not found... we could make this an error / failed mod
+				RMX_LOG_INFO("Active mod not found in scan: " << WString(localPath).toStdString());
 			}
 			else
 			{
 				// Make this mod active
 				Mod* mod = it->second;
+				RMX_LOG_INFO("Activating mod: " << mod->mDisplayName << " (" << mod->mDirectoryName << ")");
 				mod->mState = Mod::State::ACTIVE;
 				mActiveMods.push_back(mod);
 			}
@@ -214,6 +219,8 @@ void ModManager::copyModSettingsToConfig()
 
 bool ModManager::scanMods()
 {
+	RMX_LOG_INFO("Scanning for mods in: " << WString(mBasePath).toStdString());
+
 	// Mark all existing mods as dirty first
 	for (Mod* existingMod : mAllMods)
 	{

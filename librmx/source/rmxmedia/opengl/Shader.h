@@ -71,7 +71,7 @@ public:
 	void setMatrix(const char* name, const Mat3f& matrix);
 	void setMatrix(const char* name, const Mat4f& matrix);
 
-	void setTexture(const char* name, unsigned int handle, int target);
+	void setTexture(const char* name, GLuint handle, GLenum target);
 	void setTexture(const char* name, const Texture& texture);
 
 	void bind();
@@ -81,7 +81,7 @@ public:
 	bool load(const std::vector<uint8>& content, const String& techname = String(), const String& additionalDefines = String());
 
 private:
-	bool compileShader(int shaderType, unsigned int& shaderHandle, const String& source);
+	bool compileShader(GLenum shaderType, GLuint& shaderHandle, const String& source);
 	bool linkProgram(const std::map<int, String>* vertexAttribMap = nullptr);
 
 private:

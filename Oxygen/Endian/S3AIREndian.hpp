@@ -228,3 +228,139 @@ struct LE<float> {
         return *this;
     }
 };
+
+template <typename T>
+struct BE {
+    T raw;
+
+    BE() = default;
+    BE(const T &a)
+    {
+        *this = a;
+    }
+
+    inline operator T() const {
+        typename UIForSize_t<sizeof(T)>::type ui = bit_cast_from_size<T>((void *)&raw);
+
+        if (SDL_BYTEORDER == SDL_LIL_ENDIAN) {
+            ui = S3AIRByteswap(ui);
+        }
+
+        return bit_cast_to_size<T>(ui);
+    }
+
+    inline BE &operator=(const T &a) {
+        typename UIForSize_t<sizeof(T)>::type ui = bit_cast_from_size<T>((void *)&a);
+
+        if (SDL_BYTEORDER == SDL_LIL_ENDIAN) {
+            ui = S3AIRByteswap(ui);
+        }
+
+        raw = bit_cast_to_size<T>(ui);
+        return *this;
+    }
+
+    inline BE &operator++() {
+        *this = (T)*this + 1;
+        return *this;
+    }
+
+    inline T operator++(int) {
+        T ret = (T)*this;
+        ++(*this);
+        return ret;
+    }
+
+    inline BE &operator--() {
+        *this = (T)*this - 1;
+        return *this;
+    }
+
+    inline T operator--(int) {
+        T ret = (T)*this;
+        --(*this);
+        return ret;
+    }
+
+    template <typename U> inline BE &operator+=(const U &a) {
+        *this = (T)*this + (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator-=(const U &a) {
+        *this = (T)*this - (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator*=(const U &a) {
+        *this = (T)*this * (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator/=(const U &a) {
+        *this = (T)*this / (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator%=(const U &a) {
+        *this = (T)*this % (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator&=(const U &a) {
+        *this = (T)*this & (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator|=(const U &a) {
+        *this = (T)*this | (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator^=(const U &a) {
+        *this = (T)*this ^ (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator<<=(const U &a) {
+        *this = (T)*this << (T)a;
+        return *this;
+    }
+
+    template <typename U> inline BE &operator>>=(const U &a) {
+        *this = (T)*this >> (T)a;
+        return *this;
+    }
+};
+
+template <>
+struct BE<float> {
+    float raw;
+
+    BE() = default;
+    BE(const float &a)
+    {
+        *this = a;
+    }
+
+    inline operator float() const {
+        typename UIForSize_t<sizeof(float)>::type ui = bit_cast_from_size<float>((void*) &raw);
+
+        if (SDL_FLOATWORDORDER == SDL_LIL_ENDIAN) {
+            ui = S3AIRByteswap(ui);
+        }
+
+        return bit_cast_to_size<float>(ui);
+    }
+
+    inline BE &operator=(const float &a) {
+        typename UIForSize_t<sizeof(float)>::type ui = bit_cast_from_size<float>((void *)&a);
+
+        if (SDL_FLOATWORDORDER == SDL_LIL_ENDIAN) {
+            ui = S3AIRByteswap(ui);
+        }
+
+        raw = bit_cast_to_size<float>(ui);
+        return *this;
+    }
+};

@@ -21,7 +21,7 @@ public:
 	~Renderbuffer();
 
 	void create();
-	void create(int format, int width, int height);
+	void create(unsigned int format, int width, int height);
 	void setSize(int width, int height);
 	void destroy();
 
@@ -47,11 +47,11 @@ public:
 	void destroy();
 	void setSize(int width, int height);
 
-	void attachTexture(int attachment, unsigned int handle, int texTarget = GL_TEXTURE_2D);
-	void attachTexture(int attachment, const Texture* texture, int texTarget = GL_TEXTURE_2D);
+	void attachTexture(unsigned int attachment, unsigned int handle, unsigned int texTarget = 0x0DE1); // 0x0DE1 = GL_TEXTURE_2D
+	void attachTexture(unsigned int attachment, const Texture* texture, unsigned int texTarget = 0x0DE1);
 
-	void attachRenderbuffer(int attachment, unsigned int handle);
-	void createRenderbuffer(int attachment, int internalformat);
+	void attachRenderbuffer(unsigned int attachment, unsigned int handle);
+	void createRenderbuffer(unsigned int attachment, unsigned int internalformat);
 
 	void bind();
 	void unbind();
@@ -64,13 +64,13 @@ public:
 	inline Recti getViewport() const  { return Recti(0, 0, mWidth, mHeight); }
 
 private:
-	void deleteAttachedBuffer(int attachment);
+	void deleteAttachedBuffer(unsigned int attachment);
 
 private:
 	unsigned int mHandle;
 	int mWidth;
 	int mHeight;
-	std::map<int, Renderbuffer*> mRenderbuffers;
+	std::map<unsigned int, Renderbuffer*> mRenderbuffers;
 };
 
 #endif

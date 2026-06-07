@@ -75,14 +75,26 @@ bool EngineDelegate::onEnginePreStartup()
 		const bool check = FTX::FileSystem->exists(config.mGameDataPath + L"/gamedata.bin");
 	#elif defined(PLATFORM_PS3)
 		RMX_LOG_INFO("Checking for game data...");
-		RMX_LOG_INFO("App data path: " << WString(Configuration::instance().mAppDataPath).toStdString());
-		const bool check1 = FTX::FileSystem->exists(L"data/content.json");
-		const bool check2 = FTX::FileSystem->exists(L"data/gamedata.bin");
-		const bool check3 = FTX::FileSystem->exists(Configuration::instance().mAppDataPath + L"data/content.json");
-		const bool check4 = FTX::FileSystem->exists(Configuration::instance().mAppDataPath + L"data/gamedata.bin");
-		RMX_LOG_INFO("Check: " << check1 << ", " << check2 << ", " << check3 << ", " << check4);
+		const std::wstring appDataPath = Configuration::instance().mAppDataPath;
+		RMX_LOG_INFO("App data path: " << WString(appDataPath).toStdString());
+
+		const std::wstring path1 = L"data/content.json";
+		const std::wstring path2 = L"data/gamedata.bin";
+		const std::wstring path3 = appDataPath + L"data/content.json";
+		const std::wstring path4 = appDataPath + L"data/gamedata.bin";
+
+		const bool check1 = FTX::FileSystem->exists(path1);
+		const bool check2 = FTX::FileSystem->exists(path2);
+		const bool check3 = FTX::FileSystem->exists(path3);
+		const bool check4 = FTX::FileSystem->exists(path4);
+
+		RMX_LOG_INFO("Check 1 (" << WString(path1).toStdString() << "): " << (check1 ? "FOUND" : "NOT FOUND"));
+		RMX_LOG_INFO("Check 2 (" << WString(path2).toStdString() << "): " << (check2 ? "FOUND" : "NOT FOUND"));
+		RMX_LOG_INFO("Check 3 (" << WString(path3).toStdString() << "): " << (check3 ? "FOUND" : "NOT FOUND"));
+		RMX_LOG_INFO("Check 4 (" << WString(path4).toStdString() << "): " << (check4 ? "FOUND" : "NOT FOUND"));
+
 		const bool check = (check1 || check2 || check3 || check4);
-		RMX_LOG_INFO("Final check result: " << check);
+		RMX_LOG_INFO("Final check result: " << (check ? "SUCCESS" : "FAILED"));
 	#else
 		const bool check = (FTX::FileSystem->exists(L"data/content.json") || FTX::FileSystem->exists(L"data/gamedata.bin"));
 	#endif
@@ -108,11 +120,13 @@ bool EngineDelegate::setupCustomGameProfile()
 
 	if (FTX::FileSystem->exists(L"./oxygenproject.json"))
 	{
+		RMX_LOG_INFO("Loading game profile from 'oxygenproject.json'");
 		// Load from the oxygenproject.json file
 		gameProfile.loadOxygenProjectFromFile(L"./oxygenproject.json");
 	}
 	else
 	{
+		RMX_LOG_INFO("Setting up default game profile for Sonic 3 A.I.R.");
 		// Setup game profile data -- this is done so that no oxygenproject.json is needed for the end-user version of S3AIR
 		ConfigurationImpl::fillDefaultGameProfile(gameProfile);
 

@@ -28,6 +28,11 @@
 
 // SDL
 #if defined(PLATFORM_PS3)
+	// OpenGL for PS3 (using PSGL)
+	// We include this early so we can use its types and avoid conflicts
+	#include <PSGL/psgl.h>
+	#include <PSGL/psglu.h>
+
 	// SDL Shims for PS3
 	typedef uint32 Uint32;
 	typedef int SDL_Keycode;
@@ -342,6 +347,7 @@
 	#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "SDL_VIDEO_ALLOW_SCREENSAVER"
 	#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "SDL_ACCELEROMETER_AS_JOYSTICK"
 	#define SDL_HINT_RENDER_VSYNC "SDL_RENDER_VSYNC"
+	#define SDL_WINDOWEVENT_FOCUS_LOST 14
 
 	#define SDL_PIXELFORMAT_INDEX1LSB 0
 	#define SDL_PIXELFORMAT_INDEX1MSB 1
@@ -389,9 +395,7 @@
 	#define SDL_BUTTON_MIDDLE 3
 	#define SDL_BUTTON_X1 4
 	#define SDL_BUTTON_X2 5
-	#define SDL_AUDIO_PLAYING 1
 
-	#define SDL_WINDOWEVENT_FOCUS_LOST 1
 	#define SDL_MESSAGEBOX_ERROR 0x00000010
 	#define SDL_MESSAGEBOX_WARNING 0x00000020
 	#define SDL_MESSAGEBOX_INFORMATION 0x00000040
@@ -407,128 +411,85 @@
 	inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 0; }
 	inline void SDL_Delay(unsigned int ms) {}
 
-	// OpenGL Shims for PS3
-	typedef int GLint;
-	typedef int GLenum;
-	typedef unsigned int GLuint;
-	typedef float GLfloat;
-	typedef int GLsizei;
-	typedef long GLintptr;
-	typedef long GLsizeiptr;
-	typedef unsigned int GLbitfield;
-	typedef char GLchar;
-	#define GL_TEXTURE_2D 0
-	#define GL_RGBA 0
-	#define GL_RGB 0
-	#define GL_RGBA8 0
-	#define GL_RGB8 0
-	#define GL_DEPTH_COMPONENT 0
-	#define GL_DEPTH_COMPONENT16 0
-	#define GL_FALSE 0
-	#define GL_TRUE 1
-	#define GL_FLOAT 0
-	#define GL_STATIC_DRAW 0
-	#define GL_ARRAY_BUFFER 0
-	#define GL_COLOR_BUFFER_BIT 0x00004000
-	#define GL_DEPTH_BUFFER_BIT 0x00000100
-	#define GL_UNSIGNED_BYTE 0
-	#define GL_SCISSOR_TEST 0
-	#define GL_RENDERBUFFER 0
-	#define GL_FRAMEBUFFER 0
-	#define GL_FRAMEBUFFER_COMPLETE 0
-	#define GL_VERTEX_SHADER 0
-	#define GL_FRAGMENT_SHADER 0
-	#define GL_TEXTURE0 0
-	#define GL_TEXTURE1 0x84C1
-	#define GL_TEXTURE2 0x84C2
-	#define GL_TEXTURE3 0x84C3
-	#define GL_TEXTURE4 0x84C4
-	#define GL_ONE 0
-	#define GL_ZERO 0
-	#define GL_SRC_ALPHA 0
-	#define GL_ONE_MINUS_SRC_ALPHA 0
-	#define GL_DST_COLOR 0
-	#define GL_COMPILE_STATUS 0
-	#define GL_LINK_STATUS 0
-	#define GL_INFO_LOG_LENGTH 0
-	#define GL_NONE 0
-	#define GL_INVALID_OPERATION 1
-	#define GL_INVALID_ENUM 2
-	#define GL_INVALID_VALUE 3
-	#define GL_OUT_OF_MEMORY 4
-	#define GL_INVALID_FRAMEBUFFER_OPERATION 5
-	#define GL_COLOR_ATTACHMENT0 0
-	#define GL_TEXTURE_MIN_FILTER 0
-	#define GL_TEXTURE_MAG_FILTER 0
-	#define GL_NEAREST 0
-	#define GL_LINEAR 1
-	#define GL_TEXTURE_WRAP_S 0
-	#define GL_TEXTURE_WRAP_T 0
-	#define GL_CLAMP_TO_EDGE 0
-	#define GL_REPEAT 1
-	#define GL_TRIANGLES 0
-	#define GL_DEPTH_ATTACHMENT 0x8D00
-	#define GL_DEPTH_TEST 0x0B71
-	#define GL_FRAMEBUFFER_BINDING 0x8CA6
-	#define GL_VIEWPORT 0x0BA2
-	#define GL_ALWAYS 0x0207
-	#define GL_GEQUAL 0x0206
+	// Missing OpenGL identifiers / shims for PS3 (Guarded)
+	#ifndef GL_TEXTURE_BUFFER
 	#define GL_TEXTURE_BUFFER 0x8C2A
-	#define GL_LUMINANCE 0x1909
-	#define GL_LUMINANCE_ALPHA 0x190A
+	#endif
+	#ifndef GL_R8UI
 	#define GL_R8UI 0x8232
+	#endif
+	#ifndef GL_R16I
 	#define GL_R16I 0x8233
+	#endif
+	#ifndef GL_R16UI
 	#define GL_R16UI 0x8234
-	#define GL_BLEND 0
-	#define GL_FUNC_ADD 0
-	#define GL_FUNC_REVERSE_SUBTRACT 0
+	#endif
+	#ifndef GL_FRAMEBUFFER
+	#define GL_FRAMEBUFFER 0x8D40
+	#endif
+	#ifndef GL_FRAMEBUFFER_BINDING
+	#define GL_FRAMEBUFFER_BINDING 0x8CA6
+	#endif
+		#ifndef GL_RENDERBUFFER
+		#define GL_RENDERBUFFER 0x8D41
+		#endif
+		#ifndef GL_FRAMEBUFFER_COMPLETE
+		#define GL_FRAMEBUFFER_COMPLETE 0x8CD5
+		#endif
+		#ifndef GL_COLOR_ATTACHMENT0
+		#define GL_COLOR_ATTACHMENT0 0x8CE0
+		#endif
+		#ifndef GL_DEPTH_ATTACHMENT
+		#define GL_DEPTH_ATTACHMENT 0x8D00
+		#endif
+		#ifndef GL_VIEWPORT
+		#define GL_VIEWPORT 0x0BA2
+		#endif
+		#ifndef GL_INVALID_FRAMEBUFFER_OPERATION
+		#define GL_INVALID_FRAMEBUFFER_OPERATION 0x0506
+		#endif
+		#ifndef GL_VERTEX_SHADER
+		#define GL_VERTEX_SHADER 0x8B31
+		#endif
+		#ifndef GL_FRAGMENT_SHADER
+		#define GL_FRAGMENT_SHADER 0x8B30
+		#endif
+		#ifndef GL_COMPILE_STATUS
+		#define GL_COMPILE_STATUS 0x8B81
+		#endif
+		#ifndef GL_LINK_STATUS
+		#define GL_LINK_STATUS 0x8B82
+		#endif
+		#ifndef GL_INFO_LOG_LENGTH
+		#define GL_INFO_LOG_LENGTH 0x8B84
+		#endif
+	#ifndef GL_MIN
 	#define GL_MIN 0
+	#endif
+	#ifndef GL_MAX
 	#define GL_MAX 0
-	inline void glGenTextures(GLsizei n, GLuint* t) {}
-	inline void glDeleteTextures(GLsizei n, const GLuint* t) {}
+	#endif
+
+	typedef char GLchar;
+
 	inline void glGenVertexArrays(GLsizei n, GLuint* a) {}
 	inline void glDeleteVertexArrays(GLsizei n, const GLuint* a) {}
-	inline void glGenBuffers(GLsizei n, GLuint* b) {}
-	inline void glDeleteBuffers(GLsizei n, const GLuint* b) {}
 	inline void glBindVertexArray(GLuint a) {}
-	inline void glBindBuffer(GLenum t, GLuint b) {}
-	inline void glVertexAttribPointer(GLuint i, GLint s, GLenum t, int n, GLsizei st, const void* p) {}
-	inline void glEnableVertexAttribArray(GLuint i) {}
-	inline void glDisableVertexAttribArray(GLuint i) {}
-	inline void glBufferData(GLenum t, GLsizeiptr s, const void* d, GLenum u) {}
-	inline void glDrawArrays(GLenum m, GLint f, GLsizei c) {}
-	inline void glBindTexture(GLenum t, GLuint h) {}
-	inline void glTexParameteri(GLenum t, GLenum p, GLint v) {}
-	inline void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const void* pixels) {}
-	inline void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const void* pixels) {}
 	inline void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {}
-	inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
-	inline void glClearColor(float r, float g, float b, float a) {}
-	inline void glClear(int m) {}
-	inline void glEnable(GLenum cap) {}
-	inline void glDisable(GLenum cap) {}
-	inline void glViewport(int x, int y, int w, int h) {}
-	inline void glReadPixels(int x, int y, int w, int h, int f, int t, void* d) {}
-	inline void glGetTexImage(GLenum t, GLint l, GLenum f, GLenum ty, void* p) {}
-	inline void glScissor(int x, int y, int w, int h) {}
-	inline void glClearDepth(float d) {}
-	inline void glDepthRange(float n, float f) {}
-	inline void glDepthMask(unsigned char m) {}
-	inline void glDepthFunc(GLenum f) {}
-	inline void glGetIntegerv(GLenum p, GLint* v) {}
-	inline unsigned char glIsRenderbuffer(GLuint b) { return 0; }
+	inline void glBindFramebuffer(GLenum target, GLuint framebuffer) {}
+	inline void glActiveTexture(GLenum texture) {}
+	inline void glBlendEquation(GLenum mode) {}
 	inline void glGenRenderbuffers(GLsizei n, GLuint* b) {}
 	inline void glBindRenderbuffer(GLenum t, GLuint b) {}
 	inline void glRenderbufferStorage(GLenum t, GLenum i, GLsizei w, GLsizei h) {}
 	inline void glDeleteRenderbuffers(GLsizei n, const GLuint* b) {}
 	inline void glGenFramebuffers(GLsizei n, GLuint* b) {}
-	inline GLenum glCheckFramebufferStatus(GLenum t) { return 0; }
-	inline GLenum glGetError() { return 0; }
+	inline GLenum glCheckFramebufferStatus(GLenum t) { return (GLenum)0x8CD5; }
 	inline void glDeleteFramebuffers(GLsizei n, const GLuint* b) {}
+	inline unsigned char glIsRenderbuffer(GLuint b) { return 0; }
+	inline unsigned char glIsFramebuffer(GLuint b) { return 0; }
 	inline void glFramebufferTexture2D(GLenum t, GLenum a, GLenum tt, GLuint te, GLint l) {}
 	inline void glFramebufferRenderbuffer(GLenum t, GLenum a, GLenum rt, GLuint r) {}
-	inline unsigned char glIsFramebuffer(GLuint b) { return 0; }
-	inline void glBindFramebuffer(GLenum t, GLuint b) {}
 	inline void glDeleteProgram(GLuint p) {}
 	inline void glDeleteShader(GLuint s) {}
 	inline GLint glGetUniformLocation(GLuint p, const char* n) { return 0; }
@@ -543,9 +504,6 @@
 	inline void glUniform4fv(GLint l, GLsizei c, const GLfloat* v) {}
 	inline void glUniformMatrix3fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
 	inline void glUniformMatrix4fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
-	inline void glActiveTexture(GLenum t) {}
-	inline void glBlendFunc(GLenum s, GLenum d) {}
-	inline void glBlendEquation(GLenum m) {}
 	inline void glUseProgram(GLuint p) {}
 	inline GLuint glCreateShader(GLenum t) { return 0; }
 	inline void glShaderSource(GLuint s, GLsizei c, const GLchar** st, const GLint* l) {}
@@ -558,6 +516,13 @@
 	inline void glLinkProgram(GLuint p) {}
 	inline void glGetProgramiv(GLuint p, GLenum n, GLint* v) {}
 	inline void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) {}
+	inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
+	inline void glClearDepth(float d) {}
+	inline void glDepthRange(float n, float f) {}
+	inline void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) {}
+	inline void glEnableVertexAttribArray(GLuint index) {}
+	inline void glDisableVertexAttribArray(GLuint index) {}
+
 	inline void SDL_GL_SwapWindow(SDL_Window* w) {}
 	#define SDL_WINDOW_OPENGL 0x01
 	#define SDL_WINDOW_SHOWN 0x02
@@ -602,7 +567,7 @@
 
 // OpenGL
 #if defined(PLATFORM_PS3)
-	// PS3 uses its own graphics API (libgcm or similar)
+	// Already included above
 #elif defined(PLATFORM_WINDOWS)
 	#define ALLOW_LEGACY_OPENGL
 	#define RMX_USE_GLEW
