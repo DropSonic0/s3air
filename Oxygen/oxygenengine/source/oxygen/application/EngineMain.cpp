@@ -767,7 +767,11 @@ bool EngineMain::createWindow()
 		SDL_GetWindowSize(mSDLWindow, &videoConfig.mWindowRect.width, &videoConfig.mWindowRect.height);
 		SDL_ShowCursor(!videoConfig.mHideCursor);
 
+#if defined(PLATFORM_PS3)
+		if (true)
+#else
 		if (useOpenGL)
+#endif
 		{
 			RMX_LOG_INFO("Creating OpenGL context...");
 		#if defined(PLATFORM_PS3)

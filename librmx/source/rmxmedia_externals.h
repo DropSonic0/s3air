@@ -92,7 +92,7 @@
 		SDL_MouseWheelEvent wheel;
 		SDL_MouseMotionEvent motion;
 	};
-	struct SDL_Window { int unused; };
+	struct SDL_Window { int w, h; void* surface_buffer; };
 
 	inline SDL_mutex* SDL_CreateMutex() {
 		SDL_mutex* m = new SDL_mutex;
@@ -264,7 +264,7 @@
 	inline void SDL_FreeWAV(unsigned char* d) {}
 	inline int SDL_BuildAudioCVT(SDL_AudioCVT* c, int sf, int sc, int sr, int df, int dc, int dr) { return 0; }
 	inline int SDL_ConvertAudio(SDL_AudioCVT* c) { return 0; }
-	inline void SDL_DestroyWindow(SDL_Window* w) {}
+	inline void SDL_DestroyWindow(SDL_Window* w) { if (w) { if (w->surface_buffer) free(w->surface_buffer); delete w; } }
 	#define SDL_INIT_VIDEO 1
 	#define SDL_INIT_AUDIO 2
 	#define SDL_INIT_TIMER 4
@@ -346,12 +346,17 @@
 	inline int SDL_GetNumTouchFingers(SDL_TouchID t) { return 0; }
 	inline SDL_Finger* SDL_GetTouchFinger(SDL_TouchID t, int i) { return (SDL_Finger*)0; }
 
-	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) { return (SDL_Window*)1; }
+	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) {
+		SDL_Window* win = new SDL_Window;
+		win->w = w; win->h = h;
+		win->surface_buffer = nullptr;
+		return win;
+	}
 	inline int SDL_GetWindowID(SDL_Window* w) { return 1; }
 	inline int SDL_GetWindowDisplayIndex(SDL_Window* w) { return 0; }
 	inline void SDL_SetWindowFullscreen(SDL_Window* w, Uint32 f) {}
-	inline void SDL_SetWindowSize(SDL_Window* w, int w1, int h1) {}
-	inline void SDL_GetWindowSize(SDL_Window* w, int* w1, int* h1) { if (w1) *w1 = 1280; if (h1) *h1 = 720; }
+	inline void SDL_SetWindowSize(SDL_Window* w, int w1, int h1) { if (w) { w->w = w1; w->h = h1; } }
+	inline void SDL_GetWindowSize(SDL_Window* w, int* w1, int* h1) { if (w) { if (w1) *w1 = w->w; if (h1) *h1 = w->h; } else { if (w1) *w1 = 1280; if (h1) *h1 = 720; } }
 	inline void SDL_SetWindowPosition(SDL_Window* w, int x, int y) {}
 	inline void SDL_SetWindowResizable(SDL_Window* w, int r) {}
 	inline void SDL_SetWindowBordered(SDL_Window* w, int b) {}
@@ -545,13 +550,13 @@
 	inline GLuint glCreateShader(GLenum t) { return 0; }
 	inline void glShaderSource(GLuint s, GLsizei c, const GLchar** st, const GLint* l) {}
 	inline void glCompileShader(GLuint s) {}
-	inline void glGetShaderiv(GLuint s, GLenum p, GLint* v) {}
+	inline void glGetShaderiv(GLuint s, GLenum p, GLint* v) { if (v) *v = 0; }
 	inline void glGetShaderInfoLog(GLuint s, GLsizei b, GLsizei* l, GLchar* i) {}
 	inline GLuint glCreateProgram() { return 0; }
 	inline void glAttachShader(GLuint p, GLuint s) {}
 	inline void glBindAttribLocation(GLuint p, GLuint i, const GLchar* n) {}
 	inline void glLinkProgram(GLuint p) {}
-	inline void glGetProgramiv(GLuint p, GLenum n, GLint* v) {}
+	inline void glGetProgramiv(GLuint p, GLenum n, GLint* v) { if (v) *v = 0; }
 	inline void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) {}
 	inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
 	inline void glClearDepth(float d) {}
@@ -582,13 +587,23 @@
 
 	struct SDL_PixelFormat { uint32 format; };
 	struct SDL_Surface { int w, h; void* pixels; SDL_PixelFormat* format; };
-	inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void* p, int w, int h, int d, int s, Uint32 r, Uint32 g, Uint32 b, Uint32 a) { return (SDL_Surface*)1; }
-	inline SDL_Surface* SDL_GetWindowSurface(SDL_Window* w) { return (SDL_Surface*)1; }
+	inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void* p, int w, int h, int d, int s, Uint32 r, Uint32 g, Uint32 b, Uint32 a) {
+		SDL_Surface* surf = new SDL_Surface;
+		surf->w = w; surf->h = h; surf->pixels = p;
+		surf->format = new SDL_PixelFormat;
+		surf->format->format = SDL_PIXELFORMAT_ARGB8888;
+		return surf;
+	}
+	inline SDL_Surface* SDL_GetWindowSurface(SDL_Window* w) {
+		if (!w) return nullptr;
+		if (!w->surface_buffer) w->surface_buffer = malloc(w->w * w->h * 4);
+		return SDL_CreateRGBSurfaceFrom(w->surface_buffer, w->w, w->h, 32, w->w * 4, 0, 0, 0, 0);
+	}
 	inline int SDL_LockSurface(SDL_Surface* s) { return 0; }
 	inline void SDL_UnlockSurface(SDL_Surface* s) {}
 	inline int SDL_UpdateWindowSurface(SDL_Window* w) { return 0; }
 	inline void SDL_SetWindowIcon(SDL_Window* w, SDL_Surface* i) {}
-	inline void SDL_FreeSurface(SDL_Surface* s) {}
+	inline void SDL_FreeSurface(SDL_Surface* s) { if (s) { delete s->format; delete s; } }
 
 #elif defined(PLATFORM_WINDOWS)
 	// Needed for MSYS2

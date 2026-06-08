@@ -166,12 +166,13 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 		if (shader.load(content, techname, additionalDefines))
 		{
 			RMX_LOG_INFO("Loaded shader '" << WString(filename).toStdString() << "'");
+			return true;
 		}
 		else
 		{
 			RMX_ERROR("Shader loading failed for '" << WString(filename).toStdString() << "':\n" << shader.getCompileLog().toStdString(), );
+			return false;
 		}
-		return true;
 	}
 
 #endif

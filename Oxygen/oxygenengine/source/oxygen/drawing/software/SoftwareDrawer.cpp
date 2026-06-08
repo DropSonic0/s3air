@@ -685,5 +685,58 @@ void SoftwareDrawer::presentScreen()
 		return;
 
 	mInternal.unlockScreenSurface();
+
+#if defined(PLATFORM_PS3)
+	// On PS3, we need to upload the software rendered surface to a texture and display it via fixed-function PSGL
+	static GLuint screenTexture = 0;
+	if (screenTexture == 0)
+	{
+		glGenTextures(1, &screenTexture);
+		glBindTexture(GL_TEXTURE_2D, screenTexture);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	glBindTexture(GL_TEXTURE_2D, screenTexture);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mInternal.mScreenSurface->pixels);
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_BLEND);
+	glEnable(GL_TEXTURE_2D);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glOrthof(0, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, -1, 1);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	const float vertices[] = {
+		0.0f, 0.0f,
+		(float)mInternal.mScreenSurface->w, 0.0f,
+		0.0f, (float)mInternal.mScreenSurface->h,
+		(float)mInternal.mScreenSurface->w, (float)mInternal.mScreenSurface->h
+	};
+	const float texcoords[] = {
+		0.0f, 0.0f,
+		1.0f, 0.0f,
+		0.0f, 1.0f,
+		1.0f, 1.0f
+	};
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, vertices);
+	glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
+
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	glDisableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+	psglSwap();
+#else
 	SDL_UpdateWindowSurface(mInternal.mOutputWindow);
+#endif
 }
