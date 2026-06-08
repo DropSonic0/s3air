@@ -52,6 +52,9 @@
     <Filter Include="menu\overlays">
       <UniqueIdentifier>{598035af-9acc-44c7-9023-61fac442583a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Endian">
+      <UniqueIdentifier>{1536e43a-dff8-4df2-a684-a56fb8826300}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\config.json" />
@@ -347,6 +350,12 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\source\sonic3air\scriptimpl\ScriptImplementations.h">
       <Filter>scriptimpl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Endian\S3AIREndian.hpp">
+      <Filter>Endian</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\Endian\inttypes.hpp">
+      <Filter>Endian</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

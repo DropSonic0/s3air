@@ -60,7 +60,6 @@
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecs.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\BitmapView.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\Color.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\stb_image.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\data\CArray.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\data\GlobalObjectPtr.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\data\SingleInstance.h" />
@@ -172,7 +171,7 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <OptimizationLevel>Level2</OptimizationLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>C:\sonic3air-26.03.28.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-26.03.28.0-stable\librmx\source;C:\sonic3air-26.03.28.0-stable\Oxygen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\include\zlib;C:\sonic3air-24.02.02.0-stable\librmx\source;C:\sonic3air-24.02.02.0-stable\Oxygen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SystemIncludeDirectories>
       </SystemIncludeDirectories>
       <CppLanguageStd>Cpp11</CppLanguageStd>

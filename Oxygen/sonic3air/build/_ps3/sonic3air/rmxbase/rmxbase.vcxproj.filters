@@ -322,9 +322,6 @@
     <ClInclude Include="..\..\..\..\..\..\librmx\source\export.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\PlatformDefinitions.h" />
     <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\stb_image.h">
-      <Filter>bitmap</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_valueiterator.inl">
