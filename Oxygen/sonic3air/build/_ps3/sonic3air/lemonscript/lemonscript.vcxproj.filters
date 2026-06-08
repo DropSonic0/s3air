@@ -1,0 +1,342 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <None Include="..\..\..\..\..\lemonscript\build\_vstudio\lemonscript.natvis" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="lemon">
+      <UniqueIdentifier>{18325d3e-5d14-4f11-aece-173f968319d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\compiler">
+      <UniqueIdentifier>{1feea4b7-3957-445f-b0f4-d278ed0d2a2a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\program">
+      <UniqueIdentifier>{ac6bae7c-daaa-4ac5-b7ae-d13492caa0ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\runtime">
+      <UniqueIdentifier>{65d6eec7-d8bd-4a84-9aa0-ac9e1ed3acca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\translator">
+      <UniqueIdentifier>{d2ff8615-4c34-47a3-9774-54ad215ebf8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\utility">
+      <UniqueIdentifier>{5fa2b774-42e1-4dec-9652-4ce542fc48a4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\runtime\provider">
+      <UniqueIdentifier>{27fcda10-1f05-4a13-bc84-36f8d575fe15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\compiler\backend">
+      <UniqueIdentifier>{0256e78f-164c-4dab-bb5c-bd1db2fb75e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\compiler\frontend">
+      <UniqueIdentifier>{62b7d4dc-a73d-4cad-a690-1dfacde4801a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="lemon\compiler\parser">
+      <UniqueIdentifier>{bf66f119-d513-4a96-a30f-74193635d550}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\pch.cpp">
+      <Filter>lemon</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\utility\FlyweightString.cpp">
+      <Filter>lemon\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\utility\PragmaSplitter.cpp">
+      <Filter>lemon\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\translator\Nativizer.cpp">
+      <Filter>lemon\translator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\translator\NativizerInternal.cpp">
+      <Filter>lemon\translator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\translator\SourceCodeWriter.cpp">
+      <Filter>lemon\translator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\translator\Translator.cpp">
+      <Filter>lemon\translator</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\BuiltInFunctions.cpp">
+      <Filter>lemon\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\ControlFlow.cpp">
+      <Filter>lemon\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\OpcodeProcessor.cpp">
+      <Filter>lemon\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\Runtime.cpp">
+      <Filter>lemon\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\RuntimeFunction.cpp">
+      <Filter>lemon\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\StandardLibrary.cpp">
+      <Filter>lemon\runtime</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\provider\DefaultOpcodeProvider.cpp">
+      <Filter>lemon\runtime\provider</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\provider\NativizedOpcodeProvider.cpp">
+      <Filter>lemon\runtime\provider</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\runtime\provider\OptimizedOpcodeProvider.cpp">
+      <Filter>lemon\runtime\provider</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\BaseType.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\ConstantArray.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\DataType.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\Define.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\Function.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\FunctionWrapper.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\GlobalsLookup.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\Module.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\ModuleSerializer.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\Opcode.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\Program.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\program\StringRef.cpp">
+      <Filter>lemon\program</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Compiler.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\LineNumberTranslation.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Node.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Operators.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Preprocessor.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Token.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\TokenHelper.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\TypeCasting.cpp">
+      <Filter>lemon\compiler</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\backend\FunctionCompiler.cpp">
+      <Filter>lemon\compiler\backend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\frontend\CompilerFrontend.cpp">
+      <Filter>lemon\compiler\frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\frontend\TokenProcessing.cpp">
+      <Filter>lemon\compiler\frontend</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\parser\Parser.cpp">
+      <Filter>lemon\compiler\parser</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\lemonscript\source\lemon\compiler\parser\ParserHelper.cpp">
+      <Filter>lemon\compiler\parser</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\pch.h">
+      <Filter>lemon</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\utility\AnyBaseValue.h">
+      <Filter>lemon\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\utility\FlyweightString.h">
+      <Filter>lemon\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\utility\PragmaSplitter.h">
+      <Filter>lemon\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\utility\QuickDataHasher.h">
+      <Filter>lemon\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\translator\Nativizer.h">
+      <Filter>lemon\translator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\translator\NativizerInternal.h">
+      <Filter>lemon\translator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\translator\SourceCodeWriter.h">
+      <Filter>lemon\translator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\translator\Translator.h">
+      <Filter>lemon\translator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\BuiltInFunctions.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\ControlFlow.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\FastStringStream.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\OpcodeExecUtils.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\OpcodeProcessor.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\Runtime.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\RuntimeFunction.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\RuntimeOpcode.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\RuntimeOpcodeContext.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\StandardLibrary.h">
+      <Filter>lemon\runtime</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\provider\DefaultOpcodeProvider.h">
+      <Filter>lemon\runtime\provider</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\provider\NativizedOpcodeProvider.h">
+      <Filter>lemon\runtime\provider</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\runtime\provider\OptimizedOpcodeProvider.h">
+      <Filter>lemon\runtime\provider</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\BaseType.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Constant.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\ConstantArray.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\DataType.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Define.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Function.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\FunctionWrapper.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\GlobalsLookup.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Module.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\ModuleSerializer.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Opcode.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\OpcodeHelper.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Program.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\SourceFileInfo.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\StringRef.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\program\Variable.h">
+      <Filter>lemon\program</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Compiler.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Definitions.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Errors.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\GenericManager.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\LineNumberTranslation.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Node.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Operators.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Preprocessor.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\PreprocessorDefinition.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Token.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\TokenHelper.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\TokenManager.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\TokenTypes.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\TypeCasting.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\Utility.h">
+      <Filter>lemon\compiler</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\backend\FunctionCompiler.h">
+      <Filter>lemon\compiler\backend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\frontend\CompilerFrontend.h">
+      <Filter>lemon\compiler\frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\frontend\TokenProcessing.h">
+      <Filter>lemon\compiler\frontend</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\parser\Parser.h">
+      <Filter>lemon\compiler\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\parser\ParserHelper.h">
+      <Filter>lemon\compiler\parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\lemonscript\source\lemon\compiler\parser\ParserTokens.h">
+      <Filter>lemon\compiler\parser</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>
