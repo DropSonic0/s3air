@@ -66,7 +66,7 @@
     <Link>
       <OutputFormat>ELFFile</OutputFormat>
       <AdditionalDependencies>lemonscript.a;oxygen_netcore.a;oxygen.a;rmxmedia.a;rmxext_oggvorbis.a;rmxbase.a;libivorbis.a;libogg.a;zlib.a;libPSGLU.a;libPSGLFX.a;libPSGL.a;libPSGLcgc.a;libdbgfont.a;libcgc.a;libgcm_cmd.a;libgcm_sys_stub.a;libsysutil_game_stub.a;libsysutil_stub.a;libsysmodule_stub.a;libresc_stub.a;libio_stub.a;libaudio_stub.a;libnetctl_stub.a;libnet_stub.a;libcs.a;libsn.a;libstdc++.a;libpthread.a;libm.a;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\usr\local\cell\target\ppu\lib\PSGL\RSX\ultra-opt;C:\sonic3air-24.02.02.0-stable\Oxygen\sonic3air\build\_ps3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\usr\local\cell\target\ppu\lib\PSGL\RSX\ultra-opt;C:\sonic3air-26.03.28.0-stable\Oxygen\sonic3air\build\_ps3\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -128,8 +128,6 @@
     <ClCompile Include="..\..\..\..\source\sonic3air\_nativized\NativizedCode.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Endian\inttypes.hpp" />
-    <ClInclude Include="..\..\..\..\..\Endian\S3AIREndian.hpp" />
     <ClInclude Include="..\..\..\..\source\sonic3air\audio\AudioOut.h" />
     <ClInclude Include="..\..\..\..\source\sonic3air\audio\CustomAudioMixer.h" />
     <ClInclude Include="..\..\..\..\source\sonic3air\audio\RemasteredMusicDownload.h" />
