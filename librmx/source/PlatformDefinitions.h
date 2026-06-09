@@ -51,6 +51,16 @@
 		#define static_assert(cond, msg)
 	#endif
 
+	#ifndef SDL_LIL_ENDIAN
+		#define SDL_LIL_ENDIAN 1234
+	#endif
+	#ifndef SDL_BIG_ENDIAN
+		#define SDL_BIG_ENDIAN 4321
+	#endif
+	#ifndef SDL_BYTEORDER
+		#define SDL_BYTEORDER SDL_BIG_ENDIAN
+	#endif
+
 #ifdef __cplusplus
 	#include <map>
 	#include <set>

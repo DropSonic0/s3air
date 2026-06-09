@@ -34,8 +34,8 @@
 
 namespace
 {
-	static const constexpr float DISCLAIMER_FADE_IN_TIME  = 0.8f;
-	static const constexpr float DISCLAIMER_FADE_OUT_TIME = 0.2f;
+	static constexpr float DISCLAIMER_FADE_IN_TIME  = 0.8f;
+	static constexpr float DISCLAIMER_FADE_OUT_TIME = 0.2f;
 }
 
 

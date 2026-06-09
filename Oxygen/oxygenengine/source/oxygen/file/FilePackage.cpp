@@ -64,42 +64,25 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 		uint32 posValue;
 		uint32 sizeValue;
 
-		if (header.mBigEndian)
-		{
-			BE<uint32> keyLength; serializer.serialize(keyLength.raw); keyLengthValue = keyLength;
-			
-			if (keyLengthValue > 0 && keyLengthValue <= 1024)
-			{
-				std::vector<char> buffer((size_t)keyLengthValue);
-				serializer.read(&buffer[0], (size_t)keyLengthValue);
-				rmx::UTF8Conversion::convertFromUTF8(std::string_view(&buffer[0], (size_t)keyLengthValue), key);
-			}
-			else if (keyLengthValue > 1024)
-			{
-				serializer.skip(keyLengthValue);
-			}
+		serializer.serialize(keyLengthValue);
+		if (header.mBigEndian) keyLengthValue = S3AIRByteswap(keyLengthValue);
 
-			BE<uint32> pos;       serializer.serialize(pos.raw);       posValue = pos;
-			BE<uint32> size;      serializer.serialize(size.raw);      sizeValue = size;
-		}
-		else
+		if (keyLengthValue > 0 && keyLengthValue <= 1024)
 		{
-			LE<uint32> keyLength; serializer.serialize(keyLength.raw); keyLengthValue = keyLength;
-			
-			if (keyLengthValue > 0 && keyLengthValue <= 1024)
-			{
-				std::vector<char> buffer((size_t)keyLengthValue);
-				serializer.read(&buffer[0], (size_t)keyLengthValue);
-				rmx::UTF8Conversion::convertFromUTF8(std::string_view(&buffer[0], (size_t)keyLengthValue), key);
-			}
-			else if (keyLengthValue > 1024)
-			{
-				serializer.skip(keyLengthValue);
-			}
-
-			LE<uint32> pos;       serializer.serialize(pos.raw);       posValue = pos;
-			LE<uint32> size;      serializer.serialize(size.raw);      sizeValue = size;
+			std::vector<char> buffer((size_t)keyLengthValue);
+			serializer.read(&buffer[0], (size_t)keyLengthValue);
+			rmx::UTF8Conversion::convertFromUTF8(std::string_view(&buffer[0], (size_t)keyLengthValue), key);
 		}
+		else if (keyLengthValue > 1024)
+		{
+			serializer.skip(keyLengthValue);
+		}
+
+		serializer.serialize(posValue);
+		if (header.mBigEndian) posValue = S3AIRByteswap(posValue);
+
+		serializer.serialize(sizeValue);
+		if (header.mBigEndian) sizeValue = S3AIRByteswap(sizeValue);
 
 		PackedFile& packedFile = outPackedFiles[key];
 		packedFile.mPath = key;
@@ -263,16 +246,16 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 	// 1. If raw matches 3, the file's endianness matches the host's endianness.
 	// 2. If S3AIRByteswap(raw) matches 3, the file's endianness is the opposite of the host's.
 
-	bool fileMatchesHost = (rawFormatVersion == PackageHeader::CURRENT_FORMAT_VERSION);
-	bool fileOppositeOfHost = (S3AIRByteswap(rawFormatVersion) == PackageHeader::CURRENT_FORMAT_VERSION);
+	bool fileIsLittleEndian = (rawFormatVersion == PackageHeader::CURRENT_FORMAT_VERSION);
+	bool fileIsBigEndian = (S3AIRByteswap(rawFormatVersion) == PackageHeader::CURRENT_FORMAT_VERSION);
 
-	if (fileMatchesHost)
+	if (fileIsLittleEndian)
 	{
-		outHeader.mBigEndian = (SDL_BYTEORDER == SDL_BIG_ENDIAN);
+		outHeader.mBigEndian = false;
 	}
-	else if (fileOppositeOfHost)
+	else if (fileIsBigEndian)
 	{
-		outHeader.mBigEndian = (SDL_BYTEORDER == SDL_LIL_ENDIAN);
+		outHeader.mBigEndian = true;
 	}
 	else
 	{
@@ -282,34 +265,18 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 
 	outHeader.mFormatVersion = PackageHeader::CURRENT_FORMAT_VERSION;
 
+	serializer.serialize(outHeader.mContentVersion);
+	serializer.serialize(outHeader.mEntryHeaderSize);
+	uint32 numEntries;
+	serializer.serialize(numEntries);
+
 	if (outHeader.mBigEndian)
 	{
-		BE<uint32> contentVersion;
-		serializer.serialize(contentVersion.raw);
-		outHeader.mContentVersion = contentVersion;
-
-		BE<uint32> entryHeaderSize;
-		serializer.serialize(entryHeaderSize.raw);
-		outHeader.mEntryHeaderSize = entryHeaderSize;
-
-		BE<uint32> numEntries;
-		serializer.serialize(numEntries.raw);
-		outHeader.mNumEntries = (size_t)numEntries;
+		outHeader.mContentVersion = S3AIRByteswap(outHeader.mContentVersion);
+		outHeader.mEntryHeaderSize = S3AIRByteswap(outHeader.mEntryHeaderSize);
+		numEntries = S3AIRByteswap(numEntries);
 	}
-	else
-	{
-		LE<uint32> contentVersion;
-		serializer.serialize(contentVersion.raw);
-		outHeader.mContentVersion = contentVersion;
-
-		LE<uint32> entryHeaderSize;
-		serializer.serialize(entryHeaderSize.raw);
-		outHeader.mEntryHeaderSize = entryHeaderSize;
-
-		LE<uint32> numEntries;
-		serializer.serialize(numEntries.raw);
-		outHeader.mNumEntries = (size_t)numEntries;
-	}
+	outHeader.mNumEntries = (size_t)numEntries;
 
 	RMX_ASSERT(serializer.getReadPosition() == PackageHeader::HEADER_SIZE, "Got wrong package header size");
 	return true;

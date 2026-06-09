@@ -87,7 +87,7 @@ namespace rmx
 			{
 				// Do not access memory directly, but byte-wise to avoid "SIGBUS illegal alignment" issues (this happened on Android Release builds, but not in Debug for some reason)
 				//  -> On PS3, we also need to ensure that the data is always read as Little-Endian to maintain consistent hash results
-				k = rmx::readMemoryUnaligned<uint64>(data64);
+				k = rmx::readMemoryUnalignedLE<uint64>(data64);
 				++data64;
 				k *= m;
 				k ^= k >> r;

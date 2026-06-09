@@ -735,11 +735,11 @@ namespace lemon
 		}
 
 		// Signature and version number
-		const uint32 SIGNATURE = *(uint32*)"LMN|";
+		const uint32 SIGNATURE = 0x7c4e4d4c;	// "LMN|" (Little-Endian)
 		uint16 version = 0x01;
 		if (serializer.isReading())
 		{
-			const uint32 signature = *(const uint32*)serializer.peek();
+			const uint32 signature = rmx::readMemoryUnalignedLE<uint32>(serializer.peek());
 			if (signature == SIGNATURE)
 			{
 				serializer.skip(4);

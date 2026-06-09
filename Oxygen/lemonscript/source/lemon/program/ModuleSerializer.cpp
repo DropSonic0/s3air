@@ -82,13 +82,13 @@ namespace lemon
 		//  - 0x10 = Opcode JUMP_SWITCH added
 
 		// Signature and version number
-		const uint32 SIGNATURE = *(uint32*)"LMD|";	// "Lemonscript Module"
+		const uint32 SIGNATURE = 0x7c444d4c;	// "LMD|" (Little-Endian)
 		const uint16 MINIMUM_VERSION = 0x10;
 		uint16 version = 0x10;
 
 		if (outerSerializer.isReading())
 		{
-			const uint32 signature = *(const uint32*)outerSerializer.peek();
+			const uint32 signature = rmx::readMemoryUnalignedLE<uint32>(outerSerializer.peek());
 			if (signature != SIGNATURE)
 				return false;
 

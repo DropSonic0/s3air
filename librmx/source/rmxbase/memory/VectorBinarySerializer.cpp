@@ -19,14 +19,22 @@ namespace
 			if (readPosition + sizeof(T) > buffer.size())
 				return false;
 
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			value = rmx::readMemoryUnalignedSwapped<T>(&buffer[readPosition]);
+#else
 			value = rmx::readMemoryUnaligned<T>(&buffer[readPosition]);
+#endif
 			readPosition += sizeof(T);
 		}
 		else
 		{
 			const size_t oldSize = buffer.size();
 			buffer.resize(oldSize + sizeof(T));
-			memcpy(&buffer[oldSize], &value, sizeof(T));
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			rmx::writeMemoryUnalignedSwapped<T>(&buffer[oldSize], value);
+#else
+			rmx::writeMemoryUnaligned<T>(&buffer[oldSize], value);
+#endif
 		}
 		return true;
 	}

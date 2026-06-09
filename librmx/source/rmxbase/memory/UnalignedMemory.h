@@ -20,6 +20,22 @@ namespace rmx
 	template<typename T>
 	T readMemoryUnalignedSwapped(const void* pointer) { return swapBytes<T>(*(T*)pointer); }
 
+	template<typename T>
+	T readMemoryUnalignedLE(const void* pointer)
+	{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		return readMemoryUnalignedSwapped<T>(pointer);
+#else
+		return readMemoryUnaligned<T>(pointer);
+#endif
+	}
+
+	template<typename T>
+	void writeMemoryUnaligned(void* pointer, T value) { *(T*)pointer = value; }
+
+	template<typename T>
+	void writeMemoryUnalignedSwapped(void* pointer, T value) { *(T*)pointer = swapBytes<T>(value); }
+
 #if defined(__arm__) || defined(PLATFORM_PS3)
 	template<> uint16 readMemoryUnaligned(const void* pointer);
 	template<> uint32 readMemoryUnaligned(const void* pointer);
@@ -28,5 +44,13 @@ namespace rmx
 	template<> uint16 readMemoryUnalignedSwapped(const void* pointer);
 	template<> uint32 readMemoryUnalignedSwapped(const void* pointer);
 	template<> uint64 readMemoryUnalignedSwapped(const void* pointer);
+
+	template<> void writeMemoryUnaligned(void* pointer, uint16 value);
+	template<> void writeMemoryUnaligned(void* pointer, uint32 value);
+	template<> void writeMemoryUnaligned(void* pointer, uint64 value);
+
+	template<> void writeMemoryUnalignedSwapped(void* pointer, uint16 value);
+	template<> void writeMemoryUnalignedSwapped(void* pointer, uint32 value);
+	template<> void writeMemoryUnalignedSwapped(void* pointer, uint64 value);
 #endif
 }

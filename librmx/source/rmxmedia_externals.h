@@ -367,10 +367,13 @@
 	inline int SDL_GetDesktopDisplayMode(int i, SDL_DisplayMode* m) { if (m) { m->w = 1920; m->h = 1080; } return 0; }
 
 	inline unsigned int SDL_GetTicks() {
+		static uint32 start_ms = 0;
 		sys_time_sec_t sec;
 		sys_time_nsec_t nsec;
 		sys_time_get_current_time(&sec, &nsec);
-		return (unsigned int)(sec * 1000 + nsec / 1000000);
+		uint32 current_ms = (uint32)(sec * 1000 + nsec / 1000000);
+		if (start_ms == 0) start_ms = current_ms;
+		return current_ms - start_ms;
 	}
 	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
 	#define SDL_QUIT 1

@@ -20,8 +20,8 @@
 
 namespace
 {
-	static const constexpr int LOOKUP_WIDTH  = 496;
-	static const constexpr int LOOKUP_HEIGHT = 224;
+	static constexpr int LOOKUP_WIDTH  = 496;
+	static constexpr int LOOKUP_HEIGHT = 224;
 
 	static float CAMERA_POSITION_HEIGHT = 0.196f;
 	static float CAMERA_POSITION_BACKANGLE = 6.2f;

@@ -303,7 +303,7 @@ void PauseMenu::render()
 		// Dialog box
 		if (mDialogVisibility > 0.0f)
 		{
-			const constexpr int LINE_HEIGHT = 15;
+			static constexpr int LINE_HEIGHT = 15;
 
 			int px = screenWidth - 191 + roundToInt((1.0f - mDialogVisibility) * 80.0f) - (int)mMenuEntries.size() * 9;
 			int py = screenHeight - 1 - (int)mDialogEntries.size() * LINE_HEIGHT;
@@ -337,7 +337,7 @@ void PauseMenu::render()
 
 		// Actual pause menu (upper & lower part)
 		{
-			const constexpr int LINE_HEIGHT = 26;
+			static constexpr int LINE_HEIGHT = 26;
 			const int rightAnchor = screenWidth + roundToInt((1.0f - mVisibility) * 160.0f);
 			int py = screenHeight - (int)mMenuEntries.size() * LINE_HEIGHT;
 
