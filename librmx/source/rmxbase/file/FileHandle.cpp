@@ -23,6 +23,7 @@ namespace
 		}
 	}
 
+#if defined(PLATFORM_WINDOWS)
 	const wchar_t* getModeStringW(uint32 flags)
 	{
 		switch (flags & 0x0f)
@@ -34,6 +35,7 @@ namespace
 			default:					return L"";
 		}
 	}
+#endif
 }
 
 
@@ -140,10 +142,10 @@ int64 FileHandle::getSize() const
 		mFileSize = _ftelli64(mFile);
 		_fseeki64(mFile, pos, SEEK_SET);
 #else
-		int pos = ftell(mFile);
+		long pos = ftell(mFile);
 		fseek(mFile, 0, SEEK_END);
 		mFileSize = (int64)ftell(mFile);
-		fseek(mFile, pos, SEEK_SET);
+		fseek(mFile, (long)pos, SEEK_SET);
 #endif
 	}
 	return mFileSize;
@@ -156,7 +158,7 @@ void FileHandle::seek(int64 position)
 #ifdef _MSC_VER
 	_fseeki64(mFile, position, SEEK_SET);
 #else
-	fseek(mFile, position, SEEK_SET);
+	fseek(mFile, (long)position, SEEK_SET);
 #endif
 }
 

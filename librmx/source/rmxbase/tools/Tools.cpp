@@ -75,10 +75,10 @@ namespace rmx
 		const uint64* end = data64 + (bytes / 8);
 
 	#if defined(__arm__) || defined(PLATFORM_PS3)
-		const bool isAligned64 = ((size_t)data & 7) == 0;
 	#if defined(PLATFORM_PS3)
 		if (true)
 	#else
+		const bool isAligned64 = ((size_t)data & 7) == 0;
 		if (!isAligned64)
 	#endif
 		{
@@ -113,12 +113,12 @@ namespace rmx
 		const uint8* data8 = (const uint8*)data64;
 		switch (bytes & 0x07)
 		{
-			case 7:  h ^= ((uint64)data8[6]) << 48;  [[fallthrough]];
-			case 6:  h ^= ((uint64)data8[5]) << 40;  [[fallthrough]];
-			case 5:  h ^= ((uint64)data8[4]) << 32;  [[fallthrough]];
-			case 4:  h ^= ((uint64)data8[3]) << 24;  [[fallthrough]];
-			case 3:  h ^= ((uint64)data8[2]) << 16;  [[fallthrough]];
-			case 2:  h ^= ((uint64)data8[1]) << 8;   [[fallthrough]];
+			case 7:  h ^= ((uint64)data8[6]) << 48;  RMX_FALLTHROUGH;
+			case 6:  h ^= ((uint64)data8[5]) << 40;  RMX_FALLTHROUGH;
+			case 5:  h ^= ((uint64)data8[4]) << 32;  RMX_FALLTHROUGH;
+			case 4:  h ^= ((uint64)data8[3]) << 24;  RMX_FALLTHROUGH;
+			case 3:  h ^= ((uint64)data8[2]) << 16;  RMX_FALLTHROUGH;
+			case 2:  h ^= ((uint64)data8[1]) << 8;   RMX_FALLTHROUGH;
 			case 1:  h ^= ((uint64)data8[0]);
 				h *= m;
 		};

@@ -14,6 +14,7 @@
 
 namespace
 {
+#if !defined(PLATFORM_PS3)
 	uint32 readUint32LE(const uint8* pointer)
 	{
 		// Read as little endian
@@ -25,6 +26,7 @@ namespace
 		// Read as big endian
 		return ((uint32)pointer[0] << 24) + ((uint32)pointer[1] << 16) + ((uint32)pointer[2] << 8) + ((uint32)pointer[3]);
 	}
+#endif
 }
 
 

@@ -108,9 +108,3 @@ float nrandom()
 	}
 }
 
-template<> inline signed char roundForInt(float value)		{ return (signed char)round(value); }
-template<> inline unsigned char roundForInt(float value)	{ return (unsigned char)round(value); }
-template<> inline signed short roundForInt(float value)		{ return (signed short)round(value); }
-template<> inline unsigned short roundForInt(float value)	{ return (unsigned short)round(value); }
-template<> inline signed int roundForInt(float value)		{ return (signed int)round(value); }
-template<> inline unsigned int roundForInt(float value)		{ return (unsigned int)round(value); }

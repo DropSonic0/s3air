@@ -158,13 +158,19 @@ void BitmapJPG::decodeHuffmanDC(short* output, HuffmanTable* htab, short& prev_D
 	uint16* min_c = htab->min_code;
 	uint16* max_c = htab->max_code;
 	uint16 look = bitbuffer >> 16;
-	uint16 code;
+	uint16 code = 0;
 	int k;
 	for (k = 0; k < 16; ++k)
 	{
 		code = look >> (15-k);
 		if (code >= min_c[k] && code <= max_c[k])
 			break;
+	}
+
+	if (k == 16)
+	{
+		output[0] = prev_DC;
+		return;
 	}
 
 	bitbuffer <<= (k+1);
@@ -195,17 +201,17 @@ void BitmapJPG::decodeHuffmanAC(short* output, HuffmanTable* htab, int count)
 	while (num < count)
 	{
 		uint16 look = bitbuffer >> 16;
-		uint16 code;
+		uint16 code = 0;
 		int k;
-		for (k = 0; k <= 16; ++k)
+		for (k = 0; k < 16; ++k)
 		{
 			code = look >> (15-k);
 			if (code >= min_c[k] && code <= max_c[k])
 				break;
 		}
-		if (k == 16)		// Unknown code (acteally an error)
+		if (k == 16)		// Unknown code (actually an error)
 		{
-			++num;
+			count = 0;
 			break;
 		}
 
@@ -502,7 +508,6 @@ Bitmap::LoadResult::Error_t BitmapJPG::readJPEG(const uint8* buffer, size_t bufs
 				result = readSOS(mem, size);
 //				if (size==4088)
 				return Bitmap::LoadResult::Error::OK;		// !!!
-				break;
 
 			// EOI: End Of Image
 			case JPG_EOI:

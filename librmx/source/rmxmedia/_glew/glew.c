@@ -307,7 +307,7 @@ static GLboolean _glewStrSame3 (const GLubyte** a, GLuint* na, const GLubyte* b,
  * string returned by glGetString might be in read-only memory.
  */
 #if !defined(GLEW_OSMESA)
-#if !defined(__APPLE__) || defined(GLEW_APPLE_GLX)
+#if (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 static GLboolean _glewSearchExtension (const char* name, const GLubyte *start, const GLubyte *end)
 {
   const GLubyte* p;
@@ -20876,7 +20876,7 @@ GLenum GLEWAPIENTRY glewInit (void)
   return r;
 #elif defined(_WIN32)
   return wglewInit();
-#elif !defined(__APPLE__) || defined(GLEW_APPLE_GLX) /* _UNIX */
+#elif (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__) /* _UNIX */
   return glxewInit();
 #else
   return r;

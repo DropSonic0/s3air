@@ -108,7 +108,7 @@ DeflateCodec::DeflateCodec()
 		// Invert order of bits
 		int value = i;
 		int newValue = 0;
-		for (int i = 0; i < 9; ++i)
+		for (int j = 0; j < 9; ++j)
 		{
 			newValue = (newValue << 1) + (value & 1);
 			value >>= 1;

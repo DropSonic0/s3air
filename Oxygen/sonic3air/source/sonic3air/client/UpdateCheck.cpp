@@ -119,7 +119,7 @@ void UpdateCheck::performUpdate()
 				break;
 
 			mState = State::SEND_QUERY;
-			[[fallthrough]];
+			RMX_FALLTHROUGH;
 		}
 
 		case State::SEND_QUERY:

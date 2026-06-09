@@ -101,6 +101,12 @@ FORCE_INLINE double roundToDouble(double value)	{ return floor(value + 0.5); }
 
 // Round for integer, identity for floats
 template<typename T> static T roundForInt(float value)  { return (T)value; }
+template<> FORCE_INLINE int8 roundForInt<int8>(float value)		{ return (int8)floor(value + 0.5f); }
+template<> FORCE_INLINE uint8 roundForInt<uint8>(float value)	{ return (uint8)floor(value + 0.5f); }
+template<> FORCE_INLINE int16 roundForInt<int16>(float value)	{ return (int16)floor(value + 0.5f); }
+template<> FORCE_INLINE uint16 roundForInt<uint16>(float value)	{ return (uint16)floor(value + 0.5f); }
+template<> FORCE_INLINE int32 roundForInt<int32>(float value)	{ return (int32)floor(value + 0.5f); }
+template<> FORCE_INLINE uint32 roundForInt<uint32>(float value)	{ return (uint32)floor(value + 0.5f); }
 
 
 // Linear interpolation

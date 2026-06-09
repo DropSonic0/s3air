@@ -51,6 +51,10 @@
 		#define static_assert(cond, msg)
 	#endif
 
+	#ifndef RMX_FALLTHROUGH
+		#define RMX_FALLTHROUGH
+	#endif
+
 	#ifndef SDL_LIL_ENDIAN
 		#define SDL_LIL_ENDIAN 1234
 	#endif
@@ -301,14 +305,27 @@
 #if defined(_MSC_VER)
 	#define FORCE_INLINE __forceinline
 	#define RESTRICT __restrict
+	#ifndef RMX_FALLTHROUGH
+		#if _MSC_VER >= 1910
+			#define RMX_FALLTHROUGH [[fallthrough]]
+		#else
+			#define RMX_FALLTHROUGH
+		#endif
+	#endif
 
 #elif defined(__GNUC__)
 	#define FORCE_INLINE __attribute__((always_inline)) inline
 	#define RESTRICT __restrict__
+	#ifndef RMX_FALLTHROUGH
+		#define RMX_FALLTHROUGH [[fallthrough]]
+	#endif
 
 #elif defined(__clang__)
 	#define FORCE_INLINE inline
 	#define RESTRICT __restrict__
+	#ifndef RMX_FALLTHROUGH
+		#define RMX_FALLTHROUGH [[fallthrough]]
+	#endif
 
 #else
 	#define FORCE_INLINE inline
