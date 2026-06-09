@@ -21,20 +21,20 @@ namespace lemon
 			const Token::Type tokenType = (Token::Type)serializer.read<uint8>();
 			switch (tokenType)
 			{
-				case Token::Type::KEYWORD:			token = &genericmanager::Manager<Token>::template create<KeywordToken>();			 break;
-				case Token::Type::VARTYPE:			token = &genericmanager::Manager<Token>::template create<VarTypeToken>();			 break;
-				case Token::Type::OPERATOR:			token = &genericmanager::Manager<Token>::template create<OperatorToken>();			 break;
-				case Token::Type::LABEL:			token = &genericmanager::Manager<Token>::template create<LabelToken>();				 break;
-				case Token::Type::CONSTANT:			token = &genericmanager::Manager<Token>::template create<ConstantToken>();			 break;
-				case Token::Type::IDENTIFIER:		token = &genericmanager::Manager<Token>::template create<IdentifierToken>();		 break;
-				case Token::Type::PARENTHESIS:		token = &genericmanager::Manager<Token>::template create<ParenthesisToken>();		 break;
-				case Token::Type::COMMA_SEPARATED:	token = &genericmanager::Manager<Token>::template create<CommaSeparatedListToken>(); break;
-				case Token::Type::UNARY_OPERATION:	token = &genericmanager::Manager<Token>::template create<UnaryOperationToken>();	 break;
-				case Token::Type::BINARY_OPERATION:	token = &genericmanager::Manager<Token>::template create<BinaryOperationToken>();	 break;
-				case Token::Type::VARIABLE:			token = &genericmanager::Manager<Token>::template create<VariableToken>();			 break;
-				case Token::Type::FUNCTION:			token = &genericmanager::Manager<Token>::template create<FunctionToken>();			 break;
-				case Token::Type::MEMORY_ACCESS:	token = &genericmanager::Manager<Token>::template create<MemoryAccessToken>();		 break;
-				case Token::Type::VALUE_CAST:		token = &genericmanager::Manager<Token>::template create<ValueCastToken>();			 break;
+				case Token::Type::KEYWORD:			token = &genericmanager::Manager<Token>::create<KeywordToken>();			 break;
+				case Token::Type::VARTYPE:			token = &genericmanager::Manager<Token>::create<VarTypeToken>();			 break;
+				case Token::Type::OPERATOR:			token = &genericmanager::Manager<Token>::create<OperatorToken>();			 break;
+				case Token::Type::LABEL:			token = &genericmanager::Manager<Token>::create<LabelToken>();				 break;
+				case Token::Type::CONSTANT:			token = &genericmanager::Manager<Token>::create<ConstantToken>();			 break;
+				case Token::Type::IDENTIFIER:		token = &genericmanager::Manager<Token>::create<IdentifierToken>();		 break;
+				case Token::Type::PARENTHESIS:		token = &genericmanager::Manager<Token>::create<ParenthesisToken>();		 break;
+				case Token::Type::COMMA_SEPARATED:	token = &genericmanager::Manager<Token>::create<CommaSeparatedListToken>(); break;
+				case Token::Type::UNARY_OPERATION:	token = &genericmanager::Manager<Token>::create<UnaryOperationToken>();	 break;
+				case Token::Type::BINARY_OPERATION:	token = &genericmanager::Manager<Token>::create<BinaryOperationToken>();	 break;
+				case Token::Type::VARIABLE:			token = &genericmanager::Manager<Token>::create<VariableToken>();			 break;
+				case Token::Type::FUNCTION:			token = &genericmanager::Manager<Token>::create<FunctionToken>();			 break;
+				case Token::Type::MEMORY_ACCESS:	token = &genericmanager::Manager<Token>::create<MemoryAccessToken>();		 break;
+				case Token::Type::VALUE_CAST:		token = &genericmanager::Manager<Token>::create<ValueCastToken>();			 break;
 
 				default:
 					RMX_ERROR("Unknown or unsupported token type to create", );

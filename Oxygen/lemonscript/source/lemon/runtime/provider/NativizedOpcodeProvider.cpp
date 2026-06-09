@@ -28,7 +28,9 @@ namespace lemon
 			return false;
 
 		Nativizer::LookupEntry* bestEntry = nullptr;
+#ifdef DEBUG
 		uint64 bestEntryHash = 0;		// Variable exists only for debugging
+#endif
 		{
 			uint64 hash = Nativizer::getStartHash();
 			for (size_t index = 0; index < (size_t)numOpcodesAvailable; )
@@ -47,7 +49,9 @@ namespace lemon
 					if (nullptr != it->second.mExecFunc)
 					{
 						bestEntry = &it->second;
+#ifdef DEBUG
 						bestEntryHash = hash;
+#endif
 						outNumOpcodesConsumed = (int)index;
 					}
 				}

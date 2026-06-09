@@ -723,7 +723,7 @@ namespace lemon
 				{
 					// Add as implicit first parameter
 					const auto it = functionToken.mParameters.insert(functionToken.mParameters.begin(), TokenPtr<StatementToken>());
-					VariableToken& variableToken = it->template create<VariableToken>();
+					VariableToken& variableToken = it->create<VariableToken>();
 					variableToken.mVariable = thisPointerVariable;
 					variableToken.mDataType = thisPointerVariable->getDataType();
 				}
