@@ -667,7 +667,7 @@ void Game::fillDebugVisualization(Bitmap& bitmap, int& mode)
 			if ((tile & 0xf000) != 0 && tileForm != 0)
 			{
 				Color baseColor;
-				uint8 angle;
+				uint8 angle = 0;
 				if (mode == 1)	// Angle is only relevant in mode 1
 				{
 					angle = mEmulatorInterface->readMemory8(0x096000 + tileForm);

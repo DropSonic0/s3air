@@ -193,10 +193,12 @@ const uint16 zFMFrequencies			 = 0x0b4d;
 const uint16 z80_MusicBanks			 = 0x0b65;
 const uint16 zPSGInitBytes			 = 0x06a3;
 const uint16 z80_SoundDriverPointers = 0x1300 + 4;		// Modified to be compatible with original RAM dump
+#if !defined(PLATFORM_PS3)
 const uint16 z80_MusicPointers		 = 0x1618;
 const uint16 z80_SFXPointers		 = 0x167e;
 const uint16 z80_ModEnvPointers		 = 0x130e;
 const uint16 z80_VolEnvPointers		 = 0x1387;
+#endif
 const uint16 zSpecFM3Freqs			 = 0x1bf0;
 const uint16 zSpecFM3FreqsSFX		 = 0x1bf8;
 const uint16 zTempVariablesStart	 = 0x1c0d;
@@ -209,7 +211,9 @@ const uint16 zSongPSG2				 = zTracksStart + 7 * 0x30;
 const uint16 zSongPSG3				 = zTracksStart + 8 * 0x30;
 const uint16 zTracksSFXStart		 = 0x1df0;
 const uint16 zTracksSaveStart		 = 0x1df0;
+#if !defined(PLATFORM_PS3)
 const uint16 zTracksSaveEnd			 = 0x1fa0;
+#endif
 
 
 class Internal

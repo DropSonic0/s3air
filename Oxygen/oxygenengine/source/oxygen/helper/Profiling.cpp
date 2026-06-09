@@ -109,7 +109,7 @@ void Profiling::nextFrame(int simulationFrameNumber)
 	}
 	mRootRegion.mTimer.resumeTiming();		// Needed for first frame to start timing
 
-	static const PerFrameData dummy;
+	static const PerFrameData dummy = {};
 	const PerFrameData& oldData = mAdditionalData.mFrames.empty() ? dummy : mAdditionalData.mFrames.back();
 	while (mAdditionalData.mFrames.size() >= MAX_FRAMES)
 		mAdditionalData.mFrames.pop_front();

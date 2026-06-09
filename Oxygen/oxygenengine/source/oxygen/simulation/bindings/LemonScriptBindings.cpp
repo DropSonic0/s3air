@@ -77,11 +77,13 @@ namespace
 		return *lemon::Runtime::getActiveEnvironmentSafe<RuntimeEnvironment>().mEmulatorInterface;
 	}
 
+#if !defined(PLATFORM_PS3)
 	int64* accessRegister(size_t index)
 	{
 		uint32& reg = getEmulatorInterface().getRegister(index);
 		return reinterpret_cast<int64*>(&reg);
 	}
+#endif
 
 	void scriptAssert1(uint8 condition, lemon::StringRef text)
 	{
@@ -358,11 +360,13 @@ namespace
 			LemonScriptBindings::mDebugNotificationInterface->onScriptLog(*String(0, "%04d", lineNumber), valueString);
 	}
 
+#if !defined(PLATFORM_PS3)
 	void logSetter(int64 value, bool decimal)
 	{
 		const std::string valueString = decimal ? *String(0, "%d", value) : *String(0, "%08x", value);
 		debugLogInternal(valueString);
 	}
+#endif
 
 	template<typename T>
 	void debugLogIntSigned(T value)
@@ -686,6 +690,7 @@ namespace
 	}
 
 
+#if !defined(PLATFORM_PS3)
 	uint64 debugKeyGetter(int index)
 	{
 		if (EngineMain::getDelegate().useDeveloperFeatures())
@@ -698,6 +703,7 @@ namespace
 			return 0;
 		}
 	}
+#endif
 
 
 	void debugWatch(uint32 address, uint16 bytes)

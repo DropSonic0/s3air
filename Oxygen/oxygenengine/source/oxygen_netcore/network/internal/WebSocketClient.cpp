@@ -14,8 +14,10 @@
 
 namespace
 {
+#ifdef PLATFORM_WEB
 	//static const char* WEBSOCKET_PROTOCOL = "ws://";		// Only for testing
 	static const char* WEBSOCKET_PROTOCOL = "wss://";		// This is required for the web build when running on a https website
+#endif
 }
 
 

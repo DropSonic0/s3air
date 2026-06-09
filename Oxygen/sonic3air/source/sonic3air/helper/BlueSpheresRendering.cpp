@@ -29,10 +29,12 @@ namespace
 	static float PLANE_DISTANCE = 260.0f;
 	static float GRID_SIZE = 11.5f;
 
+#if !defined(PLATFORM_PS3)
 	inline Color colorFromCompact(uint16 compact)
 	{
 		return Color((float)(compact & 0x000e) / 14.0f, (float)((compact >> 4) & 0x000e) / 14.0f, (float)((compact >> 8) & 0x000e) / 14.0f);
 	}
+#endif
 
 	float getIntegerCutFraction(float center, float extend1, float extend2)
 	{

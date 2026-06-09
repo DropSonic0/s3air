@@ -80,7 +80,9 @@ bool WebSocketWrapper::processReceivedClientPacket(std::vector<uint8>& data)
 		// Error: Unsupported format
 		return false;
 	}
+#if !defined(PLATFORM_PS3)
 	const uint8 opcode = (byte & 0x0f);
+#endif
 	// TODO: Handle the different kinds of opcodes (at least 0, 1, 2, 8)
 
 	// Second byte

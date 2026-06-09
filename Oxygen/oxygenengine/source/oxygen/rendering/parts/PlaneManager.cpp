@@ -16,6 +16,7 @@
 
 namespace
 {
+#if !defined(PLATFORM_PS3)
 	void fillBufferByAbstraction(uint16* buffer, const Vec2i& cameraPosition, const Vec2i& screenSize)
 	{
 		// TODO: This is entirely S3AIR-specific
@@ -69,6 +70,7 @@ namespace
 			}
 		}
 	}
+#endif
 }
 
 

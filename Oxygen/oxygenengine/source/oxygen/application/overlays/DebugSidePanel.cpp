@@ -674,14 +674,15 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					{
 						const auto& hit = *watch->mHits[hitIndex];
 						const uint64 key = ((uint64)watch->mAddress << 32) + hitIndex;
+
+						// Just a test
+					#if 0
 						Builder::TextLine* textLine;
 						if (watch->mBytes <= 4)
 							textLine = &builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 						else
 							textLine = &builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 
-						// Just a test
-					#if 0
 						if (key == category.mChangedKey)
 						{
 							std::string scriptFilename;
@@ -696,6 +697,11 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 							::system(("code -r -g " + textLine->mCodeLocation).c_str());
 						#endif
 						}
+					#else
+						if (watch->mBytes <= 4)
+							builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
+						else
+							builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 					#endif
 
 						if (category.mOpenKeys.count(key) != 0)

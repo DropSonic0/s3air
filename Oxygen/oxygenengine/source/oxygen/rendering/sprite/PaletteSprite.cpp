@@ -19,6 +19,7 @@ namespace
 		return Vec2i((vec.x + 3) & 0xfffffffc, (vec.y + 3) & 0xfffffffc);
 	}
 
+#if !defined(PLATFORM_PS3)
 	void applyPalette(Bitmap& output, int& outputReservedSize, const PaletteBitmap& input, const uint32* palette)
 	{
 		output.createReusingMemory(input.mWidth, input.mHeight, outputReservedSize);
@@ -27,6 +28,7 @@ namespace
 			output.getData()[i] = palette[input.mData[i]];
 		}
 	}
+#endif
 
 	void applyScale3x(PaletteBitmap& output, const PaletteBitmap& input)
 	{
