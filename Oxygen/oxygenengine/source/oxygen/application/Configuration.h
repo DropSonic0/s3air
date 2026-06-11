@@ -23,7 +23,8 @@ public:
 		UNDEFINED	= 0x00,
 		SOFTWARE	= 0x10,
 		OPENGL_SOFT	= 0x20,
-		OPENGL_FULL	= 0x21
+		OPENGL_FULL	= 0x21,
+		OPENGL_FIXED = 0x22
 	};
 
 	enum class WindowMode

@@ -137,7 +137,11 @@ namespace
 				outAutoDetect = (renderMethodString == "auto");
 				if (outAutoDetect)
 				{
+#if defined(PLATFORM_PS3)
+					outRenderMethod = Configuration::RenderMethod::OPENGL_FIXED;
+#else
 					outRenderMethod = Configuration::RenderMethod::OPENGL_FULL;
+#endif
 				}
 			}
 		}
@@ -150,7 +154,12 @@ namespace
 		{
 			if (renderMethodString.startsWith("opengl"))
 			{
-				outRenderMethod = (renderMethodString.endsWith("soft") | renderMethodString.endsWith("software")) ? Configuration::RenderMethod::OPENGL_SOFT : Configuration::RenderMethod::OPENGL_FULL;
+				if (renderMethodString.endsWith("soft") || renderMethodString.endsWith("software"))
+					outRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
+				else if (renderMethodString.endsWith("fixed"))
+					outRenderMethod = Configuration::RenderMethod::OPENGL_FIXED;
+				else
+					outRenderMethod = Configuration::RenderMethod::OPENGL_FULL;
 			}
 			else if (renderMethodString == "software")
 			{
@@ -238,7 +247,7 @@ Configuration* Configuration::mSingleInstance = nullptr;
 Configuration::RenderMethod Configuration::getHighestSupportedRenderMethod()
 {
 #if defined(PLATFORM_PS3)
-	return RenderMethod::SOFTWARE;
+	return RenderMethod::OPENGL_FIXED;
 #elif defined(PLATFORM_WEB) || (defined(PLATFORM_MAC) && defined(__arm64__))
 	return RenderMethod::OPENGL_SOFT;
 #else
@@ -465,6 +474,7 @@ void Configuration::saveSettings()
 		// General
 		root["RenderMethod"] = mAutoDetectRenderMethod ? "auto" :
 							   (mRenderMethod == RenderMethod::OPENGL_FULL) ? "opengl-full" :
+							   (mRenderMethod == RenderMethod::OPENGL_FIXED) ? "opengl-fixed" :
 							   (mRenderMethod == RenderMethod::OPENGL_SOFT) ? "opengl-soft" : "software";
 		root["FailSafeMode"] = mFailSafeMode;
 		root["PlatformFlags"] = mPlatformFlags;
@@ -537,6 +547,7 @@ void Configuration::saveSettings()
 			// Overwrite only certain properties, namely those that can be defined by the mod manager AND changed by the game
 			root["RenderMethod"] = mAutoDetectRenderMethod ? "auto" :
 								   (mRenderMethod == RenderMethod::OPENGL_FULL) ? "opengl-full" :
+								   (mRenderMethod == RenderMethod::OPENGL_FIXED) ? "opengl-fixed" :
 								   (mRenderMethod == RenderMethod::OPENGL_SOFT) ? "opengl-soft" : "software";
 			root["Fullscreen"] = (int)mWindowMode;
 
@@ -656,6 +667,15 @@ void Configuration::loadConfigurationProperties(JsonHelper& rootHelper)
 	rootHelper.tryReadInt("BackgroundBlur", mBackgroundBlur);
 	rootHelper.tryReadInt("PerformanceDisplay", mPerformanceDisplay);
 	tryReadRenderMethod(rootHelper, mFailSafeMode, mRenderMethod, mAutoDetectRenderMethod);
+
+	if (mRenderMethod == RenderMethod::UNDEFINED)
+	{
+#if defined(PLATFORM_PS3)
+		mRenderMethod = RenderMethod::OPENGL_FIXED;
+#else
+		mRenderMethod = RenderMethod::OPENGL_FULL;
+#endif
+	}
 
 	// Audio
 	rootHelper.tryReadInt("AudioSampleRate", mAudioSampleRate);

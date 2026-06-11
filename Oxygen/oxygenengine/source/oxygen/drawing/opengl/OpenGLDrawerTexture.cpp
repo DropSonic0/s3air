@@ -20,6 +20,14 @@ void OpenGLDrawerTexture::updateFromBitmap(const Bitmap& bitmap)
 	// Need to update these, as "loadBitmap" changed the OpenGL texture parameters
 	mSamplingMode = SamplingMode::POINT;
 	mWrapMode = TextureWrapMode::CLAMP;
+
+#if defined(PLATFORM_PS3)
+	static int updateCounter = 0;
+	if (updateCounter < 20)
+	{
+		RMX_LOG_INFO("OpenGLDrawerTexture::updateFromBitmap - handle " << mTexture.getHandle() << ", size " << bitmap.getWidth() << "x" << bitmap.getHeight() << " (count " << updateCounter++ << ")");
+	}
+#endif
 }
 
 void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)
@@ -32,6 +40,10 @@ void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)
 		mFrameBuffer.attachTexture(GL_COLOR_ATTACHMENT0, mTexture.getHandle(), GL_TEXTURE_2D);
 		mFrameBuffer.finishCreation();
 		mFrameBuffer.unbind();
+
+#if defined(PLATFORM_PS3)
+		RMX_LOG_INFO("OpenGLDrawerTexture::setupAsRenderTarget - created FB " << mFrameBuffer.getHandle() << " for texture " << mTexture.getHandle() << " (" << size.x << "x" << size.y << ")");
+#endif
 	}
 }
 

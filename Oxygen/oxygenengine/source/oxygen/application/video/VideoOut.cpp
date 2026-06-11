@@ -80,7 +80,8 @@ void VideoOut::handleActiveModsChanged()
 
 void VideoOut::createRenderer(bool reset)
 {
-	setActiveRenderer(Configuration::instance().mRenderMethod == Configuration::RenderMethod::OPENGL_FULL, reset);
+	Configuration& config = Configuration::instance();
+	setActiveRenderer(config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL, reset);
 }
 
 void VideoOut::destroyRenderer()

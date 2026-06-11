@@ -18,6 +18,7 @@
 #include "oxygen/application/video/VideoOut.h"
 #include "oxygen/download/DownloadManager.h"
 #include "oxygen/drawing/opengl/OpenGLDrawer.h"
+#include "oxygen/drawing/opengl/FixedFunctionDrawer.h"
 #include "oxygen/drawing/software/SoftwareDrawer.h"
 #include "oxygen/platform/CrashHandler.h"
 #include "oxygen/platform/PlatformFunctions.h"
@@ -172,10 +173,10 @@ uint32 EngineMain::getPlatformFlags() const
 void EngineMain::switchToRenderMethod(Configuration::RenderMethod newRenderMethod)
 {
 	Configuration& config = Configuration::instance();
-	const bool wasUsingOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL || config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
+	const bool wasUsingOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
 	config.mRenderMethod = newRenderMethod;
 
-	bool nowUsingOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL || config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
+	bool nowUsingOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
 	if (nowUsingOpenGL != wasUsingOpenGL)
 	{
 		// Need to recreate the window
@@ -198,7 +199,8 @@ void EngineMain::switchToRenderMethod(Configuration::RenderMethod newRenderMetho
 void EngineMain::setVSyncMode(Configuration::FrameSyncType frameSyncMode)
 {
 	Configuration& config = Configuration::instance();
-	if ((config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL) || (config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT))
+	const bool wasUsingOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
+	if (wasUsingOpenGL)
 	{
 		if (frameSyncMode >= Configuration::FrameSyncType::VSYNC_ON)
 		{
@@ -543,6 +545,7 @@ bool EngineMain::initConfigAndSettings(const std::wstring& argumentProjectPath)
 	config.evaluateGameRecording();
 
 	RMX_LOG_INFO(((config.mRenderMethod == Configuration::RenderMethod::SOFTWARE) ? "Using pure software renderer" :
+				  (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FIXED) ? "Using opengl-fixed renderer" :
 				  (config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT) ? "Using opengl-soft renderer" : "Using opengl-full renderer"));
 	return true;
 }
@@ -649,7 +652,7 @@ bool EngineMain::createWindow()
 	Configuration& config = Configuration::instance();
 	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
 
-	const bool useOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL) || (config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
+	const bool useOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
 
 	// Setup video config
 	rmx::VideoConfig videoConfig(config.mWindowMode != Configuration::WindowMode::WINDOWED, config.mWindowSize.x, config.mWindowSize.y, appMetaData.mTitle.c_str());
@@ -798,7 +801,9 @@ bool EngineMain::createWindow()
 			params.rescRatioMode = RESC_RATIO_MODE_FULLSCREEN;
 
 			PSGLdevice* device = psglCreateDeviceExtended(&params);
+			RMX_LOG_INFO("PSGL device created: " << (void*)device);
 			PSGLcontext* context = psglCreateContext();
+			RMX_LOG_INFO("PSGL context created: " << (void*)context);
 			psglMakeCurrent(context, device);
 			psglResetCurrentContext();
 
@@ -829,7 +834,17 @@ bool EngineMain::createWindow()
 
 	// Create drawer depending on render method
 #ifdef RMX_WITH_OPENGL_SUPPORT
-	if (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT)
+	if (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FIXED)
+	{
+		if (!mDrawer.createDrawer<FixedFunctionDrawer>())
+		{
+			// Fallback to software drawer
+			RMX_LOG_INFO("Fixed-function drawer setup failed, using software rendering");
+			config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;
+			mDrawer.createDrawer<SoftwareDrawer>();
+		}
+	}
+	else if (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT)
 	{
 		if (!mDrawer.createDrawer<OpenGLDrawer>())
 		{
