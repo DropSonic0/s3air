@@ -54,6 +54,7 @@ void Profiling::pushRegion(uint16 id)
 {
 	static int pushCount = 0;
 	Region* region = getRegionByID(id);
+
 	if (pushCount < 100)
 	{
 		RMX_LOG_INFO("Profiling::pushRegion - id " << id << " (" << (region ? region->mName : "UNKNOWN") << ")");
@@ -82,18 +83,34 @@ void Profiling::popRegion(uint16 id)
 {
 	static int popCount = 0;
 	Region* region = getRegionByID(id);
+
 	if (popCount < 100)
 	{
-		RMX_LOG_INFO("Profiling::popRegion - id " << id << " (" << (region ? region->mName : "UNKNOWN") << ")");
-		popCount++;
+		RMX_LOG_INFO("Profiling::popRegion - start id " << id << " (" << (region ? region->mName : "UNKNOWN") << ")");
 	}
+
 	RMX_ASSERT(nullptr != region, "Profiling region with id " << id << " not found");
 	RMX_ASSERT(mRegionStack.size() >= 2, "Can't pop another profiling region from stack, that would remove the root region");
 	RMX_ASSERT(mRegionStack.back() == region, "Profiling region to be popped must be top of stack");
 
+	if (popCount < 100)
+	{
+		RMX_LOG_INFO("Profiling::popRegion - popping from stack");
+	}
 	mRegionStack.pop_back();
 	region->mOnStack = false;
+
+	if (popCount < 100)
+	{
+		RMX_LOG_INFO("Profiling::popRegion - pausing timing");
+	}
 	region->mTimer.pauseTiming();
+
+	if (popCount < 100)
+	{
+		RMX_LOG_INFO("Profiling::popRegion - done");
+		popCount++;
+	}
 }
 
 void Profiling::nextFrame(int simulationFrameNumber)

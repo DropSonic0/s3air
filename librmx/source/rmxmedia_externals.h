@@ -521,20 +521,20 @@
 	inline void glDeleteVertexArrays(GLsizei n, const GLuint* a) {}
 	inline void glBindVertexArray(GLuint a) {}
 	inline void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {}
-	inline void glBindFramebuffer(GLenum target, GLuint framebuffer) {}
+	inline void glBindFramebuffer(GLenum target, GLuint framebuffer) { glBindFramebufferOES(target, framebuffer); }
 	inline void glActiveTexture(GLenum texture) {}
 	inline void glBlendEquation(GLenum mode) {}
-	inline void glGenRenderbuffers(GLsizei n, GLuint* b) {}
-	inline void glBindRenderbuffer(GLenum t, GLuint b) {}
-	inline void glRenderbufferStorage(GLenum t, GLenum i, GLsizei w, GLsizei h) {}
-	inline void glDeleteRenderbuffers(GLsizei n, const GLuint* b) {}
-	inline void glGenFramebuffers(GLsizei n, GLuint* b) {}
-	inline GLenum glCheckFramebufferStatus(GLenum t) { return (GLenum)0x8CD5; }
-	inline void glDeleteFramebuffers(GLsizei n, const GLuint* b) {}
-	inline unsigned char glIsRenderbuffer(GLuint b) { return 0; }
-	inline unsigned char glIsFramebuffer(GLuint b) { return 0; }
-	inline void glFramebufferTexture2D(GLenum t, GLenum a, GLenum tt, GLuint te, GLint l) {}
-	inline void glFramebufferRenderbuffer(GLenum t, GLenum a, GLenum rt, GLuint r) {}
+	inline void glGenRenderbuffers(GLsizei n, GLuint* b) { glGenRenderbuffersOES(n, b); }
+	inline void glBindRenderbuffer(GLenum t, GLuint b) { glBindRenderbufferOES(t, b); }
+	inline void glRenderbufferStorage(GLenum t, GLenum i, GLsizei w, GLsizei h) { glRenderbufferStorageOES(t, i, w, h); }
+	inline void glDeleteRenderbuffers(GLsizei n, const GLuint* b) { glDeleteRenderbuffersOES(n, b); }
+	inline void glGenFramebuffers(GLsizei n, GLuint* b) { glGenFramebuffersOES(n, b); }
+	inline GLenum glCheckFramebufferStatus(GLenum t) { return glCheckFramebufferStatusOES(t); }
+	inline void glDeleteFramebuffers(GLsizei n, const GLuint* b) { glDeleteFramebuffersOES(n, b); }
+	inline unsigned char glIsRenderbuffer(GLuint b) { return glIsRenderbufferOES(b); }
+	inline unsigned char glIsFramebuffer(GLuint b) { return glIsFramebufferOES(b); }
+	inline void glFramebufferTexture2D(GLenum t, GLenum a, GLenum tt, GLuint te, GLint l) { glFramebufferTexture2DOES(t, a, tt, te, l); }
+	inline void glFramebufferRenderbuffer(GLenum t, GLenum a, GLenum rt, GLuint r) { glFramebufferRenderbufferOES(t, a, rt, r); }
 	inline void glDeleteProgram(GLuint p) {}
 	inline void glDeleteShader(GLuint s) {}
 	inline GLint glGetUniformLocation(GLuint p, const char* n) { return 0; }

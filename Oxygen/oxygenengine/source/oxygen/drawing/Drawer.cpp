@@ -266,6 +266,11 @@ void Drawer::performRendering()
 		RMX_LOG_INFO("Drawer::performRendering - draw collection cleared");
 		renderCount++;
 	}
+
+	if (renderCount <= 10)
+	{
+		RMX_LOG_INFO("Drawer::performRendering - end");
+	}
 }
 
 void Drawer::presentScreen()

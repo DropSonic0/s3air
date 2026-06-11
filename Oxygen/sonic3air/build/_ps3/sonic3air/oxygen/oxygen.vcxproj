@@ -125,6 +125,7 @@
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\DrawCommand.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\Drawer.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\DrawerTexture.cpp" />
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\FixedFunctionDrawer.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\OpenGLDrawer.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\OpenGLDrawerResources.cpp" />
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\OpenGLDrawerTexture.cpp" />
@@ -242,6 +243,7 @@
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\Drawer.h" />
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\DrawerInterface.h" />
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\DrawerTexture.h" />
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\FixedFunctionDrawer.h" />
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\OpenGLDrawer.h" />
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\OpenGLDrawerResources.h" />
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\OpenGLDrawerTexture.h" />

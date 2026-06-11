@@ -484,6 +484,9 @@
     <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\rendering\software\SoftwareBlur.cpp">
       <Filter>rendering\software</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\FixedFunctionDrawer.cpp">
+      <Filter>drawing\opengl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\pch.h" />
@@ -858,6 +861,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\simulation\Simulation.h">
       <Filter>simulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\..\oxygenengine\source\oxygen\drawing\opengl\FixedFunctionDrawer.h">
+      <Filter>drawing\opengl</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

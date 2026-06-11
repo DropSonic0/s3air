@@ -574,6 +574,7 @@ void FixedFunctionDrawer::presentScreen()
 	{
 		RMX_LOG_INFO("FixedFunctionDrawer::presentScreen - psglSwap start " << swapCounter);
 	}
+
 	psglSwap();
 	if (swapCounter < 10)
 	{

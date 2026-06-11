@@ -587,7 +587,15 @@ void Application::render()
 	// Needed only for precise profiling
 	//glFinish();
 
+	if (frameCount < 10)
+	{
+		RMX_LOG_INFO("Application::render - about to call Profiling::popRegion(RENDERING)");
+	}
 	Profiling::popRegion(ProfilingRegion::RENDERING);
+	if (frameCount < 10)
+	{
+		RMX_LOG_INFO("Application::render - after Profiling::popRegion(RENDERING)");
+	}
 
 	if (mIsVeryFirstFrameForLogging)
 	{
