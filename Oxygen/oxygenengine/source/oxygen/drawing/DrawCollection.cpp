@@ -18,11 +18,23 @@ DrawCollection::~DrawCollection()
 
 void DrawCollection::clear()
 {
+	static int clearCount = 0;
+	if (clearCount < 10)
+	{
+		RMX_LOG_INFO("DrawCollection::clear - start (" << mDrawCommands.size() << " commands)");
+	}
+
 	for (DrawCommand* drawCommand : mDrawCommands)
 	{
 		DrawCommand::mFactory.destroy(*drawCommand);
 	}
 	mDrawCommands.clear();
+
+	if (clearCount < 10)
+	{
+		RMX_LOG_INFO("DrawCollection::clear - done");
+		clearCount++;
+	}
 }
 
 void DrawCollection::addDrawCommand(DrawCommand& drawCommand)

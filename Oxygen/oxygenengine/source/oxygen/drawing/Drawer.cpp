@@ -245,9 +245,27 @@ void Drawer::setupRenderWindow(SDL_Window* window)
 
 void Drawer::performRendering()
 {
+	static int renderCount = 0;
+	if (renderCount < 10)
+	{
+		RMX_LOG_INFO("Drawer::performRendering - start");
+	}
+
 	RMX_ASSERT(nullptr != mActiveDrawer, "No active drawer instance created");
 	mActiveDrawer->performRendering(mDrawCollection);
+
+	if (renderCount < 10)
+	{
+		RMX_LOG_INFO("Drawer::performRendering - about to clear draw collection");
+	}
+
 	mDrawCollection.clear();
+
+	if (renderCount < 10)
+	{
+		RMX_LOG_INFO("Drawer::performRendering - draw collection cleared");
+		renderCount++;
+	}
 }
 
 void Drawer::presentScreen()
@@ -280,6 +298,7 @@ void Drawer::unregisterTexture(DrawerTexture& texture)
 	if (index + 1 < mDrawerTextures.size())
 	{
 		mDrawerTextures[index] = mDrawerTextures.back();
+		mDrawerTextures[index]->mRegisteredOwner = this;
 		mDrawerTextures[index]->mRegisteredIndex = index;
 	}
 	mDrawerTextures.pop_back();

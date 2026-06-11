@@ -357,9 +357,9 @@ void Application::keyboard(const rmx::KeyboardEvent& ev)
 						// Only for debugging visual differences between hardware and software renderers
 						if (Configuration::instance().mRenderMethod != Configuration::RenderMethod::SOFTWARE)
 						{
-							const Configuration::RenderMethod newRenderMethod = (Configuration::instance().mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT) ? Configuration::RenderMethod::OPENGL_FULL : Configuration::RenderMethod::OPENGL_SOFT;
+							const Configuration::RenderMethod newRenderMethod = (Configuration::instance().mRenderMethod == Configuration::OPENGL_SOFT) ? Configuration::OPENGL_FULL : Configuration::OPENGL_SOFT;
 							EngineMain::instance().switchToRenderMethod(newRenderMethod);
-							LogDisplay::instance().setLogDisplay((Configuration::instance().mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT) ? "Switched to opengl-soft renderer" : "Switched to opengl-full renderer");
+							LogDisplay::instance().setLogDisplay((Configuration::instance().mRenderMethod == Configuration::OPENGL_SOFT) ? "Switched to opengl-soft renderer" : "Switched to opengl-full renderer");
 						}
 						break;
 					}
@@ -501,12 +501,18 @@ void Application::update(float timeElapsed)
 
 	if (mIsVeryFirstFrameForLogging)
 	{
-		RMX_LOG_INFO("End of first application render call");
+		RMX_LOG_INFO("End of first application update call");
 	}
 }
 
 void Application::render()
 {
+	static int frameCount = 0;
+	if (frameCount < 10)
+	{
+		RMX_LOG_INFO("Application::render - frame " << frameCount);
+	}
+
 	Profiling::pushRegion(ProfilingRegion::RENDERING);
 
 	if (mIsVeryFirstFrameForLogging)
@@ -563,16 +569,43 @@ void Application::render()
 		drawer.drawSprite(FTX::screenSize() / 2, key, Color(0.3f, 1.0f, 1.0f), Vec2f(scale));
 	}
 
+	if (frameCount < 10)
+	{
+		RMX_LOG_INFO("Application::render - before drawer.performRendering()");
+	}
 	drawer.performRendering();
+	if (frameCount < 10)
+	{
+		RMX_LOG_INFO("Application::render - after drawer.performRendering()");
+	}
+
+	if (mIsVeryFirstFrameForLogging)
+	{
+		RMX_LOG_INFO("End of drawer.performRendering() in Application::render");
+	}
 
 	// Needed only for precise profiling
 	//glFinish();
 
 	Profiling::popRegion(ProfilingRegion::RENDERING);
 
+	if (mIsVeryFirstFrameForLogging)
+	{
+		RMX_LOG_INFO("End of ProfilingRegion::RENDERING");
+	}
+
 	// Update profiling data & explicit buffer swap
 	{
+		if (frameCount < 10)
+		{
+			RMX_LOG_INFO("Application::render - before pushRegion(FRAMESYNC)");
+		}
 		Profiling::pushRegion(ProfilingRegion::FRAMESYNC);
+
+		if (mIsVeryFirstFrameForLogging)
+		{
+			RMX_LOG_INFO("Start of ProfilingRegion::FRAMESYNC");
+		}
 
 		const double currentTime = mApplicationTimer.getSecondsSinceStart() * 1000.0;
 		const float simulationFrequency = mSimulation->getSimulationFrequency();
@@ -607,7 +640,25 @@ void Application::render()
 			RMX_LOG_INFO("First present screen call");
 		}
 
+		if (mIsVeryFirstFrameForLogging)
+		{
+			RMX_LOG_INFO("Before drawer.presentScreen()");
+		}
+
+		if (frameCount < 10)
+		{
+			RMX_LOG_INFO("Application::render - before drawer.presentScreen()");
+		}
 		drawer.presentScreen();
+		if (frameCount < 10)
+		{
+			RMX_LOG_INFO("Application::render - after drawer.presentScreen()");
+		}
+
+		if (mIsVeryFirstFrameForLogging)
+		{
+			RMX_LOG_INFO("After drawer.presentScreen()");
+		}
 
 	#if 0
 		// Use a glFinish or glFlush here...?
@@ -622,8 +673,20 @@ void Application::render()
 		glFinish();
 	#endif
 
+		if (frameCount < 10)
+		{
+			RMX_LOG_INFO("Application::render - before popRegion(FRAMESYNC)");
+		}
 		Profiling::popRegion(ProfilingRegion::FRAMESYNC);
+		if (frameCount < 10)
+		{
+			RMX_LOG_INFO("Application::render - before Profiling::nextFrame()");
+		}
 		Profiling::nextFrame(mSimulation->getFrameNumber());
+		if (frameCount < 10)
+		{
+			RMX_LOG_INFO("Application::render - after Profiling::nextFrame()");
+		}
 	}
 
 	if (mIsVeryFirstFrameForLogging)
@@ -631,6 +694,10 @@ void Application::render()
 		RMX_LOG_INFO("End of first application render call");
 		RMX_LOG_INFO("Ready to go");
 		mIsVeryFirstFrameForLogging = false;
+	}
+	if (frameCount < 10)
+	{
+		frameCount++;
 	}
 }
 

@@ -316,6 +316,13 @@ public:
 public:
 	void destroy(DrawCommand& drawCommand)
 	{
+		static int destroyCount = 0;
+		if (destroyCount < 50)
+		{
+			RMX_LOG_INFO("DrawCommandFactory::destroy - type " << (int)drawCommand.getType());
+			destroyCount++;
+		}
+
 		switch (drawCommand.getType())
 		{
 			case DrawCommand::Type::UNDEFINED:					break;	// This should never happen anyways

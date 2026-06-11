@@ -296,9 +296,36 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 		RMX_LOG_INFO("FixedFunctionDrawer::performRendering - frame " << frameCounter << ", commands: " << drawCollection.getDrawCommands().size());
 	}
 
+	int commandIndex = 0;
 	for (DrawCommand* drawCommand : drawCollection.getDrawCommands())
 	{
-		switch (drawCommand->getType())
+		const DrawCommand::Type type = drawCommand->getType();
+		if (frameCounter < 10)
+		{
+			const char* typeName = "UNKNOWN";
+			switch (type)
+			{
+				case DrawCommand::Type::UNDEFINED: typeName = "UNDEFINED"; break;
+				case DrawCommand::Type::SET_WINDOW_RENDER_TARGET: typeName = "SET_WINDOW_RENDER_TARGET"; break;
+				case DrawCommand::Type::SET_RENDER_TARGET: typeName = "SET_RENDER_TARGET"; break;
+				case DrawCommand::Type::RECT: typeName = "RECT"; break;
+				case DrawCommand::Type::UPSCALED_RECT: typeName = "UPSCALED_RECT"; break;
+				case DrawCommand::Type::SPRITE: typeName = "SPRITE"; break;
+				case DrawCommand::Type::SPRITE_RECT: typeName = "SPRITE_RECT"; break;
+				case DrawCommand::Type::MESH: typeName = "MESH"; break;
+				case DrawCommand::Type::MESH_VERTEX_COLOR: typeName = "MESH_VERTEX_COLOR"; break;
+				case DrawCommand::Type::SET_BLEND_MODE: typeName = "SET_BLEND_MODE"; break;
+				case DrawCommand::Type::SET_SAMPLING_MODE: typeName = "SET_SAMPLING_MODE"; break;
+				case DrawCommand::Type::SET_WRAP_MODE: typeName = "SET_WRAP_MODE"; break;
+				case DrawCommand::Type::PRINT_TEXT: typeName = "PRINT_TEXT"; break;
+				case DrawCommand::Type::PRINT_TEXT_W: typeName = "PRINT_TEXT_W"; break;
+				case DrawCommand::Type::PUSH_SCISSOR: typeName = "PUSH_SCISSOR"; break;
+				case DrawCommand::Type::POP_SCISSOR: typeName = "POP_SCISSOR"; break;
+			}
+			RMX_LOG_INFO("  Command " << commandIndex << ": " << typeName << " (" << (int)type << ")");
+		}
+
+		switch (type)
 		{
 			case DrawCommand::Type::SET_WINDOW_RENDER_TARGET:
 			{
@@ -524,9 +551,19 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 				break;
 			}
 		}
+
+		if (frameCounter < 10)
+		{
+			RMX_LOG_INFO("  Command " << commandIndex << " done");
+		}
+		commandIndex++;
 	}
 
-	if (frameCounter < 10) frameCounter++;
+	if (frameCounter < 10)
+	{
+		RMX_LOG_INFO("FixedFunctionDrawer::performRendering done");
+		frameCounter++;
+	}
 }
 
 void FixedFunctionDrawer::presentScreen()
@@ -535,9 +572,13 @@ void FixedFunctionDrawer::presentScreen()
 	static int swapCounter = 0;
 	if (swapCounter < 10)
 	{
-		RMX_LOG_INFO("FixedFunctionDrawer::presentScreen - psglSwap " << swapCounter++);
+		RMX_LOG_INFO("FixedFunctionDrawer::presentScreen - psglSwap start " << swapCounter);
 	}
 	psglSwap();
+	if (swapCounter < 10)
+	{
+		RMX_LOG_INFO("FixedFunctionDrawer::presentScreen - psglSwap done " << swapCounter++);
+	}
 #else
 	SDL_GL_SwapWindow(mInternal.mOutputWindow);
 #endif
