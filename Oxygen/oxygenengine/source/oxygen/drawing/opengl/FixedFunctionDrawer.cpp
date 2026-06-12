@@ -154,7 +154,7 @@ namespace fixedfunctiondrawer
 		{
 		#if defined(PLATFORM_PS3)
 			static int drawRectCount = 0;
-			if (drawRectCount < 20)
+			if (drawRectCount < 100)
 			{
 				RMX_LOG_INFO("    drawRect start - rect: " << targetRect.x << "," << targetRect.y << " " << targetRect.width << "x" << targetRect.height << ", texture: " << textureHandle);
 			}
@@ -197,7 +197,7 @@ namespace fixedfunctiondrawer
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		#if defined(PLATFORM_PS3)
-			if (drawRectCount < 20)
+			if (drawRectCount < 100)
 			{
 				RMX_LOG_INFO("    drawRect glDrawArrays done " << drawRectCount++);
 			}

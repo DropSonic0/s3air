@@ -76,6 +76,7 @@ void GameApp::initialize()
 	if (nullptr == mApplicationContextMenu)
 	{
 		mApplicationContextMenu = createChild<ApplicationContextMenu>();
+		mApplicationContextMenu->setName("ApplicationContextMenu");
 	}
 }
 
@@ -212,6 +213,7 @@ void GameApp::openMainMenu()
 		mGameView->removeChild(mTimeAttackResultsMenu);
 
 	mCurrentState = State::MAIN_MENU;
+	mMenuBackground->setName("MenuBackground");
 	mGameView->addChild(mMenuBackground);
 	mGameView->startFadingIn();
 

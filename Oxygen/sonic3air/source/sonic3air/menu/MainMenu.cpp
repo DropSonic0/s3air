@@ -236,6 +236,13 @@ void MainMenu::update(float timeElapsed)
 
 void MainMenu::render()
 {
+#if defined(PLATFORM_PS3)
+	static int mainMenuRenderCount = 0;
+	if (mainMenuRenderCount < 20)
+	{
+		RMX_LOG_INFO("MainMenu::render start " << mainMenuRenderCount);
+	}
+#endif
 	GuiBase::render();
 
 	Drawer& drawer = EngineMain::instance().getDrawer();
@@ -298,7 +305,19 @@ void MainMenu::render()
 		}
 	}
 
+#if defined(PLATFORM_PS3)
+	if (mainMenuRenderCount < 20)
+	{
+		RMX_LOG_INFO("MainMenu::render before drawer.performRendering()");
+	}
+#endif
 	drawer.performRendering();
+#if defined(PLATFORM_PS3)
+	if (mainMenuRenderCount < 20)
+	{
+		RMX_LOG_INFO("MainMenu::render done " << mainMenuRenderCount++);
+	}
+#endif
 }
 
 void MainMenu::triggerStartNormalGame()

@@ -78,8 +78,10 @@ void Application::initialize()
 	{
 		RMX_LOG_INFO("Adding game view");
 		mGameView = new GameView(*mSimulation);
+		mGameView->setName("GameView");
 		addChild(mGameView);
 		mBackdropView = createChild<BackdropView>();
+		mBackdropView->setName("BackdropView");
 	}
 
 	mWindowMode = (WindowMode)Configuration::instance().mWindowMode;
@@ -88,13 +90,16 @@ void Application::initialize()
 	{
 		RMX_LOG_INFO("Adding debug views");
 		mDebugSidePanel = createChild<DebugSidePanel>();
-		createChild<MemoryHexView>();
-		createChild<DebugLogView>();
+		mDebugSidePanel->setName("DebugSidePanel");
+		createChild<MemoryHexView>()->setName("MemoryHexView");
+		createChild<DebugLogView>()->setName("DebugLogView");
 	}
 
 	//mOxygenMenu = mGameView->createChild<OxygenMenu>();
 	mProfilingView = createChild<ProfilingView>();
+	mProfilingView->setName("ProfilingView");
 	mCheatSheetOverlay = createChild<CheatSheetOverlay>();
+	mCheatSheetOverlay->setName("CheatSheetOverlay");
 
 	if (nullptr != mTouchControlsOverlay && nullptr == mTouchControlsOverlay->getParent())
 	{

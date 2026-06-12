@@ -728,7 +728,9 @@ void GameView::render()
 
 	// Render the (pixelated) game UI
 	mRect = gameScreenRect;
+	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render before GuiBase::render()");
 	GuiBase::render();
+	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render after GuiBase::render()");
 
 	// White overlay (used in Time Attack restart)
 	if (mWhiteOverlayAlpha > 0.0f)

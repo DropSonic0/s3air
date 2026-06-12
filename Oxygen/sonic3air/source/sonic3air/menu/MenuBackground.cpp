@@ -140,6 +140,13 @@ void MenuBackground::update(float timeElapsed)
 
 void MenuBackground::render()
 {
+#if defined(PLATFORM_PS3)
+	static int menuBGRenderCount = 0;
+	if (menuBGRenderCount < 20)
+	{
+		RMX_LOG_INFO("MenuBackground::render start " << menuBGRenderCount);
+	}
+#endif
 	Drawer& drawer = EngineMain::instance().getDrawer();
 
 	for (GameMenuBase* child : mAllChildren)
@@ -260,7 +267,19 @@ void MenuBackground::render()
 
 	GuiBase::render();
 
+#if defined(PLATFORM_PS3)
+	if (menuBGRenderCount < 20)
+	{
+		RMX_LOG_INFO("MenuBackground::render before drawer.performRendering()");
+	}
+#endif
 	drawer.performRendering();
+#if defined(PLATFORM_PS3)
+	if (menuBGRenderCount < 20)
+	{
+		RMX_LOG_INFO("MenuBackground::render done " << menuBGRenderCount++);
+	}
+#endif
 }
 
 void MenuBackground::startTransition(Target target)
