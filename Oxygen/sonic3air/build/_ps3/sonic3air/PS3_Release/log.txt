@@ -1,157 +1,161 @@
-[2026-06-12 14:00:03] --- EARLY LOGGING START ---
-[2026-06-12 14:00:03] Executable path: /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
-[2026-06-12 14:00:03] Derived app data path from executable: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-12 14:00:03] --- EARLY LOGGING START ---
-[2026-06-12 14:00:03] --- STARTUP ---
-[2026-06-12 14:00:03] Logging started
-[2026-06-12 14:00:03] Application version: 24.02.02.0
-[2026-06-12 14:00:03] Command line:  /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
-[2026-06-12 14:00:03] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-12 14:00:03] Checking for game data...
-[2026-06-12 14:00:03] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-12 14:00:03] Check 3 (/dev_hdd0/game/SONIC3AIR/USRDIR/data/content.json): FOUND
-[2026-06-12 14:00:03] Final check result: SUCCESS
-[2026-06-12 14:00:03] Initializing configuration
-[2026-06-12 14:00:03] Loading configuration
-[2026-06-12 14:00:03] Loading config.json from app data path
-[2026-06-12 14:00:03] Setting up default game profile for Sonic 3 A.I.R.
-[2026-06-12 14:00:03] Loading settings from: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-12 14:00:03] Settings loaded: FAILED (using defaults)
-[2026-06-12 14:00:03] Using opengl-fixed renderer
-[2026-06-12 14:00:03] File system setup
-[2026-06-12 14:00:03] Creating mods directory at: /dev_hdd0/game/SONIC3AIR/USRDIR/mods
-[2026-06-12 14:00:03] Game data path: data
-[2026-06-12 14:00:03] System initialization...
-[2026-06-12 14:00:03] Video initialization...
-[2026-06-12 14:00:03] Loading application icon...
-[2026-06-12 14:00:03] Setup of OpenGL attributes...
-[2026-06-12 14:00:03] Using OpenGL 3.1
-[2026-06-12 14:00:03] Creating window...
-[2026-06-12 14:00:03] Retrieving actual window size...
-[2026-06-12 14:00:03] Creating OpenGL context...
-[2026-06-12 14:00:03] PSGL device created: 805653712
-[2026-06-12 14:00:03] PSGL context created: 805654416
-[2026-06-12 14:00:03] PSGL context created with resolution 1920x1080
-[2026-06-12 14:00:03] Vsync setup...
-[2026-06-12 14:00:03] Setting OpenGL defaults...
-[2026-06-12 14:00:03] Setting window icon from loaded bitmap...
-[2026-06-12 14:00:03] Startup of VideoOut
-[2026-06-12 14:00:03] VideoOut: Setup of game screen
-[2026-06-12 14:00:03] OpenGLDrawerTexture::setupAsRenderTarget - created FB 1 for texture 1 (400x224)
-[2026-06-12 14:00:03] VideoOut: Creating render parts
-[2026-06-12 14:00:03] VideoOut: Creating software renderer
-[2026-06-12 14:00:03] VideoOut: Renderer initialization
-[2026-06-12 14:00:03] Input initialization...
-[2026-06-12 14:00:03] Startup of ControlsIn
-[2026-06-12 14:00:03] Audio initialization...
-[2026-06-12 14:00:03] Startup of AudioOut
-[2026-06-12 14:00:03] Engine startup successful
-[2026-06-12 14:00:03] 
-[2026-06-12 14:00:03] --- MAIN LOOP ---
-[2026-06-12 14:00:03] Starting main application loop
-[2026-06-12 14:00:03] Adding game view
-[2026-06-12 14:00:03] Creating game screen texture
-[2026-06-12 14:00:03] OpenGLDrawerTexture::setupAsRenderTarget - created FB 2 for texture 2 (400x224)
-[2026-06-12 14:00:03] Adding debug views
-[2026-06-12 14:00:03] Application initialization complete
-[2026-06-12 14:00:03] Start of first application update call
-[2026-06-12 14:00:03] Loading ROM...
-[2026-06-12 14:00:03] ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
-[2026-06-12 14:00:03] Mod manager initialization...
-[2026-06-12 14:00:03] ModManager startup, base path: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
-[2026-06-12 14:00:03] Scanning for mods in: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
-[2026-06-12 14:00:03] Loading sprites
-[2026-06-12 14:00:03] Resource cache loading...
-[2026-06-12 14:00:03] Font loading...
-[2026-06-12 14:00:03] Persistent data loading...
-[2026-06-12 14:00:03] Simulation startup
-[2026-06-12 14:00:03] Setup of EmulatorInterface
-[2026-06-12 14:00:03] Loading scripts
-[2026-06-12 14:00:03] Runtime environment ready
-[2026-06-12 14:00:04] Socket bind to any port failed
-[2026-06-12 14:00:04] Adding game app instance
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 3, size 16x16 (count 0)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 4, size 416x224 (count 1)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 5, size 416x224 (count 2)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 6, size 400x224 (count 3)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 7, size 400x100 (count 4)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 8, size 400x48 (count 5)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 9, size 80x88 (count 6)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 10, size 362x52 (count 7)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 11, size 480x224 (count 8)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 12, size 480x80 (count 9)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 13, size 480x80 (count 10)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 14, size 480x80 (count 11)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 15, size 480x80 (count 12)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 16, size 480x80 (count 13)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 17, size 480x80 (count 14)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 18, size 480x80 (count 15)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 19, size 480x80 (count 16)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 20, size 480x80 (count 17)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 21, size 480x80 (count 18)
-[2026-06-12 14:00:04] OpenGLDrawerTexture::updateFromBitmap - handle 22, size 480x80 (count 19)
-[2026-06-12 14:00:05] Failed to load image file 'data/images/secrets/bluesphere.png': File not found
-[2026-06-12 14:00:05] Failed to load image file 'data/images/secrets/levelselect.png': File not found
-[2026-06-12 14:00:05] Failed to load image file 'data/images/secrets/title_sk.png': File not found
-[2026-06-12 14:00:05] Profiling::pushRegion - id 0 (Simulation) start
-[2026-06-12 14:00:05] Profiling::pushRegion - id 0 done
-[2026-06-12 14:00:05] Profiling::popRegion - start id 0 (Simulation)
-[2026-06-12 14:00:05] Profiling::popRegion - popping from stack
-[2026-06-12 14:00:05] Profiling::popRegion - pausing timing
-[2026-06-12 14:00:05] Profiling::popRegion - done
-[2026-06-12 14:00:05] Profiling::pushRegion - id 2 (Audio) start
-[2026-06-12 14:00:05] Profiling::pushRegion - id 2 done
-[2026-06-12 14:00:05] Profiling::popRegion - start id 2 (Audio)
-[2026-06-12 14:00:05] Profiling::popRegion - popping from stack
-[2026-06-12 14:00:05] Profiling::popRegion - pausing timing
-[2026-06-12 14:00:05] Profiling::popRegion - done
-[2026-06-12 14:00:05] Profiling::pushRegion - id 0 (Simulation) start
-[2026-06-12 14:00:05] Profiling::pushRegion - id 0 done
-[2026-06-12 14:00:05] Profiling::popRegion - start id 0 (Simulation)
-[2026-06-12 14:00:05] Profiling::popRegion - popping from stack
-[2026-06-12 14:00:05] Profiling::popRegion - pausing timing
-[2026-06-12 14:00:05] Profiling::popRegion - done
-[2026-06-12 14:00:05] End of first application update call
-[2026-06-12 14:00:05] GuiBase::render - start () children: 1
-[2026-06-12 14:00:05] GuiBase::render - calling child ()
-[2026-06-12 14:00:05] Application::render - frame 0
-[2026-06-12 14:00:05] Profiling::pushRegion - id 3 (Rendering) start
-[2026-06-12 14:00:05] Profiling::pushRegion - id 3 done
-[2026-06-12 14:00:05] Start of first application render call
-[2026-06-12 14:00:05] GuiBase::render - start () children: 8
-[2026-06-12 14:00:05] GuiBase::render - calling child (GameView)
-[2026-06-12 14:00:05] GameView::render start 0
-[2026-06-12 14:00:05]   GameView::render main path start
-[2026-06-12 14:00:05]   GameView::render before first performRendering
-[2026-06-12 14:00:05] Drawer::performRendering - start
-[2026-06-12 14:00:05] FixedFunctionDrawer::performRendering - frame 0, commands: 4
-[2026-06-12 14:00:05]   Command 0: SET_RENDER_TARGET (2)
-[2026-06-12 14:00:05]   Command 0 done
-[2026-06-12 14:00:05]   Command 1: SET_BLEND_MODE (9)
-[2026-06-12 14:00:05]   Command 1 done
-[2026-06-12 14:00:05]   Command 2: RECT (3)
-[2026-06-12 14:00:05]     drawRect start - rect: 0,0 400x224, texture: 1
-[2026-06-12 14:00:05]     drawRect glDrawArrays done 0
-[2026-06-12 14:00:05]   Command 2 done
-[2026-06-12 14:00:05]   Command 3: SET_BLEND_MODE (9)
-[2026-06-12 14:00:05]   Command 3 done
-[2026-06-12 14:00:05] FixedFunctionDrawer::performRendering done
-[2026-06-12 14:00:05] Drawer::performRendering - about to clear draw collection
-[2026-06-12 14:00:05] DrawCollection::clear - start (4 commands)
-[2026-06-12 14:00:05] DrawCommandFactory::destroy - type 2
-[2026-06-12 14:00:05] DrawCommandFactory::destroy - type 9
-[2026-06-12 14:00:05] DrawCommandFactory::destroy - type 3
-[2026-06-12 14:00:05] DrawCommandFactory::destroy - type 9
-[2026-06-12 14:00:05] DrawCollection::clear - done
-[2026-06-12 14:00:05] Drawer::performRendering - draw collection cleared
-[2026-06-12 14:00:05] Drawer::performRendering - end
-[2026-06-12 14:00:05]   GameView::render after first performRendering
-[2026-06-12 14:00:05]   GameView::render before GuiBase::render()
-[2026-06-12 14:00:05] GuiBase::render - start (GameView) children: 1
-[2026-06-12 14:00:05] GuiBase::render - calling child (MenuBackground)
-[2026-06-12 14:00:05] MenuBackground::render start 0
-[2026-06-12 14:00:05] GuiBase::render - start (MenuBackground) children: 1
-[2026-06-12 14:00:05] GuiBase::render - calling child ()
-[2026-06-12 14:00:05] MainMenu::render start 0
-[2026-06-12 14:00:05] GuiBase::render - start () children: 0
-[2026-06-12 14:00:05] GuiBase::render - done ()
+[2026-06-12 14:57:02] --- EARLY LOGGING START ---
+[2026-06-12 14:57:02] Executable path: /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-06-12 14:57:02] Derived app data path from executable: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 14:57:02] --- EARLY LOGGING START ---
+[2026-06-12 14:57:02] --- STARTUP ---
+[2026-06-12 14:57:02] Logging started
+[2026-06-12 14:57:02] Application version: 24.02.02.0
+[2026-06-12 14:57:02] Command line:  /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-06-12 14:57:02] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 14:57:02] Checking for game data...
+[2026-06-12 14:57:02] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 14:57:02] Check 3 (/dev_hdd0/game/SONIC3AIR/USRDIR/data/content.json): FOUND
+[2026-06-12 14:57:02] Final check result: SUCCESS
+[2026-06-12 14:57:02] Initializing configuration
+[2026-06-12 14:57:02] Loading configuration
+[2026-06-12 14:57:02] Loading config.json from app data path
+[2026-06-12 14:57:02] Setting up default game profile for Sonic 3 A.I.R.
+[2026-06-12 14:57:02] Loading settings from: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 14:57:02] Settings loaded: FAILED (using defaults)
+[2026-06-12 14:57:02] Using opengl-fixed renderer
+[2026-06-12 14:57:02] File system setup
+[2026-06-12 14:57:02] Creating mods directory at: /dev_hdd0/game/SONIC3AIR/USRDIR/mods
+[2026-06-12 14:57:02] Game data path: data
+[2026-06-12 14:57:02] System initialization...
+[2026-06-12 14:57:02] Video initialization...
+[2026-06-12 14:57:02] Loading application icon...
+[2026-06-12 14:57:02] Setup of OpenGL attributes...
+[2026-06-12 14:57:02] Using OpenGL 3.1
+[2026-06-12 14:57:02] Creating window...
+[2026-06-12 14:57:02] Retrieving actual window size...
+[2026-06-12 14:57:02] Creating OpenGL context...
+[2026-06-12 14:57:02] PSGL device created: 805653712
+[2026-06-12 14:57:02] PSGL context created: 805654416
+[2026-06-12 14:57:02] PSGL context created with resolution 1920x1080
+[2026-06-12 14:57:02] Vsync setup...
+[2026-06-12 14:57:02] Setting OpenGL defaults...
+[2026-06-12 14:57:02] Setting window icon from loaded bitmap...
+[2026-06-12 14:57:02] Startup of VideoOut
+[2026-06-12 14:57:02] VideoOut: Setup of game screen
+[2026-06-12 14:57:02] OpenGLDrawerTexture::setupAsRenderTarget - created FB 1 for texture 1 (400x224)
+[2026-06-12 14:57:02] VideoOut: Creating render parts
+[2026-06-12 14:57:02] VideoOut: Creating software renderer
+[2026-06-12 14:57:02] VideoOut: Renderer initialization
+[2026-06-12 14:57:02] Input initialization...
+[2026-06-12 14:57:02] Startup of ControlsIn
+[2026-06-12 14:57:02] Audio initialization...
+[2026-06-12 14:57:02] Startup of AudioOut
+[2026-06-12 14:57:02] Engine startup successful
+[2026-06-12 14:57:02] 
+[2026-06-12 14:57:02] --- MAIN LOOP ---
+[2026-06-12 14:57:02] Starting main application loop
+[2026-06-12 14:57:02] Adding game view
+[2026-06-12 14:57:02] Creating game screen texture
+[2026-06-12 14:57:02] OpenGLDrawerTexture::setupAsRenderTarget - created FB 2 for texture 2 (400x224)
+[2026-06-12 14:57:02] Adding debug views
+[2026-06-12 14:57:02] Font::getFontSource - rebuilding source for data/font/freefont_sampled.json
+[2026-06-12 14:57:02] Font::getFontSource - success: data/font/freefont_sampled.json
+[2026-06-12 14:57:02] Application initialization complete
+[2026-06-12 14:57:02] Start of first application update call
+[2026-06-12 14:57:02] Loading ROM...
+[2026-06-12 14:57:02] ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+[2026-06-12 14:57:02] Mod manager initialization...
+[2026-06-12 14:57:02] ModManager startup, base path: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
+[2026-06-12 14:57:02] Scanning for mods in: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
+[2026-06-12 14:57:02] Loading sprites
+[2026-06-12 14:57:02] Resource cache loading...
+[2026-06-12 14:57:02] Font loading...
+[2026-06-12 14:57:02] Persistent data loading...
+[2026-06-12 14:57:02] Simulation startup
+[2026-06-12 14:57:02] Setup of EmulatorInterface
+[2026-06-12 14:57:02] Loading scripts
+[2026-06-12 14:57:02] Runtime environment ready
+[2026-06-12 14:57:03] Socket bind to any port failed
+[2026-06-12 14:57:03] Adding game app instance
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 3, size 16x16 (count 0)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 4, size 416x224 (count 1)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 5, size 416x224 (count 2)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 6, size 400x224 (count 3)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 7, size 400x100 (count 4)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 8, size 400x48 (count 5)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 9, size 80x88 (count 6)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 10, size 362x52 (count 7)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 11, size 480x224 (count 8)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 12, size 480x80 (count 9)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 13, size 480x80 (count 10)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 14, size 480x80 (count 11)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 15, size 480x80 (count 12)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 16, size 480x80 (count 13)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 17, size 480x80 (count 14)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 18, size 480x80 (count 15)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 19, size 480x80 (count 16)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 20, size 480x80 (count 17)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 21, size 480x80 (count 18)
+[2026-06-12 14:57:03] OpenGLDrawerTexture::updateFromBitmap - handle 22, size 480x80 (count 19)
+[2026-06-12 14:57:04] Failed to load image file 'data/images/secrets/bluesphere.png': File not found
+[2026-06-12 14:57:04] Failed to load image file 'data/images/secrets/levelselect.png': File not found
+[2026-06-12 14:57:04] Failed to load image file 'data/images/secrets/title_sk.png': File not found
+[2026-06-12 14:57:04] Profiling::pushRegion - id 0 (Simulation) start
+[2026-06-12 14:57:04] Profiling::pushRegion - id 0 done
+[2026-06-12 14:57:04] Profiling::popRegion - start id 0 (Simulation)
+[2026-06-12 14:57:04] Profiling::popRegion - popping from stack
+[2026-06-12 14:57:04] Profiling::popRegion - pausing timing
+[2026-06-12 14:57:04] Profiling::popRegion - done
+[2026-06-12 14:57:04] Profiling::pushRegion - id 2 (Audio) start
+[2026-06-12 14:57:04] Profiling::pushRegion - id 2 done
+[2026-06-12 14:57:04] Profiling::popRegion - start id 2 (Audio)
+[2026-06-12 14:57:04] Profiling::popRegion - popping from stack
+[2026-06-12 14:57:04] Profiling::popRegion - pausing timing
+[2026-06-12 14:57:04] Profiling::popRegion - done
+[2026-06-12 14:57:04] Profiling::pushRegion - id 0 (Simulation) start
+[2026-06-12 14:57:04] Profiling::pushRegion - id 0 done
+[2026-06-12 14:57:04] Profiling::popRegion - start id 0 (Simulation)
+[2026-06-12 14:57:04] Profiling::popRegion - popping from stack
+[2026-06-12 14:57:04] Profiling::popRegion - pausing timing
+[2026-06-12 14:57:04] Profiling::popRegion - done
+[2026-06-12 14:57:04] End of first application update call
+[2026-06-12 14:57:04] GuiBase::render - start () children: 1
+[2026-06-12 14:57:04] GuiBase::render - calling child ()
+[2026-06-12 14:57:04] Application::render - frame 0
+[2026-06-12 14:57:04] Profiling::pushRegion - id 3 (Rendering) start
+[2026-06-12 14:57:04] Profiling::pushRegion - id 3 done
+[2026-06-12 14:57:04] Start of first application render call
+[2026-06-12 14:57:04] GuiBase::render - start () children: 8
+[2026-06-12 14:57:04] GuiBase::render - calling child (GameView)
+[2026-06-12 14:57:04] GameView::render start 0
+[2026-06-12 14:57:04]   GameView::render main path start
+[2026-06-12 14:57:04]   GameView::render before first performRendering
+[2026-06-12 14:57:04] Drawer::performRendering - start
+[2026-06-12 14:57:04] FixedFunctionDrawer::performRendering - frame 0, commands: 4
+[2026-06-12 14:57:04]   Command 0: SET_RENDER_TARGET (2)
+[2026-06-12 14:57:04]   Command 0 done
+[2026-06-12 14:57:04]   Command 1: SET_BLEND_MODE (9)
+[2026-06-12 14:57:04]   Command 1 done
+[2026-06-12 14:57:04]   Command 2: RECT (3)
+[2026-06-12 14:57:04]     drawRect start - rect: 0,0 400x224, texture: 1
+[2026-06-12 14:57:04]     drawRect glDrawArrays done 0
+[2026-06-12 14:57:04]   Command 2 done
+[2026-06-12 14:57:04]   Command 3: SET_BLEND_MODE (9)
+[2026-06-12 14:57:04]   Command 3 done
+[2026-06-12 14:57:04] FixedFunctionDrawer::performRendering done
+[2026-06-12 14:57:04] Drawer::performRendering - about to clear draw collection
+[2026-06-12 14:57:04] DrawCollection::clear - start (4 commands)
+[2026-06-12 14:57:04] DrawCommandFactory::destroy - type 2
+[2026-06-12 14:57:04] DrawCommandFactory::destroy - type 9
+[2026-06-12 14:57:04] DrawCommandFactory::destroy - type 3
+[2026-06-12 14:57:04] DrawCommandFactory::destroy - type 9
+[2026-06-12 14:57:04] DrawCollection::clear - done
+[2026-06-12 14:57:04] Drawer::performRendering - draw collection cleared
+[2026-06-12 14:57:04] Drawer::performRendering - end
+[2026-06-12 14:57:04]   GameView::render after first performRendering
+[2026-06-12 14:57:04]   GameView::render before GuiBase::render()
+[2026-06-12 14:57:04] GuiBase::render - start (GameView) children: 1
+[2026-06-12 14:57:04] GuiBase::render - calling child (MenuBackground)
+[2026-06-12 14:57:04] MenuBackground::render start 0
+[2026-06-12 14:57:05] GuiBase::render - start (MenuBackground) children: 1
+[2026-06-12 14:57:05] GuiBase::render - calling child ()
+[2026-06-12 14:57:05] MainMenu::render start 0
+[2026-06-12 14:57:05] GuiBase::render - start () children: 0
+[2026-06-12 14:57:05] GuiBase::render - done ()
+[2026-06-12 14:57:05] MainMenu::render after GuiBase::render()
+[2026-06-12 14:57:05]   MainMenu::render line 0

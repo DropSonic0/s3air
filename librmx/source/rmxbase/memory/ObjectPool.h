@@ -117,10 +117,14 @@ public:
 
 protected:
 	// An item is our little management struct that includes an object and some additional info needed
+#if defined(PLATFORM_PS3)
+	struct __attribute__((aligned(16))) Item
+#else
 	struct Item
+#endif
 	{
 #if defined(PLATFORM_PS3)
-		char mObjectBuffer[sizeof(T)];
+		char mObjectBuffer[sizeof(T)] __attribute__((aligned(16)));
 #else
 		T mObject;
 #endif
