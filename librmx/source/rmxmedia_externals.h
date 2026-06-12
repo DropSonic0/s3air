@@ -514,6 +514,9 @@
 	#ifndef GL_MAX
 	#define GL_MAX 0
 	#endif
+	#ifndef GL_DEPTH_COMPONENT16
+	#define GL_DEPTH_COMPONENT16 0x81A5
+	#endif
 
 	typedef char GLchar;
 
@@ -522,7 +525,6 @@
 	inline void glBindVertexArray(GLuint a) {}
 	inline void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {}
 	inline void glBindFramebuffer(GLenum target, GLuint framebuffer) { glBindFramebufferOES(target, framebuffer); }
-	inline void glActiveTexture(GLenum texture) {}
 	inline void glBlendEquation(GLenum mode) {}
 	inline void glGenRenderbuffers(GLsizei n, GLuint* b) { glGenRenderbuffersOES(n, b); }
 	inline void glBindRenderbuffer(GLenum t, GLuint b) { glBindRenderbufferOES(t, b); }
@@ -567,6 +569,7 @@
 	inline void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) {}
 	inline void glEnableVertexAttribArray(GLuint index) {}
 	inline void glDisableVertexAttribArray(GLuint index) {}
+	inline void glGenerateMipmap(GLenum target) {}
 
 	inline void SDL_GL_SwapWindow(SDL_Window* w) {}
 	#define SDL_WINDOW_OPENGL 0x01

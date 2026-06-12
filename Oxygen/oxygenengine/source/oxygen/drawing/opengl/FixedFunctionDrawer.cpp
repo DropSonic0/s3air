@@ -152,6 +152,14 @@ namespace fixedfunctiondrawer
 
 		void drawRect(const Recti& targetRect, GLuint textureHandle, const Color& color, Vec2f uv0 = Vec2f(0.0f, 0.0f), Vec2f uv1 = Vec2f(1.0f, 1.0f))
 		{
+		#if defined(PLATFORM_PS3)
+			static int drawRectCount = 0;
+			if (drawRectCount < 20)
+			{
+				RMX_LOG_INFO("    drawRect start - rect: " << targetRect.x << "," << targetRect.y << " " << targetRect.width << "x" << targetRect.height << ", texture: " << textureHandle);
+			}
+		#endif
+
 			if (textureHandle != 0)
 			{
 				glEnable(GL_TEXTURE_2D);
@@ -187,6 +195,13 @@ namespace fixedfunctiondrawer
 			}
 
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		#if defined(PLATFORM_PS3)
+			if (drawRectCount < 20)
+			{
+				RMX_LOG_INFO("    drawRect glDrawArrays done " << drawRectCount++);
+			}
+		#endif
 
 			glDisableClientState(GL_VERTEX_ARRAY);
 			if (textureHandle != 0)

@@ -578,6 +578,10 @@ void Application::render()
 	{
 		RMX_LOG_INFO("Application::render - after drawer.performRendering()");
 	}
+	else if (frameCount == 10)
+	{
+		RMX_LOG_INFO("Application::render - performRendering() returned (frame 10+)");
+	}
 
 	if (mIsVeryFirstFrameForLogging)
 	{

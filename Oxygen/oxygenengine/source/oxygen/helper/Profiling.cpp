@@ -57,8 +57,7 @@ void Profiling::pushRegion(uint16 id)
 
 	if (pushCount < 100)
 	{
-		RMX_LOG_INFO("Profiling::pushRegion - id " << id << " (" << (region ? region->mName : "UNKNOWN") << ")");
-		pushCount++;
+		RMX_LOG_INFO("Profiling::pushRegion - id " << id << " (" << (region ? region->mName : "UNKNOWN") << ") start");
 	}
 	RMX_ASSERT(nullptr != region, "Profiling region with id " << id << " not found");
 	RMX_ASSERT(!region->mOnStack, "Profiling region with name '" << region->mName << "' is already on the stack");
@@ -75,7 +74,13 @@ void Profiling::pushRegion(uint16 id)
 	}
 	else
 	{
-		RMX_ASSERT(region->mParent == mRegionStack[mRegionStack.size() - 2], "Profiling region '" << region->mName << "' has different parents on the stack: '" << region->mParent->mName << "' and '" << mRegionStack[mRegionStack.size() - 2] << "'");
+		RMX_ASSERT(region->mParent == mRegionStack[mRegionStack.size() - 2], "Profiling region '" << region->mName << "' has different parents on the stack");
+	}
+
+	if (pushCount < 100)
+	{
+		RMX_LOG_INFO("Profiling::pushRegion - id " << id << " done");
+		pushCount++;
 	}
 }
 

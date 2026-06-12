@@ -1,120 +1,141 @@
-[2026-06-11 20:20:23] --- EARLY LOGGING START ---
-[2026-06-11 20:20:23] Executable path: /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
-[2026-06-11 20:20:23] Derived app data path from executable: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-11 20:20:23] --- EARLY LOGGING START ---
-[2026-06-11 20:20:23] --- STARTUP ---
-[2026-06-11 20:20:23] Logging started
-[2026-06-11 20:20:23] Application version: 24.02.02.0
-[2026-06-11 20:20:23] Command line:  /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
-[2026-06-11 20:20:23] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-11 20:20:23] Checking for game data...
-[2026-06-11 20:20:23] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-11 20:20:23] Check 3 (/dev_hdd0/game/SONIC3AIR/USRDIR/data/content.json): FOUND
-[2026-06-11 20:20:23] Final check result: SUCCESS
-[2026-06-11 20:20:23] Initializing configuration
-[2026-06-11 20:20:23] Loading configuration
-[2026-06-11 20:20:23] Loading config.json from app data path
-[2026-06-11 20:20:23] Setting up default game profile for Sonic 3 A.I.R.
-[2026-06-11 20:20:23] Loading settings from: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-11 20:20:23] Settings loaded: FAILED (using defaults)
-[2026-06-11 20:20:23] Using opengl-fixed renderer
-[2026-06-11 20:20:23] File system setup
-[2026-06-11 20:20:23] Creating mods directory at: /dev_hdd0/game/SONIC3AIR/USRDIR/mods
-[2026-06-11 20:20:23] Game data path: data
-[2026-06-11 20:20:23] System initialization...
-[2026-06-11 20:20:23] Video initialization...
-[2026-06-11 20:20:23] Loading application icon...
-[2026-06-11 20:20:23] Setup of OpenGL attributes...
-[2026-06-11 20:20:23] Using OpenGL 3.1
-[2026-06-11 20:20:23] Creating window...
-[2026-06-11 20:20:23] Retrieving actual window size...
-[2026-06-11 20:20:23] Creating OpenGL context...
-[2026-06-11 20:20:23] PSGL device created: 805653712
-[2026-06-11 20:20:23] PSGL context created: 805654416
-[2026-06-11 20:20:23] PSGL context created with resolution 1920x1080
-[2026-06-11 20:20:23] Vsync setup...
-[2026-06-11 20:20:23] Setting OpenGL defaults...
-[2026-06-11 20:20:23] Setting window icon from loaded bitmap...
-[2026-06-11 20:20:23] Startup of VideoOut
-[2026-06-11 20:20:23] VideoOut: Setup of game screen
-[2026-06-11 20:20:23] Failed to create framebuffer with error: 0x8cdd (OpenGL error: NONE)
-[2026-06-11 20:20:23] OpenGLDrawerTexture::setupAsRenderTarget - created FB 1 for texture 1 (400x224)
-[2026-06-11 20:20:23] VideoOut: Creating render parts
-[2026-06-11 20:20:23] VideoOut: Creating software renderer
-[2026-06-11 20:20:23] VideoOut: Renderer initialization
-[2026-06-11 20:20:23] Input initialization...
-[2026-06-11 20:20:23] Startup of ControlsIn
-[2026-06-11 20:20:23] Audio initialization...
-[2026-06-11 20:20:23] Startup of AudioOut
-[2026-06-11 20:20:23] Engine startup successful
-[2026-06-11 20:20:23] 
-[2026-06-11 20:20:23] --- MAIN LOOP ---
-[2026-06-11 20:20:23] Starting main application loop
-[2026-06-11 20:20:23] Adding game view
-[2026-06-11 20:20:23] Creating game screen texture
-[2026-06-11 20:20:23] Failed to create framebuffer with error: 0x8cdd (OpenGL error: NONE)
-[2026-06-11 20:20:23] OpenGLDrawerTexture::setupAsRenderTarget - created FB 2 for texture 2 (400x224)
-[2026-06-11 20:20:23] Adding debug views
-[2026-06-11 20:20:23] Application initialization complete
-[2026-06-11 20:20:23] Start of first application update call
-[2026-06-11 20:20:23] Loading ROM...
-[2026-06-11 20:20:23] ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
-[2026-06-11 20:20:23] Mod manager initialization...
-[2026-06-11 20:20:23] ModManager startup, base path: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
-[2026-06-11 20:20:23] Scanning for mods in: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
-[2026-06-11 20:20:23] Loading sprites
-[2026-06-11 20:20:23] Resource cache loading...
-[2026-06-11 20:20:23] Font loading...
-[2026-06-11 20:20:23] Persistent data loading...
-[2026-06-11 20:20:23] Simulation startup
-[2026-06-11 20:20:23] Setup of EmulatorInterface
-[2026-06-11 20:20:23] Loading scripts
-[2026-06-11 20:20:23] Runtime environment ready
-[2026-06-11 20:20:23] Socket bind to any port failed
-[2026-06-11 20:20:23] Adding game app instance
-[2026-06-11 20:20:23] OpenGLDrawerTexture::updateFromBitmap - handle 3, size 16x16 (count 0)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 4, size 416x224 (count 1)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 5, size 416x224 (count 2)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 6, size 400x224 (count 3)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 7, size 400x100 (count 4)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 8, size 400x48 (count 5)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 9, size 80x88 (count 6)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 10, size 362x52 (count 7)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 11, size 480x224 (count 8)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 12, size 480x80 (count 9)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 13, size 480x80 (count 10)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 14, size 480x80 (count 11)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 15, size 480x80 (count 12)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 16, size 480x80 (count 13)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 17, size 480x80 (count 14)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 18, size 480x80 (count 15)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 19, size 480x80 (count 16)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 20, size 480x80 (count 17)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 21, size 480x80 (count 18)
-[2026-06-11 20:20:24] OpenGLDrawerTexture::updateFromBitmap - handle 22, size 480x80 (count 19)
-[2026-06-11 20:20:25] Profiling::pushRegion - id 0 (Simulation)
-[2026-06-11 20:20:25] Profiling::popRegion - start id 0 (Simulation)
-[2026-06-11 20:20:25] Profiling::popRegion - popping from stack
-[2026-06-11 20:20:25] Profiling::popRegion - pausing timing
-[2026-06-11 20:20:25] Profiling::popRegion - done
-[2026-06-11 20:20:25] Profiling::pushRegion - id 2 (Audio)
-[2026-06-11 20:20:25] Profiling::popRegion - start id 2 (Audio)
-[2026-06-11 20:20:25] Profiling::popRegion - popping from stack
-[2026-06-11 20:20:25] Profiling::popRegion - pausing timing
-[2026-06-11 20:20:25] Profiling::popRegion - done
-[2026-06-11 20:20:25] Profiling::pushRegion - id 0 (Simulation)
-[2026-06-11 20:20:25] Profiling::popRegion - start id 0 (Simulation)
-[2026-06-11 20:20:25] Profiling::popRegion - popping from stack
-[2026-06-11 20:20:25] Profiling::popRegion - pausing timing
-[2026-06-11 20:20:25] Profiling::popRegion - done
-[2026-06-11 20:20:25] End of first application update call
-[2026-06-11 20:20:25] Application::render - frame 0
-[2026-06-11 20:20:25] Profiling::pushRegion - id 3 (Rendering)
-[2026-06-11 20:20:25] Start of first application render call
-[2026-06-11 20:20:25] Drawer::performRendering - start
-[2026-06-11 20:20:25] FixedFunctionDrawer::performRendering - frame 0, commands: 4
-[2026-06-11 20:20:25]   Command 0: SET_RENDER_TARGET (2)
-[2026-06-11 20:20:25]   Command 0 done
-[2026-06-11 20:20:25]   Command 1: SET_BLEND_MODE (9)
-[2026-06-11 20:20:25]   Command 1 done
-[2026-06-11 20:20:25]   Command 2: RECT (3)
+[2026-06-12 11:54:08] --- EARLY LOGGING START ---
+[2026-06-12 11:54:08] Executable path: /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-06-12 11:54:08] Derived app data path from executable: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 11:54:08] --- EARLY LOGGING START ---
+[2026-06-12 11:54:08] --- STARTUP ---
+[2026-06-12 11:54:08] Logging started
+[2026-06-12 11:54:08] Application version: 24.02.02.0
+[2026-06-12 11:54:08] Command line:  /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-06-12 11:54:08] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 11:54:08] Checking for game data...
+[2026-06-12 11:54:08] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 11:54:08] Check 3 (/dev_hdd0/game/SONIC3AIR/USRDIR/data/content.json): FOUND
+[2026-06-12 11:54:08] Final check result: SUCCESS
+[2026-06-12 11:54:08] Initializing configuration
+[2026-06-12 11:54:08] Loading configuration
+[2026-06-12 11:54:08] Loading config.json from app data path
+[2026-06-12 11:54:08] Setting up default game profile for Sonic 3 A.I.R.
+[2026-06-12 11:54:08] Loading settings from: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-12 11:54:08] Settings loaded: FAILED (using defaults)
+[2026-06-12 11:54:08] Using opengl-fixed renderer
+[2026-06-12 11:54:08] File system setup
+[2026-06-12 11:54:08] Creating mods directory at: /dev_hdd0/game/SONIC3AIR/USRDIR/mods
+[2026-06-12 11:54:08] Game data path: data
+[2026-06-12 11:54:08] System initialization...
+[2026-06-12 11:54:08] Video initialization...
+[2026-06-12 11:54:08] Loading application icon...
+[2026-06-12 11:54:08] Setup of OpenGL attributes...
+[2026-06-12 11:54:08] Using OpenGL 3.1
+[2026-06-12 11:54:08] Creating window...
+[2026-06-12 11:54:08] Retrieving actual window size...
+[2026-06-12 11:54:08] Creating OpenGL context...
+[2026-06-12 11:54:09] PSGL device created: 805653712
+[2026-06-12 11:54:09] PSGL context created: 805654416
+[2026-06-12 11:54:09] PSGL context created with resolution 1920x1080
+[2026-06-12 11:54:09] Vsync setup...
+[2026-06-12 11:54:09] Setting OpenGL defaults...
+[2026-06-12 11:54:09] Setting window icon from loaded bitmap...
+[2026-06-12 11:54:09] Startup of VideoOut
+[2026-06-12 11:54:09] VideoOut: Setup of game screen
+[2026-06-12 11:54:09] OpenGLDrawerTexture::setupAsRenderTarget - created FB 1 for texture 1 (400x224)
+[2026-06-12 11:54:09] VideoOut: Creating render parts
+[2026-06-12 11:54:09] VideoOut: Creating software renderer
+[2026-06-12 11:54:09] VideoOut: Renderer initialization
+[2026-06-12 11:54:09] Input initialization...
+[2026-06-12 11:54:09] Startup of ControlsIn
+[2026-06-12 11:54:09] Audio initialization...
+[2026-06-12 11:54:09] Startup of AudioOut
+[2026-06-12 11:54:09] Engine startup successful
+[2026-06-12 11:54:09] 
+[2026-06-12 11:54:09] --- MAIN LOOP ---
+[2026-06-12 11:54:09] Starting main application loop
+[2026-06-12 11:54:09] Adding game view
+[2026-06-12 11:54:09] Creating game screen texture
+[2026-06-12 11:54:09] OpenGLDrawerTexture::setupAsRenderTarget - created FB 2 for texture 2 (400x224)
+[2026-06-12 11:54:09] Adding debug views
+[2026-06-12 11:54:09] Application initialization complete
+[2026-06-12 11:54:09] Start of first application update call
+[2026-06-12 11:54:09] Loading ROM...
+[2026-06-12 11:54:09] ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+[2026-06-12 11:54:09] Mod manager initialization...
+[2026-06-12 11:54:09] ModManager startup, base path: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
+[2026-06-12 11:54:09] Scanning for mods in: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
+[2026-06-12 11:54:09] Loading sprites
+[2026-06-12 11:54:09] Resource cache loading...
+[2026-06-12 11:54:09] Font loading...
+[2026-06-12 11:54:09] Persistent data loading...
+[2026-06-12 11:54:09] Simulation startup
+[2026-06-12 11:54:09] Setup of EmulatorInterface
+[2026-06-12 11:54:09] Loading scripts
+[2026-06-12 11:54:09] Runtime environment ready
+[2026-06-12 11:54:09] Socket bind to any port failed
+[2026-06-12 11:54:09] Adding game app instance
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 3, size 16x16 (count 0)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 4, size 416x224 (count 1)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 5, size 416x224 (count 2)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 6, size 400x224 (count 3)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 7, size 400x100 (count 4)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 8, size 400x48 (count 5)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 9, size 80x88 (count 6)
+[2026-06-12 11:54:09] OpenGLDrawerTexture::updateFromBitmap - handle 10, size 362x52 (count 7)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 11, size 480x224 (count 8)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 12, size 480x80 (count 9)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 13, size 480x80 (count 10)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 14, size 480x80 (count 11)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 15, size 480x80 (count 12)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 16, size 480x80 (count 13)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 17, size 480x80 (count 14)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 18, size 480x80 (count 15)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 19, size 480x80 (count 16)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 20, size 480x80 (count 17)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 21, size 480x80 (count 18)
+[2026-06-12 11:54:10] OpenGLDrawerTexture::updateFromBitmap - handle 22, size 480x80 (count 19)
+[2026-06-12 11:54:11] Profiling::pushRegion - id 0 (Simulation) start
+[2026-06-12 11:54:11] Profiling::pushRegion - id 0 done
+[2026-06-12 11:54:11] Profiling::popRegion - start id 0 (Simulation)
+[2026-06-12 11:54:11] Profiling::popRegion - popping from stack
+[2026-06-12 11:54:11] Profiling::popRegion - pausing timing
+[2026-06-12 11:54:11] Profiling::popRegion - done
+[2026-06-12 11:54:11] Profiling::pushRegion - id 2 (Audio) start
+[2026-06-12 11:54:11] Profiling::pushRegion - id 2 done
+[2026-06-12 11:54:11] Profiling::popRegion - start id 2 (Audio)
+[2026-06-12 11:54:11] Profiling::popRegion - popping from stack
+[2026-06-12 11:54:11] Profiling::popRegion - pausing timing
+[2026-06-12 11:54:11] Profiling::popRegion - done
+[2026-06-12 11:54:11] Profiling::pushRegion - id 0 (Simulation) start
+[2026-06-12 11:54:11] Profiling::pushRegion - id 0 done
+[2026-06-12 11:54:11] Profiling::popRegion - start id 0 (Simulation)
+[2026-06-12 11:54:11] Profiling::popRegion - popping from stack
+[2026-06-12 11:54:11] Profiling::popRegion - pausing timing
+[2026-06-12 11:54:11] Profiling::popRegion - done
+[2026-06-12 11:54:11] End of first application update call
+[2026-06-12 11:54:11] Application::render - frame 0
+[2026-06-12 11:54:11] Profiling::pushRegion - id 3 (Rendering) start
+[2026-06-12 11:54:11] Profiling::pushRegion - id 3 done
+[2026-06-12 11:54:11] Start of first application render call
+[2026-06-12 11:54:11] GameView::render start 0
+[2026-06-12 11:54:11]   GameView::render main path start
+[2026-06-12 11:54:11]   GameView::render before first performRendering
+[2026-06-12 11:54:11] Drawer::performRendering - start
+[2026-06-12 11:54:11] FixedFunctionDrawer::performRendering - frame 0, commands: 4
+[2026-06-12 11:54:11]   Command 0: SET_RENDER_TARGET (2)
+[2026-06-12 11:54:11]   Command 0 done
+[2026-06-12 11:54:11]   Command 1: SET_BLEND_MODE (9)
+[2026-06-12 11:54:11]   Command 1 done
+[2026-06-12 11:54:11]   Command 2: RECT (3)
+[2026-06-12 11:54:11]     drawRect start - rect: 0,0 400x224, texture: 1
+[2026-06-12 11:54:11]     drawRect glDrawArrays done 0
+[2026-06-12 11:54:11]   Command 2 done
+[2026-06-12 11:54:11]   Command 3: SET_BLEND_MODE (9)
+[2026-06-12 11:54:11]   Command 3 done
+[2026-06-12 11:54:11] FixedFunctionDrawer::performRendering done
+[2026-06-12 11:54:11] Drawer::performRendering - about to clear draw collection
+[2026-06-12 11:54:11] DrawCollection::clear - start (4 commands)
+[2026-06-12 11:54:11] DrawCommandFactory::destroy - type 2
+[2026-06-12 11:54:11] DrawCommandFactory::destroy - type 9
+[2026-06-12 11:54:11] DrawCommandFactory::destroy - type 3
+[2026-06-12 11:54:11] DrawCommandFactory::destroy - type 9
+[2026-06-12 11:54:11] DrawCollection::clear - done
+[2026-06-12 11:54:11] Drawer::performRendering - draw collection cleared
+[2026-06-12 11:54:11] Drawer::performRendering - end
+[2026-06-12 11:54:11]   GameView::render after first performRendering

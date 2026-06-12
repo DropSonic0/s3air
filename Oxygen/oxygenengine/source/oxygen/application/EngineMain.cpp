@@ -780,20 +780,20 @@ bool EngineMain::createWindow()
 		#if defined(PLATFORM_PS3)
 			PSGLinitOptions options =
 			{
-				enable: PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE,
+				enable: PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE,
 				maxSPUs: 1,
-				initializeSPUs: false,
-				persistentMemorySize: 0,
-				transientMemorySize: 0,
+				initializeSPUs: true,
+				persistentMemorySize: 32 * 1024 * 1024,
+				transientMemorySize: 8 * 1024 * 1024,
 				errorConsole: 0,
-				fifoSize: 0,
-				hostMemorySize: 8 * 1024 * 1024
+				fifoSize: 2 * 1024 * 1024,
+				hostMemorySize: 64 * 1024 * 1024
 			};
 			psglInit(&options);
 
 			PSGLdeviceParameters params;
 			params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO;
-			params.bufferingMode = PSGL_BUFFERING_MODE_TRIPLE;
+			params.bufferingMode = PSGL_BUFFERING_MODE_DOUBLE;
 			params.colorFormat = GL_ARGB_SCE;
 			params.depthFormat = GL_NONE;
 			params.multisamplingMode = GL_MULTISAMPLING_NONE_SCE;
@@ -813,6 +813,7 @@ bool EngineMain::createWindow()
 				psglGetDeviceDimensions(device, &w, &h);
 				videoConfig.mWindowRect.width = (int)w;
 				videoConfig.mWindowRect.height = (int)h;
+				SDL_SetWindowSize(mSDLWindow, (int)w, (int)h);
 				RMX_LOG_INFO("PSGL context created with resolution " << w << "x" << h);
 			}
 		#else
