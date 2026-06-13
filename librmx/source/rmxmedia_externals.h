@@ -35,6 +35,7 @@
 	#include <pthread.h>
 	#include <unistd.h>
 	#include <cell/audio.h>
+	#include <cell/pad.h>
 	#include <sys/event.h>
 	#include <sys/timer.h>
 	#include <time.h>
@@ -44,8 +45,18 @@
 	#define usleep sys_timer_usleep
 
 	// SDL Shims for PS3
-	typedef uint32 Uint32;
+	typedef unsigned int Uint32;
 	typedef int SDL_Keycode;
+
+	inline unsigned int SDL_GetTicks() {
+		static unsigned int start_ms = 0;
+		sys_time_sec_t sec;
+		sys_time_nsec_t nsec;
+		sys_time_get_current_time(&sec, &nsec);
+		unsigned int current_ms = (unsigned int)(sec * 1000 + nsec / 1000000);
+		if (start_ms == 0) start_ms = current_ms;
+		return current_ms - start_ms;
+	}
 	typedef pthread_mutex_t SDL_mutex;
 	typedef pthread_cond_t SDL_cond;
 	typedef pthread_t SDL_Thread;
@@ -272,9 +283,18 @@
 	#define SDL_INIT_JOYSTICK 16
 	#define SDL_arraysize(X) (sizeof(X)/sizeof(X[0]))
 	#define SDL_VERSION_ATLEAST(X, Y, Z) 0
-	inline int SDL_Init(int f) { return 0; }
-	inline int SDL_InitSubSystem(Uint32 f) { return 0; }
-	inline void SDL_Quit() {}
+	inline int SDL_Init(int f) {
+		static bool pad_init = false;
+		if ((f & SDL_INIT_JOYSTICK) && !pad_init) {
+			cellPadInit(7);
+			pad_init = true;
+		}
+		return 0;
+	}
+	inline int SDL_InitSubSystem(Uint32 f) { return SDL_Init(f); }
+	inline void SDL_Quit() {
+		cellPadEnd();
+	}
 	inline char* SDL_GetError() { return (char*)""; }
 	inline int SDL_SetHint(const char* n, const char* v) { return 1; }
 	inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
@@ -282,6 +302,32 @@
 	inline int SDL_ShowSimpleMessageBox(uint32 f, const char* t, const char* m, struct SDL_Window* w) { return 0; }
 	inline int SDL_ShowMessageBox(const struct SDL_MessageBoxData* d, int* b) { if (b) *b = 0; return 0; }
 
+	struct _SDL_Joystick { int port; };
+	struct _SDL_PS3_JoystickData {
+		CellPadData data;
+		unsigned int last_update_ms;
+	};
+	static _SDL_PS3_JoystickData _ps3_joystick_cache[7];
+	inline bool _SDL_PS3_GetJoystickData(int port, CellPadData* outData) {
+		static bool cache_init = false;
+		if (!cache_init) {
+			for (int i = 0; i < 7; ++i) _ps3_joystick_cache[i].last_update_ms = 0;
+			cache_init = true;
+		}
+		
+		unsigned int now = SDL_GetTicks();
+
+		// Poll at most once every 8ms to avoid clearing the SDK buffer mid-frame
+		if (now - _ps3_joystick_cache[port].last_update_ms >= 8 || _ps3_joystick_cache[port].last_update_ms == 0) {
+			CellPadData newData;
+			if (cellPadGetData(port, &newData) == CELL_OK && newData.len > 0) {
+				_ps3_joystick_cache[port].data = newData;
+				_ps3_joystick_cache[port].last_update_ms = now;
+			}
+		}
+		*outData = _ps3_joystick_cache[port].data;
+		return _ps3_joystick_cache[port].data.len > 0;
+	}
 	typedef struct _SDL_Joystick SDL_Joystick;
 	typedef struct _SDL_GameController SDL_GameController;
 	typedef enum {
@@ -319,21 +365,87 @@
 	#define SDL_CONTROLLER_BUTTON_DPAD_LEFT 13
 	#define SDL_CONTROLLER_BUTTON_DPAD_RIGHT 14
 
-	inline const char* SDL_JoystickName(SDL_Joystick* j) { return (const char*)0; }
+	inline const char* SDL_JoystickName(SDL_Joystick* j) { return "PLAYSTATION(R)3 Controller"; }
 	inline const char* SDL_GameControllerName(SDL_GameController* c) { return (const char*)0; }
 	inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForAxis(SDL_GameController* c, int a) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
 	inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForButton(SDL_GameController* c, int bt) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
-	inline int SDL_JoystickNumButtons(SDL_Joystick* j) { return 0; }
-	inline unsigned char SDL_JoystickGetButton(SDL_Joystick* j, int b) { return 0; }
-	inline int SDL_JoystickNumAxes(SDL_Joystick* j) { return 0; }
-	inline short SDL_JoystickGetAxis(SDL_Joystick* j, int a) { return 0; }
+	inline int SDL_JoystickNumButtons(SDL_Joystick* j) { return 16; }
+	inline unsigned char SDL_JoystickGetButton(SDL_Joystick* j, int b) {
+		if (!j) return 0;
+		CellPadData data;
+		if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
+		// Standard digital buttons are at indices 2 and 3
+		uint16 buttons = (data.button[2] << 8) | (data.button[3] & 0xff);
+		// Fallback to button[0] if it seems to contain the mask
+		if (buttons == 0 && data.button[0] != 0) buttons = data.button[0];
+		switch (b) {
+			case SDL_CONTROLLER_BUTTON_A: return (buttons & CELL_PAD_CTRL_CROSS) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_B: return (buttons & CELL_PAD_CTRL_CIRCLE) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_X: return (buttons & CELL_PAD_CTRL_SQUARE) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_Y: return (buttons & CELL_PAD_CTRL_TRIANGLE) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_BACK: return (buttons & CELL_PAD_CTRL_SELECT) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_GUIDE: return 0;
+			case SDL_CONTROLLER_BUTTON_START: return (buttons & CELL_PAD_CTRL_START) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_LEFTSTICK: return (buttons & CELL_PAD_CTRL_L3) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_RIGHTSTICK: return (buttons & CELL_PAD_CTRL_R3) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return (buttons & CELL_PAD_CTRL_L1) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return (buttons & CELL_PAD_CTRL_R1) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_DPAD_UP: return (buttons & CELL_PAD_CTRL_UP) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return (buttons & CELL_PAD_CTRL_DOWN) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return (buttons & CELL_PAD_CTRL_LEFT) ? 1 : 0;
+			case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return (buttons & CELL_PAD_CTRL_RIGHT) ? 1 : 0;
+			case 15: return (buttons & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2)) ? 1 : 0; // Fallback or extra
+		}
+		return 0;
+	}
+	inline int SDL_JoystickNumAxes(SDL_Joystick* j) { return 4; }
+	inline short SDL_JoystickGetAxis(SDL_Joystick* j, int a) {
+		if (!j) return 0;
+		CellPadData data;
+		if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
+		int ps3_axis = -1;
+		switch (a) {
+			case 0: ps3_axis = 6; break; // LX
+			case 1: ps3_axis = 7; break; // LY
+			case 2: ps3_axis = 4; break; // RX
+			case 3: ps3_axis = 5; break; // RY
+		}
+		if (ps3_axis != -1) return (short)((data.button[ps3_axis] - 128) * 256);
+		return 0;
+	}
 	inline int SDL_JoystickNumHats(SDL_Joystick* j) { return 0; }
 	inline unsigned char SDL_JoystickGetHat(SDL_Joystick* j, int h) { return 0; }
-	inline int SDL_NumJoysticks() { return 0; }
-	inline SDL_Joystick* SDL_JoystickOpen(int i) { return (SDL_Joystick*)0; }
-	inline int SDL_JoystickInstanceID(SDL_Joystick* j) { return -1; }
+	inline int SDL_NumJoysticks() {
+		CellPadInfo2 info;
+		return (cellPadGetInfo2(&info) == CELL_OK) ? info.now_connect : 0;
+	}
+	inline SDL_Joystick* SDL_JoystickOpen(int i) {
+		CellPadInfo2 info;
+		if (cellPadGetInfo2(&info) != CELL_OK) return nullptr;
+		int connectedCount = 0;
+		for (int port = 0; port < 7; port++) {
+			if (info.port_status[port] & CELL_PAD_STATUS_CONNECTED) {
+				if (connectedCount == i) {
+					SDL_Joystick* j = new SDL_Joystick;
+					j->port = port;
+					return j;
+				}
+				connectedCount++;
+			}
+		}
+		return nullptr;
+	}
+	inline void SDL_JoystickClose(SDL_Joystick* j) { if (j) delete j; }
+	inline int SDL_JoystickInstanceID(SDL_Joystick* j) { return j ? j->port : -1; }
 	inline SDL_GameController* SDL_GameControllerOpen(int i) { return (SDL_GameController*)0; }
-	inline int SDL_JoystickRumble(SDL_Joystick* j, unsigned short l, unsigned short h, uint32 d) { return 0; }
+	inline int SDL_JoystickRumble(SDL_Joystick* j, unsigned short l, unsigned short h, uint32 d) {
+		if (!j) return -1;
+		CellPadActParam act;
+		act.motor[0] = (h > 0) ? 1 : 0;
+		act.motor[1] = l >> 8;
+		cellPadSetActDirect(j->port, &act);
+		return 0;
+	}
 
 	typedef int64 SDL_TouchID;
 	typedef struct SDL_Finger {
@@ -345,6 +457,7 @@
 	inline SDL_TouchID SDL_GetTouchDevice(int i) { return 0; }
 	inline int SDL_GetNumTouchFingers(SDL_TouchID t) { return 0; }
 	inline SDL_Finger* SDL_GetTouchFinger(SDL_TouchID t, int i) { return (SDL_Finger*)0; }
+
 
 	inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) {
 		SDL_Window* win = new SDL_Window;
@@ -365,16 +478,6 @@
 	inline int SDL_GetDisplayBounds(int i, SDL_Rect* r) { if (r) { r->x = r->y = 0; r->w = 1920; r->h = 1080; } return 0; }
 	struct SDL_DisplayMode { int w, h; };
 	inline int SDL_GetDesktopDisplayMode(int i, SDL_DisplayMode* m) { if (m) { m->w = 1920; m->h = 1080; } return 0; }
-
-	inline unsigned int SDL_GetTicks() {
-		static uint32 start_ms = 0;
-		sys_time_sec_t sec;
-		sys_time_nsec_t nsec;
-		sys_time_get_current_time(&sec, &nsec);
-		uint32 current_ms = (uint32)(sec * 1000 + nsec / 1000000);
-		if (start_ms == 0) start_ms = current_ms;
-		return current_ms - start_ms;
-	}
 	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
 	#define SDL_QUIT 1
 	#define SDL_WINDOWEVENT 2

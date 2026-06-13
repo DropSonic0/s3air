@@ -452,6 +452,35 @@ void InputConfig::setupDefaultDeviceDefinitions(std::vector<DeviceDefinition>& o
 		deviceDefinition.mIdentifier = "Keyboard2";
 		setupDefaultKeyboardMappings(deviceDefinition, 1);
 	}
+
+#if defined(PLATFORM_PS3)
+	{
+		DeviceDefinition& deviceDefinition = vectorAdd(outDeviceDefinitions);
+		deviceDefinition.mDeviceType = DeviceType::GAMEPAD;
+		deviceDefinition.mIdentifier = "PLAYSTATION(R)3 Controller";
+		deviceDefinition.mDeviceNames[rmx::getMurmur2_64("PLAYSTATION(R)3 Controller")] = "PLAYSTATION(R)3 Controller";
+
+		// Map buttons
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::UP].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_DPAD_UP));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::DOWN].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_DPAD_DOWN));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::LEFT].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_DPAD_LEFT));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::RIGHT].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_DPAD_RIGHT));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::A].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_A));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::B].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_B));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::X].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_X));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::Y].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_Y));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::START].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_START));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::BACK].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_BACK));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::L].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::R].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
+
+		// Axes (Left stick)
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::UP].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 1 * 2)); // LY-
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::DOWN].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 1 * 2 + 1)); // LY+
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::LEFT].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 0 * 2)); // LX-
+		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::RIGHT].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 0 * 2 + 1)); // LX+
+	}
+#endif
 }
 
 void InputConfig::setupDefaultKeyboardMappings(DeviceDefinition& outDeviceDefinition, int keyboardIndex)
