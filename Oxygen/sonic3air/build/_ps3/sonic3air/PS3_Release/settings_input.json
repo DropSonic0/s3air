@@ -33,7 +33,7 @@
 		},
 		"PLAYSTATION(R)3 Controller":
 		{
-			"DeviceNames": [ "PLAYSTATION(R)3 Controller" ],
+			"DeviceNames": [ "PLAYSTATION(R)3 Controller", "playstation(r)3 controller" ],
 			"Up":    [ "Button11", "Axis2" ],
 			"Down":  [ "Button12", "Axis3" ],
 			"Left":  [ "Button13", "Axis0" ],

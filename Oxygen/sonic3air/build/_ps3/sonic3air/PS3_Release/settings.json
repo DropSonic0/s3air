@@ -1,5 +1,5 @@
 {
-	"ActiveSoundtrack" : 0,
+	"ActiveSoundtrack" : 1,
 	"Audio_MusicVolume" : 0.80000001192092896,
 	"Audio_SoundVolume" : 0.80000001192092896,
 	"AutoAssignGamepadPlayerIndex" : 0,
@@ -99,7 +99,7 @@
 	"PreferredGamepadPlayer1" : "",
 	"PreferredGamepadPlayer2" : "",
 	"RenderMethod" : "auto",
-	"RomPath" : "/dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin",
+	"RomPath" : "",
 	"Scanlines" : 0,
 	"ScriptOptimizationLevel" : -1,
 	"Upscaling" : 0,

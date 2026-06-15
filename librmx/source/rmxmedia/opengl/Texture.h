@@ -20,7 +20,7 @@ public:
 	Texture(const String& filename);
 	~Texture();
 
-	void generate();	// Just calls "glGenTextures", nothing else
+	void generate() const;	// Just calls "glGenTextures", nothing else
 
 	void create(int type = 0);
 	void create_format(int format);

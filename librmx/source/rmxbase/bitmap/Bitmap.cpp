@@ -152,7 +152,11 @@ void Bitmap::clear(uint32 color)
 
 void Bitmap::clear(const Color& color)
 {
+#if defined(PLATFORM_PS3)
+	clear(color.getRGBA32());
+#else
 	clear(color.getABGR32());
+#endif
 }
 
 void Bitmap::clearRGB(uint32 color)
@@ -164,7 +168,11 @@ void Bitmap::clearRGB(uint32 color)
 	uint32* end = dst + getPixelCount();
 	for (; dst < end; ++dst)
 	{
-		*dst = (*dst & 0xff000000) | color;
+#if defined(PLATFORM_PS3)
+		*dst = (*dst & 0x000000ff) | (color & 0xffffff00);
+#else
+		*dst = (*dst & 0xff000000) | (color & 0x00ffffff);
+#endif
 	}
 }
 
@@ -173,6 +181,7 @@ void Bitmap::clearAlpha(uint8 alpha)
 	if (nullptr == mData)
 		return;
 
+	// Layout is RGBA on all platforms
 	uint8* dst = (uint8*)mData + 3;
 	uint8* end = dst + getPixelCount() * 4;
 	for (; dst < end; dst += 4)
@@ -229,11 +238,16 @@ uint32 Bitmap::sampleLinear(float x, float y) const
 	uint32 color = 0;
 	for (int i = 0; i < 3; ++i)
 	{
-		const float c = (float)((mData[ix+iy*mWidth]	   >> (i*8)) & 0xff) * (1.0f - fx) * (1.0f - fy)
-					  + (float)((mData[ix+1+iy*mWidth]	   >> (i*8)) & 0xff) * fx * (1.0f - fy)
-					  + (float)((mData[ix+(iy+1)*mWidth]   >> (i*8)) & 0xff) * (1.0f - fx) * fy
-					  + (float)((mData[ix+1+(iy+1)*mWidth] >> (i*8)) & 0xff) * fx * fy;
-		color += (int)(c + 0.5f) << (i*8);
+#if defined(PLATFORM_PS3)
+		int shift = (3 - i) * 8;
+#else
+		int shift = i * 8;
+#endif
+		const float c = (float)((mData[ix+iy*mWidth]	   >> shift) & 0xff) * (1.0f - fx) * (1.0f - fy)
+					  + (float)((mData[ix+1+iy*mWidth]	   >> shift) & 0xff) * fx * (1.0f - fy)
+					  + (float)((mData[ix+(iy+1)*mWidth]   >> shift) & 0xff) * (1.0f - fx) * fy
+					  + (float)((mData[ix+1+(iy+1)*mWidth] >> shift) & 0xff) * fx * fy;
+		color += (int)(c + 0.5f) << shift;
 	}
 	return color;
 }
@@ -249,10 +263,17 @@ void Bitmap::setPixel(int x, int y, float red, float green, float blue, float al
 {
 	if (x < 0 || x >= mWidth || y < 0 || y >= mHeight)
 		return;
+#if defined(PLATFORM_PS3)
+	mData[x+y*mWidth] = ((uint32)(saturate(red)   * 255.0f) << 24)
+					 | ((uint32)(saturate(green) * 255.0f) << 16)
+					 | ((uint32)(saturate(blue)  * 255.0f) << 8)
+					 | ((uint32)(saturate(alpha) * 255.0f));
+#else
 	mData[x+y*mWidth] = (uint32)(saturate(red)   * 255.0f)
 					 + ((uint32)(saturate(green) * 255.0f) << 8)
 					 + ((uint32)(saturate(blue)  * 255.0f) << 16)
 					 + ((uint32)(saturate(alpha) * 255.0f) << 24);
+#endif
 }
 
 bool Bitmap::decode(InputStream& stream, Bitmap::LoadResult& outResult, const char* format)
@@ -508,9 +529,15 @@ void Bitmap::swapRedBlue()
 	int wxh = mWidth * mHeight;
 	for (int i = 0; i < wxh; ++i)
 	{
+#if defined(PLATFORM_PS3)
+		mData[i] = (mData[i] & 0x00ff00ff)
+				| ((mData[i] & 0xff000000) >> 16)
+				| ((mData[i] & 0x0000ff00) << 16);
+#else
 		mData[i] = (mData[i] & 0xff00ff00)
 				| ((mData[i] & 0x00ff0000) >> 16)
 				| ((mData[i] & 0x000000ff) << 16);
+#endif
 	}
 }
 
@@ -542,18 +569,34 @@ void Bitmap::blendBG(uint32 color)
 	int size = mWidth * mHeight;
 	float bg_value[3];
 	for (int c = 0; c < 3; ++c)
+#if defined(PLATFORM_PS3)
+		bg_value[c] = float((color >> ((3-c)*8)) & 0xff);
+#else
 		bg_value[c] = float((color >> (c*8)) & 0xff);
+#endif
 
 	for (int i = 0; i < size; ++i)
 	{
+#if defined(PLATFORM_PS3)
+		float alpha = float(mData[i] & 0xff) / 255.0f;
+#else
 		float alpha = float((mData[i] >> 24) & 0xff) / 255.0f;
+#endif
 		int output[3];
 		for (int c = 0; c < 3; ++c)
 		{
+#if defined(PLATFORM_PS3)
+			int value = (mData[i] >> ((3-c)*8)) & 0xff;
+#else
 			int value = (mData[i] >> (c*8)) & 0xff;
+#endif
 			output[c] = int(float(value) * alpha + float(bg_value[c]) * (1.0f - alpha) + 0.5f);
 		}
+#if defined(PLATFORM_PS3)
+		mData[i] = 0x000000ff | (output[0] << 24) | (output[1] << 16) | (output[2] << 8);
+#else
 		mData[i] = 0xff000000 + output[0] + (output[1] << 8) + (output[2] << 16);
+#endif
 	}
 }
 
@@ -833,18 +876,28 @@ inline void Bitmap::memcpyRect(uint32* dst, int dwid, uint32* src, int swid, int
 
 inline void Bitmap::memcpyBlend(uint32* dst, int dwid, uint32* src, int swid, int wid, int hgt)
 {
+	// Layout is RGBA on all platforms
+	const int alphaIdx = 3;
+	const int colorIdx[3] = { 0, 1, 2 };
+
 	for (int y = 0; y < hgt; ++y)
 	{
 		for (int x = 0; x < wid; ++x)
 		{
 			uint8* dst_ptr = (uint8*)(&dst[x+y*dwid]);
 			uint8* src_ptr = (uint8*)(&src[x+y*swid]);
-			float alpha = (float)src_ptr[3] / 255.0f;
-			float alpha_dst = (float)dst_ptr[3] / 255.0f;
+			float alpha = (float)src_ptr[alphaIdx] / 255.0f;
+			float alpha_dst = (float)dst_ptr[alphaIdx] / 255.0f;
 			float A = 1.0f - (1.0f - alpha) * (1.0f - alpha_dst);
-			for (int c = 0; c < 3; ++c)
-				dst_ptr[c] = (uint8)(((float)src_ptr[c] * alpha + (float)dst_ptr[c] * alpha_dst * (1.0f - alpha)) / A);
-			dst_ptr[3] = (uint8)(A * 255.0f);
+			if (A > 0.0f)
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					int c = colorIdx[i];
+					dst_ptr[c] = (uint8)(((float)src_ptr[c] * alpha + (float)dst_ptr[c] * alpha_dst * (1.0f - alpha)) / A);
+				}
+			}
+			dst_ptr[alphaIdx] = (uint8)(A * 255.0f);
 		}
 	}
 }

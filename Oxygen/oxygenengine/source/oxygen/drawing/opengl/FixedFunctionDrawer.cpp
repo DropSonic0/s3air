@@ -58,6 +58,8 @@ namespace fixedfunctiondrawer
 			glDisable(GL_FOG);
 			glDisable(GL_DITHER);
 
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
 			setBlendMode(BlendMode::OPAQUE);
 
 			mSetupSuccessful = true;
@@ -207,6 +209,12 @@ namespace fixedfunctiondrawer
 			static OpenGLFontOutput::VertexGroups vertexGroups;
 			fontOutput.buildVertexGroups(vertexGroups, typeInfos);
 
+			setBlendMode(BlendMode::ALPHA);
+		#if defined(PLATFORM_PS3)
+			glEnable(GL_ALPHA_TEST);
+			glAlphaFunc(GL_GREATER, 0.05f);
+		#endif
+
 			glEnable(GL_TEXTURE_2D);
 			const Color& tintColor = printOptions.mTintColor;
 			glColor4f(tintColor.r, tintColor.g, tintColor.b, tintColor.a);
@@ -216,7 +224,9 @@ namespace fixedfunctiondrawer
 
 			for (const OpenGLFontOutput::VertexGroup& vertexGroup : vertexGroups.mVertexGroups)
 			{
-				glBindTexture(GL_TEXTURE_2D, vertexGroup.mTexture->getHandle());
+				GLuint textureHandle = vertexGroup.mTexture->getHandle();
+				applySamplingMode(textureHandle);
+				applyWrapMode(textureHandle);
 
 				static std::vector<float> vertexData;
 				static std::vector<float> uvData;
@@ -236,6 +246,10 @@ namespace fixedfunctiondrawer
 				glTexCoordPointer(2, GL_FLOAT, 0, &uvData[0]);
 				glDrawArrays(GL_TRIANGLES, 0, vertexGroup.mNumVertices);
 			}
+
+		#if defined(PLATFORM_PS3)
+			glDisable(GL_ALPHA_TEST);
+		#endif
 
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);

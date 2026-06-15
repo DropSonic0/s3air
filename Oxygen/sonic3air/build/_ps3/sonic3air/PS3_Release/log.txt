@@ -1,145 +1,73 @@
-[2026-06-14 21:48:56] --- EARLY LOGGING START ---
-[2026-06-14 21:48:56] Executable path: /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
-[2026-06-14 21:48:56] Derived app data path from executable: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-14 21:48:56] --- EARLY LOGGING START ---
-[2026-06-14 21:48:56] --- STARTUP ---
-[2026-06-14 21:48:56] Logging started
-[2026-06-14 21:48:56] Application version: 24.02.02.0
-[2026-06-14 21:48:56] Command line:  /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
-[2026-06-14 21:48:56] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-14 21:48:56] Checking for game data...
-[2026-06-14 21:48:56] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-14 21:48:56] Check 2 (data/gamedata.bin): FOUND
-[2026-06-14 21:48:56] Check 4 (/dev_hdd0/game/SONIC3AIR/USRDIR/data/gamedata.bin): FOUND
-[2026-06-14 21:48:56] Final check result: SUCCESS
-[2026-06-14 21:48:56] Initializing configuration
-[2026-06-14 21:48:56] Loading configuration
-[2026-06-14 21:48:56] Loading config.json from app data path
-[2026-06-14 21:48:56] Setting up default game profile for Sonic 3 A.I.R.
-[2026-06-14 21:48:56] Loading settings from: /dev_hdd0/game/SONIC3AIR/USRDIR/
-[2026-06-14 21:48:56] Settings loaded: SUCCESS
-[2026-06-14 21:48:56] Using opengl-fixed renderer
-[2026-06-14 21:48:56] File system setup
-[2026-06-14 21:48:56] Creating mods directory at: /dev_hdd0/game/SONIC3AIR/USRDIR/mods
-[2026-06-14 21:48:56] Game data path: data
-[2026-06-14 21:48:56] Trying to load package: data/enginedata.bin
-[2026-06-14 21:48:56] Trying to load package from app data: /dev_hdd0/game/SONIC3AIR/USRDIR/data/enginedata.bin
-[2026-06-14 21:48:56] Package detected as Little-Endian with 20 entries
-[2026-06-14 21:48:56] Package '/dev_hdd0/game/SONIC3AIR/USRDIR/data/enginedata.bin' detected as Little-Endian
-[2026-06-14 21:48:56] Entry 0: 'data/shader/debugdraw_plane.shader', pos: 930, size: 3600
-[2026-06-14 21:48:56] Entry 1: 'data/shader/hq2x.png', pos: 4530, size: 2793
-[2026-06-14 21:48:56] Entry 2: 'data/shader/hq3x.png', pos: 7323, size: 4665
-[2026-06-14 21:48:56] Entry 3: 'data/shader/hq4x.png', pos: 11988, size: 11684
-[2026-06-14 21:48:56] Entry 4: 'data/shader/postfx_blur.shader', pos: 23672, size: 1815
-[2026-06-14 21:48:56] Loaded file package '/dev_hdd0/game/SONIC3AIR/USRDIR/data/enginedata.bin' with 20 entries
-[2026-06-14 21:48:56] Successfully loaded package: enginedata.bin
-[2026-06-14 21:48:56] Trying to load package: data/gamedata.bin
-[2026-06-14 21:48:56] Trying to load package from app data: /dev_hdd0/game/SONIC3AIR/USRDIR/data/gamedata.bin
-[2026-06-14 21:48:56] Package detected as Little-Endian with 199 entries
-[2026-06-14 21:48:56] Package '/dev_hdd0/game/SONIC3AIR/USRDIR/data/gamedata.bin' detected as Little-Endian
-[2026-06-14 21:48:56] Entry 0: 'data/binary/bluespheresrendering.bin', pos: 9592, size: 326580
-[2026-06-14 21:48:56] Entry 1: 'data/content.json', pos: 336172, size: 118
-[2026-06-14 21:48:56] Entry 2: 'data/font/freefont_sampled.json', pos: 336290, size: 2221
-[2026-06-14 21:48:56] Entry 3: 'data/font/freefont_sampled.png', pos: 338511, size: 6630
-[2026-06-14 21:48:56] Entry 4: 'data/font/monofont.json', pos: 345141, size: 2238
-[2026-06-14 21:48:56] Loaded file package '/dev_hdd0/game/SONIC3AIR/USRDIR/data/gamedata.bin' with 199 entries
-[2026-06-14 21:48:56] Successfully loaded package: gamedata.bin
-[2026-06-14 21:48:56] Trying to load package: data/audiodata.bin
-[2026-06-14 21:48:56] Trying to load package from app data: /dev_hdd0/game/SONIC3AIR/USRDIR/data/audiodata.bin
-[2026-06-14 21:48:56] Package detected as Little-Endian with 21 entries
-[2026-06-14 21:48:56] Package '/dev_hdd0/game/SONIC3AIR/USRDIR/data/audiodata.bin' detected as Little-Endian
-[2026-06-14 21:48:56] Entry 0: 'data/audio/original/audio_default.json', pos: 1038, size: 19957
-[2026-06-14 21:48:56] Entry 1: 'data/audio/original/proto07_cnz1.smps', pos: 20995, size: 7099
-[2026-06-14 21:48:56] Entry 2: 'data/audio/original/proto08_cnz2.smps', pos: 28094, size: 7651
-[2026-06-14 21:48:56] Entry 3: 'data/audio/original/proto0B_icz1.smps', pos: 35745, size: 1438
-[2026-06-14 21:48:56] Entry 4: 'data/audio/original/proto0C_icz2.smps', pos: 37183, size: 1556
-[2026-06-14 21:48:56] Loaded file package '/dev_hdd0/game/SONIC3AIR/USRDIR/data/audiodata.bin' with 21 entries
-[2026-06-14 21:48:56] Successfully loaded package: audiodata.bin
-[2026-06-14 21:48:56] Trying to load package: data/audioremaster.bin
-[2026-06-14 21:48:56] Trying to load package from app data: /dev_hdd0/game/SONIC3AIR/USRDIR/data/audioremaster.bin
-[2026-06-14 21:48:56] Failed to load package: audioremaster.bin
-[2026-06-14 21:48:56] System initialization...
-[2026-06-14 21:48:56] Video initialization...
-[2026-06-14 21:48:56] Loading application icon...
-[2026-06-14 21:48:56] Setup of OpenGL attributes...
-[2026-06-14 21:48:56] Using OpenGL 3.1
-[2026-06-14 21:48:56] Creating window...
-[2026-06-14 21:48:56] Retrieving actual window size...
-[2026-06-14 21:48:56] Creating OpenGL context...
-[2026-06-14 21:48:57] PSGL device created: 810608320
-[2026-06-14 21:48:57] PSGL context created: 810644656
-[2026-06-14 21:48:57] PSGL context created with resolution 1920x1080
-[2026-06-14 21:48:57] Vsync setup...
-[2026-06-14 21:48:57] Setting OpenGL defaults...
-[2026-06-14 21:48:57] Setting window icon from loaded bitmap...
-[2026-06-14 21:48:57] Startup of VideoOut
-[2026-06-14 21:48:57] VideoOut: Setup of game screen
-[2026-06-14 21:48:57] OpenGLDrawerTexture::setupAsRenderTarget - created FB 1 for texture 1 (400x224)
-[2026-06-14 21:48:57] VideoOut: Creating render parts
-[2026-06-14 21:48:57] VideoOut: Creating software renderer
-[2026-06-14 21:48:57] VideoOut: Renderer initialization
-[2026-06-14 21:48:57] Input initialization...
-[2026-06-14 21:48:57] Controller #1: "PLAYSTATION(R)3 Controller"
-[2026-06-14 21:48:57] {
-[2026-06-14 21:48:57] 	"Up": [ "Button11", "Axis2" ],
-[2026-06-14 21:48:57] 	"Down": [ "Button12", "Axis3" ],
-[2026-06-14 21:48:57] 	"Left": [ "Button13", "Axis0" ],
-[2026-06-14 21:48:57] 	"Right": [ "Button14", "Axis1" ],
-[2026-06-14 21:48:57] 	"A": [ "Button0" ],
-[2026-06-14 21:48:57] 	"B": [ "Button1" ],
-[2026-06-14 21:48:57] 	"X": [ "Button2" ],
-[2026-06-14 21:48:57] 	"Y": [ "Button3" ],
-[2026-06-14 21:48:57] 	"Start": [ "Button6" ],
-[2026-06-14 21:48:57] 	"Back": [ "Button4" ],
-[2026-06-14 21:48:57] 	"L": [ "Button9" ],
-[2026-06-14 21:48:57] 	"R": [ "Button10" ]
-[2026-06-14 21:48:57] }
-[2026-06-14 21:48:57] 
-[2026-06-14 21:48:57] Startup of ControlsIn
-[2026-06-14 21:48:57] Audio initialization...
-[2026-06-14 21:48:57] Startup of AudioOut
-[2026-06-14 21:48:57] Engine startup successful
-[2026-06-14 21:48:57] 
-[2026-06-14 21:48:57] --- MAIN LOOP ---
-[2026-06-14 21:48:57] Starting main application loop
-[2026-06-14 21:48:57] Adding game view
-[2026-06-14 21:48:57] Creating game screen texture
-[2026-06-14 21:48:57] OpenGLDrawerTexture::setupAsRenderTarget - created FB 2 for texture 2 (400x224)
-[2026-06-14 21:48:57] Adding debug views
-[2026-06-14 21:48:57] Application initialization complete
-[2026-06-14 21:48:57] Loading ROM...
-[2026-06-14 21:48:57] ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
-[2026-06-14 21:48:57] Mod manager initialization...
-[2026-06-14 21:48:57] ModManager startup, base path: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
-[2026-06-14 21:48:57] Scanning for mods in: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
-[2026-06-14 21:48:57] Loading sprites
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/dataselect_bg.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/dez1_background.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/dez2_background.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/characters/charselect_knuckles.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/characters/charselect_sonic.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/characters/charselect_tails.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/characters/sonic_dropdash.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/characters/sonic_peelout.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/characters/tornado_knuckles.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/objects/dez_retracting_spring_base.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/objects/hcz_waterfront.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/objects/monitors.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/objects/rings.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/objects/tornado_text_sonic.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/special/shc_splash_frame_00.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/special/shc_splash_frame_01.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/special/shc_splash_frame_02.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/titlescreen/title_background.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/titlescreen/title_sk_background.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/titlescreen/title_sk_foreground_extension.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/titlescreen/intro_wideframe1.bmp': Format not supported
-[2026-06-14 21:48:57] Failed to load image file 'data/sprites/titlescreen/intro_wideframe2.bmp': Format not supported
-[2026-06-14 21:48:57] Resource cache loading...
-[2026-06-14 21:48:57] Font loading...
-[2026-06-14 21:48:57] Persistent data loading...
-[2026-06-14 21:48:57] Simulation startup
-[2026-06-14 21:48:57] Setup of EmulatorInterface
-[2026-06-14 21:48:57] Loading scripts
-[2026-06-14 21:48:57] Runtime environment ready
-[2026-06-14 21:48:57] Socket bind to any port failed
+[2026-06-15 12:52:21] --- EARLY LOGGING START ---
+[2026-06-15 12:52:21] Executable path: /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-06-15 12:52:21] Derived app data path from executable: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-15 12:52:21] --- EARLY LOGGING START ---
+[2026-06-15 12:52:21] --- STARTUP ---
+[2026-06-15 12:52:21] Logging started
+[2026-06-15 12:52:21] Application version: 24.02.02.0
+[2026-06-15 12:52:21] Command line:  /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-06-15 12:52:21] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-15 12:52:21] Checking for game data...
+[2026-06-15 12:52:21] App data path: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-15 12:52:21] Check 3 (/dev_hdd0/game/SONIC3AIR/USRDIR/data/content.json): FOUND
+[2026-06-15 12:52:21] Final check result: SUCCESS
+[2026-06-15 12:52:21] Initializing configuration
+[2026-06-15 12:52:21] Loading configuration
+[2026-06-15 12:52:21] Loading config.json from app data path
+[2026-06-15 12:52:21] Setting up default game profile for Sonic 3 A.I.R.
+[2026-06-15 12:52:21] Loading settings from: /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-06-15 12:52:21] Settings loaded: FAILED (using defaults)
+[2026-06-15 12:52:21] Using opengl-fixed renderer
+[2026-06-15 12:52:21] File system setup
+[2026-06-15 12:52:21] Creating mods directory at: /dev_hdd0/game/SONIC3AIR/USRDIR/mods
+[2026-06-15 12:52:21] Game data path: data
+[2026-06-15 12:52:21] System initialization...
+[2026-06-15 12:52:21] Video initialization...
+[2026-06-15 12:52:21] Loading application icon...
+[2026-06-15 12:52:21] Setup of OpenGL attributes...
+[2026-06-15 12:52:21] Using OpenGL 3.1
+[2026-06-15 12:52:21] Creating window...
+[2026-06-15 12:52:21] Retrieving actual window size...
+[2026-06-15 12:52:21] Creating OpenGL context...
+[2026-06-15 12:52:22] PSGL device created: 805654224
+[2026-06-15 12:52:22] PSGL context created: 805654928
+[2026-06-15 12:52:22] PSGL context created with resolution 1920x1080
+[2026-06-15 12:52:22] Vsync setup...
+[2026-06-15 12:52:22] Setting OpenGL defaults...
+[2026-06-15 12:52:22] Setting window icon from loaded bitmap...
+[2026-06-15 12:52:22] Startup of VideoOut
+[2026-06-15 12:52:22] VideoOut: Setup of game screen
+[2026-06-15 12:52:22] OpenGLDrawerTexture::setupAsRenderTarget - created FB 1 for texture 1 (400x224)
+[2026-06-15 12:52:22] VideoOut: Creating render parts
+[2026-06-15 12:52:22] VideoOut: Creating software renderer
+[2026-06-15 12:52:22] VideoOut: Renderer initialization
+[2026-06-15 12:52:22] Input initialization...
+[2026-06-15 12:52:22] Controller #1: "PLAYSTATION(R)3 Controller"
+[2026-06-15 12:52:22] Startup of ControlsIn
+[2026-06-15 12:52:22] Audio initialization...
+[2026-06-15 12:52:22] Startup of AudioOut
+[2026-06-15 12:52:22] Engine startup successful
+[2026-06-15 12:52:22] 
+[2026-06-15 12:52:22] --- MAIN LOOP ---
+[2026-06-15 12:52:22] Starting main application loop
+[2026-06-15 12:52:22] Adding game view
+[2026-06-15 12:52:22] Creating game screen texture
+[2026-06-15 12:52:22] OpenGLDrawerTexture::setupAsRenderTarget - created FB 2 for texture 2 (400x224)
+[2026-06-15 12:52:22] Adding debug views
+[2026-06-15 12:52:22] Application initialization complete
+[2026-06-15 12:52:22] Loading ROM...
+[2026-06-15 12:52:22] ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+[2026-06-15 12:52:22] Mod manager initialization...
+[2026-06-15 12:52:22] ModManager startup, base path: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
+[2026-06-15 12:52:22] Scanning for mods in: /dev_hdd0/game/SONIC3AIR/USRDIR/mods/
+[2026-06-15 12:52:22] Loading sprites
+[2026-06-15 12:52:22] Resource cache loading...
+[2026-06-15 12:52:22] Font loading...
+[2026-06-15 12:52:22] Persistent data loading...
+[2026-06-15 12:52:22] Simulation startup
+[2026-06-15 12:52:22] Setup of EmulatorInterface
+[2026-06-15 12:52:22] Loading scripts
+[2026-06-15 12:52:22] Failed to call function 'scriptMainEntryPoint'
+[2026-06-15 12:52:24] Failed to call function 'EntryFunctions.mainMenuBG'
+[2026-06-15 12:52:24] Could not apply previous lemon script stack
+[2026-06-15 12:52:24] Failed to call function 'scriptMainEntryPoint'
