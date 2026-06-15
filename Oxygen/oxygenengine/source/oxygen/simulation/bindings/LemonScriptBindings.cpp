@@ -77,12 +77,14 @@ namespace
 		return *lemon::Runtime::getActiveEnvironmentSafe<RuntimeEnvironment>().mEmulatorInterface;
 	}
 
-#if !defined(PLATFORM_PS3)
 	int64* accessRegister(size_t index)
 	{
 		uint32& reg = getEmulatorInterface().getRegister(index);
 		return reinterpret_cast<int64*>(&reg);
 	}
+
+#if defined(PLATFORM_PS3)
+	template<size_t index> int64* accessRegisterT() { return accessRegister(index); }
 #endif
 
 	void scriptAssert1(uint8 condition, lemon::StringRef text)
@@ -886,9 +888,9 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 	{
 		// Register access
 		const std::string registerNamesDAR[16] = { "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
+#if !defined(PLATFORM_PS3)
 		for (size_t i = 0; i < 16; ++i)
 		{
-#if !defined(PLATFORM_PS3)
 			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   std::bind(accessRegister, i));
@@ -896,11 +898,27 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  std::bind(accessRegister, i));
-#else
-			// On PS3, we can't use std::bind here, and the addExternalVariable API for PS3 expects a raw function pointer (which doesn't support context)
-			//  -> This means that register access via external variables is currently not supported on PS3
-#endif
 		}
+#else
+		auto addExternalVariablePS3 = [&](const std::string& name, const lemon::DataTypeDefinition* dataType, int64* (*accessor)())
+		{
+			module.addExternalVariable(name, dataType, accessor);
+		};
+
+		#define REGISTER_PS3(idx) \
+			addExternalVariablePS3(registerNamesDAR[idx],         &lemon::PredefinedDataTypes::UINT_32, &accessRegisterT<idx>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  &accessRegisterT<idx>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   &accessRegisterT<idx>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".u16", &lemon::PredefinedDataTypes::UINT_16, &accessRegisterT<idx>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".s16", &lemon::PredefinedDataTypes::INT_16,  &accessRegisterT<idx>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".u32", &lemon::PredefinedDataTypes::UINT_32, &accessRegisterT<idx>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".s32", &lemon::PredefinedDataTypes::INT_32,  &accessRegisterT<idx>);
+
+		REGISTER_PS3(0);  REGISTER_PS3(1);  REGISTER_PS3(2);  REGISTER_PS3(3);
+		REGISTER_PS3(4);  REGISTER_PS3(5);  REGISTER_PS3(6);  REGISTER_PS3(7);
+		REGISTER_PS3(8);  REGISTER_PS3(9);  REGISTER_PS3(10); REGISTER_PS3(11);
+		REGISTER_PS3(12); REGISTER_PS3(13); REGISTER_PS3(14); REGISTER_PS3(15);
+#endif
 
 		// Query flags
 		module.addNativeFunction("_equal", lemon::wrap(&checkFlags_equal), defaultFlags);
@@ -1144,12 +1162,18 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Log", &lemon::PredefinedDataTypes::UINT_32);
 #if !defined(PLATFORM_PS3)
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, false);
+#else
+			// On PS3, we can't use std::bind for setters.
+			// However, to keep the dependency hash consistent, the variable must be registered even if its setter is null.
 #endif
 		}
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("LogDec", &lemon::PredefinedDataTypes::UINT_32);
 #if !defined(PLATFORM_PS3)
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, true);
+#else
+			// On PS3, we can't use std::bind for setters.
+			// However, to keep the dependency hash consistent, the variable must be registered even if its setter is null.
 #endif
 		}
 
@@ -1173,6 +1197,9 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::string(*String(0, "%d", i)), &lemon::PredefinedDataTypes::UINT_8);
 #if !defined(PLATFORM_PS3)
 			var.mGetter = std::bind(debugKeyGetter, i);
+#else
+			// On PS3, we can't use std::bind for getters, and we can't easily use templates for this as the key indices might change.
+			// However, to keep the dependency hash consistent, the variable must be registered even if its getter is null.
 #endif
 		}
 

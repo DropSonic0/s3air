@@ -90,20 +90,32 @@ namespace lemon
 		{
 			const uint32 signature = rmx::readMemoryUnalignedLE<uint32>(outerSerializer.peek());
 			if (signature != SIGNATURE)
+			{
+				RMX_LOG_ERROR("ModuleSerializer: Invalid signature " << rmx::hexString(signature) << " (expected " << rmx::hexString(SIGNATURE) << ")");
 				return false;
+			}
 
 			outerSerializer.skip(4);
 			version = outerSerializer.read<uint16>();
 			if (version < MINIMUM_VERSION)
+			{
+				RMX_LOG_ERROR("ModuleSerializer: Unsupported version " << version << " (minimum " << MINIMUM_VERSION << ")");
 				return false;	// Loading older versions is not supported
+			}
 
 			const uint32 readDependencyHash = outerSerializer.read<uint32>();
 			if (readDependencyHash != dependencyHash)
+			{
+				RMX_LOG_ERROR("ModuleSerializer: Dependency hash mismatch " << rmx::hexString(readDependencyHash) << " (expected " << rmx::hexString(dependencyHash) << ")");
 				return false;
+			}
 
 			const uint32 readAppVersion = outerSerializer.read<uint32>();
 			if (readAppVersion != appVersion)
+			{
+				RMX_LOG_ERROR("ModuleSerializer: App version mismatch " << readAppVersion << " (expected " << appVersion << ")");
 				return false;
+			}
 		}
 		else
 		{
@@ -118,7 +130,10 @@ namespace lemon
 		if (outerSerializer.isReading())
 		{
 			if (!ZlibDeflate::decode(uncompressed, outerSerializer.peek(), outerSerializer.getRemaining()))
+			{
+				RMX_LOG_ERROR("ModuleSerializer: Zlib decompression failed (size=" << outerSerializer.getRemaining() << ")");
 				return false;
+			}
 			outerSerializer.skip(outerSerializer.getRemaining());
 		}
 		VectorBinarySerializer serializer(outerSerializer.isReading(), uncompressed);

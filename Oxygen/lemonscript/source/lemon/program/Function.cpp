@@ -24,7 +24,11 @@ namespace lemon
 	{
 		uint32 getVoidSignatureHash()
 		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			uint32 value = rmx::swapBytes<uint32>(PredefinedDataTypes::VOID.getDataTypeHash());
+#else
 			uint32 value = PredefinedDataTypes::VOID.getDataTypeHash();
+#endif
 			return rmx::getFNV1a_32((const uint8*)&value, sizeof(uint32));
 		}
 	}
@@ -33,12 +37,20 @@ namespace lemon
 	void Function::SignatureBuilder::clear(const DataTypeDefinition& returnType)
 	{
 		mData.clear();
-		mData.push_back(returnType.getDataTypeHash());
+		uint32 value = returnType.getDataTypeHash();
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		value = rmx::swapBytes<uint32>(value);
+#endif
+		mData.push_back(value);
 	}
 
 	void Function::SignatureBuilder::addParameterType(const DataTypeDefinition& dataType)
 	{
-		mData.push_back(dataType.getDataTypeHash());
+		uint32 value = dataType.getDataTypeHash();
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		value = rmx::swapBytes<uint32>(value);
+#endif
+		mData.push_back(value);
 	}
 
 	uint32 Function::SignatureBuilder::getSignatureHash()
@@ -46,7 +58,11 @@ namespace lemon
 		uint32 hash = rmx::getFNV1a_32((const uint8*)&mData[0], mData.size() * sizeof(uint32));
 		while (hash == 0)		// That should be a really rare case anyway
 		{
-			mData.push_back(0xcd000000);		// Just add anything to get away from hash 0
+			uint32 value = 0xcd000000;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			value = rmx::swapBytes<uint32>(value);
+#endif
+			mData.push_back(value);
 			hash = rmx::getFNV1a_32((const uint8*)&mData[0], mData.size() * sizeof(uint32));
 		}
 		return hash;
