@@ -69,9 +69,16 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 		uint32 posValue;
 		uint32 sizeValue;
 
-		// Note: The key length is written as a uint16 when the limit is 1024
-		serializer.serialize(keyLengthValue);
-		if (header.mBigEndian) keyLengthValue = S3AIRByteswap(keyLengthValue);
+		const uint8* entryPtr = serializer.peek();
+		if (header.mBigEndian)
+		{
+			keyLengthValue = rmx::readMemoryUnalignedSwapped<uint16>(entryPtr);
+		}
+		else
+		{
+			keyLengthValue = rmx::readMemoryUnalignedLE<uint16>(entryPtr);
+		}
+		serializer.skip(2);
 
 		if (keyLengthValue > 0 && keyLengthValue <= 1024)
 		{
@@ -84,11 +91,18 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 			serializer.skip(keyLengthValue);
 		}
 
-		serializer.serialize(posValue);
-		if (header.mBigEndian) posValue = S3AIRByteswap(posValue);
-
-		serializer.serialize(sizeValue);
-		if (header.mBigEndian) sizeValue = S3AIRByteswap(sizeValue);
+		entryPtr = serializer.peek();
+		if (header.mBigEndian)
+		{
+			posValue = rmx::readMemoryUnalignedSwapped<uint32>(entryPtr + 0);
+			sizeValue = rmx::readMemoryUnalignedSwapped<uint32>(entryPtr + 4);
+		}
+		else
+		{
+			posValue = rmx::readMemoryUnalignedLE<uint32>(entryPtr + 0);
+			sizeValue = rmx::readMemoryUnalignedLE<uint32>(entryPtr + 4);
+		}
+		serializer.skip(8);
 
 		PackedFile& packedFile = outPackedFiles[key];
 		packedFile.mPath = key;
@@ -289,18 +303,20 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 	// Advance past format version
 	serializer.skip(4);
 
-	serializer.serialize(outHeader.mContentVersion);
-	serializer.serialize(outHeader.mEntryHeaderSize);
-	uint32 numEntries;
-	serializer.serialize(numEntries);
-
+	const uint8* dataPtr = serializer.peek();
 	if (outHeader.mBigEndian)
 	{
-		outHeader.mContentVersion = S3AIRByteswap(outHeader.mContentVersion);
-		outHeader.mEntryHeaderSize = S3AIRByteswap(outHeader.mEntryHeaderSize);
-		numEntries = S3AIRByteswap(numEntries);
+		outHeader.mContentVersion = rmx::readMemoryUnalignedSwapped<uint32>(dataPtr + 0);
+		outHeader.mEntryHeaderSize = rmx::readMemoryUnalignedSwapped<uint32>(dataPtr + 4);
+		outHeader.mNumEntries = (size_t)rmx::readMemoryUnalignedSwapped<uint32>(dataPtr + 8);
 	}
-	outHeader.mNumEntries = (size_t)numEntries;
+	else
+	{
+		outHeader.mContentVersion = rmx::readMemoryUnalignedLE<uint32>(dataPtr + 0);
+		outHeader.mEntryHeaderSize = rmx::readMemoryUnalignedLE<uint32>(dataPtr + 4);
+		outHeader.mNumEntries = (size_t)rmx::readMemoryUnalignedLE<uint32>(dataPtr + 8);
+	}
+	serializer.skip(12);
 
 #if defined(PLATFORM_PS3)
 	RMX_LOG_INFO("Package detected as " << (outHeader.mBigEndian ? "Big-Endian" : "Little-Endian") << " with " << outHeader.mNumEntries << " entries");
