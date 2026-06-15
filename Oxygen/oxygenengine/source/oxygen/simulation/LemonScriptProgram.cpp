@@ -455,7 +455,6 @@ LemonScriptProgram::Hook& LemonScriptProgram::addHook(Hook::Type type, uint32 ad
 		hook = mInternal.mAddressHooks.add(address);
 		if (nullptr == hook)
 		{
-			RMX_ERROR("Invalid address for hook: " << rmx::hexString(address, 6), );
 			static Hook dummy;
 			return dummy;
 		}

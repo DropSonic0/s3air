@@ -192,35 +192,12 @@ void GuiBase::render()
 	if (!mVisible)
 		return;
 
-#if defined(PLATFORM_PS3)
-	static int ps3RenderCount = 0;
-	bool logEnabled = (ps3RenderCount < 100);
-	if (logEnabled)
-	{
-		RMX_LOG_INFO("GuiBase::render - start (" << mName.toStdString() << ") children: " << mChildren.size());
-	}
-#endif
-
 	mIteratingChildren = true;
 	for (GuiBase* child : mChildren)
 	{
-#if defined(PLATFORM_PS3)
-		if (logEnabled)
-		{
-			RMX_LOG_INFO("GuiBase::render - calling child (" << child->getName().toStdString() << ")");
-		}
-#endif
 		child->render();
 	}
 	onIteratingChildrenDone();
-
-#if defined(PLATFORM_PS3)
-	if (logEnabled)
-	{
-		RMX_LOG_INFO("GuiBase::render - done (" << mName.toStdString() << ")");
-		ps3RenderCount++;
-	}
-#endif
 }
 
 

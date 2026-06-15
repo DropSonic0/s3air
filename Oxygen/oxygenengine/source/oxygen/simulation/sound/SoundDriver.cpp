@@ -489,7 +489,7 @@ private:
 		}
 		else
 		{
-			RMX_ERROR("Invalid address", return 0);
+			return 0;
 		}
 	}
 

@@ -583,12 +583,6 @@ void GameView::update(float timeElapsed)
 
 void GameView::render()
 {
-	static int gameViewRenderCount = 0;
-	if (gameViewRenderCount < 10)
-	{
-		RMX_LOG_INFO("GameView::render start " << gameViewRenderCount);
-	}
-
 	mRect = FTX::screenRect();
 
 	Drawer& drawer = EngineMain::instance().getDrawer();
@@ -623,7 +617,6 @@ void GameView::render()
 
 	if (mDebugOutput >= 0)
 	{
-		if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render debug output path");
 		// Draw a dark background over the full screen
 		drawer.setBlendMode(BlendMode::OPAQUE);
 		drawer.drawRect(FTX::screenRect(), Color(0.15f, 0.15f, 0.15f));
@@ -640,7 +633,6 @@ void GameView::render()
 	}
 
 	// Here goes the real rendering
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render main path start");
 	drawer.setRenderTarget(mFinalGameTexture, gameScreenRect);
 	drawer.setBlendMode(BlendMode::OPAQUE);
 
@@ -722,15 +714,11 @@ void GameView::render()
 		}
 	#endif
 	}
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render before first performRendering");
 	drawer.performRendering();
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render after first performRendering");
 
 	// Render the (pixelated) game UI
 	mRect = gameScreenRect;
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render before GuiBase::render()");
 	GuiBase::render();
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render after GuiBase::render()");
 
 	// White overlay (used in Time Attack restart)
 	if (mWhiteOverlayAlpha > 0.0f)
@@ -749,7 +737,6 @@ void GameView::render()
 	}
 
 	// Draw the combined image
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render draw upscaled rect");
 	drawer.setWindowRenderTarget(FTX::screenRect());
 	drawer.setBlendMode(BlendMode::OPAQUE);
 	drawer.drawUpscaledRect(mGameViewport, mFinalGameTexture);
@@ -778,9 +765,7 @@ void GameView::render()
 		drawer.drawRect(FTX::screenRect(), Color(0.0f, 0.0f, 0.0f, 1.0f - mFadeValue));
 	}
 
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render before final performRendering");
 	drawer.performRendering();
-	if (gameViewRenderCount < 10) RMX_LOG_INFO("  GameView::render done " << gameViewRenderCount++);
 }
 
 void GameView::setFadedIn()

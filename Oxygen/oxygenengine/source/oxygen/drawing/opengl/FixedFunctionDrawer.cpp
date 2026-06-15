@@ -152,14 +152,6 @@ namespace fixedfunctiondrawer
 
 		void drawRect(const Recti& targetRect, GLuint textureHandle, const Color& color, Vec2f uv0 = Vec2f(0.0f, 0.0f), Vec2f uv1 = Vec2f(1.0f, 1.0f))
 		{
-		#if defined(PLATFORM_PS3)
-			static int drawRectCount = 0;
-			if (drawRectCount < 100)
-			{
-				RMX_LOG_INFO("    drawRect start - rect: " << targetRect.x << "," << targetRect.y << " " << targetRect.width << "x" << targetRect.height << ", texture: " << textureHandle);
-			}
-		#endif
-
 			if (textureHandle != 0)
 			{
 				glEnable(GL_TEXTURE_2D);
@@ -195,13 +187,6 @@ namespace fixedfunctiondrawer
 			}
 
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-		#if defined(PLATFORM_PS3)
-			if (drawRectCount < 100)
-			{
-				RMX_LOG_INFO("    drawRect glDrawArrays done " << drawRectCount++);
-			}
-		#endif
 
 			glDisableClientState(GL_VERTEX_ARRAY);
 			if (textureHandle != 0)
@@ -305,40 +290,9 @@ void FixedFunctionDrawer::setupRenderWindow(SDL_Window* window)
 
 void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 {
-	static int frameCounter = 0;
-	if (frameCounter < 10)
-	{
-		RMX_LOG_INFO("FixedFunctionDrawer::performRendering - frame " << frameCounter << ", commands: " << drawCollection.getDrawCommands().size());
-	}
-
-	int commandIndex = 0;
 	for (DrawCommand* drawCommand : drawCollection.getDrawCommands())
 	{
 		const DrawCommand::Type type = drawCommand->getType();
-		if (frameCounter < 10)
-		{
-			const char* typeName = "UNKNOWN";
-			switch (type)
-			{
-				case DrawCommand::Type::UNDEFINED: typeName = "UNDEFINED"; break;
-				case DrawCommand::Type::SET_WINDOW_RENDER_TARGET: typeName = "SET_WINDOW_RENDER_TARGET"; break;
-				case DrawCommand::Type::SET_RENDER_TARGET: typeName = "SET_RENDER_TARGET"; break;
-				case DrawCommand::Type::RECT: typeName = "RECT"; break;
-				case DrawCommand::Type::UPSCALED_RECT: typeName = "UPSCALED_RECT"; break;
-				case DrawCommand::Type::SPRITE: typeName = "SPRITE"; break;
-				case DrawCommand::Type::SPRITE_RECT: typeName = "SPRITE_RECT"; break;
-				case DrawCommand::Type::MESH: typeName = "MESH"; break;
-				case DrawCommand::Type::MESH_VERTEX_COLOR: typeName = "MESH_VERTEX_COLOR"; break;
-				case DrawCommand::Type::SET_BLEND_MODE: typeName = "SET_BLEND_MODE"; break;
-				case DrawCommand::Type::SET_SAMPLING_MODE: typeName = "SET_SAMPLING_MODE"; break;
-				case DrawCommand::Type::SET_WRAP_MODE: typeName = "SET_WRAP_MODE"; break;
-				case DrawCommand::Type::PRINT_TEXT: typeName = "PRINT_TEXT"; break;
-				case DrawCommand::Type::PRINT_TEXT_W: typeName = "PRINT_TEXT_W"; break;
-				case DrawCommand::Type::PUSH_SCISSOR: typeName = "PUSH_SCISSOR"; break;
-				case DrawCommand::Type::POP_SCISSOR: typeName = "POP_SCISSOR"; break;
-			}
-			RMX_LOG_INFO("  Command " << commandIndex << ": " << typeName << " (" << (int)type << ")");
-		}
 
 		switch (type)
 		{
@@ -386,10 +340,6 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 			{
 				UpscaledRectDrawCommand& dc = drawCommand->as<UpscaledRectDrawCommand>();
 				GLuint textureHandle = dc.mTexture->getImplementation<OpenGLDrawerTexture>()->getTextureHandle();
-				if (frameCounter < 10)
-				{
-					RMX_LOG_INFO("  UPSCALED_RECT: texture " << textureHandle << ", size " << dc.mTexture->getSize().x << "x" << dc.mTexture->getSize().y << ", target " << (int)dc.mRect.width << "x" << (int)dc.mRect.height);
-				}
 				mInternal.drawRect(dc.mRect, textureHandle, Color::WHITE);
 				break;
 			}
@@ -567,34 +517,13 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 			}
 		}
 
-		if (frameCounter < 10)
-		{
-			RMX_LOG_INFO("  Command " << commandIndex << " done");
-		}
-		commandIndex++;
-	}
-
-	if (frameCounter < 10)
-	{
-		RMX_LOG_INFO("FixedFunctionDrawer::performRendering done");
-		frameCounter++;
 	}
 }
 
 void FixedFunctionDrawer::presentScreen()
 {
 #if defined(PLATFORM_PS3)
-	static int swapCounter = 0;
-	if (swapCounter < 10)
-	{
-		RMX_LOG_INFO("FixedFunctionDrawer::presentScreen - psglSwap start " << swapCounter);
-	}
-
 	psglSwap();
-	if (swapCounter < 10)
-	{
-		RMX_LOG_INFO("FixedFunctionDrawer::presentScreen - psglSwap done " << swapCounter++);
-	}
 #else
 	SDL_GL_SwapWindow(mInternal.mOutputWindow);
 #endif

@@ -245,32 +245,10 @@ void Drawer::setupRenderWindow(SDL_Window* window)
 
 void Drawer::performRendering()
 {
-	static int renderCount = 0;
-	if (renderCount < 10)
-	{
-		RMX_LOG_INFO("Drawer::performRendering - start");
-	}
-
 	RMX_ASSERT(nullptr != mActiveDrawer, "No active drawer instance created");
 	mActiveDrawer->performRendering(mDrawCollection);
 
-	if (renderCount < 10)
-	{
-		RMX_LOG_INFO("Drawer::performRendering - about to clear draw collection");
-	}
-
 	mDrawCollection.clear();
-
-	if (renderCount < 10)
-	{
-		RMX_LOG_INFO("Drawer::performRendering - draw collection cleared");
-		renderCount++;
-	}
-
-	if (renderCount <= 10)
-	{
-		RMX_LOG_INFO("Drawer::performRendering - end");
-	}
 }
 
 void Drawer::presentScreen()

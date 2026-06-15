@@ -18,6 +18,7 @@ const char FilePackage::PackageHeader::SIGNATURE[5] = "OPCK";
 #include "Endian/S3AIREndian.hpp"
 
 
+
 bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::wstring, PackedFile>& outPackedFiles, InputStream*& inputStream, bool forceLoadAll, bool showErrors)
 {
 	// Try to load the package
@@ -31,9 +32,9 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 	if (inputStream->read(&content[0], PackageHeader::HEADER_SIZE) != PackageHeader::HEADER_SIZE)
 		return false;
 
-	VectorBinarySerializer serializer(true, content);
+	VectorBinarySerializer headerSerializer(true, content);
 	PackageHeader header;
-	if (!readPackageHeader(header, serializer))
+	if (!readPackageHeader(header, headerSerializer))
 	{
 		if (showErrors)
 		{
@@ -56,14 +57,19 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 	if (inputStream->read(&content[PackageHeader::HEADER_SIZE], header.mEntryHeaderSize) != header.mEntryHeaderSize)
 		return false;
 
+	// Use a fresh serializer for the entries, as the buffer was resized
+	VectorBinarySerializer serializer(true, content);
+	serializer.skip(PackageHeader::HEADER_SIZE);
+
 	// Read entry headers
 	for (size_t i = 0; i < header.mNumEntries; ++i)
 	{
 		std::wstring key;
-		uint32 keyLengthValue;
+		uint16 keyLengthValue;
 		uint32 posValue;
 		uint32 sizeValue;
 
+		// Note: The key length is written as a uint16 when the limit is 1024
 		serializer.serialize(keyLengthValue);
 		if (header.mBigEndian) keyLengthValue = S3AIRByteswap(keyLengthValue);
 
@@ -88,6 +94,13 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 		packedFile.mPath = key;
 		packedFile.mPositionInFile = posValue;
 		packedFile.mSizeInFile = sizeValue;
+
+#if defined(PLATFORM_PS3)
+		if (i < 5)
+		{
+			RMX_LOG_INFO("Entry " << i << ": '" << WString(key).toStdString() << "', pos: " << posValue << ", size: " << sizeValue);
+		}
+#endif
 	}
 
 	if (forceLoadAll)
@@ -184,21 +197,28 @@ void FilePackage::createFilePackage(const std::wstring& packageFilename, const s
 
 		serializer.write(PackageHeader::SIGNATURE, 4);
 		const uint32 formatVersion = PackageHeader::CURRENT_FORMAT_VERSION;
-		serializer.write(formatVersion);
-		serializer.write(contentVersion);
+		const LE<uint32> formatVersionLE = formatVersion;
+		serializer.write(&formatVersionLE.raw, 4);
+
+		const LE<uint32> contentVersionLE = contentVersion;
+		serializer.write(&contentVersionLE.raw, 4);
 
 		const size_t headerSizePosition = output.size();
-		serializer.writeAs<uint32>(0);		// Will get overwritten
+		const LE<uint32> zeroLE = 0;
+		serializer.write(&zeroLE.raw, 4);		// Will get overwritten
 
-		serializer.writeAs<uint32>(packedFiles.size());
+		const LE<uint32> numEntriesLE = (uint32)packedFiles.size();
+		serializer.write(&numEntriesLE.raw, 4);
+
 		for (std::map<std::wstring, PackedFile>::iterator it = packedFiles.begin(); it != packedFiles.end(); ++it)
 		{
 			const std::wstring& key = it->first;
 			PackedFile& packedFile = it->second;
 			serializer.write(key, 1024);
 			packedFile.mPositionInFile = (uint32)output.size();		// Temporarily misusing this variable to store the position where to write the content's position in file when it got determined
-			serializer.writeAs<uint32>(0);							// Will get overwritten
-			serializer.writeAs<uint32>(packedFile.mContent.size());
+			serializer.write(&zeroLE.raw, 4);							// Will get overwritten
+			const LE<uint32> contentSizeLE = (uint32)packedFile.mContent.size();
+			serializer.write(&contentSizeLE.raw, 4);
 		}
 
 		// Write entry header size
@@ -232,22 +252,23 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 	// Read format version and detect endianness
 	// The file stores the format version at this offset.
 	// We read it as raw bytes and then check which endianness matches the expected CURRENT_FORMAT_VERSION.
-	uint32 rawFormatVersion;
-	serializer.serialize(rawFormatVersion);
-
-	// On a LE machine:
-	//  - LE file: rawFormatVersion == 3
-	//  - BE file: rawFormatVersion == 0x03000000 (S3AIRByteswap(raw) == 3)
-	// On a BE machine:
-	//  - LE file: rawFormatVersion == 0x03000000 (S3AIRByteswap(raw) == 3)
-	//  - BE file: rawFormatVersion == 3
+	
+	// On PS3 (BE host), an LE file will have bytes 03 00 00 00.
+	// A native 32-bit read will result in 0x03000000.
+	const uint8* ptr = serializer.peek();
+	uint32 rawFormatVersion = rmx::readMemoryUnaligned<uint32>(ptr);
 
 	// To correctly identify the file's endianness:
 	// 1. If raw matches 3, the file's endianness matches the host's endianness.
 	// 2. If S3AIRByteswap(raw) matches 3, the file's endianness is the opposite of the host's.
-
-	bool fileIsLittleEndian = (rawFormatVersion == PackageHeader::CURRENT_FORMAT_VERSION);
-	bool fileIsBigEndian = (S3AIRByteswap(rawFormatVersion) == PackageHeader::CURRENT_FORMAT_VERSION);
+	bool fileIsLittleEndian, fileIsBigEndian;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+	fileIsLittleEndian = (S3AIRByteswap(rawFormatVersion) == PackageHeader::CURRENT_FORMAT_VERSION);
+	fileIsBigEndian = (rawFormatVersion == PackageHeader::CURRENT_FORMAT_VERSION);
+#else
+	fileIsLittleEndian = (rawFormatVersion == PackageHeader::CURRENT_FORMAT_VERSION);
+	fileIsBigEndian = (S3AIRByteswap(rawFormatVersion) == PackageHeader::CURRENT_FORMAT_VERSION);
+#endif
 
 	if (fileIsLittleEndian)
 	{
@@ -265,6 +286,9 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 
 	outHeader.mFormatVersion = PackageHeader::CURRENT_FORMAT_VERSION;
 
+	// Advance past format version
+	serializer.skip(4);
+
 	serializer.serialize(outHeader.mContentVersion);
 	serializer.serialize(outHeader.mEntryHeaderSize);
 	uint32 numEntries;
@@ -277,6 +301,10 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 		numEntries = S3AIRByteswap(numEntries);
 	}
 	outHeader.mNumEntries = (size_t)numEntries;
+
+#if defined(PLATFORM_PS3)
+	RMX_LOG_INFO("Package detected as " << (outHeader.mBigEndian ? "Big-Endian" : "Little-Endian") << " with " << outHeader.mNumEntries << " entries");
+#endif
 
 	RMX_ASSERT(serializer.getReadPosition() == PackageHeader::HEADER_SIZE, "Got wrong package header size");
 	return true;

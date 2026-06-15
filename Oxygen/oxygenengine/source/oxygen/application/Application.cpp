@@ -411,11 +411,6 @@ void Application::keyboard(const rmx::KeyboardEvent& ev)
 
 void Application::update(float timeElapsed)
 {
-	if (mIsVeryFirstFrameForLogging)
-	{
-		RMX_LOG_INFO("Start of first application update call");
-	}
-
 	// Global slow motion for debugging menu transitions etc.
 	const bool isDeveloperMode = EngineMain::getDelegate().useDeveloperFeatures();
 	if (isDeveloperMode && FTX::keyState(SDLK_RSHIFT))
@@ -504,26 +499,13 @@ void Application::update(float timeElapsed)
 			SDL_ShowCursor(0);
 	}
 
-	if (mIsVeryFirstFrameForLogging)
-	{
-		RMX_LOG_INFO("End of first application update call");
-	}
 }
 
 void Application::render()
 {
 	static int frameCount = 0;
-	if (frameCount < 10)
-	{
-		RMX_LOG_INFO("Application::render - frame " << frameCount);
-	}
 
 	Profiling::pushRegion(ProfilingRegion::RENDERING);
-
-	if (mIsVeryFirstFrameForLogging)
-	{
-		RMX_LOG_INFO("Start of first application render call");
-	}
 
 	Drawer& drawer = EngineMain::instance().getDrawer();
 	drawer.setupRenderWindow(&EngineMain::instance().getSDLWindow());
@@ -574,55 +556,16 @@ void Application::render()
 		drawer.drawSprite(FTX::screenSize() / 2, key, Color(0.3f, 1.0f, 1.0f), Vec2f(scale));
 	}
 
-	if (frameCount < 10)
-	{
-		RMX_LOG_INFO("Application::render - before drawer.performRendering()");
-	}
 	drawer.performRendering();
-	if (frameCount < 10)
-	{
-		RMX_LOG_INFO("Application::render - after drawer.performRendering()");
-	}
-	else if (frameCount == 10)
-	{
-		RMX_LOG_INFO("Application::render - performRendering() returned (frame 10+)");
-	}
-
-	if (mIsVeryFirstFrameForLogging)
-	{
-		RMX_LOG_INFO("End of drawer.performRendering() in Application::render");
-	}
 
 	// Needed only for precise profiling
 	//glFinish();
 
-	if (frameCount < 10)
-	{
-		RMX_LOG_INFO("Application::render - about to call Profiling::popRegion(RENDERING)");
-	}
 	Profiling::popRegion(ProfilingRegion::RENDERING);
-	if (frameCount < 10)
-	{
-		RMX_LOG_INFO("Application::render - after Profiling::popRegion(RENDERING)");
-	}
-
-	if (mIsVeryFirstFrameForLogging)
-	{
-		RMX_LOG_INFO("End of ProfilingRegion::RENDERING");
-	}
 
 	// Update profiling data & explicit buffer swap
 	{
-		if (frameCount < 10)
-		{
-			RMX_LOG_INFO("Application::render - before pushRegion(FRAMESYNC)");
-		}
 		Profiling::pushRegion(ProfilingRegion::FRAMESYNC);
-
-		if (mIsVeryFirstFrameForLogging)
-		{
-			RMX_LOG_INFO("Start of ProfilingRegion::FRAMESYNC");
-		}
 
 		const double currentTime = mApplicationTimer.getSecondsSinceStart() * 1000.0;
 		const float simulationFrequency = mSimulation->getSimulationFrequency();
@@ -652,30 +595,7 @@ void Application::render()
 			}
 		}
 
-		if (mIsVeryFirstFrameForLogging)
-		{
-			RMX_LOG_INFO("First present screen call");
-		}
-
-		if (mIsVeryFirstFrameForLogging)
-		{
-			RMX_LOG_INFO("Before drawer.presentScreen()");
-		}
-
-		if (frameCount < 10)
-		{
-			RMX_LOG_INFO("Application::render - before drawer.presentScreen()");
-		}
 		drawer.presentScreen();
-		if (frameCount < 10)
-		{
-			RMX_LOG_INFO("Application::render - after drawer.presentScreen()");
-		}
-
-		if (mIsVeryFirstFrameForLogging)
-		{
-			RMX_LOG_INFO("After drawer.presentScreen()");
-		}
 
 	#if 0
 		// Use a glFinish or glFlush here...?
@@ -690,26 +610,12 @@ void Application::render()
 		glFinish();
 	#endif
 
-		if (frameCount < 10)
-		{
-			RMX_LOG_INFO("Application::render - before popRegion(FRAMESYNC)");
-		}
 		Profiling::popRegion(ProfilingRegion::FRAMESYNC);
-		if (frameCount < 10)
-		{
-			RMX_LOG_INFO("Application::render - before Profiling::nextFrame()");
-		}
 		Profiling::nextFrame(mSimulation->getFrameNumber());
-		if (frameCount < 10)
-		{
-			RMX_LOG_INFO("Application::render - after Profiling::nextFrame()");
-		}
 	}
 
 	if (mIsVeryFirstFrameForLogging)
 	{
-		RMX_LOG_INFO("End of first application render call");
-		RMX_LOG_INFO("Ready to go");
 		mIsVeryFirstFrameForLogging = false;
 	}
 	if (frameCount < 10)
@@ -929,7 +835,6 @@ bool Application::updateLoading()
 				// Startup game
 				EngineMain::getDelegate().startupGame(mSimulation->getEmulatorInterface());
 
-				RMX_LOG_INFO("Adding game app instance");
 				mGameApp = &EngineMain::getDelegate().createGameApp();
 				addChild(mGameApp);
 				break;

@@ -21,13 +21,6 @@ void OpenGLDrawerTexture::updateFromBitmap(const Bitmap& bitmap)
 	mSamplingMode = SamplingMode::POINT;
 	mWrapMode = TextureWrapMode::CLAMP;
 
-#if defined(PLATFORM_PS3)
-	static int updateCounter = 0;
-	if (updateCounter < 20)
-	{
-		RMX_LOG_INFO("OpenGLDrawerTexture::updateFromBitmap - handle " << mTexture.getHandle() << ", size " << bitmap.getWidth() << "x" << bitmap.getHeight() << " (count " << updateCounter++ << ")");
-	}
-#endif
 }
 
 void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)

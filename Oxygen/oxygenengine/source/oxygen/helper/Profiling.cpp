@@ -52,13 +52,8 @@ void Profiling::registerRegion(uint16 id, const char* name, const Color& color)
 
 void Profiling::pushRegion(uint16 id)
 {
-	static int pushCount = 0;
 	Region* region = getRegionByID(id);
 
-	if (pushCount < 100)
-	{
-		RMX_LOG_INFO("Profiling::pushRegion - id " << id << " (" << (region ? region->mName : "UNKNOWN") << ") start");
-	}
 	RMX_ASSERT(nullptr != region, "Profiling region with id " << id << " not found");
 	RMX_ASSERT(!region->mOnStack, "Profiling region with name '" << region->mName << "' is already on the stack");
 	RMX_ASSERT(mRegionStack.size() >= 1, "Profiling region stack got emptied before");
@@ -76,56 +71,24 @@ void Profiling::pushRegion(uint16 id)
 	{
 		RMX_ASSERT(region->mParent == mRegionStack[mRegionStack.size() - 2], "Profiling region '" << region->mName << "' has different parents on the stack");
 	}
-
-	if (pushCount < 100)
-	{
-		RMX_LOG_INFO("Profiling::pushRegion - id " << id << " done");
-		pushCount++;
-	}
 }
 
 void Profiling::popRegion(uint16 id)
 {
-	static int popCount = 0;
 	Region* region = getRegionByID(id);
-
-	if (popCount < 100)
-	{
-		RMX_LOG_INFO("Profiling::popRegion - start id " << id << " (" << (region ? region->mName : "UNKNOWN") << ")");
-	}
 
 	RMX_ASSERT(nullptr != region, "Profiling region with id " << id << " not found");
 	RMX_ASSERT(mRegionStack.size() >= 2, "Can't pop another profiling region from stack, that would remove the root region");
 	RMX_ASSERT(mRegionStack.back() == region, "Profiling region to be popped must be top of stack");
 
-	if (popCount < 100)
-	{
-		RMX_LOG_INFO("Profiling::popRegion - popping from stack");
-	}
 	mRegionStack.pop_back();
 	region->mOnStack = false;
 
-	if (popCount < 100)
-	{
-		RMX_LOG_INFO("Profiling::popRegion - pausing timing");
-	}
 	region->mTimer.pauseTiming();
-
-	if (popCount < 100)
-	{
-		RMX_LOG_INFO("Profiling::popRegion - done");
-		popCount++;
-	}
 }
 
 void Profiling::nextFrame(int simulationFrameNumber)
 {
-	static int nextFrameCount = 0;
-	if (nextFrameCount < 10)
-	{
-		RMX_LOG_INFO("Profiling::nextFrame - start " << nextFrameCount);
-	}
-
 	RMX_ASSERT(mRegionStack.size() == 1, "Profiling region stack must only contain the root on frame end");
 
 	for (Region* region : mAllRegions)
@@ -179,11 +142,6 @@ void Profiling::nextFrame(int simulationFrameNumber)
 			region->mAccumulatedTime = 0.0;
 		}
 		mAccumulatedFrames = 0;
-	}
-
-	if (nextFrameCount < 10)
-	{
-		RMX_LOG_INFO("Profiling::nextFrame - done " << nextFrameCount++);
 	}
 }
 
