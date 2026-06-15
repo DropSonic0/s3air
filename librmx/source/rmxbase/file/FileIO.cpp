@@ -14,6 +14,7 @@
 	#include <unistd.h>
 	#include <limits.h>
 	#include <stdio.h>
+	#include <cell/cell_fs.h>
 
 	// SNC/PS3 Toolchain missing defines
 	#ifndef PATH_MAX
@@ -80,11 +81,7 @@ namespace rmx
 				{
 					pos = path.findChars(L"/\\", pos + 1, +1);
 					subpath.makeSubString(path, 0, pos);
-				#if defined(PLATFORM_PS3)
 					if (!FileIO::exists(*subpath))
-				#else
-					if (!std_filesystem::exists(*subpath))
-				#endif
 					{
 						if (!createDir(subpath, false))
 							return false;
@@ -98,7 +95,7 @@ namespace rmx
 			#ifdef PLATFORM_WINDOWS
 				return (_wmkdir(*path) == 0);
 			#elif defined(PLATFORM_PS3)
-				return (mkdir(*path.toUTF8(), 0777) == 0);
+				return (cellFsMkdir(*path.toUTF8(), CELL_FS_S_IRWXU | CELL_FS_S_IRWXG | CELL_FS_S_IRWXO) == CELL_FS_SUCCEEDED);
 			#elif defined(USE_UTF8_PATHS)
 				return (mkdir(*path.toUTF8(), 0777) == 0);		// Probably the only time I ever used octal notation...
 			#else
@@ -224,7 +221,50 @@ namespace rmx
 			closedir(dp);
 
 		#elif defined(PLATFORM_PS3)
-			// TODO: PS3-specific directory listing (requires cellFsGetDirectoryEntries)
+			int fd;
+			const std::string basePathUTF8 = *WString(basePath).toUTF8();
+			if (cellFsOpendir(basePathUTF8.c_str(), &fd) == CELL_FS_SUCCEEDED)
+			{
+				static CellFsDirectoryEntry entries[32];
+				uint32_t count;
+				while (cellFsGetDirectoryEntries(fd, entries, sizeof(entries), &count) == CELL_FS_SUCCEEDED && count != 0)
+				{
+					for (uint32_t i = 0; i < count; ++i)
+					{
+						const CellFsDirectoryEntry& entry = entries[i];
+						const std::string name = entry.entry_name.d_name;
+						if (name == "." || name == "..")
+							continue;
+
+						if (entry.attribute.st_mode & CELL_FS_S_IFDIR)
+						{
+							// Directory
+							if (recursive || 0 != outSubDirectories)
+							{
+								subDirectories.push_back(*String(name).toWString());
+							}
+						}
+						else
+						{
+							// File
+							if (0 != outFileEntries)
+							{
+								// Check for wildcard match
+								const WString filename = String(name).toWString();
+								if (filemask.empty() || matchesPattern(*filename, filemask.data()))
+								{
+									FileIO::FileEntry& entry_out = vectorAdd(*outFileEntries);
+									entry_out.mFilename = filename.toStdWString();
+									entry_out.mPath = basePath;
+									entry_out.mTime = entry.attribute.st_mtime;
+									entry_out.mSize = (size_t)entry.attribute.st_size;
+								}
+							}
+						}
+					}
+				}
+				cellFsClosedir(fd);
+			}
 		#else
 			#error "Unsupported platform"
 		#endif
@@ -247,8 +287,8 @@ namespace rmx
 		const std_filesystem::path fspath(WString(path).toStdWString());
 		return std_filesystem::exists(fspath);
 	#elif defined(PLATFORM_PS3)
-		struct stat st;
-		return (stat(*WString(path).toUTF8(), &st) == 0);
+		CellFsStat st;
+		return (cellFsStat(*WString(path).toUTF8(), &st) == CELL_FS_SUCCEEDED);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::exists");
 		return false;
@@ -266,8 +306,8 @@ namespace rmx
 		outSize = (uint64)size;
 		return true;
 	#elif defined(PLATFORM_PS3)
-		struct stat st;
-		if (stat(*WString(filename).toUTF8(), &st) != 0)
+		CellFsStat st;
+		if (cellFsStat(*WString(filename).toUTF8(), &st) != CELL_FS_SUCCEEDED)
 			return false;
 		outSize = (uint64)st.st_size;
 		return true;
@@ -294,8 +334,8 @@ namespace rmx
 		outTime = std::chrono::system_clock::to_time_t(timePoint);
 		return true;
 	#elif defined(PLATFORM_PS3)
-		struct stat st;
-		if (stat(*WString(filename).toUTF8(), &st) != 0)
+		CellFsStat st;
+		if (cellFsStat(*WString(filename).toUTF8(), &st) != CELL_FS_SUCCEEDED)
 			return false;
 		outTime = st.st_mtime;
 		return true;
@@ -308,6 +348,24 @@ namespace rmx
 	bool FileIO::readFile(std::wstring_view filename, std::vector<uint8>& outData)
 	{
 		// Read from file system
+	#if defined(PLATFORM_PS3)
+		int fd;
+		if (cellFsOpen(*WString(filename).toUTF8(), CELL_FS_O_RDONLY, &fd, NULL, 0) != CELL_FS_SUCCEEDED)
+			return false;
+
+		CellFsStat st;
+		cellFsFstat(fd, &st);
+		const uint32 fileSize = (uint32)st.st_size;
+
+		outData.resize(fileSize);
+		if (fileSize != 0)
+		{
+			uint64_t nread;
+			cellFsRead(fd, &outData[0], fileSize, &nread);
+		}
+		cellFsClose(fd);
+		return true;
+	#else
 	#ifdef USE_UTF8_PATHS
 		std::ifstream stream(*WString(filename).toUTF8(), std::ios::binary);
 	#else
@@ -326,6 +384,7 @@ namespace rmx
 			stream.read((char*)&outData[0], size);
 		}
 		return true;
+	#endif
 	}
 
 	bool FileIO::saveFile(std::wstring_view filename, const void* data, size_t size)
@@ -337,6 +396,19 @@ namespace rmx
 			createDirectory(filename.substr(0, slashPosition));
 		}
 
+	#if defined(PLATFORM_PS3)
+		int fd;
+		if (cellFsOpen(*WString(filename).toUTF8(), CELL_FS_O_WRONLY | CELL_FS_O_CREAT | CELL_FS_O_TRUNC, &fd, NULL, 0) != CELL_FS_SUCCEEDED)
+			return false;
+
+		if (size != 0 && 0 != data)
+		{
+			uint64_t nwrite;
+			cellFsWrite(fd, data, size, &nwrite);
+		}
+		cellFsClose(fd);
+		return true;
+	#else
 	#ifdef USE_UTF8_PATHS
 		std::ofstream stream(*WString(filename).toUTF8(), std::ios::binary);
 	#else
@@ -351,6 +423,7 @@ namespace rmx
 		}
 		stream.close();
 		return true;
+	#endif
 	}
 
 	InputStream* FileIO::createInputStream(std::wstring_view filename)
@@ -373,7 +446,7 @@ namespace rmx
 		std_filesystem::rename(fspathOld, fspathNew, errorCode);
 		return !errorCode;
 	#elif defined(PLATFORM_PS3)
-		return (rename(*WString(oldFilename).toUTF8(), *WString(newFilename).toUTF8()) == 0);
+		return (cellFsRename(*WString(oldFilename).toUTF8(), *WString(newFilename).toUTF8()) == CELL_FS_SUCCEEDED);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::renameFile");
 		return false;
@@ -388,7 +461,7 @@ namespace rmx
 		std_filesystem::remove(fspath, errorCode);
 		return !errorCode;
 	#elif defined(PLATFORM_PS3)
-		return (unlink(*WString(path).toUTF8()) == 0);
+		return (cellFsUnlink(*WString(path).toUTF8()) == CELL_FS_SUCCEEDED);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::removeFile");
 		return false;
