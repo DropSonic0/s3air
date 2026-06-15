@@ -165,8 +165,25 @@ bool PaletteBitmap::loadBMP(const std::vector<uint8>& bmpContent, Color* outPale
 
 	// Read header
 	BmpHeader header;
-	serializer.read(&header, sizeof(header));
-	if (memcmp(header.signature, "BM", 2) != 0)
+	serializer.serialize(header.signature[0]);
+	serializer.serialize(header.signature[1]);
+	serializer.serialize(header.fileSize);
+	serializer.serialize(header.creator1);
+	serializer.serialize(header.creator2);
+	serializer.serialize(header.headerSize);
+	serializer.serialize(header.dibHeaderSize);
+	serializer.serialize(header.width);
+	serializer.serialize(header.height);
+	serializer.serialize(header.numPlanes);
+	serializer.serialize(header.bpp);
+	serializer.serialize(header.compression);
+	serializer.serialize(header.dataSize);
+	serializer.serialize(header.resolutionX);
+	serializer.serialize(header.resolutionY);
+	serializer.serialize(header.numColors);
+	serializer.serialize(header.importantColors);
+
+	if (header.signature[0] != 'B' || header.signature[1] != 'M')
 		return false;
 
 	// Size
@@ -194,7 +211,11 @@ bool PaletteBitmap::loadBMP(const std::vector<uint8>& bmpContent, Color* outPale
 
 	// Read palette
 	uint32 palette[256];
-	serializer.read(palette, pal_size * 4);
+	for (int i = 0; i < pal_size; ++i)
+	{
+		serializer.serialize(palette[i]);
+	}
+
 	if (nullptr != outPalette)
 	{
 		for (int i = 0; i < pal_size; ++i)
@@ -262,12 +283,30 @@ bool PaletteBitmap::saveBMP(std::vector<uint8>& bmpContent, const Color* palette
 	header.resolutionY = 3828;
 	header.numColors = 256;
 	header.importantColors = 256;
-	serializer.write(&header, sizeof(BmpHeader));
+
+	serializer.serialize(header.signature[0]);
+	serializer.serialize(header.signature[1]);
+	serializer.serialize(header.fileSize);
+	serializer.serialize(header.creator1);
+	serializer.serialize(header.creator2);
+	serializer.serialize(header.headerSize);
+	serializer.serialize(header.dibHeaderSize);
+	serializer.serialize(header.width);
+	serializer.serialize(header.height);
+	serializer.serialize(header.numPlanes);
+	serializer.serialize(header.bpp);
+	serializer.serialize(header.compression);
+	serializer.serialize(header.dataSize);
+	serializer.serialize(header.resolutionX);
+	serializer.serialize(header.resolutionY);
+	serializer.serialize(header.numColors);
+	serializer.serialize(header.importantColors);
 
 	for (int i = 0; i < 256; ++i)
 	{
 		const Color color(palette[i].b, palette[i].g, palette[i].r, 1.0f);
-		serializer.write(color.getABGR32());
+		uint32 colorValue = color.getABGR32();
+		serializer.serialize(colorValue);
 	}
 
 	for (uint32 line = 0; line < mHeight; ++line)

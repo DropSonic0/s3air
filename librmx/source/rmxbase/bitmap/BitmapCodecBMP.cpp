@@ -41,6 +41,36 @@ inline uint32 RGBA_to_BGRA(uint32 color)
 	return (errcode == Bitmap::LoadResult::Error::OK); \
 }
 
+namespace
+{
+	template<typename T>
+	void serializeBMP(VectorBinarySerializer& serializer, T& value)
+	{
+		serializer.serialize(value);
+	}
+
+	template<>
+	void serializeBMP<BmpHeader>(VectorBinarySerializer& serializer, BmpHeader& header)
+	{
+		serializer.serialize(header.signature[0]);
+		serializer.serialize(header.signature[1]);
+		serializer.serialize(header.fileSize);
+		serializer.serialize(header.creator1);
+		serializer.serialize(header.creator2);
+		serializer.serialize(header.headerSize);
+		serializer.serialize(header.dibHeaderSize);
+		serializer.serialize(header.width);
+		serializer.serialize(header.height);
+		serializer.serialize(header.numPlanes);
+		serializer.serialize(header.bpp);
+		serializer.serialize(header.compression);
+		serializer.serialize(header.dataSize);
+		serializer.serialize(header.resolutionX);
+		serializer.serialize(header.resolutionY);
+		serializer.serialize(header.numColors);
+		serializer.serialize(header.importantColors);
+	}
+}
 
 
 bool BitmapCodecBMP::canDecode(const String& format) const
@@ -61,8 +91,13 @@ bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 #else
 	// Read header
 	BmpHeader header;
-	stream >> header;
-	if (memcmp(header.signature, "BM", 2) != 0)
+	std::vector<uint8> headerData;
+	headerData.resize(sizeof(BmpHeader));
+	stream.read(&headerData[0], headerData.size());
+	VectorBinarySerializer serializer(true, headerData);
+	serializeBMP(serializer, header);
+
+	if (header.signature[0] != 'B' || header.signature[1] != 'M')
 		RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
 
 	// Size
@@ -86,10 +121,21 @@ bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 
 	// Read palette
 	uint32 palette[256];
-	for (int i = 0; i < pal_size; ++i)
+	if (pal_size > 0)
 	{
-		stream >> palette[i];
-		palette[i] = RGBA_to_BGRA(palette[i] | 0xff000000);
+		std::vector<uint8> palData;
+		palData.resize(pal_size * 4);
+		stream.read(&palData[0], palData.size());
+		VectorBinarySerializer palSerializer(true, palData);
+		for (int i = 0; i < pal_size; ++i)
+		{
+			palSerializer.serialize(palette[i]);
+#if !defined(PLATFORM_PS3)
+			palette[i] = RGBA_to_BGRA(palette[i] | 0xff000000);
+#else
+			palette[i] = palette[i] | 0xff000000;
+#endif
+		}
 	}
 
 	// Skip unrecognized parts of the header
@@ -168,7 +214,8 @@ bool BitmapCodecBMP::encode(const Bitmap& bitmap, OutputStream& stream)
 	// Header
 	BmpHeader header;
 	memset(&header, 0, sizeof(BmpHeader));
-	memcpy(header.signature, "BM", 2);
+	header.signature[0] = 'B';
+	header.signature[1] = 'M';
 	header.fileSize = headerSize + dataSize;
 	header.headerSize = headerSize;
 	header.dibHeaderSize = 40;
@@ -179,15 +226,29 @@ bool BitmapCodecBMP::encode(const Bitmap& bitmap, OutputStream& stream)
 	header.dataSize = dataSize;
 	header.resolutionX = 0xb40;
 	header.resolutionY = 0xb40;
-	stream << header;
+	
+	std::vector<uint8> headerData;
+	VectorBinarySerializer serializer(false, headerData);
+	serializeBMP(serializer, header);
+	stream.write(&headerData[0], headerData.size());
 
 	uint32* output = new uint32[width];
 
 	for (int y = 0; y < height; ++y)
 	{
 		const uint32* src = bitmap.getPixelPointer(0, height-y-1);
+#if !defined(PLATFORM_PS3)
 		for (int x = 0; x < width; ++x)
 			output[x] = RGBA_to_BGRA(src[x]);
+#else
+		for (int x = 0; x < width; ++x)
+			output[x] = src[x];
+#endif
+		
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		for (int x = 0; x < width; ++x)
+			output[x] = swapBytes32(output[x]);
+#endif
 		stream.write(output, width*4);
 	}
 

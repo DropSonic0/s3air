@@ -28,7 +28,21 @@ bool rmx::decodeWithStbImage(Bitmap& bitmap, const void* data, size_t size, Bitm
 	if (data_stb)
 	{
 		bitmap.create(width, height);
-		memcpy(bitmap.getData(), data_stb, width * height * 4);
+		uint32* dst = bitmap.getData();
+		const uint32* src = (const uint32*)data_stb;
+		const int pixels = width * height;
+		for (int i = 0; i < pixels; ++i)
+		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			// stb_image returns RGBA in byte order. On a Big-Endian machine, this is 0xRRGGBBAA.
+			// The engine on PS3 expects ARGB in byte order (0xAARRGGBB on Big-Endian).
+			// So we need to rotate RGBA to ARGB: (RGBA >> 8) | (RGBA << 24)
+			const uint32 rgba = src[i];
+			dst[i] = (rgba >> 8) | (rgba << 24);
+#else
+			dst[i] = src[i];
+#endif
+		}
 		stbi_image_free(data_stb);
 		outResult.mError = (Bitmap::LoadResult::Error_t)Bitmap::LoadResult::Error::OK;
 		return true;

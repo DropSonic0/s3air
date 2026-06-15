@@ -378,7 +378,20 @@ bool BitmapCodecPNG::encode(const Bitmap& bitmap, OutputStream& stream)
 	for (int line = 0; line < height; ++line)
 	{
 		tmpdata[line*(width*4+1)] = 0;
-		memcpy(&tmpdata[line*(width*4+1)+1], bitmap.getPixelPointer(0, line), width*4);
+		uint32* dst = (uint32*)&tmpdata[line*(width*4+1)+1];
+		const uint32* src = bitmap.getPixelPointer(0, line);
+		for (int x = 0; x < width; ++x)
+		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			// On PS3, internal format is ARGB (0xAARRGGBB). 
+			// PNG expects RGBA (0xRRGGBBAA).
+			// So we rotate ARGB to RGBA: (ARGB << 8) | (ARGB >> 24)
+			const uint32 argb = src[x];
+			dst[x] = (argb << 8) | (argb >> 24);
+#else
+			dst[x] = src[x];
+#endif
+		}
 	}
 	int outsize = 0;
 	uint8* output = Deflate::encode(outsize, tmpdata, (width*4+1)*height);			// TODO: Optionally use ZlibDeflate here as well

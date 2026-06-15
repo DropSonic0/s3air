@@ -47,10 +47,18 @@ uint32 Color::getARGB32() const
 
 uint32 Color::getABGR32() const
 {
+#if defined(PLATFORM_PS3)
+	// On PS3, we use ARGB as the 32-bit pixel format
+	return ((uint32)(::saturate(a) * 255) << 24)
+		 + ((uint32)(::saturate(r) * 255) << 16)
+		 + ((uint32)(::saturate(g) * 255) << 8)
+		 + ((uint32)(::saturate(b) * 255));
+#else
 	return ((uint32)(::saturate(r) * 255))
 		 + ((uint32)(::saturate(g) * 255) << 8)
 		 + ((uint32)(::saturate(b) * 255) << 16)
 		 + ((uint32)(::saturate(a) * 255) << 24);
+#endif
 }
 
 Color::Color(uint32 color, Encoding_t encoding) : Vec4f(Uninitialized)
@@ -86,10 +94,18 @@ void Color::setARGB32(uint32 colorARGB)
 
 void Color::setABGR32(uint32 colorABGR)
 {
+#if defined(PLATFORM_PS3)
+	// On PS3, we use ARGB as the 32-bit pixel format
+	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
+	r = (float)((colorABGR >> 16) & 0xff) / 255.0f;
+	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
+	b = (float)((colorABGR)       & 0xff) / 255.0f;
+#else
 	r = (float)((colorABGR)       & 0xff) / 255.0f;
 	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
 	b = (float)((colorABGR >> 16) & 0xff) / 255.0f;
 	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
+#endif
 }
 
 void Color::setFromHSL(const Vec3f& hsl)
