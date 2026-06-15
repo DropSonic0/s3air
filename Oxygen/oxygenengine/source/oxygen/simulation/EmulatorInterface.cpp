@@ -11,7 +11,7 @@
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/GameProfile.h"
 #include "oxygen/resources/ResourcesCache.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 namespace emulatorinterface
 {
@@ -222,19 +222,19 @@ uint8 EmulatorInterface::readMemory8(uint32 address)
 uint16 EmulatorInterface::readMemory16(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 2);
-	return rmx::readMemoryUnalignedSwapped<uint16>(pointer);
+	return rmx::readMemoryUnalignedBE<uint16>(pointer);
 }
 
 uint32 EmulatorInterface::readMemory32(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 4);
-	return rmx::readMemoryUnalignedSwapped<uint32>(pointer);
+	return rmx::readMemoryUnalignedBE<uint32>(pointer);
 }
 
 uint64 EmulatorInterface::readMemory64(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 8);
-	return rmx::readMemoryUnalignedSwapped<uint64>(pointer);
+	return rmx::readMemoryUnalignedBE<uint64>(pointer);
 }
 
 void EmulatorInterface::writeMemory8(uint32 address, uint8 value)
@@ -244,21 +244,20 @@ void EmulatorInterface::writeMemory8(uint32 address, uint8 value)
 
 void EmulatorInterface::writeMemory16(uint32 address, uint16 value)
 {
-	uint16* mem = (uint16*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 2);
-	*mem = swapBytes16(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 2);
+	rmx::writeMemoryUnalignedBE<uint16>(mem, value);
 }
 
 void EmulatorInterface::writeMemory32(uint32 address, uint32 value)
 {
-	uint32* mem = (uint32*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 4);
-	*mem = swapBytes32(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 4);
+	rmx::writeMemoryUnalignedBE<uint32>(mem, value);
 }
 
 void EmulatorInterface::writeMemory64(uint32 address, uint64 value)
 {
-	// TODO: Check if the ARM byte alignment issue an Android (see "readMemory64") can happen here as well
-	uint64* mem = (uint64*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 8);
-	*mem = swapBytes64(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 8);
+	rmx::writeMemoryUnalignedBE<uint64>(mem, value);
 }
 
 void EmulatorInterface::writeMemory8_dev(uint32 address, uint8 value)
@@ -268,20 +267,20 @@ void EmulatorInterface::writeMemory8_dev(uint32 address, uint8 value)
 
 void EmulatorInterface::writeMemory16_dev(uint32 address, uint16 value)
 {
-	uint16* mem = (uint16*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 2);
-	*mem = swapBytes16(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 2);
+	rmx::writeMemoryUnalignedBE<uint16>(mem, value);
 }
 
 void EmulatorInterface::writeMemory32_dev(uint32 address, uint32 value)
 {
-	uint32* mem = (uint32*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 4);
-	*mem = swapBytes32(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 4);
+	rmx::writeMemoryUnalignedBE<uint32>(mem, value);
 }
 
 void EmulatorInterface::writeMemory64_dev(uint32 address, uint64 value)
 {
-	uint64* mem = (uint64*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 8);
-	*mem = swapBytes64(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 8);
+	rmx::writeMemoryUnalignedBE<uint64>(mem, value);
 }
 
 uint32& EmulatorInterface::getRegister(size_t index)
@@ -321,13 +320,12 @@ uint8* EmulatorInterface::getVRam()
 
 uint16 EmulatorInterface::readVRam16(uint16 vramAddress)
 {
-	return *(uint16*)(mInternal.mVRam + vramAddress);
+	return rmx::readMemoryUnalignedBE<uint16>(mInternal.mVRam + vramAddress);
 }
 
 void EmulatorInterface::writeVRam16(uint16 vramAddress, uint16 value)
 {
-	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
-	*dst = value;
+	rmx::writeMemoryUnalignedBE(mInternal.mVRam + vramAddress, value);
 
 	// Mark as changed
 	mInternal.mVRamChangeBits.setBit(vramAddress >> 5);
@@ -338,11 +336,10 @@ void EmulatorInterface::fillVRam(uint16 vramAddress, uint16 fillValue, uint16 by
 	if (bytes == 0)
 		return;
 
-	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
+	uint8* dst = mInternal.mVRam + vramAddress;
 	for (uint16 i = 0; i < bytes; i += 2)
 	{
-		*dst = fillValue;
-		++dst;
+		rmx::writeMemoryUnalignedBE(dst + i, fillValue);
 	}
 
 	// Mark as changed
@@ -357,11 +354,11 @@ void EmulatorInterface::copyFromMemoryToVRam(uint16 vramAddress, uint32 sourceAd
 		return;
 
 	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
-	const uint16* src = (uint16*)(mInternal.accessMemory<MEMORY_MODE_READ>(sourceAddress, bytes));
-	const uint16* end = src + (bytes / 2);
-	for (; src != end; ++src, ++dst)
+	const uint8* src = mInternal.accessMemory<MEMORY_MODE_READ>(sourceAddress, bytes);
+	for (uint16 i = 0; i < bytes; i += 2)
 	{
-		*dst = swapBytes16(*src);
+		*dst = rmx::readMemoryUnalignedBE<uint16>(src + i);
+		++dst;
 	}
 
 	// Mark as changed

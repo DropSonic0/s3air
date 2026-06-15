@@ -10,6 +10,7 @@
 #include "oxygen/simulation/bindings/LemonScriptBindings.h"
 #include "oxygen/simulation/bindings/RendererBindings.h"
 #include "oxygen/simulation/CodeExec.h"
+#include "Endian/S3AIREndian.hpp"
 
 #if defined(PLATFORM_PS3)
 DebugNotificationInterface* LemonScriptBindings::mDebugNotificationInterface = nullptr;
@@ -165,10 +166,9 @@ namespace
 
 		uint8* pointer = getEmulatorInterface().getMemoryPointer(startAddress, true, bytes);
 
-		value = (value << 8) + (value >> 8);
 		for (uint32 i = 0; i < bytes; i += 2)
 		{
-			*(uint16*)(&pointer[i]) = value;
+			rmx::writeMemoryUnalignedBE<uint16>(&pointer[i], value);
 		}
 	}
 
@@ -179,14 +179,9 @@ namespace
 
 		uint8* pointer = getEmulatorInterface().getMemoryPointer(startAddress, true, bytes);
 
-		value = ((value & 0x000000ff) << 24)
-			  + ((value & 0x0000ff00) << 8)
-			  + ((value & 0x00ff0000) >> 8)
-			  + ((value & 0xff000000) >> 24);
-
 		for (uint32 i = 0; i < bytes; i += 4)
 		{
-			*(uint32*)(&pointer[i]) = value;
+			rmx::writeMemoryUnalignedBE<uint32>(&pointer[i], value);
 		}
 	}
 
@@ -343,10 +338,10 @@ namespace
 
 		const std::vector<Color>& colors = palette->mColors;
 		const size_t numColors = std::min<size_t>(colors.size(), maxColors);
-		uint32* targetPointer = (uint32*)getEmulatorInterface().getMemoryPointer(targetAddress, true, (uint32)numColors * 4);
+		uint8* targetPointer = getEmulatorInterface().getMemoryPointer(targetAddress, true, (uint32)numColors * 4);
 		for (size_t i = 0; i < numColors; ++i)
 		{
-			targetPointer[i] = palette->mColors[i].getRGBA32();
+			rmx::writeMemoryUnalignedBE<uint32>(&targetPointer[i * 4], palette->mColors[i].getRGBA32());
 		}
 		return (uint16)numColors;
 	}

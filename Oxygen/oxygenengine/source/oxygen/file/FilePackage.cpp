@@ -72,7 +72,7 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 		const uint8* entryPtr = serializer.peek();
 		if (header.mBigEndian)
 		{
-			keyLengthValue = rmx::readMemoryUnalignedSwapped<uint16>(entryPtr);
+			keyLengthValue = rmx::readMemoryUnalignedBE<uint16>(entryPtr);
 		}
 		else
 		{
@@ -94,8 +94,8 @@ bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::w
 		entryPtr = serializer.peek();
 		if (header.mBigEndian)
 		{
-			posValue = rmx::readMemoryUnalignedSwapped<uint32>(entryPtr + 0);
-			sizeValue = rmx::readMemoryUnalignedSwapped<uint32>(entryPtr + 4);
+			posValue = rmx::readMemoryUnalignedBE<uint32>(entryPtr + 0);
+			sizeValue = rmx::readMemoryUnalignedBE<uint32>(entryPtr + 4);
 		}
 		else
 		{
@@ -211,18 +211,21 @@ void FilePackage::createFilePackage(const std::wstring& packageFilename, const s
 
 		serializer.write(PackageHeader::SIGNATURE, 4);
 		const uint32 formatVersion = PackageHeader::CURRENT_FORMAT_VERSION;
-		const LE<uint32> formatVersionLE = formatVersion;
-		serializer.write(&formatVersionLE.raw, 4);
+		uint32 formatVersionValue;
+		rmx::writeMemoryUnalignedLE(&formatVersionValue, formatVersion);
+		serializer.write(&formatVersionValue, 4);
 
-		const LE<uint32> contentVersionLE = contentVersion;
-		serializer.write(&contentVersionLE.raw, 4);
+		uint32 contentVersionValue;
+		rmx::writeMemoryUnalignedLE(&contentVersionValue, contentVersion);
+		serializer.write(&contentVersionValue, 4);
 
 		const size_t headerSizePosition = output.size();
-		const LE<uint32> zeroLE = 0;
-		serializer.write(&zeroLE.raw, 4);		// Will get overwritten
+		uint32 zeroValue = 0;
+		serializer.write(&zeroValue, 4);		// Will get overwritten
 
-		const LE<uint32> numEntriesLE = (uint32)packedFiles.size();
-		serializer.write(&numEntriesLE.raw, 4);
+		uint32 numEntriesValue;
+		rmx::writeMemoryUnalignedLE(&numEntriesValue, (uint32)packedFiles.size());
+		serializer.write(&numEntriesValue, 4);
 
 		for (std::map<std::wstring, PackedFile>::iterator it = packedFiles.begin(); it != packedFiles.end(); ++it)
 		{
@@ -230,23 +233,23 @@ void FilePackage::createFilePackage(const std::wstring& packageFilename, const s
 			PackedFile& packedFile = it->second;
 			serializer.write(key, 1024);
 			packedFile.mPositionInFile = (uint32)output.size();		// Temporarily misusing this variable to store the position where to write the content's position in file when it got determined
-			serializer.write(&zeroLE.raw, 4);							// Will get overwritten
-			const LE<uint32> contentSizeLE = (uint32)packedFile.mContent.size();
-			serializer.write(&contentSizeLE.raw, 4);
+			serializer.write(&zeroValue, 4);							// Will get overwritten
+			
+			uint32 contentSizeValue;
+			rmx::writeMemoryUnalignedLE(&contentSizeValue, (uint32)packedFile.mContent.size());
+			serializer.write(&contentSizeValue, 4);
 		}
 
 		// Write entry header size
 		entryHeaderSize = output.size() - PackageHeader::HEADER_SIZE;
-		const LE<uint32> entryHeaderSizeLE = (uint32)entryHeaderSize;
-		memcpy(&output[headerSizePosition], &entryHeaderSizeLE.raw, 4);
+		rmx::writeMemoryUnalignedLE(&output[headerSizePosition], (uint32)entryHeaderSize);
 
 		for (std::map<std::wstring, PackedFile>::iterator it = packedFiles.begin(); it != packedFiles.end(); ++it)
 		{
 			PackedFile& packedFile = it->second;
 			const uint32 position = (uint32)output.size();
 			serializer.write(&packedFile.mContent[0], packedFile.mContent.size());
-			const LE<uint32> positionLE = position;
-			memcpy(&output[packedFile.mPositionInFile], &positionLE.raw, 4);
+			rmx::writeMemoryUnalignedLE(&output[packedFile.mPositionInFile], position);
 			packedFile.mPositionInFile = position;
 		}
 	}
@@ -306,9 +309,9 @@ bool FilePackage::readPackageHeader(PackageHeader& outHeader, VectorBinarySerial
 	const uint8* dataPtr = serializer.peek();
 	if (outHeader.mBigEndian)
 	{
-		outHeader.mContentVersion = rmx::readMemoryUnalignedSwapped<uint32>(dataPtr + 0);
-		outHeader.mEntryHeaderSize = rmx::readMemoryUnalignedSwapped<uint32>(dataPtr + 4);
-		outHeader.mNumEntries = (size_t)rmx::readMemoryUnalignedSwapped<uint32>(dataPtr + 8);
+		outHeader.mContentVersion = rmx::readMemoryUnalignedBE<uint32>(dataPtr + 0);
+		outHeader.mEntryHeaderSize = rmx::readMemoryUnalignedBE<uint32>(dataPtr + 4);
+		outHeader.mNumEntries = (size_t)rmx::readMemoryUnalignedBE<uint32>(dataPtr + 8);
 	}
 	else
 	{

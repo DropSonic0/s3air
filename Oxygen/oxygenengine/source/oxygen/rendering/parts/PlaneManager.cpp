@@ -240,7 +240,7 @@ void PlaneManager::setPatternAtIndex(int planeIndex, uint16 patternIndex, uint16
 
 const uint16* PlaneManager::getPlaneContent(int planeIndex, uint16 patternIndex) const
 {
-	return (uint16*)(EmulatorInterface::instance().getVRam() + getPatternVRAMAddress(planeIndex, patternIndex));
+	return (const uint16*)(EmulatorInterface::instance().getVRam() + getPatternVRAMAddress(planeIndex, patternIndex));
 }
 
 void PlaneManager::setupPlaneW(bool use, uint16 splitY)

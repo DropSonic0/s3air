@@ -37,6 +37,11 @@ void SaveStateMenu::init(bool forLoading)
 	mSaveStateDirectory[0] = Configuration::instance().mSaveStatesDir;
 	mSaveStateDirectory[1] = Configuration::instance().mSaveStatesDirLocal;
 
+#if defined(PLATFORM_PS3)
+	printf("PS3 SaveStateMenu::init - Dir[0]: %s, Dir[1]: %s\n", WString(mSaveStateDirectory[0]).toStdString().c_str(), WString(mSaveStateDirectory[1]).toStdString().c_str());
+	fflush(stdout);
+#endif
+
 	mForLoading = forLoading;
 	mHadFirstUpdate = false;
 	mEntries.clear();
@@ -46,10 +51,21 @@ void SaveStateMenu::init(bool forLoading)
 	for (int type = 1; type >= 0; --type)
 	{
 		FileCrawler fc;
-		fc.addFiles(mSaveStateDirectory[type] + L"/*.state");
+		WString mask = mSaveStateDirectory[type] + L"/*.state";
+		fc.addFiles(mask);
+
+#if defined(PLATFORM_PS3)
+		printf("PS3 SaveStateMenu::init - Searching %s, found %u files\n", mask.toStdString().c_str(), (uint32)fc.size());
+		fflush(stdout);
+#endif
+
 		for (size_t i = 0; i < fc.size(); ++i)
 		{
 			std::wstring name = fc[i]->mFilename;
+#if defined(PLATFORM_PS3)
+			printf("PS3 SaveStateMenu::init - Found file: %s\n", WString(name).toStdString().c_str());
+			fflush(stdout);
+#endif
 			name.erase(name.length() - 6);		// Remove ".state"
 			addEntry(name, (Entry::Type)type, addPadding ? 12 : 0);
 			addPadding = false;
@@ -332,9 +348,17 @@ void SaveStateMenu::onAccept(bool loadingAllowed, bool savingAllowed)
 			EngineMain::getDelegate().onPreSaveStateLoad();
 
 			const Entry& entry = mEntries[mHighlightedIndex];
+#if defined(PLATFORM_PS3)
+			printf("PS3 SaveStateMenu::onAccept(load) - Highlighted: %s, Type: %d\n", WString(entry.mName).toStdString().c_str(), (int)entry.mType);
+			fflush(stdout);
+#endif
 			if (entry.mType <= Entry::Type::SAVESTATE_LOCAL)
 			{
 				const WString filename = WString(mSaveStateDirectory[(size_t)entry.mType]) + entry.mName + L".state";
+#if defined(PLATFORM_PS3)
+				printf("PS3 SaveStateMenu::onAccept(load) - filename: %s\n", filename.toStdString().c_str());
+				fflush(stdout);
+#endif
 				simulation.loadState(*filename);
 			}
 			else if (entry.mType == Entry::Type::RESET)
@@ -348,9 +372,17 @@ void SaveStateMenu::onAccept(bool loadingAllowed, bool savingAllowed)
 		if (savingAllowed && mHighlightedIndex < mEntries.size())
 		{
 			const Entry& entry = mEntries[mHighlightedIndex];
+#if defined(PLATFORM_PS3)
+			printf("PS3 SaveStateMenu::onAccept(save) - Highlighted: %s, Type: %d\n", WString(entry.mName).toStdString().c_str(), (int)entry.mType);
+			fflush(stdout);
+#endif
 			if (entry.mType != Entry::Type::RESET && !entry.mName.empty())
 			{
 				const WString filename = WString(mSaveStateDirectory[1]) + entry.mName + L".state";
+#if defined(PLATFORM_PS3)
+				printf("PS3 SaveStateMenu::onAccept(save) - filename: %s\n", filename.toStdString().c_str());
+				fflush(stdout);
+#endif
 				simulation.saveState(*filename);
 			}
 		}

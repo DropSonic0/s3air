@@ -2,13 +2,13 @@
 	// Paths
 	"ScriptsDir":     "scripts",
 	"MainScriptName": "main.lemon",
-	"SaveStatesDir":  "saves/states",
+	"SaveStatesDir":  "/dev_hdd0/game/SONIC3AIR/USRDIR/savestates/",
 
 	// Platform override ("1": desktop, "2": mobile, "-1": auto-selection)
 	"PlatformFlags": "-1",
 
 	// Game
-	"StartPhase": "3",				// 0: Disclaimer, 1: Title Screen, 2: Main Menu, 3: In-game (loading a save state)
+	"StartPhase": "2",				// 0: Disclaimer, 1: Title Screen, 2: Main Menu, 3: In-game (loading a save state)
 
 	// Video
 	"WindowSize": "1200 x 740",

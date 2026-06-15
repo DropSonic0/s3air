@@ -495,6 +495,7 @@ private:
 
 	uint16 read16(uint16 address)
 	{
+		// Z80 is Little-Endian
 		return read8(address) + ((uint16)read8(address + 1) << 8);
 	}
 
@@ -3635,6 +3636,10 @@ private:
 	uint8& zSpindashRev		  = mRam[0x1c27];
 	uint8& zRingSpeaker		  = mRam[0x1c28];
 	uint8& zFadeInTimeout	  = mRam[0x1c29];
+	// Note: The following are references to uint16 in mRam, which is Z80 RAM (Little-Endian)
+	// On a Big-Endian host, accessing these as uint16& would be wrong.
+	// But SoundDriver seems to use them for direct access.
+	// Let's check how they are used.
 	uint16& zVoiceTblPtrSave  = *(uint16*)&mRam[0x1c2a];
 	uint8& zCurrentTempoSave  = mRam[0x1c2c];
 	uint8& zSongBankSave	  = mRam[0x1c2d];

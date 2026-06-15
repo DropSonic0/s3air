@@ -129,7 +129,36 @@ bool SaveStateSerializer::serializeState(VectorBinarySerializer& serializer, Sta
 
 		// RAM and VRAM
 		serializer.serialize(emulatorInterface.getRam(), 0x10000);
-		serializer.serialize(emulatorInterface.getVRam(), 0x10000);
+	
+	uint8* vram = emulatorInterface.getVRam();
+#if defined(PLATFORM_PS3)
+	// On PS3, VRAM is handled as uint16 array, which might be in Big-Endian.
+	// But it is actually a uint8 array of 0x10000 bytes. 
+	// However, EmulatorInterface::readVRam16 and writeVRam16 use *(uint16*).
+	// If VRAM is intended to be compatible with LE save states, we should swap if host is BE.
+	if (serializer.isReading())
+	{
+		serializer.serialize(vram, 0x10000);
+		for (int i = 0; i < 0x10000; i += 2)
+		{
+			uint16* p = (uint16*)&vram[i];
+			*p = rmx::swapBytes<uint16>(*p);
+		}
+	}
+	else
+	{
+		std::vector<uint8> vramCopy(0x10000);
+		memcpy(&vramCopy[0], vram, 0x10000);
+		for (int i = 0; i < 0x10000; i += 2)
+		{
+			uint16* p = (uint16*)&vramCopy[i];
+			*p = rmx::swapBytes<uint16>(*p);
+		}
+		serializer.serialize(&vramCopy[0], 0x10000);
+	}
+#else
+	serializer.serialize(vram, 0x10000);
+#endif
 		if (serializer.isReading())
 			emulatorInterface.getVRamChangeBits().setAllBits();
 
@@ -169,7 +198,24 @@ bool SaveStateSerializer::serializeState(VectorBinarySerializer& serializer, Sta
 		mRenderParts.getPaletteManager().serializeSaveState(serializer, formatVersion);
 
 		// VSRAM
-		serializer.serialize(emulatorInterface.getVSRam(), 0x80);
+	uint16* vsram = emulatorInterface.getVSRam();
+#if defined(PLATFORM_PS3)
+	if (serializer.isReading())
+	{
+		serializer.serialize(vsram, 0x80);
+		for (int i = 0; i < 0x40; ++i)
+			vsram[i] = rmx::swapBytes<uint16>(vsram[i]);
+	}
+	else
+	{
+		uint16 vsramCopy[0x40];
+		for (int i = 0; i < 0x40; ++i)
+			vsramCopy[i] = rmx::swapBytes<uint16>(vsram[i]);
+		serializer.serialize(vsramCopy, 0x80);
+	}
+#else
+	serializer.serialize(vsram, 0x80);
+#endif
 
 		// Other graphics managers
 		mRenderParts.getPlaneManager().serializeSaveState(serializer, formatVersion);

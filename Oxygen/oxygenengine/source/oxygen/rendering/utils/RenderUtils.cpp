@@ -8,7 +8,7 @@
 
 #include "oxygen/pch.h"
 #include "oxygen/rendering/utils/RenderUtils.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 namespace
 {
@@ -64,37 +64,39 @@ Rectf RenderUtils::getScaleToFillRect(const Rectf& frameRect, float aspectRatio)
 
 void RenderUtils::expandPatternDataFromVRAM(uint8* dst, const void* src_)
 {
-	uint32* src = (uint32*)src_;
+	const uint8* src = (const uint8*)src_;
 	for (uint8 y = 0; y < 8; ++y)
 	{
-		const uint32 bp = src[y];
-		dst[0] = (bp >> 12) & 0x0f;
-		dst[1] = (bp >> 8)  & 0x0f;
-		dst[2] = (bp >> 4)  & 0x0f;
-		dst[3] = (bp >> 0)  & 0x0f;
-		dst[4] = (bp >> 28) & 0x0f;
-		dst[5] = (bp >> 24) & 0x0f;
-		dst[6] = (bp >> 20) & 0x0f;
-		dst[7] = (bp >> 16) & 0x0f;
+		const uint32 bp = rmx::readMemoryUnalignedBE<uint32>(src);
+		dst[0] = (bp >> 28) & 0x0f;
+		dst[1] = (bp >> 24) & 0x0f;
+		dst[2] = (bp >> 20) & 0x0f;
+		dst[3] = (bp >> 16) & 0x0f;
+		dst[4] = (bp >> 12) & 0x0f;
+		dst[5] = (bp >> 8)  & 0x0f;
+		dst[6] = (bp >> 4)  & 0x0f;
+		dst[7] = (bp >> 0)  & 0x0f;
 		dst += 8;
+		src += 4;
 	}
 }
 
 void RenderUtils::expandPatternDataFromROM(uint8* dst, const void* src_)
 {
-	uint32* src = (uint32*)src_;
+	const uint8* src = (const uint8*)src_;
 	for (uint8 y = 0; y < 8; ++y)
 	{
-		const uint32 bp = src[y];
-		dst[0] = (bp >> 4)  & 0x0f;
-		dst[1] = (bp >> 0)  & 0x0f;
-		dst[2] = (bp >> 12) & 0x0f;
-		dst[3] = (bp >> 8)  & 0x0f;
-		dst[4] = (bp >> 20) & 0x0f;
-		dst[5] = (bp >> 16) & 0x0f;
-		dst[6] = (bp >> 28) & 0x0f;
-		dst[7] = (bp >> 24) & 0x0f;
+		const uint32 bp = rmx::readMemoryUnalignedBE<uint32>(src);
+		dst[0] = (bp >> 28) & 0x0f;
+		dst[1] = (bp >> 24) & 0x0f;
+		dst[2] = (bp >> 20) & 0x0f;
+		dst[3] = (bp >> 16) & 0x0f;
+		dst[4] = (bp >> 12) & 0x0f;
+		dst[5] = (bp >> 8)  & 0x0f;
+		dst[6] = (bp >> 4)  & 0x0f;
+		dst[7] = (bp >> 0)  & 0x0f;
 		dst += 8;
+		src += 4;
 	}
 }
 

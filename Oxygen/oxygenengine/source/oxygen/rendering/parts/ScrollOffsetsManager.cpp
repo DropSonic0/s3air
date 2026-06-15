@@ -10,7 +10,7 @@
 #include "oxygen/rendering/parts/ScrollOffsetsManager.h"
 #include "oxygen/rendering/parts/PlaneManager.h"
 #include "oxygen/simulation/EmulatorInterface.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 // This bitmask is applied to reduce the necessary precision in "render_plane.shader"
 //  -> That's needed because on some Android devices, we don't even get full 16-bit integers
@@ -78,13 +78,13 @@ void ScrollOffsetsManager::refresh(const RefreshParameters& refreshParameters)
 			bool* overwriteFlags = mSets[index].mExplicitOverwriteH;
 			if (index < 2)
 			{
-				const uint16* src = (uint16*)&EmulatorInterface::instance().getVRam()[mHorizontalScrollTableBase + (1 - index) * 2];
+				const uint8* src = &EmulatorInterface::instance().getVRam()[mHorizontalScrollTableBase + (1 - index) * 2];
 				for (int k = 0; k < 0x100; ++k)
 				{
 					if (!overwriteFlags[k])
 					{
 						const int srcIndex = k & mHorizontalScrollMask;
-						buffer[k] = (-src[srcIndex*2]) & SCROLL_OFFSET_VALUE_BITMASK;
+						buffer[k] = (-rmx::readMemoryUnalignedBE<uint16>(src + srcIndex * 4)) & SCROLL_OFFSET_VALUE_BITMASK;
 					}
 				}
 			}
@@ -116,12 +116,12 @@ void ScrollOffsetsManager::refresh(const RefreshParameters& refreshParameters)
 			if (index < 2)
 			{
 				// One entry in VSRAM for each pattern column
-				const uint16* src = &EmulatorInterface::instance().getVSRam()[1 - index];
+				const uint16* src = EmulatorInterface::instance().getVSRam();
 				for (int k = 0; k < 0x20; ++k)
 				{
 					if (!overwriteFlags[k])
 					{
-						buffer[k] = src[k*2] & SCROLL_OFFSET_VALUE_BITMASK;
+						buffer[k] = rmx::readMemoryUnalignedBE<uint16>((const uint8*)src + ((1 - index) + k * 2) * 2) & SCROLL_OFFSET_VALUE_BITMASK;
 					}
 				}
 			}

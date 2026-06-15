@@ -9,6 +9,7 @@
 #include "oxygen/pch.h"
 #include "oxygen/rendering/parts/PaletteManager.h"
 #include "oxygen/simulation/EmulatorInterface.h"
+#include "Endian/S3AIREndian.hpp"
 
 
 #if defined(PLATFORM_PS3)
@@ -97,10 +98,7 @@ Color PaletteManager::unpackColor(uint16 packedColor)
 	// Note that extended packed colors can be matched to the original packed colors when not using the lowermost 2 bits of each channel
 	//  -> That also means when using these bits as well, they can even go higher than pure white at 0xff, but they will get clamped at that point
 
-	uint32 color = 0xff000000;
-	uint8& r = ((uint8*)&color)[0];
-	uint8& g = ((uint8*)&color)[1];
-	uint8& b = ((uint8*)&color)[2];
+	uint8 r, g, b;
 	if (packedColor & 0x8000)
 	{
 		r = (uint8)std::min(((packedColor) & 0x1f) * 0x09, 0xff);
@@ -113,7 +111,14 @@ Color PaletteManager::unpackColor(uint16 packedColor)
 		g = ((packedColor >> 5) & 0x07) * 0x24;
 		b = ((packedColor >> 9) & 0x07) * 0x24;
 	}
+
+#if defined(PLATFORM_PS3)
+	uint32 color = (r << 24) | (g << 16) | (b << 8) | 0xff;
+	return Color::fromRGBA32(color);
+#else
+	uint32 color = r | (g << 8) | (b << 16) | 0xff000000;
 	return Color::fromABGR32(color);
+#endif
 }
 
 void PaletteManager::preFrameUpdate()
@@ -168,22 +173,29 @@ void PaletteManager::writePaletteEntryPacked(int paletteIndex, uint16 colorIndex
 		return;
 	}
 
-	unsigned int color = (colorIndex & 0x0f) ? 0xff000000 : 0;
+	unsigned int r, g, b;
 	unsigned int packed = (unsigned int)packedColor;
 	if (packed & 0x8000)
 	{
 		static const unsigned int CONV[0x20] = { 0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 255, 255, 255 };
-		color = color | (CONV[((packed))       & 0x1f])
-					  | (CONV[((packed) >> 5)  & 0x1f] << 8)
-					  | (CONV[((packed) >> 10) & 0x1f] << 16);
+		r = CONV[((packed))       & 0x1f];
+		g = CONV[((packed) >> 5)  & 0x1f];
+		b = CONV[((packed) >> 10) & 0x1f];
 	}
 	else
 	{
 		static const unsigned int CONV[8] = { 0, 36, 72, 108, 144, 180, 216, 252 };
-		color = color | (CONV[(packed >> 1) & 0x07])
-					  | (CONV[(packed >> 5) & 0x07] << 8)
-					  | (CONV[(packed >> 9) & 0x07] << 16);
+		r = CONV[(packed >> 1) & 0x07];
+		g = CONV[(packed >> 5) & 0x07];
+		b = CONV[(packed >> 9) & 0x07];
 	}
+
+	unsigned int color;
+#if defined(PLATFORM_PS3)
+	color = ((colorIndex & 0x0f) ? 0x000000ff : 0) | (r << 24) | (g << 16) | (b << 8);
+#else
+	color = ((colorIndex & 0x0f) ? 0xff000000 : 0) | r | (g << 8) | (b << 16);
+#endif
 
 	if (paletteIndex == 0)
 	{

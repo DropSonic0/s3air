@@ -93,6 +93,39 @@ static inline u16 S3AIRByteswap(u16 in) { return SDL_Swap16(in); }
 static inline u32 S3AIRByteswap(u32 in) { return SDL_Swap32(in); }
 static inline u64 S3AIRByteswap(u64 in) { return SDL_Swap64(in); }
 
+namespace rmx
+{
+	template<typename T>
+	inline T readMemoryUnalignedBE(const void* pointer)
+	{
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+		return readMemoryUnalignedSwapped<T>(pointer);
+#else
+		return readMemoryUnaligned<T>(pointer);
+#endif
+	}
+
+	template<typename T>
+	inline void writeMemoryUnalignedBE(void* pointer, T value)
+	{
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN
+		writeMemoryUnalignedSwapped<T>(pointer, value);
+#else
+		writeMemoryUnaligned<T>(pointer, value);
+#endif
+	}
+
+	template<typename T>
+	inline void writeMemoryUnalignedLE(void* pointer, T value)
+	{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		writeMemoryUnalignedSwapped<T>(pointer, value);
+#else
+		writeMemoryUnaligned<T>(pointer, value);
+#endif
+	}
+}
+
 template <typename T>
 struct LE {
     T raw;

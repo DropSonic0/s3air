@@ -79,6 +79,8 @@ bool Simulation::startup()
 	mStateLoaded.clear();
 	if (success && EngineMain::getDelegate().useDeveloperFeatures() && !config.mLoadSaveState.empty())
 	{
+		RMX_LOG_INFO("SaveStatesDirLocal: " << WString(config.mSaveStatesDirLocal).toStdString());
+		RMX_LOG_INFO("SaveStatesDir: " << WString(config.mSaveStatesDir).toStdString());
 		success = loadState(config.mSaveStatesDirLocal + config.mLoadSaveState + L".state", false);
 		if (!success)
 			loadState(config.mSaveStatesDir + config.mLoadSaveState + L".state");
@@ -197,6 +199,11 @@ void Simulation::reloadLastState()
 
 bool Simulation::loadState(const std::wstring& filename, bool showError)
 {
+	RMX_LOG_INFO("Attempting to load save state: " << WString(filename).toStdString());
+#if defined(PLATFORM_PS3)
+	printf("PS3 Attempting to load save state: %s\n", WString(filename).toStdString().c_str());
+	fflush(stdout);
+#endif
 	VideoOut::instance().reset();
 	EngineMain::instance().getAudioOut().reset();
 
@@ -225,6 +232,11 @@ bool Simulation::loadState(const std::wstring& filename, bool showError)
 
 void Simulation::saveState(const std::wstring& filename)
 {
+	RMX_LOG_INFO("Saving save state to: " << WString(filename).toStdString());
+#if defined(PLATFORM_PS3)
+	printf("PS3 Saving save state to: %s\n", WString(filename).toStdString().c_str());
+	fflush(stdout);
+#endif
 	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
 	const bool success = serializer.saveState(filename);
 	RMX_CHECK(success, "Failed to save save state '" << WString(filename).toStdString() << "'", return);
