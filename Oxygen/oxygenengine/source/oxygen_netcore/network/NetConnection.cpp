@@ -322,7 +322,7 @@ void NetConnection::handleLowLevelPacket(ReceivedPacket& receivedPacket)
 
 			// Set remote connection ID, as it was not known before
 			//  -> Unfortunately, we have to get in a somewhat awkward way, as it was skipped in deserialization before
-			mRemoteConnectionID = *(uint16*)serializer.getBufferPointer(2);
+			mRemoteConnectionID = rmx::readMemoryUnalignedLE<uint16>(serializer.getBufferPointer(2));
 			mSenderKey = buildSenderKey(mRemoteAddress, mRemoteConnectionID);
 			mState = State::CONNECTED;
 

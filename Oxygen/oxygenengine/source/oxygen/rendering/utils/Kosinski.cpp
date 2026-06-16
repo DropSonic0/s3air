@@ -9,6 +9,7 @@
 #include "oxygen/pch.h"
 #include "oxygen/rendering/utils/Kosinski.h"
 #include "oxygen/simulation/EmulatorInterface.h"
+#include "Endian/S3AIREndian.hpp"
 
 
 namespace
@@ -30,7 +31,7 @@ namespace
 
 		uint16 nextWord()
 		{
-			const uint16 result = swapBytes16(emulatorInterface.readMemory16(address));
+			const uint16 result = rmx::readMemoryUnalignedLE<uint16>(emulatorInterface.getMemoryPointer(address, false, 2));
 			address += 2;
 			return result;
 		}

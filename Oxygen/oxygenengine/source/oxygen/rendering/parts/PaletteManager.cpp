@@ -279,10 +279,20 @@ void PaletteManager::serializePalette(VectorBinarySerializer& serializer, Palett
 {
 	for (size_t k = 0; k < Palette::NUM_COLORS; ++k)
 	{
-		serializer.serialize(palette.mColor[k]);
+#if defined(PLATFORM_PS3)
+		Color color = Color::fromRGBA32(palette.mColor[k]);
+#else
+		Color color = Color::fromABGR32(palette.mColor[k]);
+#endif
+		color.serialize(serializer);
 
 		if (serializer.isReading())
 		{
+#if defined(PLATFORM_PS3)
+			palette.mColor[k] = color.getRGBA32();
+#else
+			palette.mColor[k] = color.getABGR32();
+#endif
 			palette.setAllPaletteChangeFlags();
 			palette.invalidatePackedColorCache();
 		}

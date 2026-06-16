@@ -507,25 +507,30 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 		{
 			uint32* dst = bitmap.getLinePointer(y);
 			int k = 0;
-		#if !defined(PLATFORM_PS3)
-			if constexpr (sizeof(void*) == 8)
-		#else
-			if (sizeof(void*) == 8)
-		#endif
-			{
-				// On 64-bit architectures: Process 2 pixels at once
-				for (; k < numPixels; k += 2)
-				{
-					const uint64 colors = *(uint64*)dst;
-					*(uint64*)dst = ((colors & 0x00ff000000ff0000ull) >> 16) | (colors & 0xff00ff00ff00ff00ull) | ((colors & 0x000000ff000000ffull) << 16);
-					dst += 2;
-				}
-			}
-			// Process single pixels
+#if defined(PLATFORM_PS3)
+			// PS3/BE uses RGBA32 (RRGGBBAA in memory)
+			const uint32 redMask   = 0xff000000;
+			const uint32 greenMask = 0x00ff0000;
+			const uint32 blueMask  = 0x0000ff00;
+			const uint32 alphaMask = 0x000000ff;
+			const int shift = 16;
+#else
+			// Others/LE uses ABGR32 (AABBGGRR in memory)
+			const uint32 redMask   = 0x000000ff;
+			const uint32 greenMask = 0x0000ff00;
+			const uint32 blueMask  = 0x00ff0000;
+			const uint32 alphaMask = 0xff000000;
+			const int shift = 16;
+#endif
+
 			for (; k < numPixels; ++k)
 			{
 				const uint32 color = *dst;
-				*dst = ((color & 0x00ff0000) >> 16) | (color & 0xff00ff00) | ((color & 0x000000ff) << 16);
+#if defined(PLATFORM_PS3)
+				*dst = ((color & redMask) >> shift) | (color & greenMask) | ((color & blueMask) << shift) | (color & alphaMask);
+#else
+				*dst = ((color & redMask) << shift) | (color & greenMask) | ((color & blueMask) >> shift) | (color & alphaMask);
+#endif
 				++dst;
 			}
 		}

@@ -210,19 +210,27 @@ bool PaletteBitmap::loadBMP(const std::vector<uint8>& bmpContent, Color* outPale
 		return false;
 
 	// Read palette
-	uint32 palette[256];
-	for (int i = 0; i < pal_size; ++i)
-	{
-		serializer.serialize(palette[i]);
-	}
-
 	if (nullptr != outPalette)
 	{
 		for (int i = 0; i < pal_size; ++i)
 		{
-			Color color = Color::fromABGR32(palette[i]);
-			outPalette[i].set(color.b, color.g, color.r, 1.0f);
+			uint32 colorValue;
+			serializer.serialize(colorValue);
+			
+			// BMP palette is in BGR0 format (Little-Endian)
+			// On any host, serializer.serialize(uint32) will give us the host-endian value 
+			// assuming the file was written as uint32. But BMP palette entries are 4 bytes: B, G, R, 0.
+			// This is effectively Little-Endian BGR0.
+			
+			uint8 b = colorValue & 0xff;
+			uint8 g = (colorValue >> 8) & 0xff;
+			uint8 r = (colorValue >> 16) & 0xff;
+			outPalette[i].set(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f);
 		}
+	}
+	else
+	{
+		serializer.skip(pal_size * 4);
 	}
 
 	// Skip unrecognized parts of the header
@@ -304,8 +312,12 @@ bool PaletteBitmap::saveBMP(std::vector<uint8>& bmpContent, const Color* palette
 
 	for (int i = 0; i < 256; ++i)
 	{
-		const Color color(palette[i].b, palette[i].g, palette[i].r, 1.0f);
-		uint32 colorValue = color.getABGR32();
+		// BMP palette is in BGR0 format (Little-Endian)
+		uint8 r = (uint8)roundToInt(saturate(palette[i].r) * 255.0f);
+		uint8 g = (uint8)roundToInt(saturate(palette[i].g) * 255.0f);
+		uint8 b = (uint8)roundToInt(saturate(palette[i].b) * 255.0f);
+		
+		uint32 colorValue = b | (g << 8) | (r << 16);
 		serializer.serialize(colorValue);
 	}
 

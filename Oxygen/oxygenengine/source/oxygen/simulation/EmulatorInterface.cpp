@@ -353,13 +353,8 @@ void EmulatorInterface::copyFromMemoryToVRam(uint16 vramAddress, uint32 sourceAd
 	if (bytes == 0)
 		return;
 
-	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
 	const uint8* src = mInternal.accessMemory<MEMORY_MODE_READ>(sourceAddress, bytes);
-	for (uint16 i = 0; i < bytes; i += 2)
-	{
-		*dst = rmx::readMemoryUnalignedBE<uint16>(src + i);
-		++dst;
-	}
+	memcpy(mInternal.mVRam + vramAddress, src, bytes);
 
 	// Mark as changed
 	const size_t bitIndexStart = (vramAddress >> 5);
@@ -427,7 +422,7 @@ std::vector<EmulatorInterface::Watch>& EmulatorInterface::getWatches()
 
 void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outResult, uint64 address, size_t size, bool writeAccess)
 {
-	outResult.mSwapBytes = true;
+	outResult.mSwapBytes = (SDL_BYTEORDER == SDL_LIL_ENDIAN);
 	address &= 0x00ffffff;
 	if (address >= 0xff0000)
 	{

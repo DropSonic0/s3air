@@ -33,7 +33,11 @@ public:
 	inline const uint32* getData() const	{ return mColor; }
 
 	inline uint32 getEntry(int index) const	{ return (index >= 0 && index < (int)getSize()) ? mColor[index] : 0; }
+#if defined(PLATFORM_PS3)
+	inline Color getColor(int index) const	{ return Color::fromRGBA32(getEntry(index)); }
+#else
 	inline Color getColor(int index) const	{ return Color::fromABGR32(getEntry(index)); }
+#endif
 	uint16 getEntryPacked(uint16 colorIndex, bool allowExtendedPacked = false) const;
 
 	inline const uint64* getChangeFlags() const	{ return mChangeFlags; }
