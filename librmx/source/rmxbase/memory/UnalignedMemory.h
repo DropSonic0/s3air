@@ -31,10 +31,40 @@ namespace rmx
 	}
 
 	template<typename T>
+	T readMemoryUnalignedBE(const void* pointer)
+	{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		return readMemoryUnaligned<T>(pointer);
+#else
+		return readMemoryUnalignedSwapped<T>(pointer);
+#endif
+	}
+
+	template<typename T>
 	void writeMemoryUnaligned(void* pointer, T value) { *(T*)pointer = value; }
 
 	template<typename T>
 	void writeMemoryUnalignedSwapped(void* pointer, T value) { *(T*)pointer = swapBytes<T>(value); }
+
+	template<typename T>
+	void writeMemoryUnalignedLE(void* pointer, T value)
+	{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		writeMemoryUnalignedSwapped<T>(pointer, value);
+#else
+		writeMemoryUnaligned<T>(pointer, value);
+#endif
+	}
+
+	template<typename T>
+	void writeMemoryUnalignedBE(void* pointer, T value)
+	{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		writeMemoryUnaligned<T>(pointer, value);
+#else
+		writeMemoryUnalignedSwapped<T>(pointer, value);
+#endif
+	}
 
 #if defined(__arm__) || defined(PLATFORM_PS3)
 	template<> uint16 readMemoryUnaligned(const void* pointer);

@@ -64,7 +64,7 @@ namespace lemon
 			value = rmx::swapBytes<uint64>(value);
 #endif
 			memcpy(&mChunk[mSize], &value, sizeof(value));
-			++mSize;
+			mSize += sizeof(value);
 		}
 	};
 }

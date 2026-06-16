@@ -113,7 +113,7 @@ namespace lemon
 		static void exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT(const RuntimeOpcodeContext context)
 		{
 			const uint8* pointer = context.getParameter<uint8*>();
-			*context.mControlFlow->mValueStackPtr = *(T*)pointer;
+			*context.mControlFlow->mValueStackPtr = rmx::readMemoryUnaligned<T>(pointer);
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -121,7 +121,7 @@ namespace lemon
 		static void exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT_SWAP(const RuntimeOpcodeContext context)
 		{
 			const uint8* pointer = context.getParameter<uint8*>();
-			*context.mControlFlow->mValueStackPtr = rmx::swapBytes(*(T*)pointer);
+			*context.mControlFlow->mValueStackPtr = rmx::readMemoryUnalignedSwapped<T>(pointer);
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -136,14 +136,14 @@ namespace lemon
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT(const RuntimeOpcodeContext context)
 		{
 			uint8* pointer = context.getParameter<uint8*>();
-			*(T*)pointer = (T)(*(context.mControlFlow->mValueStackPtr-1));
+			rmx::writeMemoryUnaligned<T>(pointer, (T)(*(context.mControlFlow->mValueStackPtr-1)));
 		}
 
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT_SWAP(const RuntimeOpcodeContext context)
 		{
 			uint8* pointer = context.getParameter<uint8*>();
-			*(T*)pointer = rmx::swapBytes((T)(*(context.mControlFlow->mValueStackPtr-1)));
+			rmx::writeMemoryUnalignedSwapped<T>(pointer, (T)(*(context.mControlFlow->mValueStackPtr-1)));
 		}
 
 		template<typename T>

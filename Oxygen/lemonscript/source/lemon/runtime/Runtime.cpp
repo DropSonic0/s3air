@@ -872,7 +872,7 @@ namespace lemon
 						const size_t index = variable->getID() & 0x0fffffff;
 						RMX_CHECK(index < numGlobals, "Invalid global variable index", continue);
 						const size_t offset = mProgram->getGlobalVariables()[index]->getStaticMemoryOffset();
-						memcpy(&mStaticMemory[offset], &value, sizeof(int64));
+						*(int64*)&mStaticMemory[offset] = (int64)value;
 					}
 				}
 			}
@@ -884,7 +884,8 @@ namespace lemon
 					Variable* variable = mProgram->getGlobalVariables()[i];
 					serializer.write(variable->getName().getString());
 					const size_t offset = variable->getStaticMemoryOffset();
-					serializer.write(&mStaticMemory[offset], sizeof(int64));
+					int64 value = *(int64*)&mStaticMemory[offset];
+					serializer & value;
 				}
 			}
 		}
@@ -897,10 +898,11 @@ namespace lemon
 				const size_t numGlobalsShared = std::min(numGlobalsSerialized, numGlobals);
 				for (size_t i = 0; i < numGlobalsShared; ++i)
 				{
-					const int64 value = serializer.read<uint64>();
+					int64 value = 0;
+					serializer & value;
 					RMX_CHECK(i < numGlobals, "Invalid global variable index", continue);
 					const size_t offset = mProgram->getGlobalVariables()[i]->getStaticMemoryOffset();
-					memcpy(&mStaticMemory[offset], &value, sizeof(int64));
+					*(int64*)&mStaticMemory[offset] = value;
 				}
 				if (numGlobalsSerialized > numGlobals)
 				{

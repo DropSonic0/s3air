@@ -52,18 +52,21 @@ namespace lemon
 
 
 
-	void Nativizer::LookupDictionary::addEmptyEntries(const uint64* hashes, size_t numHashes)
+	void Nativizer::LookupDictionary::addEmptyEntries(const void* data, size_t numHashes)
 	{
 #if !defined(PLATFORM_PS3)
 		mEntries.reserve(mEntries.size() + numHashes);
 #endif
+		const uint8* ptr = (const uint8*)data;
 		for (size_t i = 0; i < numHashes; ++i)
 		{
+			const uint64 hash = rmx::readMemoryUnalignedLE<uint64>(ptr);
 #if defined(PLATFORM_PS3)
-			mEntries.insert(std::make_pair(hashes[i], LookupEntry()));
+			mEntries.insert(std::make_pair(hash, LookupEntry()));
 #else
-			mEntries.emplace(hashes[i], LookupEntry());
+			mEntries.emplace(hash, LookupEntry());
 #endif
+			ptr += 8;
 		}
 	}
 
@@ -90,7 +93,7 @@ namespace lemon
 		data = &decompressedData[0];
 		for (LookupEntry::ParameterInfo& info : mParameterData)
 		{
-			info.mOffset = *(uint16*)&data[0];
+			info.mOffset = rmx::readMemoryUnalignedLE<uint16>(&data[0]);
 			info.mOpcodeIndex = data[2];
 			info.mSemantics = (LookupEntry::ParameterInfo::Semantics)data[3];
 			data += 4;
@@ -214,7 +217,12 @@ namespace lemon
 	{
 		const uint8* typePointer = (info.mSpecialType == OpcodeSubtypeInfo::SpecialType::NONE) ? (uint8*)&info.mType : (uint8*)&info.mSpecialType;
 		hash = rmx::addToFNV1a_64(hash, typePointer, 1);
-		hash = rmx::addToFNV1a_64(hash, (uint8*)&info.mSubtypeData, 4);
+
+		uint32 subtypeData = info.mSubtypeData;
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		subtypeData = rmx::swapBytes<uint32>(subtypeData);
+#endif
+		hash = rmx::addToFNV1a_64(hash, (const uint8*)&subtypeData, 4);
 		return hash;
 	}
 
@@ -260,6 +268,14 @@ namespace lemon
 						entriesToWrite.push_back(pair.first);
 					}
 				}
+				// Ensure that the hashes are always written as Little-Endian
+				for (uint64& hash : entriesToWrite)
+				{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+					hash = rmx::swapBytes<uint64>(hash);
+#endif
+				}
+
 				const uint8* data = (const uint8*)&entriesToWrite[0];
 				const size_t bytes = entriesToWrite.size() * 8;
 				const size_t chunks = (bytes + 0x7fff) / 0x8000;
@@ -272,7 +288,7 @@ namespace lemon
 #endif
 					const size_t restBytes = std::min<size_t>(bytes - i * 0x8000, 0x8000);
 					writeBinaryBlob(writer, identifier, &data[i * 0x8000], restBytes);
-					writer.writeLine("dict.addEmptyEntries(reinterpret_cast<const uint64*>(" + identifier + "), " + rmx::hexString(restBytes / 8, 2) + ");");
+					writer.writeLine("dict.addEmptyEntries(" + identifier + ", " + rmx::hexString(restBytes / 8, 2) + ");");
 					writer.writeEmptyLine();
 				}
 			}
@@ -295,7 +311,7 @@ namespace lemon
 				uint8* outPtr = &parameterData[0];
 				for (const LookupEntry::ParameterInfo& parameterInfo : mBuiltDictionary.mParameterData)
 				{
-					*(uint16*)(&outPtr[0]) = (uint16)parameterInfo.mOffset;
+					rmx::writeMemoryUnalignedLE<uint16>(&outPtr[0], (uint16)parameterInfo.mOffset);
 					outPtr[2] = (uint8)parameterInfo.mOpcodeIndex;
 					outPtr[3] = (uint8)parameterInfo.mSemantics;
 					outPtr += 4;

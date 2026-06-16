@@ -78,7 +78,7 @@ namespace lemon
 
 		struct LookupDictionary
 		{
-			void addEmptyEntries(const uint64* hashes, size_t numHashes);
+			void addEmptyEntries(const void* data, size_t numHashes);
 			void loadFunctions(const CompactFunctionEntry* entries, size_t numEntries);
 			void loadParameterInfo(const uint8* data, size_t count);
 

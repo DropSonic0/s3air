@@ -1266,7 +1266,7 @@ private:
 		d = track.ModulationPtrHigh;
 		hl = ix + 0x24;		// Pointer to track.ModulationWait
 
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 		mRam[de]   = read8(hl);
 		mRam[de+1] = read8(hl+1);
 		mRam[de+2] = read8(hl+2);
@@ -1343,7 +1343,7 @@ private:
 		{
 			// zDoModEnvelope:
 			--a;
-			std::swap(hl, de);
+			{ uint16 tmp = hl; hl = de; de = tmp; }
 			c = zID_ModEnvPointers;
 			GetPointerTable();
 			PointerTableOffset();
@@ -1417,7 +1417,7 @@ private:
 
 		l = a;
 		b = track.ModEnvSens + 1;
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 
 		hl += de * b;
 		++track.ModEnvIndex;
@@ -2521,7 +2521,7 @@ private:
 
 		a = track.AMSFMSPan & 0x3f;
 		const uint16 backup_de = de;
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 		a |= read8(hl);
 		track.AMSFMSPan = a;
 
@@ -2990,7 +2990,7 @@ private:
 	// Locations 0x0e61 - ?
 	void cfJumpTo()
 	{
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 		e = read8(hl);
 		++hl;
 		d = read8(hl);
@@ -3606,6 +3606,7 @@ private:
 		uint8& low; uint8& high;
 		inline operator uint16() const { return low | (uint16(high) << 8); }
 		inline uint16 operator=(uint16 val) { low = val & 0xff; high = (val >> 8) & 0xff; return val; }
+		inline uint16 operator=(const Reg16& other) { return *this = uint16(other); }
 		inline uint16 operator+=(uint16 val) { uint16 r = uint16(*this) + val; *this = r; return r; }
 		inline uint16 operator-=(uint16 val) { uint16 r = uint16(*this) - val; *this = r; return r; }
 		inline uint16 operator++() { uint16 r = uint16(*this) + 1; *this = r; return r; }

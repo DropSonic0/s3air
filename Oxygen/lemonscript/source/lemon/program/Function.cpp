@@ -55,6 +55,7 @@ namespace lemon
 
 	uint32 Function::SignatureBuilder::getSignatureHash()
 	{
+		// Note that mData is already in Little-Endian byte order here (see "clear" and "addParameterType")
 		uint32 hash = rmx::getFNV1a_32((const uint8*)&mData[0], mData.size() * sizeof(uint32));
 		while (hash == 0)		// That should be a really rare case anyway
 		{
