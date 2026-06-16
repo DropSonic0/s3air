@@ -7,6 +7,7 @@
 */
 
 #include "oxygen/pch.h"
+#include <cstdio>
 #include "oxygen/platform/PlatformFunctions.h"
 #include "oxygen/helper/HighResolutionTimer.h"
 #include "oxygen/helper/Logging.h"
@@ -442,6 +443,11 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 
 	MessageBoxA(nullptr, text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
 
+#elif defined(PLATFORM_PS3)
+
+	printf("### MESSAGE BOX (%s) ###\n%s\n#######################\n", caption.c_str(), text.c_str());
+	fflush(stdout);
+
 #else
 
 	// A more platform-independent version provided by SDL; should be used as a fallback if there's nothing better
@@ -526,7 +532,16 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 
 	const SDL_MessageBoxData messageboxdata = { flags, nullptr, caption.c_str(), textAsCString, numButtons, buttons, nullptr };
 	int buttonId = 2;
+
+#if defined(PLATFORM_PS3)
+	// On PS3, we don't want to block execution with a message box, as there's no UI for it and it would just freeze the game
+	printf("### DIALOG BOX (%s) ###\n%s\n#######################\n", caption.c_str(), text.c_str());
+	fflush(stdout);
+	buttonId = 0;	// Default to OK / Yes
+#else
 	SDL_ShowMessageBox(&messageboxdata, &buttonId);		// Ignoring return value
+#endif
+
 	return (buttonId == 2) ? DialogResult::CANCEL : (buttonId == 1) ? DialogResult::NO : DialogResult::OK;
 
 #endif

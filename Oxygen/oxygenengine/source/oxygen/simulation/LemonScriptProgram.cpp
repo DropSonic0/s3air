@@ -244,56 +244,15 @@ LemonScriptProgram::LoadScriptsResult LemonScriptProgram::loadScripts(const std:
 		// Deserialize from compiled scripts
 		if (!scriptsLoaded && !config.mForceCompileScripts)
 		{
-			const std::wstring scriptsPath = L"data/scripts.bin";
-			bool loaded = FTX::FileSystem->readFile(scriptsPath, buffer);
-			if (loaded)
-			{
-				RMX_LOG_INFO("Loading scripts from '" << WString(scriptsPath).toStdString() << "' (size=" << buffer.size() << ")");
-			}
-			else if (!config.mCompiledScriptSavePath.empty())
-			{
+			bool loaded = FTX::FileSystem->readFile(L"data/scripts.bin", buffer);
+			if (!loaded && !config.mCompiledScriptSavePath.empty())
 				loaded = FTX::FileSystem->readFile(config.mCompiledScriptSavePath, buffer);
-				if (loaded)
-				{
-					RMX_LOG_INFO("Loading scripts from '" << WString(config.mCompiledScriptSavePath).toStdString() << "' (size=" << buffer.size() << ")");
-				}
-			}
 
 			if (loaded)
 			{
 				VectorBinarySerializer serializer(true, buffer);
 				scriptsLoaded = mInternal.mScriptModule.serialize(serializer, globalsLookup, coreModuleDependencyHash, loadOptions.mAppVersion);
-				if (!scriptsLoaded)
-				{
-					RMX_LOG_ERROR("Failed to load scripts: coreModuleDependencyHash=" << rmx::hexString(coreModuleDependencyHash) << ", appVersion=" << loadOptions.mAppVersion);
-
-					auto logModuleCounts = [](const lemon::Module& module)
-					{
-						RMX_LOG_INFO("Module '" << module.getModuleName() << "' counts: "
-							<< "functions=" << module.getFunctions().size() << ", "
-							<< "variables=" << module.getGlobalVariables().size() << ", "
-							<< "constants=" << module.getConstants().size() << ", "
-							<< "constantArrays=" << module.getConstantArrays().size() << ", "
-							<< "defines=" << module.getDefines().size() << ", "
-							<< "stringLiterals=" << module.getStringLiterals().size());
-
-						std::string vars;
-						for (const auto* var : module.getGlobalVariables())
-						{
-							if (!vars.empty()) vars += ", ";
-							const std::string_view name = var->getName().getString();
-							vars.append(name.data(), name.length());
-						}
-						RMX_LOG_INFO("Module '" << module.getModuleName() << "' variables: " << vars);
-					};
-					logModuleCounts(mInternal.mLemonCoreModule);
-					logModuleCounts(mInternal.mOxygenCoreModule);
-				}
 				RMX_CHECK(scriptsLoaded, "Failed to load 'scripts.bin'", );
-			}
-			else
-			{
-				RMX_LOG_ERROR("Could not find or read scripts.bin");
 			}
 		}
 
