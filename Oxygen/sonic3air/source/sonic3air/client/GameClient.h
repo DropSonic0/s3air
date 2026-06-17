@@ -18,6 +18,8 @@
 
 #if defined(PLATFORM_WEB)
 	#define GAME_CLIENT_USE_WSS		// Emscripten does not support UDP, so we need to use WebSockets
+#elif defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	// UDP networking is currently not supported on PS3
 #else
 	#define GAME_CLIENT_USE_UDP		// This is the default
 	//#define GAME_CLIENT_USE_TCP	// This is just a fallback for platforms which don't support UDP, but TCP (of which we have none at the moment)

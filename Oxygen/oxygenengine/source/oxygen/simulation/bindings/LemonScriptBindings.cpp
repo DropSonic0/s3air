@@ -83,6 +83,38 @@ namespace
 		uint32& reg = getEmulatorInterface().getRegister(index);
 		return reinterpret_cast<int64*>(&reg);
 	}
+#else
+	template<int Index>
+	int64* accessRegisterPS3()
+	{
+		uint32& reg = getEmulatorInterface().getRegister(Index);
+		return reinterpret_cast<int64*>(&reg);
+	}
+
+	typedef int64* (*RegisterAccessor)();
+	RegisterAccessor getRegisterAccessorPS3(size_t index)
+	{
+		switch (index)
+		{
+		case 0: return &accessRegisterPS3<0>;
+		case 1: return &accessRegisterPS3<1>;
+		case 2: return &accessRegisterPS3<2>;
+		case 3: return &accessRegisterPS3<3>;
+		case 4: return &accessRegisterPS3<4>;
+		case 5: return &accessRegisterPS3<5>;
+		case 6: return &accessRegisterPS3<6>;
+		case 7: return &accessRegisterPS3<7>;
+		case 8: return &accessRegisterPS3<8>;
+		case 9: return &accessRegisterPS3<9>;
+		case 10: return &accessRegisterPS3<10>;
+		case 11: return &accessRegisterPS3<11>;
+		case 12: return &accessRegisterPS3<12>;
+		case 13: return &accessRegisterPS3<13>;
+		case 14: return &accessRegisterPS3<14>;
+		case 15: return &accessRegisterPS3<15>;
+		default: return nullptr;
+		}
+	}
 #endif
 
 	void scriptAssert1(uint8 condition, lemon::StringRef text)
@@ -897,8 +929,13 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  std::bind(accessRegister, i));
 #else
-			// On PS3, we can't use std::bind here, and the addExternalVariable API for PS3 expects a raw function pointer (which doesn't support context)
-			//  -> This means that register access via external variables is currently not supported on PS3
+			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, getRegisterAccessorPS3(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  getRegisterAccessorPS3(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   getRegisterAccessorPS3(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".u16", &lemon::PredefinedDataTypes::UINT_16, getRegisterAccessorPS3(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  getRegisterAccessorPS3(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, getRegisterAccessorPS3(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  getRegisterAccessorPS3(i));
 #endif
 		}
 

@@ -631,27 +631,42 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 	//  b) Returned from function that is initially on top of the stack -> this is the usual case if executeSingleFunction == true (and can't happen otherwise)
 	//  c) Reached runtime steps limit, i.e. script got stuck in a loop
 	//  d) Script stopped because its runtime stack was completely emptied
+	const size_t abortOnCallStackSize = executeSingleFunction ? (std::max<size_t>(mLemonScriptRuntime.getCallStackSize(), 1) - 1) : 0;
+	size_t stepsCounter = 0;
+	size_t nextCheckSteps = 0x40000;
+
 	if (!canExecute())
 		return;
 
 	mActiveInstance = this;
 	mCurrentlyRunningScript = true;
-	const size_t abortOnCallStackSize = executeSingleFunction ? (std::max<size_t>(mLemonScriptRuntime.getCallStackSize(), 1) - 1) : 0;
 	mActiveCallFrameTracking = mIsDeveloperMode ? callFrameTracking : nullptr;
 
-	size_t stepsCounter = 0;
-	size_t nextCheckSteps = 0x40000;
 	const uint32 ticksStart = SDL_GetTicks();
 
 	while (true)
 	{
 		// Execute next runtime steps
 		size_t stepsExecutedThisCall;
+		bool success;
+
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+		{
+			static uint32 lastScriptHeartbeat = 0;
+			uint32 now = SDL_GetTicks();
+			if (now - lastScriptHeartbeat > 5000)
+			{
+				printf("PS3 Heartbeat: runScript (steps=%lu)\n", (unsigned long)stepsCounter);
+				fflush(stdout);
+				lastScriptHeartbeat = now;
+			}
+		}
+#endif
 #if !defined(PLATFORM_PS3)
 		try
 #endif
 		{
-			const bool success = (nullptr != mActiveCallFrameTracking) ? executeRuntimeStepsDev(stepsExecutedThisCall, abortOnCallStackSize) : executeRuntimeSteps(stepsExecutedThisCall, abortOnCallStackSize);
+			success = (nullptr != mActiveCallFrameTracking) ? executeRuntimeStepsDev(stepsExecutedThisCall, abortOnCallStackSize) : executeRuntimeSteps(stepsExecutedThisCall, abortOnCallStackSize);
 			if (!success)
 			{
 				if (executeSingleFunction)

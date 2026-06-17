@@ -77,15 +77,22 @@ Game::Game()
 
 void Game::startup(EmulatorInterface& emulatorInterface)
 {
+	RMX_LOG_INFO("Game::startup begin");
 	mEmulatorInterface = &emulatorInterface;
 	mPlayerRecorder.setEmulatorInterface(emulatorInterface);
 
+	RMX_LOG_INFO("Game::startup: loading player progress");
 	mPlayerProgress.load();
+	RMX_LOG_INFO("Game::startup: blue spheres startup");
 	mBlueSpheresRendering.startup();
+	RMX_LOG_INFO("Game::startup: setup client");
 	mGameClient.setupClient();
+	RMX_LOG_INFO("Game::startup: check mods features");
 	checkActiveModsUsedFeatures();
 
+	RMX_LOG_INFO("Game::startup: discord startup");
 	DiscordIntegration::startup();
+	RMX_LOG_INFO("Game::startup end");
 }
 
 void Game::shutdown()

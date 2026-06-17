@@ -443,7 +443,7 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 
 	MessageBoxA(nullptr, text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
 
-#elif defined(PLATFORM_PS3)
+#elif defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 
 	printf("### MESSAGE BOX (%s) ###\n%s\n#######################\n", caption.c_str(), text.c_str());
 	fflush(stdout);
@@ -533,7 +533,7 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 	const SDL_MessageBoxData messageboxdata = { flags, nullptr, caption.c_str(), textAsCString, numButtons, buttons, nullptr };
 	int buttonId = 2;
 
-#if defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 	// On PS3, we don't want to block execution with a message box, as there's no UI for it and it would just freeze the game
 	printf("### DIALOG BOX (%s) ###\n%s\n#######################\n", caption.c_str(), text.c_str());
 	fflush(stdout);

@@ -61,7 +61,13 @@ GameApp::~GameApp()
 void GameApp::initialize()
 {
 	// Init shared resources
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	printf("PS3 Diagnostic: GameApp::initialize() starting global::loadSharedResources()\n"); fflush(stdout);
+#endif
 	global::loadSharedResources();
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	printf("PS3 Diagnostic: GameApp::initialize() global::loadSharedResources() finished\n"); fflush(stdout);
+#endif
 
 	mGameView = &Application::instance().getGameView();
 	Simulation& simulation = Application::instance().getSimulation();

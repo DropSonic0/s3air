@@ -439,6 +439,17 @@ void OpenGLDrawer::setupRenderWindow(SDL_Window* window)
 
 void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 {
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	static uint32 lastRenderHeartbeat = 0;
+	uint32 now = SDL_GetTicks();
+
+	if (now - lastRenderHeartbeat > 1000)
+	{
+		printf("PS3 Heartbeat: OpenGLDrawer::performRendering\n");
+		fflush(stdout);
+		lastRenderHeartbeat = now;
+	}
+#endif
 	for (DrawCommand* drawCommand : drawCollection.getDrawCommands())
 	{
 		switch (drawCommand->getType())
@@ -720,7 +731,21 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 
 void OpenGLDrawer::presentScreen()
 {
-#if defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	static uint32 lastPresentHeartbeat = 0;
+	static uint32 lastSwapDiag = 0;
+	uint32 now = SDL_GetTicks();
+
+	if (now - lastPresentHeartbeat > 1000)
+	{
+		printf("PS3 Heartbeat: OpenGLDrawer::presentScreen\n");
+		fflush(stdout);
+		lastPresentHeartbeat = now;
+	}
+
+	if (now - lastSwapDiag > 5000) { printf("PS3 Diagnostic: OpenGLDrawer::presentScreen calling psglSwap()\n"); fflush(stdout); lastSwapDiag = now; }
+	psglSwap();
+#elif defined(PLATFORM_PS3)
 	psglSwap();
 #else
 	SDL_GL_SwapWindow(mInternal.mOutputWindow);

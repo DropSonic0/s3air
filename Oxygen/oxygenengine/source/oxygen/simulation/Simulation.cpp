@@ -199,6 +199,10 @@ void Simulation::reloadLastState()
 
 bool Simulation::loadState(const std::wstring& filename, bool showError)
 {
+	SaveStateSerializer::StateType stateType;
+	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
+	bool success;
+
 	RMX_LOG_INFO("Attempting to load save state: " << WString(filename).toStdString());
 #if defined(PLATFORM_PS3)
 	printf("PS3 Attempting to load save state: %s\n", WString(filename).toStdString().c_str());
@@ -207,10 +211,7 @@ bool Simulation::loadState(const std::wstring& filename, bool showError)
 	VideoOut::instance().reset();
 	EngineMain::instance().getAudioOut().reset();
 
-	SaveStateSerializer::StateType stateType;
-	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
-
-	const bool success = serializer.loadState(filename, &stateType);
+	success = serializer.loadState(filename, &stateType);
 	if (!success)
 	{
 		if (showError)
@@ -232,13 +233,15 @@ bool Simulation::loadState(const std::wstring& filename, bool showError)
 
 void Simulation::saveState(const std::wstring& filename)
 {
+	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
+	bool success;
+
 	RMX_LOG_INFO("Saving save state to: " << WString(filename).toStdString());
 #if defined(PLATFORM_PS3)
 	printf("PS3 Saving save state to: %s\n", WString(filename).toStdString().c_str());
 	fflush(stdout);
 #endif
-	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
-	const bool success = serializer.saveState(filename);
+	success = serializer.saveState(filename);
 	RMX_CHECK(success, "Failed to save save state '" << WString(filename).toStdString() << "'", return);
 
 	// Also save a screenshot
@@ -365,6 +368,19 @@ bool Simulation::generateFrame()
 
 	bool completedCurrentFrame = false;
 	bool inputWasInjected = false;
+
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	{
+		static uint32 lastGenFrameHeartbeat = 0;
+		uint32 now = SDL_GetTicks();
+		if (now - lastGenFrameHeartbeat > 5000)
+		{
+			printf("PS3 Heartbeat: Simulation::generateFrame (frame=%u)\n", mFrameNumber);
+			fflush(stdout);
+			lastGenFrameHeartbeat = now;
+		}
+	}
+#endif
 
 	// Steps to do when beginning a new frame
 	if (beginningNewFrame)
