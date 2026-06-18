@@ -268,8 +268,17 @@ bool Simulation::triggerFullScriptsReload()
 
 void Simulation::update(float timeElapsed)
 {
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	static int simUpdateTrace = 0;
+	if (simUpdateTrace < 100) { printf("PS3 Trace: Simulation::update enter (#%d)\n", simUpdateTrace); fflush(stdout); }
+#endif
 	if (!isRunning() || !mCodeExec.isCodeExecutionPossible())
+	{
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+		if (simUpdateTrace < 100) { printf("PS3 Trace: Simulation::update exit (not running) (#%d)\n", simUpdateTrace); fflush(stdout); simUpdateTrace++; }
+#endif
 		return;
+	}
 
 	if (mRewindSteps >= 0)
 	{
@@ -349,6 +358,10 @@ void Simulation::update(float timeElapsed)
 	{
 		VideoOut::instance().setInterFramePosition(0.0f);
 	}
+
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	if (simUpdateTrace < 100) { printf("PS3 Trace: Simulation::update exit (#%d)\n", simUpdateTrace); fflush(stdout); simUpdateTrace++; }
+#endif
 
 #if 0
 	// Meant for debugging of accumulated time stability

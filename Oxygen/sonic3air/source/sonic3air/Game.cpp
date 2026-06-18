@@ -104,6 +104,10 @@ void Game::shutdown()
 
 void Game::update(float timeElapsed)
 {
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	static int gameUpdateTrace = 0;
+	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update enter (#%d)\n", gameUpdateTrace); fflush(stdout); }
+#endif
 	// Update game client
 	mGameClient.updateClient(timeElapsed);
 	mCrowdControlClient.updateConnection(timeElapsed);
@@ -150,6 +154,10 @@ void Game::update(float timeElapsed)
 		startIntoLevel(mMode, mSubMode, mLastZoneAndAct, mLastCharacters);
 		mRestartTriggered = false;
 	}
+
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update exit (#%d)\n", gameUpdateTrace); fflush(stdout); gameUpdateTrace++; }
+#endif
 }
 
 void Game::registerScriptBindings(lemon::Module& module)

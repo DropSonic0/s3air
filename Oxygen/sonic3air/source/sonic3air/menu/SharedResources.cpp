@@ -52,7 +52,7 @@ namespace global
 	void loadSharedResources()
 	{
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		printf("PS3 Diagnostic: Starting loadSharedResources()\n"); fflush(stdout);
+		RMX_LOG_INFO("PS3 Diagnostic: Starting loadSharedResources()");
 #endif
 #if defined(PLATFORM_PS3)
 		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor  = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.5f, 0.8f));
@@ -133,11 +133,11 @@ namespace global
 		mSonicFontC.addFontProcessor(shadowFontProcessor2);
 
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		printf("PS3 Diagnostic: loadSharedResources() loading textures\n"); fflush(stdout);
+		RMX_LOG_INFO("PS3 Diagnostic: loadSharedResources() loading textures");
 #endif
 
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		#define LOAD_TEX_LOG(tex, path) { printf("PS3 Diagnostic: loading %s from %s\n", #tex, WString(path).toStdString().c_str()); fflush(stdout); FileHelper::loadTexture(tex, path); }
+		#define LOAD_TEX_LOG(tex, path) { RMX_LOG_INFO("PS3 Diagnostic: loading " << #tex << " from " << WString(path).toStdString()); FileHelper::loadTexture(tex, path); }
 #else
 		#define LOAD_TEX_LOG(tex, path) FileHelper::loadTexture(tex, path)
 #endif
@@ -167,9 +167,10 @@ namespace global
 				for (uint8 image = 0; image < 2; ++image)
 				{
 					key.mImage = image;
-					const String filename(0, "data/images/zone_preview/%s_act%d%c.png", zone.mShortName.substr(0, 6).c_str(), act + 1, 'a' + image);
+					const String filename(0, "data/images/zone_preview/%s_act%d%c.png", zone.mShortName.substr(0, 6).data(), act + 1, 'a' + image);
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-					printf("PS3 Diagnostic: loading zone preview from %s\n", filename.c_str()); fflush(stdout);
+					RMX_LOG_INFO("PS3 Diagnostic: loading zone preview from " << filename.toStdString());
+					printf("PS3 Diagnostic: loading zone preview from %s\n", filename.getData()); fflush(stdout);
 #endif
 					FileHelper::loadTexture(mZoneActPreview[key], *filename.toWString());
 				}
@@ -180,7 +181,8 @@ namespace global
 		{
 			const String filename(0, "data/images/achievements/%s.png", achievement.mImage.c_str());
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			printf("PS3 Diagnostic: loading achievement from %s\n", filename.c_str()); fflush(stdout);
+			RMX_LOG_INFO("PS3 Diagnostic: loading achievement from " << filename.toStdString());
+			printf("PS3 Diagnostic: loading achievement from %s\n", filename.getData()); fflush(stdout);
 #endif
 			Bitmap bitmap;
 			if (FileHelper::loadBitmap(bitmap, *filename.toWString()))
@@ -221,19 +223,21 @@ namespace global
 			{
 				const String filename(0, "data/images/secrets/%s.png", secret.mImage.c_str());
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				printf("PS3 Diagnostic: loading secret from %s\n", filename.c_str()); fflush(stdout);
+				RMX_LOG_INFO("PS3 Diagnostic: loading secret from " << filename.toStdString());
+				printf("PS3 Diagnostic: loading secret from %s\n", filename.getData()); fflush(stdout);
 #endif
 				FileHelper::loadTexture(mSecretImage[secret.mType], *filename.toWString());
 
 				const String filename2(0, "data/images/secrets/%s_locked.png", secret.mImage.c_str());
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				printf("PS3 Diagnostic: loading secret (locked) from %s\n", filename2.c_str()); fflush(stdout);
+				RMX_LOG_INFO("PS3 Diagnostic: loading secret (locked) from " << filename2.toStdString());
+				printf("PS3 Diagnostic: loading secret (locked) from %s\n", filename2.getData()); fflush(stdout);
 #endif
 				FileHelper::loadTexture(mSecretImage[secret.mType | 0x80000000], *filename2.toWString(), false);	// This is okay to fail for some secrets
 			}
 		}
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		printf("PS3 Diagnostic: loadSharedResources() finished\n"); fflush(stdout);
+		RMX_LOG_INFO("PS3 Diagnostic: loadSharedResources() finished");
 #endif
 	}
 }

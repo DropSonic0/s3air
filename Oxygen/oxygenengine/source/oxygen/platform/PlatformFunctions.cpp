@@ -445,6 +445,7 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 
 #elif defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 
+	RMX_LOG_INFO("### MESSAGE BOX (" << caption << ") ###\n" << text << "\n#######################");
 	printf("### MESSAGE BOX (%s) ###\n%s\n#######################\n", caption.c_str(), text.c_str());
 	fflush(stdout);
 
@@ -535,6 +536,7 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 	// On PS3, we don't want to block execution with a message box, as there's no UI for it and it would just freeze the game
+	RMX_LOG_INFO("### DIALOG BOX (" << caption << ") ###\n" << text << "\n#######################");
 	printf("### DIALOG BOX (%s) ###\n%s\n#######################\n", caption.c_str(), text.c_str());
 	fflush(stdout);
 	buttonId = 0;	// Default to OK / Yes

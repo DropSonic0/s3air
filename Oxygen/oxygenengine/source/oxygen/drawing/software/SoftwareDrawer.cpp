@@ -464,8 +464,7 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 
 	if (now - lastRenderHeartbeat > 1000)
 	{
-		printf("PS3 Heartbeat: SoftwareDrawer::performRendering\n");
-		fflush(stdout);
+		RMX_LOG_INFO("PS3 Heartbeat: SoftwareDrawer::performRendering");
 		lastRenderHeartbeat = now;
 	}
 #endif
@@ -707,8 +706,7 @@ void SoftwareDrawer::presentScreen()
 
 	if (now - lastPresentHeartbeat > 1000)
 	{
-		printf("PS3 Heartbeat: SoftwareDrawer::presentScreen\n");
-		fflush(stdout);
+		RMX_LOG_INFO("PS3 Heartbeat: SoftwareDrawer::presentScreen");
 		lastPresentHeartbeat = now;
 	}
 #endif
@@ -733,7 +731,7 @@ void SoftwareDrawer::presentScreen()
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 	static uint32 lastTexDiag = 0;
-	if (now - lastTexDiag > 5000) { printf("PS3 Diagnostic: SoftwareDrawer::presentScreen calling glTexImage2D\n"); fflush(stdout); lastTexDiag = now; }
+	if (now - lastTexDiag > 5000) { RMX_LOG_INFO("PS3 Diagnostic: SoftwareDrawer::presentScreen calling glTexImage2D"); lastTexDiag = now; }
 #endif
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mInternal.mScreenSurface->pixels);
 
@@ -773,7 +771,7 @@ void SoftwareDrawer::presentScreen()
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (now - lastSwapDiag > 5000) { printf("PS3 Diagnostic: SoftwareDrawer::presentScreen calling psglSwap()\n"); fflush(stdout); lastSwapDiag = now; }
+	if (now - lastSwapDiag > 5000) { RMX_LOG_INFO("PS3 Diagnostic: SoftwareDrawer::presentScreen calling psglSwap()"); lastSwapDiag = now; }
 	psglSwap();
 #else
 	psglSwap();

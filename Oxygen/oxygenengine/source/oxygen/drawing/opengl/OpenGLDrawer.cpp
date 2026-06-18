@@ -445,8 +445,7 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 
 	if (now - lastRenderHeartbeat > 1000)
 	{
-		printf("PS3 Heartbeat: OpenGLDrawer::performRendering\n");
-		fflush(stdout);
+		RMX_LOG_INFO("PS3 Heartbeat: OpenGLDrawer::performRendering");
 		lastRenderHeartbeat = now;
 	}
 #endif
@@ -732,19 +731,22 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 void OpenGLDrawer::presentScreen()
 {
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	static int presentCount = 0;
+	if (presentCount < 100) { printf("PS3 Trace: OpenGLDrawer::presentScreen enter (#%d)\n", presentCount); fflush(stdout); }
 	static uint32 lastPresentHeartbeat = 0;
 	static uint32 lastSwapDiag = 0;
 	uint32 now = SDL_GetTicks();
 
 	if (now - lastPresentHeartbeat > 1000)
 	{
-		printf("PS3 Heartbeat: OpenGLDrawer::presentScreen\n");
-		fflush(stdout);
+		RMX_LOG_INFO("PS3 Heartbeat: OpenGLDrawer::presentScreen");
 		lastPresentHeartbeat = now;
 	}
 
-	if (now - lastSwapDiag > 5000) { printf("PS3 Diagnostic: OpenGLDrawer::presentScreen calling psglSwap()\n"); fflush(stdout); lastSwapDiag = now; }
+	if (now - lastSwapDiag > 5000) { RMX_LOG_INFO("PS3 Diagnostic: OpenGLDrawer::presentScreen calling psglSwap()"); lastSwapDiag = now; }
+	if (presentCount < 100) { printf("PS3 Trace: OpenGLDrawer::presentScreen calling psglSwap (#%d)\n", presentCount); fflush(stdout); }
 	psglSwap();
+	if (presentCount < 100) { printf("PS3 Trace: OpenGLDrawer::presentScreen psglSwap done (#%d)\n", presentCount); fflush(stdout); presentCount++; }
 #elif defined(PLATFORM_PS3)
 	psglSwap();
 #else
