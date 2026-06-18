@@ -81,7 +81,7 @@ namespace lemon
 		{
 			--context.mControlFlow->mValueStackPtr;
 			const int64 value = *context.mControlFlow->mValueStackPtr;
-			T* pointer = (T*)context.mOpcode->getParameter<uint64>();
+			T* pointer = (T*)(uintptr_t)context.mOpcode->getParameter<uint64>();
 			*pointer = (T)value;
 		}
 
@@ -112,7 +112,7 @@ namespace lemon
 		template<typename T>
 		static void exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT(const RuntimeOpcodeContext context)
 		{
-			const uint8* pointer = (const uint8*)context.getParameter<uint64>();
+			const uint8* pointer = (const uint8*)(uintptr_t)context.getParameter<uint64>();
 			*context.mControlFlow->mValueStackPtr = rmx::readMemoryUnaligned<T>(pointer);
 			++context.mControlFlow->mValueStackPtr;
 		}
@@ -120,7 +120,7 @@ namespace lemon
 		template<typename T>
 		static void exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT_SWAP(const RuntimeOpcodeContext context)
 		{
-			const uint8* pointer = (const uint8*)context.getParameter<uint64>();
+			const uint8* pointer = (const uint8*)(uintptr_t)context.getParameter<uint64>();
 			*context.mControlFlow->mValueStackPtr = rmx::readMemoryUnalignedSwapped<T>(pointer);
 			++context.mControlFlow->mValueStackPtr;
 		}
@@ -135,14 +135,14 @@ namespace lemon
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT(const RuntimeOpcodeContext context)
 		{
-			uint8* pointer = (uint8*)context.getParameter<uint64>();
+			uint8* pointer = (uint8*)(uintptr_t)context.getParameter<uint64>();
 			rmx::writeMemoryUnaligned<T>(pointer, (T)(*(context.mControlFlow->mValueStackPtr-1)));
 		}
 
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT_SWAP(const RuntimeOpcodeContext context)
 		{
-			uint8* pointer = (uint8*)context.getParameter<uint64>();
+			uint8* pointer = (uint8*)(uintptr_t)context.getParameter<uint64>();
 			rmx::writeMemoryUnalignedSwapped<T>(pointer, (T)(*(context.mControlFlow->mValueStackPtr-1)));
 		}
 
@@ -245,7 +245,7 @@ namespace lemon
 		template<typename T>
 		static void exec_OPT_EXTERNAL_ADD_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(0, *(T*)context.mOpcode->getParameter<uint64>() + BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>(8)));
+			context.writeValueStack<T>(0, *(T*)(uintptr_t)context.mOpcode->getParameter<uint64>() + BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>(8)));
 			++context.mControlFlow->mValueStackPtr;
 		}
 	};
@@ -267,7 +267,7 @@ namespace lemon
 
 						const uint32 variableId = (uint32)opcodes[0].mParameter;
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter(variable.mAccessor());
+						runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
 						runtimeOpcode.setParameter(opcodes[1].mParameter, 8);
 						outNumOpcodesConsumed = 3;
 						return true;
@@ -331,7 +331,7 @@ namespace lemon
 						case Variable::Type::GLOBAL:
 						{
 							int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-							runtimeOpcode.setParameter(value);
+							runtimeOpcode.setParameter((uint64)(uintptr_t)value);
 
 							switch (DataTypeHelper::getSizeOfBaseType(opcodes[0].mDataType))
 							{
@@ -346,7 +346,7 @@ namespace lemon
 						case Variable::Type::EXTERNAL:
 						{
 							const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-							runtimeOpcode.setParameter(variable.mAccessor());
+							runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
 
 							switch (variable.getDataType()->getBytes())
 							{
@@ -401,7 +401,7 @@ namespace lemon
 						{
 							SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT, opcodes[1].mDataType);
 						}
-						runtimeOpcode.setParameter(result.mDirectAccessPointer);
+						runtimeOpcode.setParameter((uint64)(uintptr_t)result.mDirectAccessPointer);
 					}
 					else
 					{
@@ -433,7 +433,7 @@ namespace lemon
 						{
 							SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT, opcodes[1].mDataType);
 						}
-						runtimeOpcode.setParameter(result.mDirectAccessPointer);
+						runtimeOpcode.setParameter((uint64)(uintptr_t)result.mDirectAccessPointer);
 					}
 					else
 					{

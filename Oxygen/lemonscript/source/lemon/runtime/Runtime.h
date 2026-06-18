@@ -183,6 +183,9 @@ namespace lemon
 	private:
 		static ControlFlow* mActiveControlFlow;
 		static const Environment* mActiveEnvironment;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+		static int mDiagnosticFrame;
+#endif
 
 	private:
 		const Program* mProgram = nullptr;

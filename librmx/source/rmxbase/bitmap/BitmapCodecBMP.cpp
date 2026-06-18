@@ -173,7 +173,7 @@ bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 								+ ((uint32)buffer[x*3+2]      ) + 0xff000000;
 					break;
 				case 32:
-					data_ptr[x] = RGBA_to_BGRA(*(uint32*)&buffer[x*4]);
+					data_ptr[x] = RGBA_to_BGRA(rmx::readMemoryUnalignedLE<uint32>(&buffer[x*4]));
 					break;
 			}
 		}

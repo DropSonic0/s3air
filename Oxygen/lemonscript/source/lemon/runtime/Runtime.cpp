@@ -547,7 +547,7 @@ namespace lemon
 
 					case Opcode::Type::JUMP:
 					{
-						state.mProgramCounter = reinterpret_cast<const uint8*>((uintptr_t)context.mOpcode->getParameter<uint64>());
+						state.mProgramCounter = (const uint8*)(uintptr_t)context.mOpcode->getParameter<uint64>();
 
 						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
 						//  -> This is needed to prevent endless loops
@@ -571,7 +571,7 @@ namespace lemon
 						if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
 						{
 							--mSelectedControlFlow->mValueStackPtr;
-							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>((uintptr_t)context.mOpcode->getParameter<uint64>());
+							context.mOpcode = (const RuntimeOpcode*)(uintptr_t)context.mOpcode->getParameter<uint64>();
 						}
 						else
 						{
@@ -707,14 +707,14 @@ namespace lemon
 		if (runtimeOpcode.mFlags.isSet(RuntimeOpcode::Flag::CALL_TARGET_RUNTIME_FUNC))
 		{
 			// Take the runtime function shortcut (this is the most common one)
-			const RuntimeFunction* runtimeFunction = (const RuntimeFunction*)runtimeOpcode.getParameter<uint64>();
+			const RuntimeFunction* runtimeFunction = (const RuntimeFunction*)(uintptr_t)runtimeOpcode.getParameter<uint64>();
 			callRuntimeFunction(*runtimeFunction, baseCallIndex);
 			return runtimeFunction->mFunction;
 		}
 		else if (runtimeOpcode.mFlags.isSet(RuntimeOpcode::Flag::CALL_TARGET_RESOLVED))
 		{
 			// Take the shortcut to a normal function
-			const Function* function = (const Function*)runtimeOpcode.getParameter<uint64>();
+			const Function* function = (const Function*)(uintptr_t)runtimeOpcode.getParameter<uint64>();
 			callFunction(*function, baseCallIndex);
 			return function;
 		}
@@ -728,7 +728,7 @@ namespace lemon
 			if (nullptr != runtimeFunction)
 			{
 				// Create a shortcut for next time
-				runtimeOpcodeMutable.setParameter(runtimeFunction);
+				runtimeOpcodeMutable.setParameter((uint64)(uintptr_t)runtimeFunction);
 				runtimeOpcodeMutable.mFlags.set(RuntimeOpcode::Flag::CALL_TARGET_RUNTIME_FUNC);
 
 				// Call the function now
@@ -741,7 +741,7 @@ namespace lemon
 			if (nullptr != function)
 			{
 				// Create a shortcut for next time
-				runtimeOpcodeMutable.setParameter(function);
+				runtimeOpcodeMutable.setParameter((uint64)(uintptr_t)function);
 				runtimeOpcodeMutable.mFlags.set(RuntimeOpcode::Flag::CALL_TARGET_RESOLVED);
 
 				// Call the function now

@@ -137,7 +137,7 @@ namespace lemon
 		template<typename T>
 		static void exec_GET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
-			*context.mControlFlow->mValueStackPtr = *(T*)context.getParameter<uint64>();
+			*context.mControlFlow->mValueStackPtr = *(T*)(uintptr_t)context.getParameter<uint64>();
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -160,7 +160,7 @@ namespace lemon
 		static void exec_SET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			*(T*)context.getParameter<uint64>() = (T)value;
+			*(T*)(uintptr_t)context.getParameter<uint64>() = (T)value;
 		}
 
 		template<typename T>
@@ -349,7 +349,7 @@ namespace lemon
 
 		static void exec_INLINE_NATIVE_CALL(const RuntimeOpcodeContext context)
 		{
-			const NativeFunction& func = *(const NativeFunction*)context.mOpcode->getParameter<uint64>();
+			const NativeFunction& func = *(const NativeFunction*)(uintptr_t)context.mOpcode->getParameter<uint64>();
 			func.execute(NativeFunction::Context(*context.mControlFlow));
 		}
 
@@ -453,7 +453,7 @@ namespace lemon
 					case Variable::Type::GLOBAL:
 					{
 						int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter(value);
+						runtimeOpcode.setParameter((uint64)(uintptr_t)value);
 
 						switch (DataTypeHelper::getSizeOfBaseType(opcode.mDataType))
 						{
@@ -468,7 +468,7 @@ namespace lemon
 					case Variable::Type::EXTERNAL:
 					{
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter(variable.mAccessor());
+						runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
 
 						switch (variable.getDataType()->getBytes())
 						{
@@ -495,7 +495,7 @@ namespace lemon
 					case Variable::Type::GLOBAL:
 					{
 						int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter(value);
+						runtimeOpcode.setParameter((uint64)(uintptr_t)value);
 
 						switch (DataTypeHelper::getSizeOfBaseType(opcode.mDataType))
 						{
@@ -510,7 +510,7 @@ namespace lemon
 					case Variable::Type::EXTERNAL:
 					{
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter(variable.mAccessor());
+						runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
 
 						switch (variable.getDataType()->getBytes())
 						{

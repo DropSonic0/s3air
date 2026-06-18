@@ -47,7 +47,7 @@ namespace
 			if (readPosition >= buffer.size())
 				return false;
 
-			value = *(bool*)&buffer[readPosition];
+			value = (buffer[readPosition] != 0);
 			++readPosition;
 		}
 		else
@@ -224,14 +224,34 @@ void VectorBinarySerializer::serialize(WString& value)
 {
 	if (mReading)
 	{
-		value.expand((int)read<uint32>());
-		read(value.accessData(), value.length() * sizeof(wchar_t));			// TODO: This is not compatible among different platforms! Use UTF-8 encoding here as well
+		value.clear();
+		const uint32 encodedLength = read<uint32>();
+		if (encodedLength > 0)
+		{
+			// Read UTF-8 encoded string
+			const char* pointer = (const char*)readAccess(encodedLength);
+			if (nullptr != pointer)
+			{
+				std::wstring result;
+				rmx::UTF8Conversion::convertFromUTF8(std::string_view(pointer, encodedLength), result);
+				value.expand((int)result.length());
+				memcpy(value.accessData(), result.data(), result.length() * sizeof(wchar_t));
+			}
+		}
 	}
 	else
 	{
-		writeAs<uint32>(value.length());
-		if (!value.empty())
-			write(value.accessData(), value.length() * sizeof(wchar_t));	// TODO: This is not compatible among different platforms! Use UTF-8 encoding here as well
+		// Write as UTF-8 string
+		std::wstring_view view(value.getData(), value.length());
+		const size_t encodedLength = rmx::UTF8Conversion::getLengthAsUTF8(view);
+		writeAs<uint32>((uint32)encodedLength);
+
+		char* pointer = (char*)writeAccess(encodedLength);
+		for (size_t i = 0; i < view.length(); ++i)
+		{
+			const size_t encodedLength = rmx::UTF8Conversion::writeCharacterAsUTF8((uint32)view[i], pointer);
+			pointer += encodedLength;
+		}
 	}
 }
 

@@ -53,7 +53,7 @@ namespace serialization
 	uint32 getToken()
 	{
 		// Return default token
-		return *(uint32*)("type");
+		return rmx::readMemoryUnalignedLE<uint32>("type");
 	}
 }
 

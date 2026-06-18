@@ -18,13 +18,13 @@ namespace
 	uint32 readUint32LE(const uint8* pointer)
 	{
 		// Read as little endian
-		return rmx::readMemoryUnaligned<uint32>(pointer);
+		return rmx::readMemoryUnalignedLE<uint32>(pointer);
 	}
 
 	uint32 readUint32BE(const uint8* pointer)
 	{
 		// Read as big endian
-		return ((uint32)pointer[0] << 24) + ((uint32)pointer[1] << 16) + ((uint32)pointer[2] << 8) + ((uint32)pointer[3]);
+		return rmx::readMemoryUnalignedBE<uint32>(pointer);
 	}
 #endif
 }
@@ -324,7 +324,7 @@ bool BitmapCodecPNG::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 				// 24-bit RGB
 				case 2:
 					for (int i = 0; i < width; ++i)
-						dst[i] = 0xff000000 + (*(uint32*)(&src[i*3]) & 0x00ffffff);
+						dst[i] = 0xff000000 + (rmx::readMemoryUnalignedLE<uint32>(&src[i*3]) & 0x00ffffff);
 					break;
 
 				// Palette image
@@ -423,17 +423,17 @@ bool BitmapCodecPNG::encode(const Bitmap& bitmap, OutputStream& stream)
 			mem[0] = 0x78;		// zlib header
 			mem[1] = 0xda;		// zlib header
 			memcpy(&mem[2], output, outsize);
-			*(uint32*)&chunkStart[length+4] = adler;
+			rmx::writeMemoryUnalignedBE<uint32>(&chunkStart[length+4], adler);
 		}
 		else
 		{
 			type = PNG_IEND;
 		}
 
-		*(uint32*)&chunkStart[0] = swapBytes32(length);
-		*(uint32*)&chunkStart[4] = swapBytes32(type);
+		rmx::writeMemoryUnalignedBE<uint32>(&chunkStart[0], length);
+		rmx::writeMemoryUnalignedBE<uint32>(&chunkStart[4], type);
 		const uint32 crc = rmx::getCRC32(chunkStart+4, length+4);
-		*(uint32*)&chunkStart[length+8] = swapBytes32(crc);
+		rmx::writeMemoryUnalignedBE<uint32>(&chunkStart[length+8], crc);
 		mem += length + 4;
 	}
 	delete[] output;
