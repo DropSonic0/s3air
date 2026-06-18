@@ -338,7 +338,7 @@ uint8* Bitmap::convert(ColorFormat_t format, int& size, uint32* palette)
 				color += (mData[i] >> 3) & 0x001f;
 				color += (mData[i] >> 5) & 0x07e0;
 				color += (mData[i] >> 8) & 0xf800;
-				*(uint16*)(&output[i*2]) = color;
+				rmx::writeMemoryUnalignedLE<uint16>(&output[i*2], color);
 			}
 			return output;
 		}

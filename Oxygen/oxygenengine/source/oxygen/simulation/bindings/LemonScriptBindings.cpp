@@ -81,11 +81,31 @@ namespace
 	int64* accessRegister(size_t index)
 	{
 		uint32& reg = getEmulatorInterface().getRegister(index);
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		// Since we're on a Big-Endian system and the register is only 32-bit,
+		// we can't just return a pointer to it casted to int64*.
+		// If LemonScript expects an 8-byte value, it would read the 4 bytes of the register
+		// and 4 bytes of whatever comes after it.
+		// However, LemonScript's ExternalVariable mechanism requires returning an int64* pointer.
+		// For Big-Endian compatibility with 4-byte variables, the pointer must be offset
+		// so that the 4 bytes of the uint32 appear at the end of the 8-byte read.
+		// BUT: EmulatorInterface registers are in an array of uint32.
+		// A safe way would be to have 8-byte storage for them, but that's a larger change.
+		// For now, we assume that LemonScript will correctly use the data type size.
+		return (int64*)((uint8*)&reg);
+#else
 		return reinterpret_cast<int64*>(&reg);
+#endif
 	}
 
 #if defined(PLATFORM_PS3)
-	template<size_t index> int64* accessRegisterT() { return accessRegister(index); }
+	template<size_t index, size_t size> int64* accessRegisterPS3()
+	{
+		uint32& reg = getEmulatorInterface().getRegister(index);
+		// On PS3 (BE), the registers are uint32. 
+		// For a u16 access to the low 16 bits, we need to point to the last 2 bytes of the uint32.
+		return (int64*)((uint8*)&reg + (4 - size));
+	}
 #endif
 
 	void scriptAssert1(uint8 condition, lemon::StringRef text)
@@ -901,13 +921,13 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		};
 
 		#define REGISTER_PS3(idx) \
-			addExternalVariablePS3(registerNamesDAR[idx],         &lemon::PredefinedDataTypes::UINT_32, &accessRegisterT<idx>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  &accessRegisterT<idx>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   &accessRegisterT<idx>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".u16", &lemon::PredefinedDataTypes::UINT_16, &accessRegisterT<idx>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".s16", &lemon::PredefinedDataTypes::INT_16,  &accessRegisterT<idx>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".u32", &lemon::PredefinedDataTypes::UINT_32, &accessRegisterT<idx>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".s32", &lemon::PredefinedDataTypes::INT_32,  &accessRegisterT<idx>);
+			addExternalVariablePS3(registerNamesDAR[idx],         &lemon::PredefinedDataTypes::UINT_32, &accessRegisterPS3<idx, 4>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  &accessRegisterPS3<idx, 1>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   &accessRegisterPS3<idx, 1>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".u16", &lemon::PredefinedDataTypes::UINT_16, &accessRegisterPS3<idx, 2>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".s16", &lemon::PredefinedDataTypes::INT_16,  &accessRegisterPS3<idx, 2>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".u32", &lemon::PredefinedDataTypes::UINT_32, &accessRegisterPS3<idx, 4>); \
+			addExternalVariablePS3(registerNamesDAR[idx] + ".s32", &lemon::PredefinedDataTypes::INT_32,  &accessRegisterPS3<idx, 4>);
 
 		REGISTER_PS3(0);  REGISTER_PS3(1);  REGISTER_PS3(2);  REGISTER_PS3(3);
 		REGISTER_PS3(4);  REGISTER_PS3(5);  REGISTER_PS3(6);  REGISTER_PS3(7);

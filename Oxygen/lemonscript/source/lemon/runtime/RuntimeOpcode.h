@@ -59,21 +59,47 @@ namespace lemon
 
 		template<typename T> FORCE_INLINE T getParameter() const
 		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			if (sizeof(T) < 8)
+			{
+				return (T)*reinterpret_cast<const int64*>((uint8*)this + PARAMETER_OFFSET);
+			}
+#endif
 			return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET);
 		}
 
 		template<typename T> FORCE_INLINE T getParameter(size_t offset) const
 		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			if (sizeof(T) < 8)
+			{
+				return (T)*reinterpret_cast<const int64*>((uint8*)this + PARAMETER_OFFSET + offset);
+			}
+#endif
 			return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET + offset);
 		}
 
 		template<typename T> void setParameter(T value)
 		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			if (sizeof(T) < 8)
+			{
+				*reinterpret_cast<int64*>((uint8*)this + PARAMETER_OFFSET) = (int64)value;
+				return;
+			}
+#endif
 			*reinterpret_cast<T*>((uint8*)this + PARAMETER_OFFSET) = value;
 		}
 
 		template<typename T> void setParameter(T value, size_t offset)
 		{
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+			if (sizeof(T) < 8)
+			{
+				*reinterpret_cast<int64*>((uint8*)this + PARAMETER_OFFSET + offset) = (int64)value;
+				return;
+			}
+#endif
 			*reinterpret_cast<T*>((uint8*)this + PARAMETER_OFFSET + offset) = value;
 		}
 	};

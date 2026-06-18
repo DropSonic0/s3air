@@ -89,14 +89,15 @@ namespace lemon
 	{
 		std::vector<uint8> decompressedData;
 		ZlibDeflate::decode(decompressedData, data, count);
-		mParameterData.resize(decompressedData.size() / 4);
+		mParameterData.resize(decompressedData.size() / 5);
 		data = &decompressedData[0];
 		for (LookupEntry::ParameterInfo& info : mParameterData)
 		{
 			info.mOffset = rmx::readMemoryUnalignedLE<uint16>(&data[0]);
 			info.mOpcodeIndex = data[2];
 			info.mSemantics = (LookupEntry::ParameterInfo::Semantics)data[3];
-			data += 4;
+			info.mDataType = (BaseType)data[4];
+			data += 5;
 		}
 	}
 
@@ -239,6 +240,7 @@ namespace lemon
 			mBuiltDictionary.mParameterData[0].mOffset = 0;
 			mBuiltDictionary.mParameterData[0].mOpcodeIndex = 0xff;
 			mBuiltDictionary.mParameterData[0].mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
+			mBuiltDictionary.mParameterData[0].mDataType = BaseType::VOID;
 		}
 
 		// Start writing
@@ -307,14 +309,15 @@ namespace lemon
 					}
 				}
 
-				parameterData.resize(mBuiltDictionary.mParameterData.size() * 4);
+				parameterData.resize(mBuiltDictionary.mParameterData.size() * 5);
 				uint8* outPtr = &parameterData[0];
 				for (const LookupEntry::ParameterInfo& parameterInfo : mBuiltDictionary.mParameterData)
 				{
 					rmx::writeMemoryUnalignedLE<uint16>(&outPtr[0], (uint16)parameterInfo.mOffset);
 					outPtr[2] = (uint8)parameterInfo.mOpcodeIndex;
 					outPtr[3] = (uint8)parameterInfo.mSemantics;
-					outPtr += 4;
+					outPtr[4] = (uint8)parameterInfo.mDataType;
+					outPtr += 5;
 				}
 			}
 
@@ -418,6 +421,7 @@ namespace lemon
 					parameterPtr->mOffset = (uint16)params[k].mOffset;
 					parameterPtr->mOpcodeIndex = (uint8)params[k].mOpcodeIndex;
 					parameterPtr->mSemantics = params[k].mSemantics;
+					parameterPtr->mDataType = params[k].mDataType;
 					++parameterPtr;
 				}
 
@@ -425,6 +429,7 @@ namespace lemon
 				parameterPtr->mOffset = (uint16)nativizerInternal.mParameters.mTotalSize;
 				parameterPtr->mOpcodeIndex = 0xff;
 				parameterPtr->mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
+				parameterPtr->mDataType = BaseType::VOID;
 			}
 		}
 

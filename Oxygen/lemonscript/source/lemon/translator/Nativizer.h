@@ -60,6 +60,7 @@ namespace lemon
 				uint16 mOffset = 0;
 				uint8 mOpcodeIndex = 0;
 				Semantics mSemantics = Semantics::INTEGER;
+				BaseType mDataType = BaseType::VOID;
 			};
 
 			ExecFunc mExecFunc = nullptr;

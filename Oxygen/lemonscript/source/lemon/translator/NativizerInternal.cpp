@@ -489,7 +489,7 @@ namespace lemon
 						++stackPosition;
 					}
 
-					const size_t parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::FIXED_MEMORY_ADDRESS);
+					const size_t parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::FIXED_MEMORY_ADDRESS, dataType);
 					Assignment& assignment = vectorAdd(mAssignments);
 					mNodes.push_back(Assignment::Node(Assignment::Node::Type::VALUE_STACK, dataType, stackPosition));
 					assignment.mDest = &mNodes.back();
@@ -549,7 +549,7 @@ namespace lemon
 								}
 								case Variable::Type::GLOBAL:
 								{
-									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::GLOBAL_VARIABLE);
+									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::GLOBAL_VARIABLE, opcode.mDataType);
 									break;
 								}
 								default:

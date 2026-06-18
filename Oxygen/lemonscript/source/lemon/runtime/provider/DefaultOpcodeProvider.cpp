@@ -453,6 +453,11 @@ namespace lemon
 					case Variable::Type::GLOBAL:
 					{
 						int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcode.mDataType);
+						if (bytes < 8)
+							value = (int64*)((uint8*)value + (8 - bytes));
+#endif
 						runtimeOpcode.setParameter((uint64)(uintptr_t)value);
 
 						switch (DataTypeHelper::getSizeOfBaseType(opcode.mDataType))
@@ -468,7 +473,13 @@ namespace lemon
 					case Variable::Type::EXTERNAL:
 					{
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
+						void* pointer = (void*)variable.mAccessor();
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						const size_t bytes = variable.getDataType()->getBytes();
+						if (bytes < 8)
+							pointer = (uint8*)pointer + (8 - bytes);
+#endif
+						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
 
 						switch (variable.getDataType()->getBytes())
 						{
@@ -495,6 +506,11 @@ namespace lemon
 					case Variable::Type::GLOBAL:
 					{
 						int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcode.mDataType);
+						if (bytes < 8)
+							value = (int64*)((uint8*)value + (8 - bytes));
+#endif
 						runtimeOpcode.setParameter((uint64)(uintptr_t)value);
 
 						switch (DataTypeHelper::getSizeOfBaseType(opcode.mDataType))
@@ -510,7 +526,13 @@ namespace lemon
 					case Variable::Type::EXTERNAL:
 					{
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
+						void* pointer = (void*)variable.mAccessor();
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						const size_t bytes = variable.getDataType()->getBytes();
+						if (bytes < 8)
+							pointer = (uint8*)pointer + (8 - bytes);
+#endif
+						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
 
 						switch (variable.getDataType()->getBytes())
 						{

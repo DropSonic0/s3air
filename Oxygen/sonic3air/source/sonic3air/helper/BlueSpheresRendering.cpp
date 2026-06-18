@@ -291,9 +291,9 @@ void BlueSpheresRendering::writeVisibleSpheresData(uint32 targetAddress, uint32 
 			if (size < 0x1400)
 				continue;
 
-			*(uint16*)(&outputPtr[0]) = swapBytes16(roundToInt(199.5f + viewCoords.x));
-			*(uint16*)(&outputPtr[2]) = swapBytes16(roundToInt(111.5f - viewCoords.z));
-			*(uint16*)(&outputPtr[4]) = swapBytes16(size);
+			rmx::writeMemoryUnalignedBE<uint16>(&outputPtr[0], (uint16)roundToInt(199.5f + viewCoords.x));
+			rmx::writeMemoryUnalignedBE<uint16>(&outputPtr[2], (uint16)roundToInt(111.5f - viewCoords.z));
+			rmx::writeMemoryUnalignedBE<uint16>(&outputPtr[4], (uint16)size);
 			*(uint8*) (&outputPtr[6]) = sphereType;
 
 			outputPtr += 7;
@@ -301,7 +301,7 @@ void BlueSpheresRendering::writeVisibleSpheresData(uint32 targetAddress, uint32 
 		}
 	}
 
-	*(uint16*)(&originalOutputPtr[0]) = swapBytes16(count);
+	rmx::writeMemoryUnalignedBE<uint16>(&originalOutputPtr[0], count);
 }
 
 bool BlueSpheresRendering::loadLookupData()

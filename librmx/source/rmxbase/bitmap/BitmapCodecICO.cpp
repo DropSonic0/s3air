@@ -54,14 +54,26 @@ bool BitmapCodecICO::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 	const uint8* buffer = mstream.getCursor();
 
 	IcoHeader header;
-	stream >> header;
+	header.idReserved = stream.read<uint16>();
+	header.idType     = stream.read<uint16>();
+	header.idCount    = stream.read<uint16>();
 	if (header.idReserved != 0 || header.idType != 1)
 		RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
 
 	const int imageCount = header.idCount;
 
-	const IconDirEntry* entries = (const IconDirEntry*)mstream.getCursor();
-	mstream.skip(imageCount * sizeof(IconDirEntry));
+	std::vector<IconDirEntry> entries(imageCount);
+	for (int i = 0; i < imageCount; ++i)
+	{
+		entries[i].width       = stream.read<uint8>();
+		entries[i].height      = stream.read<uint8>();
+		entries[i].colorCount  = stream.read<uint8>();
+		entries[i].reserved    = stream.read<uint8>();
+		entries[i].planes      = stream.read<uint16>();
+		entries[i].bitCount    = stream.read<uint16>();
+		entries[i].bytesInRes  = stream.read<uint32>();
+		entries[i].imageOffset = stream.read<uint32>();
+	}
 
 	// Choose the best fitting one from the icons
 	int optimal_wid = (bitmap.getWidth() > 0)  ? bitmap.getWidth()  : 32;
@@ -74,7 +86,7 @@ bool BitmapCodecICO::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 	{
 		int bpp = entries[i].bitCount;
 		if (bpp == 0)
-			bpp = *(unsigned short*)&buffer[entries[i].imageOffset + 14];
+			bpp = rmx::readMemoryUnalignedLE<uint16>(&buffer[entries[i].imageOffset + 14]);
 
 		int dx = abs(entries[i].width - optimal_wid);
 		int dy = abs(entries[i].height - optimal_hgt);
@@ -100,13 +112,16 @@ bool BitmapCodecICO::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 	memcpy(&mem[14], &buffer[offset], size);
 	mem[0] = 'B';
 	mem[1] = 'M';
-	*(unsigned int*)&mem[2]  = 54 + *(unsigned int*)&mem[34];
-	*(unsigned int*)&mem[6]  = 0;
-	*(unsigned int*)&mem[10] = 54;
-	*(unsigned int*)&mem[22] /= 2;		// File contains double image height for some reason
-	int wid = *(unsigned int*)&mem[18];
-	int hgt = *(unsigned int*)&mem[22];
-	int bpp = *(unsigned short*)&mem[28];
+	rmx::writeMemoryUnalignedLE<uint32>(&mem[2],  54 + rmx::readMemoryUnalignedLE<uint32>(&mem[14+20]));
+	rmx::writeMemoryUnalignedLE<uint32>(&mem[6],  0);
+	rmx::writeMemoryUnalignedLE<uint32>(&mem[10], 54);
+	
+	uint32 hgtVal = rmx::readMemoryUnalignedLE<uint32>(&mem[14+8]);
+	rmx::writeMemoryUnalignedLE<uint32>(&mem[14+8], hgtVal / 2);		// File contains double image height for some reason
+
+	int wid = rmx::readMemoryUnalignedLE<uint32>(&mem[14+4]);
+	int hgt = rmx::readMemoryUnalignedLE<uint32>(&mem[14+8]);
+	int bpp = rmx::readMemoryUnalignedLE<uint16>(&mem[14+14]);
 
 	// Decode as BMP
 	MemInputStream bmpstream(mem, size+14, true);
