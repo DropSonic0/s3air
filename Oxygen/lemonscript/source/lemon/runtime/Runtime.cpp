@@ -13,6 +13,10 @@
 #include "lemon/program/Program.h"
 #include "lemon/program/StringRef.h"
 
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+#include <cstdio>
+#endif
+
 
 namespace lemon
 {
@@ -105,6 +109,9 @@ namespace lemon
 
 	ControlFlow* Runtime::mActiveControlFlow = nullptr;
 	const Environment* Runtime::mActiveEnvironment = nullptr;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	int Runtime::mDiagnosticFrame = 0;
+#endif
 
 	ControlFlow* Runtime::getActiveControlFlow()
 	{
@@ -428,6 +435,9 @@ namespace lemon
 
 	void Runtime::executeSteps(ExecuteConnector& result, size_t stepsLimit, size_t minimumCallStackSize)
 	{
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+		static int totalStepsTrace = 0;
+#endif
 		result.mStepsExecuted = 0;
 		result.mResult = ExecuteResult::Result::OKAY;
 
@@ -482,6 +492,9 @@ namespace lemon
 			{
 				while (context.mOpcode->mSuccessiveHandledOpcodes > 0)
 				{
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+					if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps successive %d (type=%d)\n", context.mOpcode->mSuccessiveHandledOpcodes, (int)context.mOpcode->mOpcodeType); fflush(stdout); }
+#endif
 					// Optimization: Do multiple opcodes in a row without overheads if possible
 					if (context.mOpcode->mSuccessiveHandledOpcodes >= 4)
 					{
@@ -498,6 +511,9 @@ namespace lemon
 						context.mOpcode = context.mOpcode->mNext;
 
 						result.mStepsExecuted += 4;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace += 4;
+#endif
 					}
 					else
 					{
@@ -505,9 +521,15 @@ namespace lemon
 						context.mOpcode = context.mOpcode->mNext;
 
 						++result.mStepsExecuted;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace++;
+#endif
 					}
 				}
 
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+				if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps opcode type=%d\n", (int)context.mOpcode->mOpcodeType); fflush(stdout); }
+#endif
 				switch (context.mOpcode->mOpcodeType)
 				{
 					case Opcode::Type::JUMP_CONDITIONAL:
@@ -530,6 +552,9 @@ namespace lemon
 						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
 						//  -> This is needed to prevent endless loops
 						++result.mStepsExecuted;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace++;
+#endif
 						if (result.mStepsExecuted >= stepsLimit)
 						{
 							mActiveControlFlow = nullptr;
@@ -563,8 +588,14 @@ namespace lemon
 						state.mProgramCounter = (uint8*)context.mOpcode->mNext;
 						const uint64 callTarget = context.mOpcode->getParameter<uint64>();
 						++result.mStepsExecuted;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace++;
+#endif
 
 						const Function* func = handleResultCall(*context.mOpcode);
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps CALL target=0x%llx, func=%p\n", (unsigned long long)callTarget, func); fflush(stdout); }
+#endif
 						if (result.handleCall(func, callTarget))
 						{
 							// Restart the outer loop now that the running function has changed
@@ -584,6 +615,10 @@ namespace lemon
 						mSelectedControlFlow->mLocalVariablesSize = mSelectedControlFlow->mCallStack.back().mLocalVariablesStart;
 						mSelectedControlFlow->mCallStack.pop_back();
 						++result.mStepsExecuted;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace++;
+						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps RETURN stack_count=%u\n", mSelectedControlFlow->mCallStack.count); fflush(stdout); }
+#endif
 
 						if (result.handleReturn())
 						{
@@ -607,6 +642,10 @@ namespace lemon
 						--mSelectedControlFlow->mValueStackPtr;
 						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
 						++result.mStepsExecuted;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace++;
+						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps EXTERNAL_CALL addr=0x%llx\n", (unsigned long long)targetAddress); fflush(stdout); }
+#endif
 
 						if (result.handleExternalCall(targetAddress))
 						{
@@ -628,6 +667,10 @@ namespace lemon
 						returnFromFunction();
 						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
 						++result.mStepsExecuted;
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+						totalStepsTrace++;
+						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps EXTERNAL_JUMP addr=0x%llx\n", (unsigned long long)targetAddress); fflush(stdout); }
+#endif
 
 						if (result.handleExternalJump(targetAddress))
 						{

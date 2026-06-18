@@ -106,6 +106,7 @@ void Game::update(float timeElapsed)
 {
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 	static int gameUpdateTrace = 0;
+	if (gameUpdateTrace < 200) { RMX_LOG_INFO("PS3 Diagnostic: Game::update enter (#" << gameUpdateTrace << ")"); }
 	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update enter (#%d)\n", gameUpdateTrace); fflush(stdout); }
 #endif
 	// Update game client
@@ -156,7 +157,9 @@ void Game::update(float timeElapsed)
 	}
 
 #if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update exit (#%d)\n", gameUpdateTrace); fflush(stdout); gameUpdateTrace++; }
+	if (gameUpdateTrace < 200) { RMX_LOG_INFO("PS3 Diagnostic: Game::update exit (#" << gameUpdateTrace << ")"); }
+	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update exit (#%d)\n", gameUpdateTrace); fflush(stdout); }
+	gameUpdateTrace++;
 #endif
 }
 

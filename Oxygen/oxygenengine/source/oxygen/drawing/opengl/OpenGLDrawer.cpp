@@ -743,10 +743,12 @@ void OpenGLDrawer::presentScreen()
 		lastPresentHeartbeat = now;
 	}
 
-	if (now - lastSwapDiag > 5000) { RMX_LOG_INFO("PS3 Diagnostic: OpenGLDrawer::presentScreen calling psglSwap()"); lastSwapDiag = now; }
+	if (now - lastSwapDiag > 5000 || presentCount < 100) { RMX_LOG_INFO("PS3 Diagnostic: OpenGLDrawer::presentScreen calling psglSwap() (#" << presentCount << ")"); lastSwapDiag = now; }
 	if (presentCount < 100) { printf("PS3 Trace: OpenGLDrawer::presentScreen calling psglSwap (#%d)\n", presentCount); fflush(stdout); }
 	psglSwap();
-	if (presentCount < 100) { printf("PS3 Trace: OpenGLDrawer::presentScreen psglSwap done (#%d)\n", presentCount); fflush(stdout); presentCount++; }
+	if (presentCount < 100) { printf("PS3 Trace: OpenGLDrawer::presentScreen psglSwap done (#%d)\n", presentCount); fflush(stdout); }
+	if (presentCount < 100) { RMX_LOG_INFO("PS3 Diagnostic: OpenGLDrawer::presentScreen psglSwap done (#" << presentCount << ")"); }
+	presentCount++;
 #elif defined(PLATFORM_PS3)
 	psglSwap();
 #else

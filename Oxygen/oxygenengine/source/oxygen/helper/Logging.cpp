@@ -114,4 +114,20 @@ namespace oxygen
 	{
 		::mErrorLogger.mCaption = caption;
 	}
+
+#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+	static int g_diagnosticFrame = 0;
+	void Logging::setDiagnosticFrame(int frame)
+	{
+		g_diagnosticFrame = frame;
+	}
+	int Logging::getDiagnosticFrame()
+	{
+		return g_diagnosticFrame;
+	}
+	bool Logging::shouldLogDiagnostics()
+	{
+		return g_diagnosticFrame >= 80 && g_diagnosticFrame <= 120;
+	}
+#endif
 }
