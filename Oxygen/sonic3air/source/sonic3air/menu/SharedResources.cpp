@@ -51,9 +51,6 @@ namespace global
 
 	void loadSharedResources()
 	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		RMX_LOG_INFO("PS3 Diagnostic: Starting loadSharedResources()");
-#endif
 #if defined(PLATFORM_PS3)
 		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor  = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.5f, 0.8f));
 		std::shared_ptr<ShadowFontProcessor> shadowFontProcessor2 = std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 0.5f, 1.0f));
@@ -132,25 +129,15 @@ namespace global
 		mSonicFontC.addFontProcessor(gradientFontProcessor);
 		mSonicFontC.addFontProcessor(shadowFontProcessor2);
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		RMX_LOG_INFO("PS3 Diagnostic: loadSharedResources() loading textures");
-#endif
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		#define LOAD_TEX_LOG(tex, path) { RMX_LOG_INFO("PS3 Diagnostic: loading " << #tex << " from " << WString(path).toStdString()); FileHelper::loadTexture(tex, path); }
-#else
-		#define LOAD_TEX_LOG(tex, path) FileHelper::loadTexture(tex, path)
-#endif
-
-		LOAD_TEX_LOG(mMainMenuBackgroundSeparator, L"data/images/menu/mainmenu_bg_separator.png");
-		LOAD_TEX_LOG(mDataSelectBackground, L"data/images/menu/dataselect_bg.png");
-		LOAD_TEX_LOG(mDataSelectAltBackground, L"data/images/menu/dataselect_dark_bg.png");
-		LOAD_TEX_LOG(mLevelSelectBackground, L"data/images/menu/levelselect_bg.png");
-		LOAD_TEX_LOG(mPreviewBorder, L"data/images/menu/preview_border.png");
-		LOAD_TEX_LOG(mOptionsTopBar, L"data/images/menu/options_topbar_bg.png");
-		LOAD_TEX_LOG(mCharSelectionBox, L"data/images/menu/charselectionbox.png");
-		LOAD_TEX_LOG(mAchievementsFrame, L"data/images/menu/achievements_frame.png");
-		LOAD_TEX_LOG(mTimeAttackResultsBG, L"data/images/menu/timeattack_results_screen.png");
+		FileHelper::loadTexture(mMainMenuBackgroundSeparator, L"data/images/menu/mainmenu_bg_separator.png");
+		FileHelper::loadTexture(mDataSelectBackground, L"data/images/menu/dataselect_bg.png");
+		FileHelper::loadTexture(mDataSelectAltBackground, L"data/images/menu/dataselect_dark_bg.png");
+		FileHelper::loadTexture(mLevelSelectBackground, L"data/images/menu/levelselect_bg.png");
+		FileHelper::loadTexture(mPreviewBorder, L"data/images/menu/preview_border.png");
+		FileHelper::loadTexture(mOptionsTopBar, L"data/images/menu/options_topbar_bg.png");
+		FileHelper::loadTexture(mCharSelectionBox, L"data/images/menu/charselectionbox.png");
+		FileHelper::loadTexture(mAchievementsFrame, L"data/images/menu/achievements_frame.png");
+		FileHelper::loadTexture(mTimeAttackResultsBG, L"data/images/menu/timeattack_results_screen.png");
 
 		const std::vector<SharedDatabase::Zone>& zones = SharedDatabase::getAllZones();
 		for (const SharedDatabase::Zone& zone : zones)
@@ -167,11 +154,7 @@ namespace global
 				for (uint8 image = 0; image < 2; ++image)
 				{
 					key.mImage = image;
-					const String filename(0, "data/images/zone_preview/%s_act%d%c.png", zone.mShortName.substr(0, 6).data(), act + 1, 'a' + image);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-					RMX_LOG_INFO("PS3 Diagnostic: loading zone preview from " << filename.toStdString());
-					printf("PS3 Diagnostic: loading zone preview from %s\n", filename.getData()); fflush(stdout);
-#endif
+					const String filename(0, "data/images/zone_preview/%s_act%d%c.png", zone.mShortName.substr(0, 6).c_str(), act + 1, 'a' + image);
 					FileHelper::loadTexture(mZoneActPreview[key], *filename.toWString());
 				}
 			}
@@ -180,10 +163,6 @@ namespace global
 		for (const SharedDatabase::Achievement& achievement : SharedDatabase::getAchievements())
 		{
 			const String filename(0, "data/images/achievements/%s.png", achievement.mImage.c_str());
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			RMX_LOG_INFO("PS3 Diagnostic: loading achievement from " << filename.toStdString());
-			printf("PS3 Diagnostic: loading achievement from %s\n", filename.getData()); fflush(stdout);
-#endif
 			Bitmap bitmap;
 			if (FileHelper::loadBitmap(bitmap, *filename.toWString()))
 			{
@@ -222,22 +201,11 @@ namespace global
 			if (!secret.mImage.empty())
 			{
 				const String filename(0, "data/images/secrets/%s.png", secret.mImage.c_str());
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: loading secret from " << filename.toStdString());
-				printf("PS3 Diagnostic: loading secret from %s\n", filename.getData()); fflush(stdout);
-#endif
 				FileHelper::loadTexture(mSecretImage[secret.mType], *filename.toWString());
 
 				const String filename2(0, "data/images/secrets/%s_locked.png", secret.mImage.c_str());
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: loading secret (locked) from " << filename2.toStdString());
-				printf("PS3 Diagnostic: loading secret (locked) from %s\n", filename2.getData()); fflush(stdout);
-#endif
 				FileHelper::loadTexture(mSecretImage[secret.mType | 0x80000000], *filename2.toWString(), false);	// This is okay to fail for some secrets
 			}
 		}
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		RMX_LOG_INFO("PS3 Diagnostic: loadSharedResources() finished");
-#endif
 	}
 }

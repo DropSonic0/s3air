@@ -707,14 +707,14 @@ namespace lemon
 		if (runtimeOpcode.mFlags.isSet(RuntimeOpcode::Flag::CALL_TARGET_RUNTIME_FUNC))
 		{
 			// Take the runtime function shortcut (this is the most common one)
-			const RuntimeFunction* runtimeFunction = runtimeOpcode.getParameter<const RuntimeFunction*>();
+			const RuntimeFunction* runtimeFunction = (const RuntimeFunction*)runtimeOpcode.getParameter<uint64>();
 			callRuntimeFunction(*runtimeFunction, baseCallIndex);
 			return runtimeFunction->mFunction;
 		}
 		else if (runtimeOpcode.mFlags.isSet(RuntimeOpcode::Flag::CALL_TARGET_RESOLVED))
 		{
 			// Take the shortcut to a normal function
-			const Function* function = runtimeOpcode.getParameter<const Function*>();
+			const Function* function = (const Function*)runtimeOpcode.getParameter<uint64>();
 			callFunction(*function, baseCallIndex);
 			return function;
 		}

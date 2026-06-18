@@ -465,17 +465,8 @@ void CodeExec::reinitRuntime(const LemonScriptRuntime::CallStackWithLabels* enfo
 
 bool CodeExec::performFrameUpdate()
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int performFrameTrace = 0;
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::performFrameUpdate enter (#" << performFrameTrace << ")"); }
-#endif
 	if (!canExecute())
-	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::performFrameUpdate exit (can't execute) (#" << performFrameTrace << ")"); performFrameTrace++; }
-#endif
 		return false;
-	}
 
 	lemon::Runtime::setActiveEnvironment(&mRuntimeEnvironment);
 
@@ -507,13 +498,7 @@ bool CodeExec::performFrameUpdate()
 	}
 
 	// Run script
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::performFrameUpdate calling runScript (#" << performFrameTrace << ")"); }
-#endif
 	runScript(false, &mMainCallFrameTracking);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::performFrameUpdate runScript done (#" << performFrameTrace << ")"); }
-#endif
 
 	const bool completedNewFrame = (mExecutionState == ExecutionState::YIELDED);
 	if (completedNewFrame)
@@ -526,10 +511,6 @@ bool CodeExec::performFrameUpdate()
 		}
 		mAccumulatedStepsOfCurrentFrame = 0;
 	}
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::performFrameUpdate exit (#" << performFrameTrace << ")"); performFrameTrace++; }
-#endif
 
 	// Return whether the frame was completed in any way (halted counts as completed)
 	return (mExecutionState != ExecutionState::INTERRUPTED);
@@ -645,60 +626,32 @@ bool CodeExec::hasValidState() const
 
 void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFrameTracking)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int runScriptTrace = 0;
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::runScript enter (#" << runScriptTrace << ", single=" << executeSingleFunction << ")"); }
-#endif
 	// There are four stop conditions:
 	//  a) Yield from script, sets mCurrentlyRunningScript to false     -> this is the usual case if executeSingleFunction == false (but must not happen otherwise)
 	//  b) Returned from function that is initially on top of the stack -> this is the usual case if executeSingleFunction == true (and can't happen otherwise)
 	//  c) Reached runtime steps limit, i.e. script got stuck in a loop
 	//  d) Script stopped because its runtime stack was completely emptied
-	const size_t abortOnCallStackSize = executeSingleFunction ? (std::max<size_t>(mLemonScriptRuntime.getCallStackSize(), 1) - 1) : 0;
-	size_t stepsCounter = 0;
-	size_t nextCheckSteps = 0x40000;
-
 	if (!canExecute())
 		return;
 
 	mActiveInstance = this;
 	mCurrentlyRunningScript = true;
+	const size_t abortOnCallStackSize = executeSingleFunction ? (std::max<size_t>(mLemonScriptRuntime.getCallStackSize(), 1) - 1) : 0;
 	mActiveCallFrameTracking = mIsDeveloperMode ? callFrameTracking : nullptr;
 
+	size_t stepsCounter = 0;
+	size_t nextCheckSteps = 0x40000;
 	const uint32 ticksStart = SDL_GetTicks();
 
 	while (true)
 	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: CodeExec::runScript loop start (#%d, stepsCounter=%lu)\n", runScriptTrace, (unsigned long)stepsCounter); fflush(stdout); }
-#endif
 		// Execute next runtime steps
 		size_t stepsExecutedThisCall;
-		bool success;
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		{
-			static uint32 lastScriptHeartbeat = 0;
-			uint32 now = SDL_GetTicks();
-			if (now - lastScriptHeartbeat > 5000)
-			{
-				printf("PS3 Heartbeat: runScript (steps=%lu)\n", (unsigned long)stepsCounter);
-				fflush(stdout);
-				lastScriptHeartbeat = now;
-			}
-		}
-#endif
 #if !defined(PLATFORM_PS3)
 		try
 #endif
 		{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: CodeExec::runScript calling executeRuntimeSteps (#%d)\n", runScriptTrace); fflush(stdout); }
-#endif
-			success = (nullptr != mActiveCallFrameTracking) ? executeRuntimeStepsDev(stepsExecutedThisCall, abortOnCallStackSize) : executeRuntimeSteps(stepsExecutedThisCall, abortOnCallStackSize);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: CodeExec::runScript executeRuntimeSteps done (#%d, steps=%lu, success=%d)\n", runScriptTrace, (unsigned long)stepsExecutedThisCall, success); fflush(stdout); }
-#endif
+			const bool success = (nullptr != mActiveCallFrameTracking) ? executeRuntimeStepsDev(stepsExecutedThisCall, abortOnCallStackSize) : executeRuntimeSteps(stepsExecutedThisCall, abortOnCallStackSize);
 			if (!success)
 			{
 				if (executeSingleFunction)
@@ -775,10 +728,6 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 	mAccumulatedStepsOfCurrentFrame += stepsCounter;
 	mCurrentlyRunningScript = false;
 	mActiveInstance = nullptr;
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: CodeExec::runScript exit (#" << runScriptTrace << ", steps=" << stepsCounter << ")"); runScriptTrace++; }
-#endif
 }
 
 bool CodeExec::executeRuntimeSteps(size_t& stepsExecuted, size_t minimumCallStackSize)

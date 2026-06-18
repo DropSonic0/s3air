@@ -41,14 +41,14 @@ static void exec_1e99bb14ecac1b69(const RuntimeOpcodeContext context)
 // First occurrence: integerArithmeticTestA, line 31
 static void exec_f198f4801343acae(const RuntimeOpcodeContext context)
 {
-	context.writeLocalVariable<uint16>(context.getParameter<uint32>(8), (uint16)context.getParameter<int64>());
+	context.writeLocalVariable<uint16>((uint32)context.getParameter<int64>(8), (uint16)context.getParameter<int64>());
 }
 
 // First occurrence: integerArithmeticTestA, line 32
 static void exec_d30d2a0ed02b013b(const RuntimeOpcodeContext context)
 {
-	context.writeValueStack<uint16>(0, context.readLocalVariable<uint16>(context.getParameter<uint32>()));
-	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>(4)));
+	context.writeValueStack<uint16>(0, context.readLocalVariable<uint16>((uint32)context.getParameter<int64>()));
+	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>(4)));
 	const AnyBaseValue var1((int64)0);
 	context.writeValueStack<uint8>(1, (uint8)(var0.get<int16>() < var1.get<int16>()));
 	context.moveValueStack(2);
@@ -58,14 +58,14 @@ static void exec_d30d2a0ed02b013b(const RuntimeOpcodeContext context)
 static void exec_88dee4fe77b63531(const RuntimeOpcodeContext context)
 {
 	const AnyBaseValue var0((uint16)(context.readValueStack<uint16>(-2) + context.readValueStack<uint16>(-1)));
-	context.writeLocalVariable<uint16>(context.getParameter<uint32>(), var0.get<uint16>());
+	context.writeLocalVariable<uint16>((uint32)context.getParameter<int64>(), var0.get<uint16>());
 	context.moveValueStack(-2);
 }
 
 // First occurrence: integerArithmeticTestA, line 33
 static void exec_5187dc7e6e5a09c7(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>()));
+	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>()));
 	const AnyBaseValue var1((int64)1);
 	context.writeValueStack<uint8>(0, (uint8)(var0.get<uint16>() == var1.get<uint16>()));
 	context.moveValueStack(1);
@@ -74,14 +74,14 @@ static void exec_5187dc7e6e5a09c7(const RuntimeOpcodeContext context)
 // First occurrence: integerArithmeticTestB, line 38
 static void exec_477cd77d3cd1e726(const RuntimeOpcodeContext context)
 {
-	context.writeLocalVariable<uint16>(context.getParameter<uint32>(8), (uint16)context.getParameter<int64>());
+	context.writeLocalVariable<uint16>((uint32)context.getParameter<int64>(8), (uint16)context.getParameter<int64>());
 }
 
 // First occurrence: integerArithmeticTestB, line 40
 static void exec_a73019784d9605d0(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>()));
-	const AnyBaseValue var1((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>(4)));
+	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>()));
+	const AnyBaseValue var1((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>(4)));
 	const AnyBaseValue var2((uint16)(var0.get<uint16>() + var1.get<uint16>()));
 	context.writeValueStack<uint8>(0, (uint8)(var2.get<uint16>() == (uint16)(context.getParameter<int64>(8))));
 	context.moveValueStack(1);
@@ -90,24 +90,24 @@ static void exec_a73019784d9605d0(const RuntimeOpcodeContext context)
 // First occurrence: integerArithmeticTestC, line 45
 static void exec_f3548d4e78066474(const RuntimeOpcodeContext context)
 {
-	context.writeLocalVariable<uint32>(context.getParameter<uint32>(8), (uint32)context.getParameter<int64>());
+	context.writeLocalVariable<uint32>((uint32)context.getParameter<int64>(8), (uint32)context.getParameter<int64>());
 }
 
 // First occurrence: integerArithmeticTestC, line 46
 static void exec_c8451f7e094b32c7(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var1((uint32)context.readLocalVariable<uint32>(context.getParameter<uint32>(8)));
+	const AnyBaseValue var1((uint32)context.readLocalVariable<uint32>((uint32)context.getParameter<int64>(8)));
 	const AnyBaseValue var3((uint32)(var1.get<uint32>() + (uint32)(context.getParameter<int64>(12))));
 	const AnyBaseValue var4((uint32)((uint32)context.getParameter<int64>() - var3.get<uint32>()));
 	const AnyBaseValue var6((uint32)OpcodeExecUtils::safeDivide<uint32>((uint32)var4.get<uint32>(), (uint32)context.getParameter<int64>(20)));
 	const AnyBaseValue var7((int16)(uint16)var6.get<int32>());
-	context.writeLocalVariable<uint16>(context.getParameter<uint32>(28), var7.get<uint16>());
+	context.writeLocalVariable<uint16>((uint32)context.getParameter<int64>(28), var7.get<uint16>());
 }
 
 // First occurrence: integerArithmeticTestC, line 47
 static void exec_5aa27e417f55b5c8(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>()));
+	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>()));
 	context.writeValueStack<uint8>(0, (uint8)(var0.get<uint16>() == (uint16)(context.getParameter<int64>(4))));
 	context.moveValueStack(1);
 }
@@ -115,19 +115,19 @@ static void exec_5aa27e417f55b5c8(const RuntimeOpcodeContext context)
 // First occurrence: integerArithmeticTestD, line 54
 static void exec_6a267c3c542f83f9(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>()));
+	const AnyBaseValue var0((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>()));
 	const AnyBaseValue var1((int32)(uint32)var0.get<int16>());
 	const AnyBaseValue var3((uint32)(var1.get<uint32>() << (uint32)(context.getParameter<int64>(4) & 0x1f)));
-	const AnyBaseValue var4((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>(12)));
+	const AnyBaseValue var4((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>(12)));
 	const AnyBaseValue var5((int32)(uint32)var4.get<int16>());
 	const AnyBaseValue var6((int32)OpcodeExecUtils::safeDivide<int32>((int32)var3.get<int32>(), (int32)var5.get<int32>()));
-	context.writeLocalVariable<uint32>(context.getParameter<uint32>(16), var6.get<uint32>());
+	context.writeLocalVariable<uint32>((uint32)context.getParameter<int64>(16), var6.get<uint32>());
 }
 
 // First occurrence: integerArithmeticTestD, line 55
 static void exec_98ed931ef5ec7570(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((uint32)context.readLocalVariable<uint32>(context.getParameter<uint32>()));
+	const AnyBaseValue var0((uint32)context.readLocalVariable<uint32>((uint32)context.getParameter<int64>()));
 	context.writeValueStack<uint8>(0, (uint8)(var0.get<uint32>() == (uint32)(context.getParameter<int64>(4))));
 	context.moveValueStack(1);
 }
@@ -145,13 +145,13 @@ static void exec_ad7fc214f6f1eddd(const RuntimeOpcodeContext context)
 	const AnyBaseValue var1((uint8)OpcodeExecUtils::readMemory<uint8>(*context.mControlFlow, var0.get<uint32>()));
 	const AnyBaseValue var3((uint8)(var1.get<uint8>() & (uint8)(context.getParameter<int64>(8))));
 	OpcodeExecUtils::writeMemory<uint8>(*context.mControlFlow, var0.get<uint32>(), var3.get<uint8>());
-	context.writeLocalVariable<uint8>(context.getParameter<uint32>(16), var3.get<uint8>());
+	context.writeLocalVariable<uint8>((uint32)context.getParameter<int64>(16), var3.get<uint8>());
 }
 
 // First occurrence: integerArithmeticTestE, line 62
 static void exec_5e01ac1f3e13f0e0(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((uint8)context.readLocalVariable<uint8>(context.getParameter<uint32>()));
+	const AnyBaseValue var0((uint8)context.readLocalVariable<uint8>((uint32)context.getParameter<int64>()));
 	context.writeValueStack<uint8>(0, (var0.get<uint8>() == (uint8)(context.getParameter<int64>(4))));
 	context.moveValueStack(1);
 }
@@ -159,17 +159,17 @@ static void exec_5e01ac1f3e13f0e0(const RuntimeOpcodeContext context)
 // First occurrence: integerArithmeticTestF, line 67
 static void exec_129ca8a6a7bc4114(const RuntimeOpcodeContext context)
 {
-	context.writeLocalVariable<uint8>(context.getParameter<uint32>(8), (uint8)context.getParameter<int64>());
+	context.writeLocalVariable<uint8>((uint32)context.getParameter<int64>(8), (uint8)context.getParameter<int64>());
 }
 
 // First occurrence: integerArithmeticTestF, line 69
 static void exec_0b5a32e4ccfe4ad2(const RuntimeOpcodeContext context)
 {
-	context.writeValueStack<uint16>(0, context.readLocalVariable<uint16>(context.getParameter<uint32>()));
-	const AnyBaseValue var0((uint8)context.readLocalVariable<uint8>(context.getParameter<uint32>(4)));
+	context.writeValueStack<uint16>(0, context.readLocalVariable<uint16>((uint32)context.getParameter<int64>()));
+	const AnyBaseValue var0((uint8)context.readLocalVariable<uint8>((uint32)context.getParameter<int64>(4)));
 	const AnyBaseValue var1((uint8)-(signed)var0.get<uint8>());
 	context.writeValueStack<int16>(1, (uint16)var1.get<int8>());
-	const AnyBaseValue var2((uint8)context.readLocalVariable<uint8>(context.getParameter<uint32>(8)));
+	const AnyBaseValue var2((uint8)context.readLocalVariable<uint8>((uint32)context.getParameter<int64>(8)));
 	context.writeValueStack<int16>(2, (uint16)var2.get<int8>());
 	context.moveValueStack(3);
 }
@@ -177,26 +177,26 @@ static void exec_0b5a32e4ccfe4ad2(const RuntimeOpcodeContext context)
 // First occurrence: integerArithmeticTestF, line 69
 static void exec_fc64b3bf8227da48(const RuntimeOpcodeContext context)
 {
-	context.writeLocalVariable<uint16>(context.getParameter<uint32>(), context.readValueStack<uint16>(-1));
+	context.writeLocalVariable<uint16>((uint32)context.getParameter<int64>(), context.readValueStack<uint16>(-1));
 	context.moveValueStack(-1);
 }
 
 // First occurrence: floatArithmeticTestA, line 85
 static void exec_826dcbeb35056aba(const RuntimeOpcodeContext context)
 {
-	context.writeLocalVariable<float>(context.getParameter<uint32>(8), (float)context.getParameter<double>());
+	context.writeLocalVariable<float>((uint32)context.getParameter<int64>(8), (float)context.getParameter<double>());
 }
 
 // First occurrence: floatArithmeticTestA, line 86
 static void exec_6e197dd5b6a2ddb6(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((float)context.readLocalVariable<float>(context.getParameter<uint32>()));
-	const AnyBaseValue var1((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>(4)));
+	const AnyBaseValue var0((float)context.readLocalVariable<float>((uint32)context.getParameter<int64>()));
+	const AnyBaseValue var1((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>(4)));
 	const AnyBaseValue var2((float)(float)var1.get<int16>());
 	const AnyBaseValue var3((float)(var0.get<float>() * var2.get<float>()));
-	const AnyBaseValue var4((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>(8)));
+	const AnyBaseValue var4((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>(8)));
 	const AnyBaseValue var5((float)(float)var4.get<int16>());
-	const AnyBaseValue var6((float)context.readLocalVariable<float>(context.getParameter<uint32>(12)));
+	const AnyBaseValue var6((float)context.readLocalVariable<float>((uint32)context.getParameter<int64>(12)));
 	const AnyBaseValue var7((float)(var5.get<float>() * var6.get<float>()));
 	context.writeValueStack<uint8>(0, (uint8)(var3.get<float>() == var7.get<float>()));
 	context.moveValueStack(1);
@@ -205,8 +205,8 @@ static void exec_6e197dd5b6a2ddb6(const RuntimeOpcodeContext context)
 // First occurrence: floatArithmeticTestA, line 86
 static void exec_357479c741322b87(const RuntimeOpcodeContext context)
 {
-	const AnyBaseValue var0((float)context.readLocalVariable<float>(context.getParameter<uint32>()));
-	const AnyBaseValue var1((uint16)context.readLocalVariable<uint16>(context.getParameter<uint32>(4)));
+	const AnyBaseValue var0((float)context.readLocalVariable<float>((uint32)context.getParameter<int64>()));
+	const AnyBaseValue var1((uint16)context.readLocalVariable<uint16>((uint32)context.getParameter<int64>(4)));
 	const AnyBaseValue var2((float)(float)var1.get<int16>());
 	const AnyBaseValue var3((float)(var0.get<float>() * var2.get<float>()));
 	context.writeValueStack<uint8>(0, (uint8)(var3.get<float>() == (float)(context.getParameter<double>(8))));

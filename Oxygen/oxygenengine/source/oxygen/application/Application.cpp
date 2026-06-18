@@ -33,7 +33,6 @@
 #include "oxygen/platform/PlatformFunctions.h"
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/simulation/Simulation.h"
-#include <lemon/runtime/Runtime.h>
 
 
 static const float MOUSE_HIDE_TIME = 1.0f;	// Seconds until mouse cursor gets hidden after last movement
@@ -412,40 +411,8 @@ void Application::keyboard(const rmx::KeyboardEvent& ev)
 
 void Application::update(float timeElapsed)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int updateEntryCount = 0;
-	oxygen::Logging::setDiagnosticFrame(updateEntryCount);
-	lemon::Runtime::mDiagnosticFrame = updateEntryCount;
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update enter (#" << updateEntryCount << ", dt=" << timeElapsed << ")"); }
-	updateEntryCount++;
-#endif
-	const bool isDeveloperMode = EngineMain::getDelegate().useDeveloperFeatures();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static uint32 lastHeartbeat = 0;
-	static uint32 lastInputDiag = 0;
-	static uint32 lastSimDiag = 0;
-	static uint32 lastGameDiag = 0;
-	static uint32 lastAudioDiag = 0;
-	uint32 now = SDL_GetTicks();
-
-	if (now - lastHeartbeat > 1000)
-	{
-		if (mSimulation)
-		{
-			RMX_LOG_INFO("PS3 Heartbeat: Application::update (running=" << mSimulation->isRunning() << ", speed=" << mSimulation->getSpeed() << ", frame=" << mSimulation->getFrameNumber() << ")");
-			printf("PS3 Heartbeat: Application::update (running=%d, speed=%f, frame=%u)\n", mSimulation->isRunning(), mSimulation->getSpeed(), mSimulation->getFrameNumber());
-		}
-		else
-		{
-			RMX_LOG_INFO("PS3 Heartbeat: Application::update (simulation not initialized)");
-			printf("PS3 Heartbeat: Application::update (simulation not initialized)\n");
-		}
-		fflush(stdout);
-		lastHeartbeat = now;
-	}
-#endif
-
 	// Global slow motion for debugging menu transitions etc.
+	const bool isDeveloperMode = EngineMain::getDelegate().useDeveloperFeatures();
 	if (isDeveloperMode && FTX::keyState(SDLK_RSHIFT))
 	{
 		timeElapsed /= 10.0f;
@@ -463,16 +430,6 @@ void Application::update(float timeElapsed)
 	#endif
 
 		updateLoading();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		{
-			static bool firstLoadDone = false;
-			if (!firstLoadDone && !mGameLoader->isLoading())
-			{
-				RMX_LOG_INFO("PS3 Diagnostic: Application::update - loading finished, game app should be active");
-				firstLoadDone = true;
-			}
-		}
-#endif
 	}
 	else
 	{
@@ -484,11 +441,6 @@ void Application::update(float timeElapsed)
 	}
 
 	// Update input
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int traceCount = 0;
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::update - updating InputManager (#%d)\n", traceCount); fflush(stdout); }
-	if (now - lastInputDiag > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update updating InputManager (#" << traceCount << ")"); lastInputDiag = now; }
-#endif
 	InputManager::instance().updateInput(timeElapsed);
 
 	if (mPausedByFocusLoss)
@@ -504,26 +456,14 @@ void Application::update(float timeElapsed)
 
 	// Update simulation
 	Profiling::pushRegion(ProfilingRegion::SIMULATION);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::update - updating Simulation (#%d)\n", traceCount); fflush(stdout); }
-	if (now - lastSimDiag > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update updating Simulation (#" << traceCount << ")"); lastSimDiag = now; }
-#endif
 	mSimulation->update(timeElapsed);
 	Profiling::popRegion(ProfilingRegion::SIMULATION);
 
 	// Update game
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::update - updating Game (#%d)\n", traceCount); fflush(stdout); }
-	if (now - lastGameDiag > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update updating Game (#" << traceCount << ")"); lastGameDiag = now; }
-#endif
 	EngineMain::getDelegate().updateGame(timeElapsed);
 
 	// Update audio
 	Profiling::pushRegion(ProfilingRegion::AUDIO);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::update - updating AudioOut (#%d)\n", traceCount); fflush(stdout); }
-	if (now - lastAudioDiag > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update updating AudioOut (#" << traceCount << ")"); lastAudioDiag = now; }
-#endif
 	EngineMain::instance().getAudioOut().realtimeUpdate(timeElapsed);
 	Profiling::popRegion(ProfilingRegion::AUDIO);
 
@@ -539,16 +479,7 @@ void Application::update(float timeElapsed)
 	LogDisplay& logDisplay = LogDisplay::instance();
 	logDisplay.mLogDisplayTimeout = std::max(logDisplay.mLogDisplayTimeout - std::min(timeElapsed, 0.1f), 0.0f);
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::update - updating GuiBase (#%d)\n", traceCount); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update updating GuiBase (#" << traceCount << ")"); }
-#endif
 	GuiBase::update(timeElapsed);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::update - finished (#%d)\n", traceCount); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::update finished (#" << traceCount << ")"); }
-	traceCount++;
-#endif
 
 	if (nullptr != mRemoveChild)
 	{
@@ -572,36 +503,11 @@ void Application::update(float timeElapsed)
 
 void Application::render()
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int renderTraceCount = 0;
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::render - start (#%d)\n", renderTraceCount); fflush(stdout); }
-#endif
 	static int frameCount = 0;
-	Drawer& drawer = EngineMain::instance().getDrawer();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static uint32 lastRenderDiagStart = 0;
-	static uint32 lastHeartbeat = 0;
-	static uint32 lastRenderDiagMid = 0;
-	static uint32 lastRenderDiagEnd = 0;
-	uint32 now = SDL_GetTicks();
-
-	if (now - lastRenderDiagStart > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::render begin (#" << renderTraceCount << ")"); lastRenderDiagStart = now; }
-
-	if (now - lastHeartbeat > 1000)
-	{
-		if (mSimulation)
-		{
-			RMX_LOG_INFO("PS3 Heartbeat: Application::render (frame=" << mSimulation->getFrameNumber() << ")");
-		}
-		else
-		{
-			RMX_LOG_INFO("PS3 Heartbeat: Application::render (simulation not initialized)");
-		}
-		lastHeartbeat = now;
-	}
-#endif
 
 	Profiling::pushRegion(ProfilingRegion::RENDERING);
+
+	Drawer& drawer = EngineMain::instance().getDrawer();
 	drawer.setupRenderWindow(&EngineMain::instance().getSDLWindow());
 
 	GuiBase::render();
@@ -650,14 +556,7 @@ void Application::render()
 		drawer.drawSprite(FTX::screenSize() / 2, key, Color(0.3f, 1.0f, 1.0f), Vec2f(scale));
 	}
 
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::render - calling performRendering (#%d)\n", renderTraceCount); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::render calling performRendering (#" << renderTraceCount << ")"); }
 	drawer.performRendering();
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::render - performRendering done (#%d)\n", renderTraceCount); fflush(stdout); }
-	if (now - lastRenderDiagMid > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::render after performRendering (#" << renderTraceCount << ")"); lastRenderDiagMid = now; }
-#endif
 
 	// Needed only for precise profiling
 	//glFinish();
@@ -666,12 +565,12 @@ void Application::render()
 
 	// Update profiling data & explicit buffer swap
 	{
+		Profiling::pushRegion(ProfilingRegion::FRAMESYNC);
+
 		const double currentTime = mApplicationTimer.getSecondsSinceStart() * 1000.0;
 		const float simulationFrequency = mSimulation->getSimulationFrequency();
 		const double tickLengthMilliseconds = (simulationFrequency > 0.0f) ? 1000.0 / (double)simulationFrequency : 0.0;
 		const bool usingFramecap = (simulationFrequency > 0.0f) && (drawer.getType() != Drawer::Type::OPENGL || Configuration::instance().mFrameSync != Configuration::FrameSyncType::VSYNC_ON) && (Configuration::instance().mFrameSync != Configuration::FrameSyncType::FRAME_INTERPOLATION);
-
-		Profiling::pushRegion(ProfilingRegion::FRAMESYNC);
 		if (usingFramecap)
 		{
 			double delay = mNextRefreshTime - currentTime;
@@ -696,15 +595,7 @@ void Application::render()
 			}
 		}
 
-		if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::render - calling presentScreen (#%d)\n", renderTraceCount); fflush(stdout); }
-		if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::render calling presentScreen (#" << renderTraceCount << ")"); }
 		drawer.presentScreen();
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Application::render - presentScreen done (#%d)\n", renderTraceCount); fflush(stdout); }
-	if (now - lastRenderDiagEnd > 5000 || oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Application::render after presentScreen (#" << renderTraceCount << ")"); lastRenderDiagEnd = now; }
-	renderTraceCount++;
-#endif
 
 	#if 0
 		// Use a glFinish or glFlush here...?
@@ -925,24 +816,14 @@ bool Application::updateLoading()
 			{
 				// The simulation startup may fail, and this should lead to the application not starting at all
 				RMX_LOG_INFO("Simulation startup");
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: Starting Simulation::startup()");
-			#endif
 				if (!mSimulation->startup())
 				{
 					RMX_LOG_INFO("Simulation startup failed");
-				#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-					RMX_LOG_INFO("PS3 Diagnostic: Simulation::startup() FAILED");
-				#endif
 
 					// TODO: Handle this better
 					FTX::System->quit();
 					return false;
 				}
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: Simulation::startup() SUCCESS");
-					printf("PS3 Diagnostic: Simulation::startup() SUCCESS\n"); fflush(stdout);
-			#endif
 
 				// If the application was only started to e.g. perform nativization, then exit now
 				if (Configuration::instance().mExitAfterScriptLoading)
@@ -952,31 +833,10 @@ bool Application::updateLoading()
 				}
 
 				// Startup game
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: Starting startupGame()");
-			#endif
-				RMX_LOG_INFO("Starting up game...");
 				EngineMain::getDelegate().startupGame(mSimulation->getEmulatorInterface());
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: startupGame() finished");
-					printf("PS3 Diagnostic: startupGame() finished\n"); fflush(stdout);
-			#endif
 
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: Creating mGameApp");
-			#endif
-				RMX_LOG_INFO("Creating game app...");
 				mGameApp = &EngineMain::getDelegate().createGameApp();
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: Adding mGameApp to children");
-			#endif
-				RMX_LOG_INFO("Adding game app...");
 				addChild(mGameApp);
-			#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: mGameApp added");
-					printf("PS3 Diagnostic: mGameApp added\n"); fflush(stdout);
-			#endif
-				RMX_LOG_INFO("Game app added.");
 				break;
 			}
 

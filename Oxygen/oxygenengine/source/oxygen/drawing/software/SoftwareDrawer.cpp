@@ -458,16 +458,6 @@ void SoftwareDrawer::setupRenderWindow(SDL_Window* window)
 
 void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static uint32 lastRenderHeartbeat = 0;
-	uint32 now = SDL_GetTicks();
-
-	if (now - lastRenderHeartbeat > 1000)
-	{
-		RMX_LOG_INFO("PS3 Heartbeat: SoftwareDrawer::performRendering");
-		lastRenderHeartbeat = now;
-	}
-#endif
 	for (DrawCommand* drawCommand : drawCollection.getDrawCommands())
 	{
 		switch (drawCommand->getType())
@@ -699,26 +689,13 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 
 void SoftwareDrawer::presentScreen()
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static uint32 lastPresentHeartbeat = 0;
-	static uint32 lastSwapDiag = 0;
-	uint32 now = SDL_GetTicks();
-
-	if (now - lastPresentHeartbeat > 1000)
-	{
-		RMX_LOG_INFO("PS3 Heartbeat: SoftwareDrawer::presentScreen");
-		lastPresentHeartbeat = now;
-	}
-#endif
-
 	if (nullptr == mInternal.mScreenSurface)
 		return;
 
 	mInternal.unlockScreenSurface();
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
+#if defined(PLATFORM_PS3)
 	// On PS3, we need to upload the software rendered surface to a texture and display it via fixed-function PSGL
-
 	static GLuint screenTexture = 0;
 	if (screenTexture == 0)
 	{
@@ -729,10 +706,6 @@ void SoftwareDrawer::presentScreen()
 	}
 
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static uint32 lastTexDiag = 0;
-	if (now - lastTexDiag > 5000) { RMX_LOG_INFO("PS3 Diagnostic: SoftwareDrawer::presentScreen calling glTexImage2D"); lastTexDiag = now; }
-#endif
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mInternal.mScreenSurface->pixels);
 
 	glDisable(GL_CULL_FACE);
@@ -770,12 +743,7 @@ void SoftwareDrawer::presentScreen()
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (now - lastSwapDiag > 5000) { RMX_LOG_INFO("PS3 Diagnostic: SoftwareDrawer::presentScreen calling psglSwap()"); lastSwapDiag = now; }
 	psglSwap();
-#else
-	psglSwap();
-#endif
 #else
 	SDL_UpdateWindowSurface(mInternal.mOutputWindow);
 #endif

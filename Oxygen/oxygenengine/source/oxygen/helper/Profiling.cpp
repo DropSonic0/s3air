@@ -89,11 +89,6 @@ void Profiling::popRegion(uint16 id)
 
 void Profiling::nextFrame(int simulationFrameNumber)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int frameCount = 0;
-	if (frameCount < 100) { RMX_LOG_INFO("PS3 Diagnostic: Profiling::nextFrame (#" << frameCount << ")"); }
-	frameCount++;
-#endif
 	RMX_ASSERT(mRegionStack.size() == 1, "Profiling region stack must only contain the root on frame end");
 
 	for (Region* region : mAllRegions)

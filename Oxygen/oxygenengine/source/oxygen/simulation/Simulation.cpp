@@ -199,10 +199,6 @@ void Simulation::reloadLastState()
 
 bool Simulation::loadState(const std::wstring& filename, bool showError)
 {
-	SaveStateSerializer::StateType stateType;
-	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
-	bool success;
-
 	RMX_LOG_INFO("Attempting to load save state: " << WString(filename).toStdString());
 #if defined(PLATFORM_PS3)
 	printf("PS3 Attempting to load save state: %s\n", WString(filename).toStdString().c_str());
@@ -211,7 +207,10 @@ bool Simulation::loadState(const std::wstring& filename, bool showError)
 	VideoOut::instance().reset();
 	EngineMain::instance().getAudioOut().reset();
 
-	success = serializer.loadState(filename, &stateType);
+	SaveStateSerializer::StateType stateType;
+	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
+
+	const bool success = serializer.loadState(filename, &stateType);
 	if (!success)
 	{
 		if (showError)
@@ -233,15 +232,13 @@ bool Simulation::loadState(const std::wstring& filename, bool showError)
 
 void Simulation::saveState(const std::wstring& filename)
 {
-	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
-	bool success;
-
 	RMX_LOG_INFO("Saving save state to: " << WString(filename).toStdString());
 #if defined(PLATFORM_PS3)
 	printf("PS3 Saving save state to: %s\n", WString(filename).toStdString().c_str());
 	fflush(stdout);
 #endif
-	success = serializer.saveState(filename);
+	SaveStateSerializer serializer(mCodeExec, RenderParts::instance());
+	const bool success = serializer.saveState(filename);
 	RMX_CHECK(success, "Failed to save save state '" << WString(filename).toStdString() << "'", return);
 
 	// Also save a screenshot
@@ -268,20 +265,8 @@ bool Simulation::triggerFullScriptsReload()
 
 void Simulation::update(float timeElapsed)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int simUpdateTrace = 0;
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::update enter (#%d)\n", simUpdateTrace); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::update enter (#" << simUpdateTrace << ")"); }
-#endif
 	if (!isRunning() || !mCodeExec.isCodeExecutionPossible())
-	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::update exit (not running) (#%d)\n", simUpdateTrace); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::update exit (not running) (#" << simUpdateTrace << ")"); }
-	simUpdateTrace++;
-#endif
 		return;
-	}
 
 	if (mRewindSteps >= 0)
 	{
@@ -317,11 +302,6 @@ void Simulation::update(float timeElapsed)
 	const bool useFrameInterpolation = (Configuration::instance().mFrameSync == Configuration::FrameSyncType::FRAME_INTERPOLATION);
 	const uint32 requiredFrameNumber = useFrameInterpolation ? (uint32)std::ceil(mCurrentTargetFrame) : (uint32)roundToInt(mCurrentTargetFrame);
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::update freq=%f, frame=%u, target=%u\n", getSimulationFrequency(), mFrameNumber, requiredFrameNumber); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::update freq=" << getSimulationFrequency() << ", frame=" << mFrameNumber << ", target=" << requiredFrameNumber); }
-#endif
-
 	if (mFrameNumber < requiredFrameNumber)
 	{
 		const uint32 startTime = SDL_GetTicks();
@@ -330,13 +310,7 @@ void Simulation::update(float timeElapsed)
 		while (mFrameNumber < requiredFrameNumber)
 		{
 			// Update emulation
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::update calling generateFrame (frame %u/%u)\n", mFrameNumber, requiredFrameNumber); fflush(stdout); }
-#endif
 			const bool result = generateFrame();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::update generateFrame done (result=%d)\n", result); fflush(stdout); }
-#endif
 			if (!result)
 				break;
 
@@ -373,12 +347,6 @@ void Simulation::update(float timeElapsed)
 		VideoOut::instance().setInterFramePosition(0.0f);
 	}
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::update exit (#%d)\n", simUpdateTrace); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::update exit (#" << simUpdateTrace << ")"); }
-	simUpdateTrace++;
-#endif
-
 #if 0
 	// Meant for debugging of accumulated time stability
 	if ((mFrameNumber % 6) == 0)
@@ -388,11 +356,6 @@ void Simulation::update(float timeElapsed)
 
 bool Simulation::generateFrame()
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int genFrameTrace = 0;
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::generateFrame enter (#%d, frame=%u)\n", genFrameTrace, mFrameNumber); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::generateFrame enter (#" << genFrameTrace << ", frame=" << mFrameNumber << ")"); }
-#endif
 	ControlsIn& controlsIn = ControlsIn::instance();
 	const bool isGameRecorderPlayback = Configuration::instance().mGameRecorder.mIsPlayback;
 	const bool isGameRecorderRecording = Configuration::instance().mGameRecorder.mIsRecording;
@@ -402,19 +365,6 @@ bool Simulation::generateFrame()
 
 	bool completedCurrentFrame = false;
 	bool inputWasInjected = false;
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	{
-		static uint32 lastGenFrameHeartbeat = 0;
-		uint32 now = SDL_GetTicks();
-		if (now - lastGenFrameHeartbeat > 5000)
-		{
-			printf("PS3 Heartbeat: Simulation::generateFrame (frame=%u)\n", mFrameNumber);
-			fflush(stdout);
-			lastGenFrameHeartbeat = now;
-		}
-	}
-#endif
 
 	// Steps to do when beginning a new frame
 	if (beginningNewFrame)
@@ -487,15 +437,7 @@ bool Simulation::generateFrame()
 	if (!completedCurrentFrame)		// Can be true already if game recorder playback just loaded a state
 	{
 		// Perform game simulation
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::generateFrame calling CodeExec::performFrameUpdate (#%d)\n", genFrameTrace); fflush(stdout); }
-		if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::generateFrame calling CodeExec::performFrameUpdate (#" << genFrameTrace << ")"); }
-#endif
 		completedCurrentFrame = mCodeExec.performFrameUpdate();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::generateFrame CodeExec::performFrameUpdate done (#%d, success=%d)\n", genFrameTrace, completedCurrentFrame); fflush(stdout); }
-		if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::generateFrame CodeExec::performFrameUpdate done (#" << genFrameTrace << ", success=" << completedCurrentFrame << ")"); }
-#endif
 	}
 
 	// Steps to do when a frame got completed
@@ -508,15 +450,7 @@ bool Simulation::generateFrame()
 		VideoOut::instance().postFrameUpdate();
 
 		// Update audio
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::generateFrame updating AudioOut (#%d)\n", genFrameTrace); fflush(stdout); }
-		if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::generateFrame updating AudioOut (#" << genFrameTrace << ")"); }
-#endif
 		EngineMain::instance().getAudioOut().update(tickLength);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::generateFrame AudioOut update done (#%d)\n", genFrameTrace); fflush(stdout); }
-		if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::generateFrame AudioOut update done (#" << genFrameTrace << ")"); }
-#endif
 
 		if (EngineMain::getDelegate().useDeveloperFeatures())
 		{
@@ -568,12 +502,6 @@ bool Simulation::generateFrame()
 
 		++mFrameNumber;
 	}
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (oxygen::Logging::shouldLogDiagnostics()) { printf("PS3 Trace: Simulation::generateFrame exit (#%d)\n", genFrameTrace); fflush(stdout); }
-	if (oxygen::Logging::shouldLogDiagnostics()) { RMX_LOG_INFO("PS3 Diagnostic: Simulation::generateFrame exit (#" << genFrameTrace << ")"); }
-	genFrameTrace++;
-#endif
 
 	// Return false if frame got interrupted
 	//  -> In this case, the outer loop should break

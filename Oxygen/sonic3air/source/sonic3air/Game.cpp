@@ -77,22 +77,15 @@ Game::Game()
 
 void Game::startup(EmulatorInterface& emulatorInterface)
 {
-	RMX_LOG_INFO("Game::startup begin");
 	mEmulatorInterface = &emulatorInterface;
 	mPlayerRecorder.setEmulatorInterface(emulatorInterface);
 
-	RMX_LOG_INFO("Game::startup: loading player progress");
 	mPlayerProgress.load();
-	RMX_LOG_INFO("Game::startup: blue spheres startup");
 	mBlueSpheresRendering.startup();
-	RMX_LOG_INFO("Game::startup: setup client");
 	mGameClient.setupClient();
-	RMX_LOG_INFO("Game::startup: check mods features");
 	checkActiveModsUsedFeatures();
 
-	RMX_LOG_INFO("Game::startup: discord startup");
 	DiscordIntegration::startup();
-	RMX_LOG_INFO("Game::startup end");
 }
 
 void Game::shutdown()
@@ -104,11 +97,6 @@ void Game::shutdown()
 
 void Game::update(float timeElapsed)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int gameUpdateTrace = 0;
-	if (gameUpdateTrace < 200) { RMX_LOG_INFO("PS3 Diagnostic: Game::update enter (#" << gameUpdateTrace << ")"); }
-	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update enter (#%d)\n", gameUpdateTrace); fflush(stdout); }
-#endif
 	// Update game client
 	mGameClient.updateClient(timeElapsed);
 	mCrowdControlClient.updateConnection(timeElapsed);
@@ -155,12 +143,6 @@ void Game::update(float timeElapsed)
 		startIntoLevel(mMode, mSubMode, mLastZoneAndAct, mLastCharacters);
 		mRestartTriggered = false;
 	}
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (gameUpdateTrace < 200) { RMX_LOG_INFO("PS3 Diagnostic: Game::update exit (#" << gameUpdateTrace << ")"); }
-	if (gameUpdateTrace < 100) { printf("PS3 Trace: Game::update exit (#%d)\n", gameUpdateTrace); fflush(stdout); }
-	gameUpdateTrace++;
-#endif
 }
 
 void Game::registerScriptBindings(lemon::Module& module)

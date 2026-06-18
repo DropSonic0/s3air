@@ -295,8 +295,9 @@ bool EngineMain::startupEngine()
 	RMX_LOG_INFO("SaveStatesDirLocal: " << WString(config.mSaveStatesDirLocal).toStdString());
 	RMX_LOG_INFO("SaveStatesDir: " << WString(config.mSaveStatesDir).toStdString());
 #if defined(PLATFORM_PS3)
-	RMX_LOG_INFO("PS3 SaveStatesDirLocal: " << WString(config.mSaveStatesDirLocal).toStdString());
-	RMX_LOG_INFO("PS3 SaveStatesDir: " << WString(config.mSaveStatesDir).toStdString());
+	printf("PS3 SaveStatesDirLocal: %s\n", WString(config.mSaveStatesDirLocal).toStdString().c_str());
+	printf("PS3 SaveStatesDir: %s\n", WString(config.mSaveStatesDir).toStdString().c_str());
+	fflush(stdout);
 #endif
 
 	// Setup file system

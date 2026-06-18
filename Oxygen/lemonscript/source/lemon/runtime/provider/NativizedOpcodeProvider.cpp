@@ -97,7 +97,7 @@ namespace lemon
 						{
 							const uint32 variableId = (uint32)opcode.mParameter;
 							int64* valuePointer = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-							runtimeOpcode.setParameter(valuePointer, parameter.mOffset);
+							runtimeOpcode.setParameter((uint64)valuePointer, parameter.mOffset);
 							break;
 						}
 
@@ -105,7 +105,7 @@ namespace lemon
 						{
 							const uint32 variableId = (uint32)opcode.mParameter;
 							const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-							runtimeOpcode.setParameter(variable.mAccessor(), parameter.mOffset);
+							runtimeOpcode.setParameter((uint64)variable.mAccessor(), parameter.mOffset);
 							break;
 						}
 
@@ -116,7 +116,7 @@ namespace lemon
 							MemoryAccessHandler::SpecializationResult result;
 							runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(opcode.mDataType), false);	// No support for write access here
 							RMX_ASSERT(result.mResult == MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION, "No memory access specialization found even though this was previously checked");
-							runtimeOpcode.setParameter(result.mDirectAccessPointer, parameter.mOffset);
+							runtimeOpcode.setParameter((uint64)result.mDirectAccessPointer, parameter.mOffset);
 							break;
 						}
 					}

@@ -61,13 +61,7 @@ GameApp::~GameApp()
 void GameApp::initialize()
 {
 	// Init shared resources
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	RMX_LOG_INFO("PS3 Diagnostic: GameApp::initialize() starting global::loadSharedResources()");
-#endif
 	global::loadSharedResources();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	RMX_LOG_INFO("PS3 Diagnostic: GameApp::initialize() global::loadSharedResources() finished");
-#endif
 
 	mGameView = &Application::instance().getGameView();
 	Simulation& simulation = Application::instance().getSimulation();
@@ -110,14 +104,6 @@ void GameApp::keyboard(const rmx::KeyboardEvent& ev)
 
 void GameApp::update(float timeElapsed)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int updateCount = 0;
-	if (updateCount < 100)
-	{
-		RMX_LOG_INFO("PS3 Diagnostic: GameApp::update (#" << updateCount << ", state=" << (int)mCurrentState << ", visibility=" << mDisclaimerVisibility << ", timeout=" << mStateTimeout << ")");
-	}
-	updateCount++;
-#endif
 	GuiBase::update(timeElapsed);
 
 	// Update disclaimer fade-in / fade-out
@@ -130,9 +116,6 @@ void GameApp::update(float timeElapsed)
 			mStateTimeout -= dt;
 			if (mStateTimeout <= 0.0f || InputManager::instance().anythingPressed())
 			{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: GameApp::update - disclaimer finished, gotoPhase(1)");
-#endif
 				gotoPhase(1);
 			}
 		}
@@ -386,13 +369,7 @@ void GameApp::gotoPhase(int phaseNumber)
 			// Load disclaimer texture if not done already
 			if (!mDisclaimerTexture.isValid())
 			{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: GameApp::gotoPhase(0) - loading disclaimer texture");
-#endif
 				FileHelper::loadTexture(mDisclaimerTexture, L"data/images/menu/disclaimer.png");
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				RMX_LOG_INFO("PS3 Diagnostic: GameApp::gotoPhase(0) - disclaimer texture valid: " << mDisclaimerTexture.isValid());
-#endif
 			}
 			break;
 		}

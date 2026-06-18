@@ -12,10 +12,6 @@
 #include "lemon/compiler/Utility.h"
 #include "lemon/runtime/Runtime.h"
 #include "lemon/utility/PragmaSplitter.h"
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-#include <cstdio>
-#endif
 #include "lemon/utility/QuickDataHasher.h"
 
 
@@ -245,10 +241,6 @@ namespace lemon
 
 	void NativeFunction::execute(const Context context) const
 	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		static int nativeExecTrace = 0;
-		if (lemon::Runtime::mDiagnosticFrame >= 80 && lemon::Runtime::mDiagnosticFrame <= 120) { printf("PS3 Trace: NativeFunction::execute enter '%s' (#%d)\n", mName.getString().data(), nativeExecTrace); fflush(stdout); }
-#endif
 		RuntimeDetailHandler* runtimeDetailHandler = context.mControlFlow.getRuntime().getRuntimeDetailHandler();
 		if (nullptr != runtimeDetailHandler)
 		{
@@ -260,10 +252,6 @@ namespace lemon
 		{
 			mFunctionWrapper->execute(context);
 		}
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (lemon::Runtime::mDiagnosticFrame >= 80 && lemon::Runtime::mDiagnosticFrame <= 120) { printf("PS3 Trace: NativeFunction::execute exit '%s' (#%d)\n", mName.getString().data(), nativeExecTrace); fflush(stdout); }
-		nativeExecTrace++;
-#endif
 	}
 
 }

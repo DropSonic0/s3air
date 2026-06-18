@@ -92,17 +92,6 @@ namespace rmx
 
 	void FTX_SystemManager::run()
 	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		static uint32 lastFtxHeartbeat = 0;
-		uint32 now = SDL_GetTicks();
-
-		if (now - lastFtxHeartbeat > 1000)
-		{
-			printf("PS3 Heartbeat: FTX_SystemManager::run\n");
-			fflush(stdout);
-			lastFtxHeartbeat = now;
-		}
-#endif
 		startTick();
 		checkSDLEvents();
 		update();

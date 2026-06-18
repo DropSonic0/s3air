@@ -318,10 +318,6 @@ void InputManager::enableTouchInput(bool enable)
 
 void InputManager::updateInput(float timeElapsed)
 {
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int updateCount = 0;
-	if (updateCount < 20) { RMX_LOG_INFO("PS3 Diagnostic: InputManager::updateInput enter (#" << updateCount << ")"); }
-#endif
 #if 0
 	if (!mGamepads.empty())
 	{
@@ -375,9 +371,6 @@ void InputManager::updateInput(float timeElapsed)
 
 	// Update controls
 	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (updateCount < 20) { RMX_LOG_INFO("PS3 Diagnostic: InputManager::updateInput updating controls (#" << updateCount << ")"); }
-#endif
 		// Update all controls internally (i.e. the part not processed by input feeders)
 		for (Control* control : mAllControls)
 		{
@@ -420,11 +413,6 @@ void InputManager::updateInput(float timeElapsed)
 
 	// Reset one-frame inputs
 	mOneFrameKeyboardInputs.clear();
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	if (updateCount < 20) { RMX_LOG_INFO("PS3 Diagnostic: InputManager::updateInput exit (#" << updateCount << ")"); }
-	updateCount++;
-#endif
 
 	// Update touch input mode specific behavior
 	if (mTouchInputMode == TouchInputMode::FULLSCREEN_START && mWaitingForSingleInput != WaitInputState::NONE)
@@ -560,10 +548,6 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 
 	// Anything changed at all?
 	const int joysticks = SDL_NumJoysticks();
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	static int rescanLogCount = 0;
-	if (rescanLogCount < 20) { RMX_LOG_INFO("PS3 Diagnostic: InputManager::rescanRealDevices - joysticks=" << joysticks << ", lastCheck=" << mLastCheckJoysticks); }
-#endif
 	if (joysticks == mLastCheckJoysticks && !mKeyboards.empty())
 		return result;
 
@@ -629,18 +613,9 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 		const std::string joystickName = getJoystickName(joystick);
 		const std::string controllerName = getGameControllerName(controller);
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		if (rescanLogCount < 20) { RMX_LOG_INFO("PS3 Diagnostic: InputManager::rescanRealDevices - joystick[" << i << "]=\"" << joystickName << "\", controller=\"" << controllerName << "\""); }
-#endif
-
 		// Skip it if it's blacklisted
 		if (isBlacklistedName(joystickName) || isBlacklistedName(controllerName))
-		{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-			if (rescanLogCount < 20) { RMX_LOG_INFO("PS3 Diagnostic: InputManager::rescanRealDevices - device is blacklisted"); }
-#endif
 			continue;
-		}
 
 		RealDevice& device = vectorAdd(mGamepads);
 		device.mType = InputConfig::DeviceType::GAMEPAD;
@@ -766,10 +741,6 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 	}
 
 	updatePlayerGamepadAssignments();
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	rescanLogCount++;
-#endif
 
 	result.mGamepadsFound = (uint32)mGamepads.size();
 	return result;

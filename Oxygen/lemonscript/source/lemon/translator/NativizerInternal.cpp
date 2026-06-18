@@ -83,11 +83,11 @@ namespace lemon
 		const std::string& dataTypeString = getDataTypeString(dataType, false);
 		if (isPointer)
 		{
-			line += "*context.getParameter<" + dataTypeString + "*>(";
+			line += "*(" + dataTypeString + "*)context.getParameter<uint64>(";
 		}
 		else
 		{
-			line += "context.getParameter<" + dataTypeString + ">(";
+			line += "(" + dataTypeString + ")context.getParameter<int64>(";
 		}
 		if (value != 0)
 		{
@@ -554,7 +554,7 @@ namespace lemon
 								}
 								default:
 								{
-									parameterOffset = mParameters.add(opcodeIndex, 4, ParameterInfo::Semantics::INTEGER);
+									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::INTEGER);
 									break;
 								}
 							}

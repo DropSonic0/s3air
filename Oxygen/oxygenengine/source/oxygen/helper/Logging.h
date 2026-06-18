@@ -18,12 +18,6 @@ namespace oxygen
 	public:
 		static void startup(const std::wstring& filename);
 		static void shutdown();
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		static void setDiagnosticFrame(int frame);
-		static int getDiagnosticFrame();
-		static bool shouldLogDiagnostics();
-#endif
 		static void setAssertBreakCaption(const std::string& caption);
 	};
 }

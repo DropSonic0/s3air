@@ -138,13 +138,13 @@ namespace lemon
 				RuntimeOpcode& runtimeOpcode = *runtimeOpcodePointers[i];
 				if (runtimeOpcode.mOpcodeType == Opcode::Type::JUMP || runtimeOpcode.mOpcodeType == Opcode::Type::JUMP_SWITCH)
 				{
-					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>()));
+					runtimeOpcode.setParameter((uint64)translateJumpTarget((uint32)runtimeOpcode.getParameter<int64>()));
 				}
 				else if (runtimeOpcode.mOpcodeType == Opcode::Type::JUMP_CONDITIONAL)
 				{
-					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>(0)), 0);
+					runtimeOpcode.setParameter((uint64)translateJumpTarget((uint32)runtimeOpcode.getParameter<int64>(0)), 0);
 				#ifdef USE_JUMP_CONDITIONAL_RUNTIME_EXEC
-					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>(8)), 8);
+					runtimeOpcode.setParameter((uint64)translateJumpTarget((uint32)runtimeOpcode.getParameter<int64>(8)), 8);
 				#endif
 				}
 			}

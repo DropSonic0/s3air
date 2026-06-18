@@ -82,7 +82,7 @@ namespace lemon
 
 		static void exec_MOVE_STACK_positive(const RuntimeOpcodeContext context)
 		{
-			const int count = (int)context.getParameter<int16>();
+			const int count = (int)context.getParameter<int64>();
 			for (int i = 0; i < count; ++i)
 				context.writeValueStack(i, 0);
 			context.moveValueStack(count);
@@ -90,7 +90,7 @@ namespace lemon
 
 		static void exec_MOVE_STACK_negative(const RuntimeOpcodeContext context)
 		{
-			context.moveValueStack(context.getParameter<int16>());
+			context.moveValueStack((int)context.getParameter<int64>());
 		}
 
 		static void exec_MOVE_STACK_m1(const RuntimeOpcodeContext context)
@@ -100,7 +100,7 @@ namespace lemon
 
 		static void exec_MOVE_VAR_STACK_positive(const RuntimeOpcodeContext context)
 		{
-			const int count = (int)context.getParameter<int16>();
+			const int count = (int)context.getParameter<int64>();
 			int64* variables = &context.mControlFlow->mLocalVariablesBuffer[context.mControlFlow->mLocalVariablesSize];
 			memset(variables, 0, count * sizeof(int64));
 			context.mControlFlow->mLocalVariablesSize += count;
@@ -109,7 +109,7 @@ namespace lemon
 
 		static void exec_MOVE_VAR_STACK_negative(const RuntimeOpcodeContext context)
 		{
-			const int count = (int)context.getParameter<int16>();
+			const int count = (int)context.getParameter<int64>();
 			context.mControlFlow->mLocalVariablesSize += count;
 		}
 
@@ -121,14 +121,14 @@ namespace lemon
 
 		static void exec_GET_VARIABLE_VALUE_LOCAL(const RuntimeOpcodeContext context)
 		{
-			const uint32 variableId = context.getParameter<uint32>();
+			const uint32 variableId = (uint32)context.getParameter<int64>();
 			*context.mControlFlow->mValueStackPtr = context.readLocalVariable<int64>(variableId);
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		static void exec_GET_VARIABLE_VALUE_USER(const RuntimeOpcodeContext context)
 		{
-			const uint32 variableId = context.getParameter<uint32>();
+			const uint32 variableId = (uint32)context.getParameter<int64>();
 			const GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
 			*context.mControlFlow->mValueStackPtr = variable.getValue();
 			++context.mControlFlow->mValueStackPtr;
@@ -137,21 +137,21 @@ namespace lemon
 		template<typename T>
 		static void exec_GET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
-			*context.mControlFlow->mValueStackPtr = *context.getParameter<T*>();
+			*context.mControlFlow->mValueStackPtr = *(T*)context.getParameter<uint64>();
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		static void exec_SET_VARIABLE_VALUE_LOCAL(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			const uint32 variableId = context.getParameter<uint32>();
+			const uint32 variableId = (uint32)context.getParameter<int64>();
 			context.writeLocalVariable<int64>(variableId, value);
 		}
 
 		static void exec_SET_VARIABLE_VALUE_USER(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			const uint32 variableId = context.getParameter<uint32>();
+			const uint32 variableId = (uint32)context.getParameter<int64>();
 			GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
 			variable.setValue(value);
 		}
@@ -160,7 +160,7 @@ namespace lemon
 		static void exec_SET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			*context.getParameter<T*>() = (T)value;
+			*(T*)context.getParameter<uint64>() = (T)value;
 		}
 
 		template<typename T>
@@ -342,14 +342,14 @@ namespace lemon
 		static void exec_JUMP_CONDITIONAL(const RuntimeOpcodeContext context)
 		{
 			--context.mControlFlow->mValueStackPtr;
-			const size_t index = (*context.mControlFlow->mValueStackPtr == 0) ? 0 : 8;	// Parameter index 0 if condition is true (i.e. value stack is zero), otherwise index 8
-			const_cast<RuntimeOpcode*>(context.mOpcode)->mNext = context.mOpcode->getParameter<RuntimeOpcode*>(index);
+			const size_t offset = (*context.mControlFlow->mValueStackPtr == 0) ? 0 : 8;	// Parameter index 0 if condition is true (i.e. value stack is zero), otherwise index 8
+			const_cast<RuntimeOpcode*>(context.mOpcode)->mNext = (RuntimeOpcode*)context.mOpcode->getParameter<uint64>(offset);
 		}
 	#endif
 
 		static void exec_INLINE_NATIVE_CALL(const RuntimeOpcodeContext context)
 		{
-			const NativeFunction& func = *context.mOpcode->getParameter<const NativeFunction*>();
+			const NativeFunction& func = *(const NativeFunction*)context.mOpcode->getParameter<uint64>();
 			func.execute(NativeFunction::Context(*context.mControlFlow));
 		}
 
