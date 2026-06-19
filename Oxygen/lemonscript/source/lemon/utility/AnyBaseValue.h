@@ -18,24 +18,24 @@ namespace lemon
 	{
 	public:
 		inline AnyBaseValue()  {}
-		inline explicit AnyBaseValue(int8   value)  { mUint64 = (uint64)value; }
-		inline explicit AnyBaseValue(uint8  value)  { mUint64 = (int64)value; }
-		inline explicit AnyBaseValue(int16  value)  { mUint64 = (uint64)value; }
-		inline explicit AnyBaseValue(uint16 value)  { mUint64 = (int64)value; }
-		inline explicit AnyBaseValue(int32  value)  { mUint64 = (uint64)value; }
-		inline explicit AnyBaseValue(uint32 value)  { mUint64 = (int64)value; }
-		inline explicit AnyBaseValue(int64  value)  { mUint64 = value; }
-		inline explicit AnyBaseValue(uint64 value)  { mUint64 = value; }
-		inline explicit AnyBaseValue(bool   value)  { mUint64 = (uint64)value; }
-		inline explicit AnyBaseValue(float  value)  { set<float>(value); }
-		inline explicit AnyBaseValue(double value)  { set<double>(value); }
+		inline explicit AnyBaseValue(int8   value);
+		inline explicit AnyBaseValue(uint8  value);
+		inline explicit AnyBaseValue(int16  value);
+		inline explicit AnyBaseValue(uint16 value);
+		inline explicit AnyBaseValue(int32  value);
+		inline explicit AnyBaseValue(uint32 value);
+		inline explicit AnyBaseValue(int64  value);
+		inline explicit AnyBaseValue(uint64 value);
+		inline explicit AnyBaseValue(bool   value);
+		inline explicit AnyBaseValue(float  value);
+		inline explicit AnyBaseValue(double value);
 
 		template<typename T> T get() const;
 		template<typename T> void set(T value);
 
 		inline void reset()  { mUint64 = 0; }
 
-		template<typename S, typename T> void cast() { set<T>(static_cast<T>(get<S>())); }
+		template<typename S, typename T> void cast();
 
 	private:
 		union
@@ -46,16 +46,19 @@ namespace lemon
 		};
 	};
 
-	template<> FORCE_INLINE int8   AnyBaseValue::get() const		{ return (int8)mUint64; }
-	template<> FORCE_INLINE uint8  AnyBaseValue::get() const		{ return (uint8)mUint64; }
-	template<> FORCE_INLINE int16  AnyBaseValue::get() const		{ return (int16)mUint64; }
-	template<> FORCE_INLINE uint16 AnyBaseValue::get() const		{ return (uint16)mUint64; }
-	template<> FORCE_INLINE int32  AnyBaseValue::get() const		{ return (int32)mUint64; }
-	template<> FORCE_INLINE uint32 AnyBaseValue::get() const		{ return (uint32)mUint64; }
-	template<> FORCE_INLINE int64  AnyBaseValue::get() const		{ return (int64)mUint64; }
-	template<> FORCE_INLINE uint64 AnyBaseValue::get() const		{ return mUint64; }
-	template<> FORCE_INLINE bool   AnyBaseValue::get() const		{ return (mUint64 != 0); }
-	template<> FORCE_INLINE float  AnyBaseValue::get() const
+
+	// --- Specializations of get() ---
+
+	template<> FORCE_INLINE int8   AnyBaseValue::get<int8>() const		{ return (int8)mUint64; }
+	template<> FORCE_INLINE uint8  AnyBaseValue::get<uint8>() const		{ return (uint8)mUint64; }
+	template<> FORCE_INLINE int16  AnyBaseValue::get<int16>() const		{ return (int16)mUint64; }
+	template<> FORCE_INLINE uint16 AnyBaseValue::get<uint16>() const	{ return (uint16)mUint64; }
+	template<> FORCE_INLINE int32  AnyBaseValue::get<int32>() const		{ return (int32)mUint64; }
+	template<> FORCE_INLINE uint32 AnyBaseValue::get<uint32>() const	{ return (uint32)mUint64; }
+	template<> FORCE_INLINE int64  AnyBaseValue::get<int64>() const		{ return (int64)mUint64; }
+	template<> FORCE_INLINE uint64 AnyBaseValue::get<uint64>() const	{ return mUint64; }
+	template<> FORCE_INLINE bool   AnyBaseValue::get<bool>() const		{ return (mUint64 != 0); }
+	template<> FORCE_INLINE float  AnyBaseValue::get<float>() const
 	{
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		union { uint64 u; float f[2]; } val;
@@ -65,19 +68,22 @@ namespace lemon
 		return mFloat;
 #endif
 	}
-	template<> FORCE_INLINE double AnyBaseValue::get() const		{ return mDouble; }
-	template<> FORCE_INLINE AnyBaseValue AnyBaseValue::get() const  { return *this; }
+	template<> FORCE_INLINE double AnyBaseValue::get<double>() const		{ return mDouble; }
+	template<> FORCE_INLINE AnyBaseValue AnyBaseValue::get<AnyBaseValue>() const  { return *this; }
 
-	template<> FORCE_INLINE void AnyBaseValue::set(int8 value)			{ mUint64 = (uint64)(int64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(uint8 value)			{ mUint64 = (uint64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(int16 value)			{ mUint64 = (uint64)(int64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(uint16 value)		{ mUint64 = (uint64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(int32 value)			{ mUint64 = (uint64)(int64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(uint32 value)		{ mUint64 = (uint64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(int64 value)			{ mUint64 = (uint64)value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(uint64 value)		{ mUint64 = value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(bool value)			{ mUint64 = value ? 1 : 0; }
-	template<> FORCE_INLINE void AnyBaseValue::set(float value)
+
+	// --- Specializations of set() ---
+
+	template<> FORCE_INLINE void AnyBaseValue::set<int8>(int8 value)			{ mUint64 = (uint64)(int64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<uint8>(uint8 value)			{ mUint64 = (uint64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<int16>(int16 value)			{ mUint64 = (uint64)(int64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<uint16>(uint16 value)		{ mUint64 = (uint64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<int32>(int32 value)			{ mUint64 = (uint64)(int64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<uint32>(uint32 value)		{ mUint64 = (uint64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<int64>(int64 value)			{ mUint64 = (uint64)value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<uint64>(uint64 value)		{ mUint64 = value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<bool>(bool value)			{ mUint64 = value ? 1 : 0; }
+	template<> FORCE_INLINE void AnyBaseValue::set<float>(float value)
 	{
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		union { uint64 u; float f[2]; } val;
@@ -89,8 +95,25 @@ namespace lemon
 		mFloat = value;
 #endif
 	}
-	template<> FORCE_INLINE void AnyBaseValue::set(double value)		{ mDouble = value; }
-	template<> FORCE_INLINE void AnyBaseValue::set(AnyBaseValue value)  { *this = value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<double>(double value)		{ mDouble = value; }
+	template<> FORCE_INLINE void AnyBaseValue::set<AnyBaseValue>(AnyBaseValue value)  { *this = value; }
+
+
+	// --- Definitions of constructors and other member functions ---
+
+	inline AnyBaseValue::AnyBaseValue(int8   value)  { set<int8>(value); }
+	inline AnyBaseValue::AnyBaseValue(uint8  value)  { set<uint8>(value); }
+	inline AnyBaseValue::AnyBaseValue(int16  value)  { set<int16>(value); }
+	inline AnyBaseValue::AnyBaseValue(uint16 value)  { set<uint16>(value); }
+	inline AnyBaseValue::AnyBaseValue(int32  value)  { set<int32>(value); }
+	inline AnyBaseValue::AnyBaseValue(uint32 value)  { set<uint32>(value); }
+	inline AnyBaseValue::AnyBaseValue(int64  value)  { set<int64>(value); }
+	inline AnyBaseValue::AnyBaseValue(uint64 value)  { set<uint64>(value); }
+	inline AnyBaseValue::AnyBaseValue(bool   value)  { set<bool>(value); }
+	inline AnyBaseValue::AnyBaseValue(float  value)  { set<float>(value); }
+	inline AnyBaseValue::AnyBaseValue(double value)  { set<double>(value); }
+
+	template<typename S, typename T> void AnyBaseValue::cast() { set<T>(static_cast<T>(get<S>())); }
 
 
 	struct BaseTypeConversion

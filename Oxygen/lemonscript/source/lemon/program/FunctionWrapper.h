@@ -20,6 +20,9 @@ namespace lemon
 	{
 		const DataTypeDefinition* mType = nullptr;
 		AnyBaseValue mValue;
+
+		inline AnyTypeWrapper() {}
+		inline AnyTypeWrapper(const DataTypeDefinition* type, AnyBaseValue value) : mType(type), mValue(value) {}
 	};
 
 
