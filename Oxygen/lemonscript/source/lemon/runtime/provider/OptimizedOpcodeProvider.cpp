@@ -267,7 +267,13 @@ namespace lemon
 
 						const uint32 variableId = (uint32)opcodes[0].mParameter;
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						runtimeOpcode.setParameter((uint64)(uintptr_t)variable.mAccessor());
+						void* valuePointer = (void*)variable.mAccessor();
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+						const size_t bytes = variable.getDataType()->getBytes();
+						if (bytes < 8)
+							valuePointer = (uint8*)valuePointer + (8 - bytes);
+#endif
+						runtimeOpcode.setParameter((uint64)(uintptr_t)valuePointer);
 						runtimeOpcode.setParameter(opcodes[1].mParameter, 8);
 						outNumOpcodesConsumed = 3;
 						return true;
@@ -413,13 +419,8 @@ namespace lemon
 							SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT, opcodes[1].mDataType);
 						}
 
-							void* pointer = result.mDirectAccessPointer;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-							const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcodes[1].mDataType);
-							if (bytes < 8)
-								pointer = (uint8*)pointer + (8 - bytes);
-#endif
-							runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
+						void* pointer = result.mDirectAccessPointer;
+						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
 					}
 					else
 					{
@@ -453,11 +454,6 @@ namespace lemon
 						}
 
 						void* pointer = result.mDirectAccessPointer;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcodes[1].mDataType);
-						if (bytes < 8)
-							pointer = (uint8*)pointer + (8 - bytes);
-#endif
 						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
 					}
 					else

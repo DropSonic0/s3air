@@ -128,11 +128,6 @@ namespace lemon
 							runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(opcode.mDataType), false);	// No support for write access here
 							RMX_ASSERT(result.mResult == MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION, "No memory access specialization found even though this was previously checked");
 							void* valuePointer = result.mDirectAccessPointer;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-							const size_t bytes = parameter.mDataType != BaseType::VOID ? DataTypeHelper::getSizeOfBaseType(parameter.mDataType) : 8;
-							if (bytes < 8)
-								valuePointer = (uint8*)valuePointer + (8 - bytes);
-#endif
 							runtimeOpcode.setParameter((uint64)(uintptr_t)valuePointer, parameter.mOffset);
 							break;
 						}

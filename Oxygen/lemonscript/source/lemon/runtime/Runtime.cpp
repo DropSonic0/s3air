@@ -298,13 +298,6 @@ namespace lemon
 		const uint32 index = variable.getID() & 0x0fffffff;
 		RMX_CHECK(index < mProgram->getGlobalVariables().size(), "Variable index " << index << " is not valid", return nullptr);
 		const size_t offset = mProgram->getGlobalVariables()[index]->getStaticMemoryOffset();
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		const size_t bytes = variable.getDataType()->getBytes();
-		if (bytes < 8)
-		{
-			return (int64*)((uint8*)&mStaticMemory[offset] + (8 - bytes));
-		}
-#endif
 		return (int64*)&mStaticMemory[offset];
 	}
 
@@ -924,11 +917,6 @@ namespace lemon
 						Variable* variable = mProgram->getGlobalVariables()[index];
 						const size_t offset = variable->getStaticMemoryOffset();
 						int64* target = (int64*)&mStaticMemory[offset];
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = variable->getDataType()->getBytes();
-						if (bytes < 8)
-							target = (int64*)((uint8*)target + (8 - bytes));
-#endif
 						*target = (int64)value;
 					}
 				}
@@ -942,11 +930,6 @@ namespace lemon
 					serializer.write(variable->getName().getString());
 					const size_t offset = variable->getStaticMemoryOffset();
 					int64* source = (int64*)&mStaticMemory[offset];
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-					const size_t bytes = variable->getDataType()->getBytes();
-					if (bytes < 8)
-						source = (int64*)((uint8*)source + (8 - bytes));
-#endif
 					int64 value = *source;
 					serializer & value;
 				}
@@ -964,15 +947,10 @@ namespace lemon
 					int64 value = 0;
 					serializer & value;
 					RMX_CHECK(i < numGlobals, "Invalid global variable index", continue);
-				Variable* variable = mProgram->getGlobalVariables()[i];
-				const size_t offset = variable->getStaticMemoryOffset();
-				int64* target = (int64*)&mStaticMemory[offset];
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-				const size_t bytes = variable->getDataType()->getBytes();
-				if (bytes < 8)
-					target = (int64*)((uint8*)target + (8 - bytes));
-#endif
-				*target = value;
+					Variable* variable = mProgram->getGlobalVariables()[i];
+					const size_t offset = variable->getStaticMemoryOffset();
+					int64* target = (int64*)&mStaticMemory[offset];
+					*target = value;
 				}
 				if (numGlobalsSerialized > numGlobals)
 				{
@@ -1015,11 +993,6 @@ namespace lemon
 			{
 				const int64 value = (variable.getType() == Variable::Type::GLOBAL) ? static_cast<GlobalVariable&>(variable).mInitialValue : 0;
 				int64* target = (int64*)&mStaticMemory[variable.getStaticMemoryOffset()];
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-				const size_t bytes = variable.getDataType()->getBytes();
-				if (bytes < 8)
-					target = (int64*)((uint8*)target + (8 - bytes));
-#endif
 				*target = value;
 			}
 		}
