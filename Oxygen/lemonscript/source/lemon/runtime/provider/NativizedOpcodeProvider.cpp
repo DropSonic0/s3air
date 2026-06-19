@@ -36,7 +36,7 @@ namespace lemon
 			for (size_t index = 0; index < (size_t)numOpcodesAvailable; )
 			{
 				Nativizer::OpcodeSubtypeInfo info;
-				Nativizer::getOpcodeSubtypeInfo(info, &opcodes[index], numOpcodesAvailable, *runtime.getMemoryAccessHandler());
+				Nativizer::getOpcodeSubtypeInfo(info, &opcodes[index], numOpcodesAvailable - (int)index, *runtime.getMemoryAccessHandler());
 				hash = Nativizer::addOpcodeSubtypeInfoToHash(hash, info);
 				index += info.mConsumedOpcodes;
 

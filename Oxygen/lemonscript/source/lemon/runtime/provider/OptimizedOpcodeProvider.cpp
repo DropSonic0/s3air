@@ -256,7 +256,7 @@ namespace lemon
 		if (numOpcodesAvailable >= 2)
 		{
 			// Merge: Binary operation with an external variable and a constant value
-			if (opcodes[0].mType == Opcode::Type::GET_VARIABLE_VALUE && (Variable::Type)((uint32)(opcodes[0].mParameter) >> 28) == Variable::Type::EXTERNAL)
+			if (numOpcodesAvailable >= 3 && opcodes[0].mType == Opcode::Type::GET_VARIABLE_VALUE && (Variable::Type)((uint32)(opcodes[0].mParameter) >> 28) == Variable::Type::EXTERNAL)
 			{
 				if (opcodes[1].mType == Opcode::Type::PUSH_CONSTANT)
 				{
