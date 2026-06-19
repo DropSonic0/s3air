@@ -8,6 +8,7 @@
 
 #include "rmxbase.h"
 #include "zlib.h"
+#include <cstdio>
 
 #ifndef z_const
 	#define z_const
@@ -21,6 +22,7 @@
 
 bool ZlibDeflate::decode(std::vector<uint8>& output, const void* inputData, size_t inputSize)
 {
+	printf("ZlibDeflate::decode: inputSize=%u\n", (uint32)inputSize); fflush(stdout);
 	// Setup inflate
 	z_stream strm;
 	strm.zalloc = nullptr;
@@ -60,7 +62,9 @@ bool ZlibDeflate::decode(std::vector<uint8>& output, const void* inputData, size
 
 	// Clean up
 	zlibResult = inflateEnd(&strm);
-	return (zlibResult == Z_STREAM_END || zlibResult == Z_OK);
+	bool success = (zlibResult == Z_STREAM_END || zlibResult == Z_OK);
+	printf("ZlibDeflate::decode: end, outputSize=%u, success=%d\n", (uint32)output.size(), success); fflush(stdout);
+	return success;
 }
 
 bool ZlibDeflate::encode(std::vector<uint8>& output, const void* inputData, size_t inputSize, int compressionLevel)

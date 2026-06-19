@@ -15,6 +15,7 @@
 #include "lemon/runtime/provider/OptimizedOpcodeProvider.h"
 #include "lemon/runtime/provider/NativizedOpcodeProvider.h"
 #include "lemon/program/Program.h"
+#include <cstdio>
 
 
 namespace lemon
@@ -93,6 +94,16 @@ namespace lemon
 		if (!mRuntimeOpcodeBuffer.empty() || mFunction->mOpcodes.empty())
 			return;
 
+		const std::string_view funcName = mFunction->getName().getString();
+		// Throttled logging to avoid overwhelming the log but still track progress
+		static uint32 buildCount = 0;
+		if (buildCount < 100 || (buildCount % 100 == 0))
+		{
+			RMX_LOG_INFO("RuntimeFunction::build: " << std::string(funcName.data(), funcName.length()) << " (opcodes=" << mFunction->mOpcodes.size() << ")");
+			printf("RuntimeFunction::build: %.*s (opcodes=%u)\n", (int)funcName.length(), funcName.data(), (uint32)mFunction->mOpcodes.size()); fflush(stdout);
+		}
+		buildCount++;
+
 		// Create the runtime opcodes
 		{
 			// Initialize runtime opcodes now that they are needed
@@ -114,10 +125,15 @@ namespace lemon
 			//  -> They may choose to merge more than one opcode into a runtime opcode, where that's feasible
 			for (size_t i = 0; i < numOpcodes; )
 			{
+				if (i % 1000 == 0 && i > 0)
+				{
+					printf("RuntimeFunction::build: progress %u / %u (%.*s)\n", (uint32)i, (uint32)numOpcodes, (int)funcName.length(), funcName.data()); fflush(stdout);
+				}
 				const size_t start = tempBuffer.size();
 
 				int numOpcodesConsumed = 1;
 				createRuntimeOpcode(tempBuffer, &opcodes[i], opcodeData[i].mRemainingSequenceLength, (int)i, numOpcodesConsumed, runtime);
+				RMX_CHECK(numOpcodesConsumed > 0, "No opcodes consumed during runtime opcode creation in function '" << std::string(funcName.data(), funcName.length()) << "' at index " << i, abort());
 				for (int k = 0; k < numOpcodesConsumed; ++k)
 				{
 					mProgramCounterByOpcodeIndex[k + i] = start;

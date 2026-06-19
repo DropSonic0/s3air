@@ -23,6 +23,7 @@ CodeExec* CodeExec::getActiveInstance() { return mActiveInstance; }
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/application/GameProfile.h"
 #include "oxygen/platform/PlatformFunctions.h"
+#include <cstdio>
 
 #include <lemon/program/Function.h>
 #include <lemon/runtime/Runtime.h>
@@ -356,7 +357,11 @@ bool CodeExec::reloadScripts(bool enforceFullReload, bool retainRuntimeState)
 	if (result == LemonScriptProgram::LoadScriptsResult::PROGRAM_CHANGED)
 	{
 		lemon::Runtime::setActiveEnvironment(&mRuntimeEnvironment);
+		RMX_LOG_INFO("CodeExec::reloadScripts: calling onProgramUpdated...");
+		printf("CodeExec::reloadScripts: calling onProgramUpdated...\n"); fflush(stdout);
 		mLemonScriptRuntime.onProgramUpdated();
+		RMX_LOG_INFO("CodeExec::reloadScripts: onProgramUpdated done");
+		printf("CodeExec::reloadScripts: onProgramUpdated done\n"); fflush(stdout);
 	}
 	cleanScriptDebug();
 
@@ -380,6 +385,8 @@ void CodeExec::restoreRuntimeState(bool hasSaveState)
 
 void CodeExec::reinitRuntime(const LemonScriptRuntime::CallStackWithLabels* enforcedCallStack, CallStackInitPolicy callStackInitPolicy, const std::vector<uint8>* serializedRuntimeState)
 {
+	RMX_LOG_INFO("CodeExec::reinitRuntime: start (policy=" << (int)callStackInitPolicy << ")");
+	printf("CodeExec::reinitRuntime: start (policy=%d)\n", (int)callStackInitPolicy); fflush(stdout);
 	cleanScriptDebug();
 
 	if (callStackInitPolicy == CallStackInitPolicy::USE_EXISTING)
@@ -450,17 +457,31 @@ void CodeExec::reinitRuntime(const LemonScriptRuntime::CallStackWithLabels* enfo
 		if (!success || mLemonScriptRuntime.getCallStackSize() == 0)
 		{
 			// Start from scratch
+			RMX_LOG_INFO("CodeExec::reinitRuntime: calling scriptMainEntryPoint...");
+			printf("CodeExec::reinitRuntime: calling scriptMainEntryPoint...\n"); fflush(stdout);
 			mLemonScriptRuntime.callFunctionByName("scriptMainEntryPoint", true);
+			RMX_LOG_INFO("CodeExec::reinitRuntime: scriptMainEntryPoint done");
+			printf("CodeExec::reinitRuntime: scriptMainEntryPoint done\n"); fflush(stdout);
 		}
 	}
 
 	// Execute init once
+	RMX_LOG_INFO("CodeExec::reinitRuntime: calling Init...");
+	printf("CodeExec::reinitRuntime: calling Init...\n"); fflush(stdout);
 	mLemonScriptRuntime.callFunctionByName("Init", false);
+	RMX_LOG_INFO("CodeExec::reinitRuntime: Init done");
+	printf("CodeExec::reinitRuntime: Init done\n"); fflush(stdout);
 
+	RMX_LOG_INFO("CodeExec::reinitRuntime: calling onRuntimeInit...");
+	printf("CodeExec::reinitRuntime: calling onRuntimeInit...\n"); fflush(stdout);
 	EngineMain::getDelegate().onRuntimeInit(*this);
+	RMX_LOG_INFO("CodeExec::reinitRuntime: onRuntimeInit done");
+	printf("CodeExec::reinitRuntime: onRuntimeInit done\n"); fflush(stdout);
 
 	mExecutionState = ExecutionState::READY;
 	mAccumulatedStepsOfCurrentFrame = 0;
+	RMX_LOG_INFO("CodeExec::reinitRuntime: end");
+	printf("CodeExec::reinitRuntime: end\n"); fflush(stdout);
 }
 
 bool CodeExec::performFrameUpdate()
@@ -692,6 +713,9 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 		stepsCounter += stepsExecutedThisCall;
 		if (stepsCounter >= nextCheckSteps)
 		{
+			RMX_LOG_INFO("CodeExec::runScript progress: steps=" << stepsCounter << " (accumulated=" << mAccumulatedStepsOfCurrentFrame << ")");
+			printf("CodeExec::runScript progress: steps=%u (accumulated=%u)\n", (uint32)stepsCounter, (uint32)mAccumulatedStepsOfCurrentFrame); fflush(stdout);
+
 			// Limit execution to this number of steps
 			constexpr int32 MAX_STEPS = 0x8000000;	// Needed for S3AIR entering special stage in OxygenApp
 			if (mAccumulatedStepsOfCurrentFrame + stepsCounter >= MAX_STEPS)

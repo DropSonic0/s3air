@@ -12,6 +12,7 @@
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/application/modding/ModManager.h"
 #include "oxygen/helper/Utils.h"
+#include <cstdio>
 
 #include <lemon/compiler/Compiler.h>
 #include <lemon/compiler/TokenHelper.h>
@@ -262,7 +263,11 @@ LemonScriptProgram::LoadScriptsResult LemonScriptProgram::loadScripts(const std:
 			if (loaded)
 			{
 				VectorBinarySerializer serializer(true, buffer);
+				RMX_LOG_INFO("LemonScriptProgram::loadScripts: serializing mScriptModule (size=" << buffer.size() << ")...");
+				printf("LemonScriptProgram::loadScripts: serializing mScriptModule (size=%u)...\n", (uint32)buffer.size()); fflush(stdout);
 				scriptsLoaded = mInternal.mScriptModule.serialize(serializer, globalsLookup, coreModuleDependencyHash, loadOptions.mAppVersion);
+				RMX_LOG_INFO("LemonScriptProgram::loadScripts: serializing mScriptModule done (success=" << scriptsLoaded << ")");
+				printf("LemonScriptProgram::loadScripts: serializing mScriptModule done (success=%d)\n", scriptsLoaded); fflush(stdout);
 				if (!scriptsLoaded)
 				{
 					RMX_LOG_ERROR("Failed to load scripts: coreModuleDependencyHash=" << rmx::hexString(coreModuleDependencyHash) << ", appVersion=" << loadOptions.mAppVersion);

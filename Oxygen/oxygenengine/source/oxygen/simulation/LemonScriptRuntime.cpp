@@ -17,6 +17,7 @@
 #include "oxygen/application/modding/ModManager.h"
 #include "oxygen/helper/Profiling.h"
 #include "oxygen/helper/Utils.h"
+#include <cstdio>
 
 #include <lemon/compiler/TokenManager.h>
 #include <lemon/program/GlobalsLookup.h>
@@ -145,7 +146,11 @@ void LemonScriptRuntime::onProgramUpdated()
 	mInternal.mAddressHookLookup.clear();
 
 	// Build all runtime functions right away
+	RMX_LOG_INFO("LemonScriptRuntime::onProgramUpdated: buildAllRuntimeFunctions...");
+	printf("LemonScriptRuntime::onProgramUpdated: buildAllRuntimeFunctions...\n"); fflush(stdout);
 	mInternal.mRuntime.buildAllRuntimeFunctions();
+	RMX_LOG_INFO("LemonScriptRuntime::onProgramUpdated: buildAllRuntimeFunctions done");
+	printf("LemonScriptRuntime::onProgramUpdated: buildAllRuntimeFunctions done\n"); fflush(stdout);
 }
 
 bool LemonScriptRuntime::serializeRuntime(VectorBinarySerializer& serializer)

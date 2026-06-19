@@ -12,10 +12,7 @@
 #include "lemon/runtime/RuntimeOpcodeContext.h"
 #include "lemon/program/Program.h"
 #include "lemon/program/StringRef.h"
-
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
 #include <cstdio>
-#endif
 
 
 namespace lemon
@@ -226,8 +223,18 @@ namespace lemon
 
 	void Runtime::buildAllRuntimeFunctions()
 	{
-		for (Function* function : mProgram->getFunctions())
+		const auto& functions = mProgram->getFunctions();
+		for (size_t i = 0; i < functions.size(); ++i)
 		{
+			Function* function = functions[i];
+			const std::string_view funcName = function->getName().getString();
+
+			if (i < 100 || (i % 100 == 0))
+			{
+				RMX_LOG_INFO("Runtime::buildAllRuntimeFunctions: progress " << i << " / " << functions.size() << " (" << std::string(funcName.data(), funcName.length()) << ")");
+				printf("Runtime::buildAllRuntimeFunctions: progress %u / %u (%.*s)\n", (uint32)i, (uint32)functions.size(), (int)funcName.length(), funcName.data()); fflush(stdout);
+			}
+
 			if (function->getType() == Function::Type::SCRIPT)
 			{
 				getRuntimeFunction(*static_cast<ScriptFunction*>(function));

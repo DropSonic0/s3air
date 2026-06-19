@@ -10,6 +10,7 @@
 #include "lemon/program/ModuleSerializer.h"
 #include "lemon/program/Module.h"
 #include "lemon/program/GlobalsLookup.h"
+#include <cstdio>
 
 
 namespace lemon
@@ -62,6 +63,8 @@ namespace lemon
 
 	bool ModuleSerializer::serialize(Module& module, VectorBinarySerializer& outerSerializer, const GlobalsLookup& globalsLookup, uint32 dependencyHash, uint32 appVersion)
 	{
+		RMX_LOG_INFO("ModuleSerializer::serialize: start (reading=" << outerSerializer.isReading() << ")");
+		printf("ModuleSerializer::serialize: start (reading=%d)\n", outerSerializer.isReading()); fflush(stdout);
 		// Format version history:
 		//  - 0x00 = First version, no signature yet
 		//  - 0x01 = Added signature and version number + serialize global variable initial values
@@ -129,11 +132,13 @@ namespace lemon
 		std::vector<uint8> uncompressed;
 		if (outerSerializer.isReading())
 		{
+			printf("ModuleSerializer::serialize: decompressing %u bytes...\n", (uint32)outerSerializer.getRemaining()); fflush(stdout);
 			if (!ZlibDeflate::decode(uncompressed, outerSerializer.peek(), outerSerializer.getRemaining()))
 			{
 				RMX_LOG_ERROR("ModuleSerializer: Zlib decompression failed (size=" << outerSerializer.getRemaining() << ")");
 				return false;
 			}
+			printf("ModuleSerializer::serialize: decompression done (uncompressed size=%u)\n", (uint32)uncompressed.size()); fflush(stdout);
 			outerSerializer.skip(outerSerializer.getRemaining());
 		}
 		VectorBinarySerializer serializer(outerSerializer.isReading(), uncompressed);
@@ -191,6 +196,8 @@ namespace lemon
 		}
 
 		// Serialize functions
+		RMX_LOG_INFO("ModuleSerializer::serialize: serializing functions...");
+		printf("ModuleSerializer::serialize: serializing functions...\n"); fflush(stdout);
 		serializeFunctions(module, serializer, globalsLookup);
 
 		// Serialize global variables
@@ -362,6 +369,8 @@ namespace lemon
 			outerSerializer.write(&compressed[0], compressed.size());
 		}
 
+		RMX_LOG_INFO("ModuleSerializer::serialize: end");
+		printf("ModuleSerializer::serialize: end\n"); fflush(stdout);
 		return true;
 	}
 
@@ -386,6 +395,10 @@ namespace lemon
 		Function::ParameterList parameters;
 		for (uint32 i = 0; i < numberOfFunctions; ++i)
 		{
+			if (i % 500 == 0)
+			{
+				printf("ModuleSerializer::serializeFunctions: progress %u / %u\n", i, numberOfFunctions); fflush(stdout);
+			}
 			if (serializer.isReading())
 			{
 				const uint8 flags = serializer.read<uint8>();

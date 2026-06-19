@@ -23,6 +23,7 @@
 #include "oxygen/simulation/GameRecorder.h"
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/simulation/analyse/ROMDataAnalyser.h"
+#include <cstdio>
 
 
 namespace
@@ -69,10 +70,18 @@ bool Simulation::startup()
 
 	// Load scripts
 	RMX_LOG_INFO("Loading scripts");
+	RMX_LOG_INFO("Simulation::startup: loading scripts...");
+	printf("Simulation::startup: loading scripts...\n"); fflush(stdout);
 	bool success = mCodeExec.reloadScripts(true, false);	// Note: First parameter could just as well be set to false
+	RMX_LOG_INFO("Simulation::startup: loading scripts done (success=" << success << ")");
+	printf("Simulation::startup: loading scripts done (success=%d)\n", success); fflush(stdout);
 	if (success)
 	{
+		RMX_LOG_INFO("Simulation::startup: reinitRuntime...");
+		printf("Simulation::startup: reinitRuntime...\n"); fflush(stdout);
 		mCodeExec.reinitRuntime(nullptr, CodeExec::CallStackInitPolicy::RESET);
+		RMX_LOG_INFO("Simulation::startup: reinitRuntime done");
+		printf("Simulation::startup: reinitRuntime done\n"); fflush(stdout);
 	}
 
 	// Optionally load save state
