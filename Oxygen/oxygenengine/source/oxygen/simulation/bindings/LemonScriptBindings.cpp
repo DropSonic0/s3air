@@ -78,6 +78,7 @@ namespace
 		return *lemon::Runtime::getActiveEnvironmentSafe<RuntimeEnvironment>().mEmulatorInterface;
 	}
 
+#if !defined(PLATFORM_PS3)
 	int64* accessRegister(size_t index)
 	{
 		uint32& reg = getEmulatorInterface().getRegister(index);
@@ -97,6 +98,7 @@ namespace
 		return reinterpret_cast<int64*>(&reg);
 #endif
 	}
+#endif
 
 #if defined(PLATFORM_PS3)
 	template<size_t index, size_t size> int64* accessRegisterPS3()

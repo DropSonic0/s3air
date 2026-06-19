@@ -30,6 +30,24 @@ namespace lemon
 	};
 
 
+	namespace detail
+	{
+		template<typename T>
+		struct ParameterCast
+		{
+			static T get(int64 value) { return (T)value; }
+			static int64 set(T value) { return (int64)value; }
+		};
+
+		template<typename T>
+		struct ParameterCast<T*>
+		{
+			static T* get(int64 value) { return (T*)(uintptr_t)value; }
+			static int64 set(T* value) { return (int64)(uintptr_t)value; }
+		};
+	}
+
+
 	struct API_EXPORT RuntimeOpcodeBase
 	{
 	public:
@@ -62,10 +80,13 @@ namespace lemon
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 			if (sizeof(T) < 8)
 			{
-				return (T)*reinterpret_cast<const int64*>((uint8*)this + PARAMETER_OFFSET);
+				return detail::ParameterCast<T>::get(*reinterpret_cast<const int64*>((uint8*)this + PARAMETER_OFFSET));
 			}
+			else
 #endif
-			return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET);
+			{
+				return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET);
+			}
 		}
 
 		template<typename T> FORCE_INLINE T getParameter(size_t offset) const
@@ -73,10 +94,13 @@ namespace lemon
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 			if (sizeof(T) < 8)
 			{
-				return (T)*reinterpret_cast<const int64*>((uint8*)this + PARAMETER_OFFSET + offset);
+				return detail::ParameterCast<T>::get(*reinterpret_cast<const int64*>((uint8*)this + PARAMETER_OFFSET + offset));
 			}
+			else
 #endif
-			return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET + offset);
+			{
+				return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET + offset);
+			}
 		}
 
 		template<typename T> void setParameter(T value)
@@ -84,11 +108,14 @@ namespace lemon
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 			if (sizeof(T) < 8)
 			{
-				*reinterpret_cast<int64*>((uint8*)this + PARAMETER_OFFSET) = (int64)value;
+				*reinterpret_cast<int64*>((uint8*)this + PARAMETER_OFFSET) = detail::ParameterCast<T>::set(value);
 				return;
 			}
+			else
 #endif
-			*reinterpret_cast<T*>((uint8*)this + PARAMETER_OFFSET) = value;
+			{
+				*reinterpret_cast<T*>((uint8*)this + PARAMETER_OFFSET) = value;
+			}
 		}
 
 		template<typename T> void setParameter(T value, size_t offset)
@@ -96,11 +123,14 @@ namespace lemon
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 			if (sizeof(T) < 8)
 			{
-				*reinterpret_cast<int64*>((uint8*)this + PARAMETER_OFFSET + offset) = (int64)value;
+				*reinterpret_cast<int64*>((uint8*)this + PARAMETER_OFFSET + offset) = detail::ParameterCast<T>::set(value);
 				return;
 			}
+			else
 #endif
-			*reinterpret_cast<T*>((uint8*)this + PARAMETER_OFFSET + offset) = value;
+			{
+				*reinterpret_cast<T*>((uint8*)this + PARAMETER_OFFSET + offset) = value;
+			}
 		}
 	};
 
