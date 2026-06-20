@@ -12,7 +12,6 @@
 #include "lemon/runtime/RuntimeOpcodeContext.h"
 #include "lemon/program/Program.h"
 #include "lemon/program/StringRef.h"
-#include <cstdio>
 
 
 namespace lemon
@@ -104,39 +103,6 @@ namespace lemon
 
 
 
-	ControlFlow* Runtime::mActiveControlFlow = nullptr;
-	const Environment* Runtime::mActiveEnvironment = nullptr;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-	int Runtime::mDiagnosticFrame = 0;
-#endif
-
-	ControlFlow* Runtime::getActiveControlFlow()
-	{
-		return mActiveControlFlow;
-	}
-
-	Runtime* Runtime::getActiveRuntime()
-	{
-		return (nullptr == mActiveControlFlow) ? nullptr : &mActiveControlFlow->getRuntime();
-	}
-
-	const Environment* Runtime::getActiveEnvironment()
-	{
-		return mActiveEnvironment;
-	}
-
-	const Environment& Runtime::getActiveEnvironmentSafe()
-	{
-		RMX_ASSERT(nullptr != mActiveEnvironment, "No active environment set");
-		return *mActiveEnvironment;
-	}
-
-	void Runtime::setActiveEnvironment(const Environment* environment)
-	{
-		mActiveEnvironment = environment;
-	}
-
-
 	Runtime::Runtime()
 	{
 		// Create default control flow
@@ -223,18 +189,8 @@ namespace lemon
 
 	void Runtime::buildAllRuntimeFunctions()
 	{
-		const auto& functions = mProgram->getFunctions();
-		for (size_t i = 0; i < functions.size(); ++i)
+		for (Function* function : mProgram->getFunctions())
 		{
-			Function* function = functions[i];
-			const std::string_view funcName = function->getName().getString();
-
-			if (i < 100 || (i % 100 == 0))
-			{
-				RMX_LOG_INFO("Runtime::buildAllRuntimeFunctions: progress " << i << " / " << functions.size() << " (" << std::string(funcName.data(), funcName.length()) << ")");
-				printf("Runtime::buildAllRuntimeFunctions: progress %u / %u (%.*s)\n", (uint32)i, (uint32)functions.size(), (int)funcName.length(), funcName.data()); fflush(stdout);
-			}
-
 			if (function->getType() == Function::Type::SCRIPT)
 			{
 				getRuntimeFunction(*static_cast<ScriptFunction*>(function));
@@ -312,11 +268,7 @@ namespace lemon
 	{
 		if (mSelectedControlFlow->mLocalVariablesSize + runtimeFunction.mFunction->mLocalVariablesByID.size() > ControlFlow::VAR_STACK_LIMIT)
 		{
-#if !defined(PLATFORM_PS3)
 			throw std::runtime_error("Reached var stack limit, probably due to recursive function calls");
-#else
-			abort();
-#endif
 		}
 
 		// Push new state to call stack
@@ -442,9 +394,6 @@ namespace lemon
 
 	void Runtime::executeSteps(ExecuteConnector& result, size_t stepsLimit, size_t minimumCallStackSize)
 	{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		static int totalStepsTrace = 0;
-#endif
 		result.mStepsExecuted = 0;
 		result.mResult = ExecuteResult::Result::OKAY;
 
@@ -499,9 +448,6 @@ namespace lemon
 			{
 				while (context.mOpcode->mSuccessiveHandledOpcodes > 0)
 				{
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-					if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps successive %d (type=%d)\n", context.mOpcode->mSuccessiveHandledOpcodes, (int)context.mOpcode->mOpcodeType); fflush(stdout); }
-#endif
 					// Optimization: Do multiple opcodes in a row without overheads if possible
 					if (context.mOpcode->mSuccessiveHandledOpcodes >= 4)
 					{
@@ -518,9 +464,6 @@ namespace lemon
 						context.mOpcode = context.mOpcode->mNext;
 
 						result.mStepsExecuted += 4;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace += 4;
-#endif
 					}
 					else
 					{
@@ -528,15 +471,9 @@ namespace lemon
 						context.mOpcode = context.mOpcode->mNext;
 
 						++result.mStepsExecuted;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace++;
-#endif
 					}
 				}
 
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-				if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps opcode type=%d\n", (int)context.mOpcode->mOpcodeType); fflush(stdout); }
-#endif
 				switch (context.mOpcode->mOpcodeType)
 				{
 					case Opcode::Type::JUMP_CONDITIONAL:
@@ -554,14 +491,11 @@ namespace lemon
 
 					case Opcode::Type::JUMP:
 					{
-						state.mProgramCounter = (const uint8*)(uintptr_t)context.mOpcode->getParameter<uint64>();
+						state.mProgramCounter = reinterpret_cast<const uint8*>(context.mOpcode->getParameter<uint64>());
 
 						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
 						//  -> This is needed to prevent endless loops
 						++result.mStepsExecuted;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace++;
-#endif
 						if (result.mStepsExecuted >= stepsLimit)
 						{
 							mActiveControlFlow = nullptr;
@@ -578,7 +512,7 @@ namespace lemon
 						if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
 						{
 							--mSelectedControlFlow->mValueStackPtr;
-							context.mOpcode = (const RuntimeOpcode*)(uintptr_t)context.mOpcode->getParameter<uint64>();
+							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>(context.mOpcode->getParameter<uint64>());
 						}
 						else
 						{
@@ -595,14 +529,8 @@ namespace lemon
 						state.mProgramCounter = (uint8*)context.mOpcode->mNext;
 						const uint64 callTarget = context.mOpcode->getParameter<uint64>();
 						++result.mStepsExecuted;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace++;
-#endif
 
 						const Function* func = handleResultCall(*context.mOpcode);
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps CALL target=0x%llx, func=%p\n", (unsigned long long)callTarget, func); fflush(stdout); }
-#endif
 						if (result.handleCall(func, callTarget))
 						{
 							// Restart the outer loop now that the running function has changed
@@ -622,10 +550,6 @@ namespace lemon
 						mSelectedControlFlow->mLocalVariablesSize = mSelectedControlFlow->mCallStack.back().mLocalVariablesStart;
 						mSelectedControlFlow->mCallStack.pop_back();
 						++result.mStepsExecuted;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace++;
-						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps RETURN stack_count=%u\n", mSelectedControlFlow->mCallStack.count); fflush(stdout); }
-#endif
 
 						if (result.handleReturn())
 						{
@@ -649,10 +573,6 @@ namespace lemon
 						--mSelectedControlFlow->mValueStackPtr;
 						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
 						++result.mStepsExecuted;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace++;
-						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps EXTERNAL_CALL addr=0x%llx\n", (unsigned long long)targetAddress); fflush(stdout); }
-#endif
 
 						if (result.handleExternalCall(targetAddress))
 						{
@@ -674,10 +594,6 @@ namespace lemon
 						returnFromFunction();
 						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
 						++result.mStepsExecuted;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-						totalStepsTrace++;
-						if (mDiagnosticFrame >= 80 && mDiagnosticFrame <= 120) { printf("PS3 Trace: executeSteps EXTERNAL_JUMP addr=0x%llx\n", (unsigned long long)targetAddress); fflush(stdout); }
-#endif
 
 						if (result.handleExternalJump(targetAddress))
 						{
@@ -693,11 +609,7 @@ namespace lemon
 					}
 
 					default:
-#if !defined(PLATFORM_PS3)
 						throw std::runtime_error("Unhandled opcode");
-#else
-						abort();
-#endif
 				}
 			}
 		}
@@ -714,14 +626,14 @@ namespace lemon
 		if (runtimeOpcode.mFlags.isSet(RuntimeOpcode::Flag::CALL_TARGET_RUNTIME_FUNC))
 		{
 			// Take the runtime function shortcut (this is the most common one)
-			const RuntimeFunction* runtimeFunction = (const RuntimeFunction*)(uintptr_t)runtimeOpcode.getParameter<uint64>();
+			const RuntimeFunction* runtimeFunction = runtimeOpcode.getParameter<const RuntimeFunction*>();
 			callRuntimeFunction(*runtimeFunction, baseCallIndex);
 			return runtimeFunction->mFunction;
 		}
 		else if (runtimeOpcode.mFlags.isSet(RuntimeOpcode::Flag::CALL_TARGET_RESOLVED))
 		{
 			// Take the shortcut to a normal function
-			const Function* function = (const Function*)(uintptr_t)runtimeOpcode.getParameter<uint64>();
+			const Function* function = runtimeOpcode.getParameter<const Function*>();
 			callFunction(*function, baseCallIndex);
 			return function;
 		}
@@ -735,7 +647,7 @@ namespace lemon
 			if (nullptr != runtimeFunction)
 			{
 				// Create a shortcut for next time
-				runtimeOpcodeMutable.setParameter((uint64)(uintptr_t)runtimeFunction);
+				runtimeOpcodeMutable.setParameter(runtimeFunction);
 				runtimeOpcodeMutable.mFlags.set(RuntimeOpcode::Flag::CALL_TARGET_RUNTIME_FUNC);
 
 				// Call the function now
@@ -748,7 +660,7 @@ namespace lemon
 			if (nullptr != function)
 			{
 				// Create a shortcut for next time
-				runtimeOpcodeMutable.setParameter((uint64)(uintptr_t)function);
+				runtimeOpcodeMutable.setParameter(function);
 				runtimeOpcodeMutable.mFlags.set(RuntimeOpcode::Flag::CALL_TARGET_RESOLVED);
 
 				// Call the function now
@@ -785,11 +697,11 @@ namespace lemon
 		}
 
 		// Signature and version number
-		const uint32 SIGNATURE = 0x7c4e4d4c;	// "LMN|" (Little-Endian)
+		const uint32 SIGNATURE = *(uint32*)"LMN|";
 		uint16 version = 0x01;
 		if (serializer.isReading())
 		{
-			const uint32 signature = rmx::readMemoryUnalignedLE<uint32>(serializer.peek());
+			const uint32 signature = *(const uint32*)serializer.peek();
 			if (signature == SIGNATURE)
 			{
 				serializer.skip(4);
@@ -831,15 +743,7 @@ namespace lemon
 					if (nullptr == function || function->getType() != Function::Type::SCRIPT)
 					{
 						if (nullptr != outError)
-						{
-#if defined(PLATFORM_PS3)
-							*outError = "Could not match function signature for script function of name '";
-							outError->append(functionName.data(), functionName.length());
-							*outError += "'";
-#else
 							*outError = "Could not match function signature for script function of name '" + std::string(functionName) + "'";
-#endif
-						}
 						controlFlow.mCallStack.clear();
 						return false;
 					}
@@ -921,10 +825,8 @@ namespace lemon
 					{
 						const size_t index = variable->getID() & 0x0fffffff;
 						RMX_CHECK(index < numGlobals, "Invalid global variable index", continue);
-						Variable* variable = mProgram->getGlobalVariables()[index];
-						const size_t offset = variable->getStaticMemoryOffset();
-						int64* target = (int64*)&mStaticMemory[offset];
-						*target = (int64)value;
+						const size_t offset = mProgram->getGlobalVariables()[index]->getStaticMemoryOffset();
+						memcpy(&mStaticMemory[offset], &value, sizeof(int64));
 					}
 				}
 			}
@@ -936,9 +838,7 @@ namespace lemon
 					Variable* variable = mProgram->getGlobalVariables()[i];
 					serializer.write(variable->getName().getString());
 					const size_t offset = variable->getStaticMemoryOffset();
-					int64* source = (int64*)&mStaticMemory[offset];
-					int64 value = *source;
-					serializer & value;
+					serializer.write(&mStaticMemory[offset], sizeof(int64));
 				}
 			}
 		}
@@ -951,13 +851,10 @@ namespace lemon
 				const size_t numGlobalsShared = std::min(numGlobalsSerialized, numGlobals);
 				for (size_t i = 0; i < numGlobalsShared; ++i)
 				{
-					int64 value = 0;
-					serializer & value;
+					const int64 value = serializer.read<uint64>();
 					RMX_CHECK(i < numGlobals, "Invalid global variable index", continue);
-					Variable* variable = mProgram->getGlobalVariables()[i];
-					const size_t offset = variable->getStaticMemoryOffset();
-					int64* target = (int64*)&mStaticMemory[offset];
-					*target = value;
+					const size_t offset = mProgram->getGlobalVariables()[i]->getStaticMemoryOffset();
+					memcpy(&mStaticMemory[offset], &value, sizeof(int64));
 				}
 				if (numGlobalsSerialized > numGlobals)
 				{
@@ -999,8 +896,7 @@ namespace lemon
 			if (variable.getStaticMemorySize() > 0)
 			{
 				const int64 value = (variable.getType() == Variable::Type::GLOBAL) ? static_cast<GlobalVariable&>(variable).mInitialValue : 0;
-				int64* target = (int64*)&mStaticMemory[variable.getStaticMemoryOffset()];
-				*target = value;
+				*(int64*)&mStaticMemory[variable.getStaticMemoryOffset()] = value;
 			}
 		}
 	}

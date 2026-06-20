@@ -17,80 +17,70 @@ namespace lemon
 	namespace
 	{
 
-		static std::map<uint64, const DataTypeDefinition*> varTypeLookup;
-		static std::map<uint64, Keyword> keywordLookup;
-		static std::vector<const char*> reservedKeywords;
-		static std::map<uint64, std::string> reservedKeywordLookup;
-		static bool lookupTablesInitialized = false;
-
-		void initializeLookupTables()
+		static const std::map<uint64, const DataTypeDefinition*> varTypeLookup =
 		{
-			if (lookupTablesInitialized)
-				return;
+			{ rmx::getMurmur2_64(String("void")),	&PredefinedDataTypes::VOID },
+			{ rmx::getMurmur2_64(String("s8")),		&PredefinedDataTypes::INT_8 },
+			{ rmx::getMurmur2_64(String("s16")),	&PredefinedDataTypes::INT_16 },
+			{ rmx::getMurmur2_64(String("s32")),	&PredefinedDataTypes::INT_32 },
+			{ rmx::getMurmur2_64(String("s64")),	&PredefinedDataTypes::INT_64 },
+			{ rmx::getMurmur2_64(String("bool")),	&PredefinedDataTypes::UINT_8 },		// Only a synonym for u8
+			{ rmx::getMurmur2_64(String("u8")),		&PredefinedDataTypes::UINT_8 },
+			{ rmx::getMurmur2_64(String("u16")),	&PredefinedDataTypes::UINT_16 },
+			{ rmx::getMurmur2_64(String("u32")),	&PredefinedDataTypes::UINT_32 },
+			{ rmx::getMurmur2_64(String("u64")),	&PredefinedDataTypes::UINT_64 },
+			{ rmx::getMurmur2_64(String("float")),	&PredefinedDataTypes::FLOAT },
+			{ rmx::getMurmur2_64(String("double")),	&PredefinedDataTypes::DOUBLE },
+			{ rmx::getMurmur2_64(String("string")),	&PredefinedDataTypes::STRING }
+		};
 
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("void")),   &PredefinedDataTypes::VOID));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("s8")),     &PredefinedDataTypes::INT_8));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("s16")),    &PredefinedDataTypes::INT_16));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("s32")),    &PredefinedDataTypes::INT_32));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("s64")),    &PredefinedDataTypes::INT_64));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("bool")),   &PredefinedDataTypes::UINT_8));		// Only a synonym for u8
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("u8")),     &PredefinedDataTypes::UINT_8));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("u16")),    &PredefinedDataTypes::UINT_16));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("u32")),    &PredefinedDataTypes::UINT_32));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("u64")),    &PredefinedDataTypes::UINT_64));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("float")),  &PredefinedDataTypes::FLOAT));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("double")), &PredefinedDataTypes::DOUBLE));
-			varTypeLookup.insert(std::make_pair(rmx::getMurmur2_64(String("string")), &PredefinedDataTypes::STRING));
+		static const std::map<uint64, Keyword> keywordLookup =
+		{
+			{ rmx::getMurmur2_64(String("function")),	Keyword::FUNCTION },
+			{ rmx::getMurmur2_64(String("global")),		Keyword::GLOBAL },
+			{ rmx::getMurmur2_64(String("constant")),	Keyword::CONSTANT },
+			{ rmx::getMurmur2_64(String("define")),		Keyword::DEFINE },
+			{ rmx::getMurmur2_64(String("declare")),	Keyword::DECLARE },
+			{ rmx::getMurmur2_64(String("return")),		Keyword::RETURN },
+			{ rmx::getMurmur2_64(String("call")),		Keyword::CALL },
+			{ rmx::getMurmur2_64(String("jump")),		Keyword::JUMP },
+			{ rmx::getMurmur2_64(String("break")),		Keyword::BREAK },
+			{ rmx::getMurmur2_64(String("continue")),	Keyword::CONTINUE },
+			{ rmx::getMurmur2_64(String("if")),			Keyword::IF },
+			{ rmx::getMurmur2_64(String("else")),		Keyword::ELSE },
+			{ rmx::getMurmur2_64(String("while")),		Keyword::WHILE },
+			{ rmx::getMurmur2_64(String("for")),		Keyword::FOR },
+			{ rmx::getMurmur2_64(String("addressof")),	Keyword::ADDRESSOF }
+		};
 
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("function")),  Keyword::FUNCTION));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("global")),    Keyword::GLOBAL));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("constant")),  Keyword::CONSTANT));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("define")),    Keyword::DEFINE));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("declare")),   Keyword::DECLARE));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("return")),    Keyword::RETURN));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("call")),      Keyword::CALL));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("jump")),      Keyword::JUMP));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("break")),     Keyword::BREAK));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("continue")),  Keyword::CONTINUE));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("if")),        Keyword::IF));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("else")),      Keyword::ELSE));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("while")),     Keyword::WHILE));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("for")),       Keyword::FOR));
-			keywordLookup.insert(std::make_pair(rmx::getMurmur2_64(String("addressof")), Keyword::ADDRESSOF));
-
-			reservedKeywords.push_back("local");
-			reservedKeywords.push_back("auto");
-			reservedKeywords.push_back("switch");
-			reservedKeywords.push_back("case");
-			reservedKeywords.push_back("select");
-			reservedKeywords.push_back("choose");
-			reservedKeywords.push_back("do");
-			reservedKeywords.push_back("const");
-			reservedKeywords.push_back("fixed");
-			reservedKeywords.push_back("static");
-			reservedKeywords.push_back("virtual");
-			reservedKeywords.push_back("override");
-			reservedKeywords.push_back("enum");
-			reservedKeywords.push_back("struct");
-			reservedKeywords.push_back("class");
-			reservedKeywords.push_back("foreach");
-			reservedKeywords.push_back("in");
-			reservedKeywords.push_back("out");
-			reservedKeywords.push_back("ref");
-			reservedKeywords.push_back("typeof");
-
-			for (size_t i = 0; i < reservedKeywords.size(); ++i)
-			{
-				const char* str = reservedKeywords[i];
-				reservedKeywordLookup.insert(std::make_pair(rmx::getMurmur2_64(str), std::string(str)));
-			}
-
-			lookupTablesInitialized = true;
-		}
+		static const std::vector<const char*> reservedKeywords =
+		{
+			// These keywords are meant to be reserved for potential future use, and must not be used as identifiers
+			"local",
+			"auto",
+			"switch",
+			"case",
+			"select",
+			"choose",
+			"do",
+			"const",
+			"fixed",
+			"static",
+			"virtual",
+			"override",
+			"enum",
+			"struct",
+			"class",
+			"foreach",
+			"in",
+			"out",
+			"ref",
+			"typeof",
+		};
+		static std::map<uint64, std::string> reservedKeywordLookup;
 
 		void analyseIdentifier(const std::string_view& identifier, ParserTokenList& outTokens, uint32 lineNumber)
 		{
-			initializeLookupTables();
 			const uint64 identifierHash = rmx::getMurmur2_64(identifier);
 
 			// Check for variable type
@@ -117,6 +107,13 @@ namespace lemon
 
 			// Check for reserved identifier
 			{
+				if (reservedKeywordLookup.empty())
+				{
+					for (const std::string& str : reservedKeywords)
+					{
+						reservedKeywordLookup.emplace(rmx::getMurmur2_64(str), str);
+					}
+				}
 				if (reservedKeywordLookup.count(identifierHash) > 0)
 				{
 					CHECK_ERROR(false, "Reserved keyword '" << reservedKeywordLookup[identifierHash] << "' cannot be used as an identifier, please rename", lineNumber);
@@ -125,8 +122,8 @@ namespace lemon
 			}
 
 			// Check for "true", "false"
-			static const uint64 trueHash  = rmx::getMurmur2_64(String("true"));
-			static const uint64 falseHash = rmx::getMurmur2_64(String("false"));
+			static const uint64 trueHash  = rmx::getMurmur2_64(std::string_view("true"));
+			static const uint64 falseHash = rmx::getMurmur2_64(std::string_view("false"));
 			if (identifierHash == trueHash || identifierHash == falseHash)
 			{
 				ConstantParserToken& token = outTokens.create<ConstantParserToken>();
@@ -214,7 +211,7 @@ namespace lemon
 				const size_t identifierLength = ParserHelper::collectIdentifier(rest.substr(1));
 				pos += identifierLength;
 				LabelParserToken& token = outTokens.create<LabelParserToken>();
-				token.mName.set(rest.substr(0, identifierLength + 1));
+				token.mName = rest.substr(0, identifierLength + 1);
 			}
 			else if (ParserHelper::isOperatorCharacter(firstCharacter))
 			{
@@ -246,8 +243,7 @@ namespace lemon
 								while (input[pos] == ' ' || input[pos] == '\t');
 
 								PragmaParserToken& token = outTokens.create<PragmaParserToken>();
-								std::string_view pragmaStr = input.substr(pos);
-								token.mContent.assign(pragmaStr.data(), pragmaStr.length());
+								token.mContent = input.substr(pos);
 							}
 
 							// We're done with this line

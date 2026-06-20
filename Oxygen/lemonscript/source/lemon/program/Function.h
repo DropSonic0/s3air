@@ -74,26 +74,26 @@ namespace lemon
 		uint32 getSignatureHash() const;
 
 	protected:
-		Function(Type type);
+		inline Function(Type type) : mType(type) {}
 		inline virtual ~Function() {}
 
 		void setParametersByTypes(const std::vector<const DataTypeDefinition*>& parameterTypes);
 
 	protected:
 		Type mType;
-		uint32 mID;
+		uint32 mID = 0;
 		BitFlagSet<Flag> mFlags;
 
 		// Metadata
 		FlyweightString mContext;		// Name of the type if this is a method-like function
 		FlyweightString mName;
-		uint64 mNameAndSignatureHash;
+		uint64 mNameAndSignatureHash = 0;
 		std::vector<FlyweightString> mAliasNames;
 
 		// Signature
-		const DataTypeDefinition* mReturnType;
+		const DataTypeDefinition* mReturnType = &PredefinedDataTypes::VOID;
 		ParameterList mParameters;
-		mutable uint32 mSignatureHash;
+		mutable uint32 mSignatureHash = 0;
 	};
 
 

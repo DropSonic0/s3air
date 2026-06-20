@@ -33,7 +33,7 @@ namespace lemon
 			case BaseType::FLOAT:		runtimeOpcode.mExecFunc = &_function_<float>;	break; \
 			case BaseType::DOUBLE:		runtimeOpcode.mExecFunc = &_function_<double>;	break; \
 			default: \
-				RMX_CHECK(false, "Invalid opcode data type", abort()); \
+				throw std::runtime_error("Invalid opcode data type"); \
 		} \
 	}
 
@@ -51,7 +51,7 @@ namespace lemon
 			case BaseType::UINT_64:		runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			case BaseType::INT_CONST:	runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			default: \
-				RMX_CHECK(false, "Invalid opcode data type", abort()); \
+				throw std::runtime_error("Invalid opcode data type"); \
 		} \
 	}
 
@@ -63,7 +63,7 @@ namespace lemon
 		{
 			--context.mControlFlow->mValueStackPtr;
 			const int64 value = *context.mControlFlow->mValueStackPtr;
-			const uint32 variableId = (uint32)context.getParameter<int64>();
+			const uint32 variableId = context.getParameter<uint32>();
 			context.writeLocalVariable<int64>(variableId, value);
 		}
 
@@ -71,7 +71,7 @@ namespace lemon
 		{
 			--context.mControlFlow->mValueStackPtr;
 			const int64 value = *context.mControlFlow->mValueStackPtr;
-			const uint32 variableId = (uint32)context.getParameter<int64>();
+			const uint32 variableId = context.getParameter<uint32>();
 			GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
 			variable.setValue(value);
 		}
@@ -81,7 +81,7 @@ namespace lemon
 		{
 			--context.mControlFlow->mValueStackPtr;
 			const int64 value = *context.mControlFlow->mValueStackPtr;
-			T* pointer = (T*)(uintptr_t)context.mOpcode->getParameter<uint64>();
+			T* pointer = context.mOpcode->getParameter<T*>();
 			*pointer = (T)value;
 		}
 
@@ -112,16 +112,16 @@ namespace lemon
 		template<typename T>
 		static void exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT(const RuntimeOpcodeContext context)
 		{
-			const uint8* pointer = (const uint8*)(uintptr_t)context.getParameter<uint64>();
-			*context.mControlFlow->mValueStackPtr = rmx::readMemoryUnaligned<T>(pointer);
+			const uint8* pointer = context.getParameter<uint8*>();
+			*context.mControlFlow->mValueStackPtr = *(T*)pointer;
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		template<typename T>
 		static void exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT_SWAP(const RuntimeOpcodeContext context)
 		{
-			const uint8* pointer = (const uint8*)(uintptr_t)context.getParameter<uint64>();
-			*context.mControlFlow->mValueStackPtr = rmx::readMemoryUnalignedSwapped<T>(pointer);
+			const uint8* pointer = context.getParameter<uint8*>();
+			*context.mControlFlow->mValueStackPtr = rmx::swapBytes(*(T*)pointer);
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -135,117 +135,117 @@ namespace lemon
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT(const RuntimeOpcodeContext context)
 		{
-			uint8* pointer = (uint8*)(uintptr_t)context.getParameter<uint64>();
-			rmx::writeMemoryUnaligned<T>(pointer, (T)(*(context.mControlFlow->mValueStackPtr-1)));
+			uint8* pointer = context.getParameter<uint8*>();
+			*(T*)pointer = (T)(*(context.mControlFlow->mValueStackPtr-1));
 		}
 
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT_SWAP(const RuntimeOpcodeContext context)
 		{
-			uint8* pointer = (uint8*)(uintptr_t)context.getParameter<uint64>();
-			rmx::writeMemoryUnalignedSwapped<T>(pointer, (T)(*(context.mControlFlow->mValueStackPtr-1)));
+			uint8* pointer = context.getParameter<uint8*>();
+			*(T*)pointer = rmx::swapBytes((T)(*(context.mControlFlow->mValueStackPtr-1)));
 		}
 
 		template<typename T>
 		static void exec_OPT_ADD_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) + BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) + context.mOpcode->getParameter<T>());
 		}
 
 		template<typename T>
 		static void exec_OPT_SUB_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) - BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) - context.mOpcode->getParameter<T>());
 		}
 
 		template<typename T>
 		static void exec_OPT_MUL_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) * BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) * context.mOpcode->getParameter<T>());
 		}
 
 		template<typename T>
 		static void exec_OPT_DIV_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, OpcodeExecUtils::safeDivide(context.readValueStack<T>(-1), BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())));
+			context.writeValueStack<T>(-1, OpcodeExecUtils::safeDivide(context.readValueStack<T>(-1), context.mOpcode->getParameter<T>()));
 		}
 
 		template<typename T>
 		static void exec_OPT_MOD_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, OpcodeExecUtils::safeModulo(context.readValueStack<T>(-1), BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())));
+			context.writeValueStack<T>(-1, OpcodeExecUtils::safeModulo(context.readValueStack<T>(-1), context.mOpcode->getParameter<T>()));
 		}
 
 		template<typename T>
 		static void exec_OPT_AND_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) & BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) & context.mOpcode->getParameter<T>());
 		}
 
 		template<typename T>
 		static void exec_OPT_OR_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) | BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) | context.mOpcode->getParameter<T>());
 		}
 
 		template<typename T>
 		static void exec_OPT_XOR_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) ^ BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) ^ context.mOpcode->getParameter<T>());
 		}
 
 		template<typename T>
 		static void exec_OPT_SHL_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) << (BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()) & (sizeof(T) * 8 - 1)));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) << (context.mOpcode->getParameter<T>() & (sizeof(T) * 8 - 1)));
 		}
 
 		template<typename T>
 		static void exec_OPT_SHR_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) >> (BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>()) & (sizeof(T) * 8 - 1)));
+			context.writeValueStack<T>(-1, context.readValueStack<T>(-1) >> (context.mOpcode->getParameter<T>() & (sizeof(T) * 8 - 1)));
 		}
 
 		template<typename T>
 		static void exec_OPT_CMP_EQ_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) == BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())) ? 1 : 0);
+			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) == context.mOpcode->getParameter<T>()) ? 1 : 0);
 		}
 
 		template<typename T>
 		static void exec_OPT_CMP_NEQ_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) != BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())) ? 1 : 0);
+			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) != context.mOpcode->getParameter<T>()) ? 1 : 0);
 		}
 
 		template<typename T>
 		static void exec_OPT_CMP_LT_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) < BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())) ? 1 : 0);
+			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) < context.mOpcode->getParameter<T>()) ? 1 : 0);
 		}
 
 		template<typename T>
 		static void exec_OPT_CMP_LE_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) <= BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())) ? 1 : 0);
+			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) <= context.mOpcode->getParameter<T>()) ? 1 : 0);
 		}
 
 		template<typename T>
 		static void exec_OPT_CMP_GT_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) > BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())) ? 1 : 0);
+			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) > context.mOpcode->getParameter<T>()) ? 1 : 0);
 		}
 
 		template<typename T>
 		static void exec_OPT_CMP_GE_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) >= BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>())) ? 1 : 0);
+			context.writeValueStack<uint64>(-1, (context.readValueStack<T>(-1) >= context.mOpcode->getParameter<T>()) ? 1 : 0);
 		}
 
 		template<typename T>
 		static void exec_OPT_EXTERNAL_ADD_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			context.writeValueStack<T>(0, *(T*)(uintptr_t)context.mOpcode->getParameter<uint64>() + BaseTypeConversion::convert<int64, T>(context.mOpcode->getParameter<int64>(8)));
+			context.writeValueStack<T>(0, *context.mOpcode->getParameter<T*>() + context.mOpcode->getParameter<T>(8));
 			++context.mControlFlow->mValueStackPtr;
 		}
 	};
@@ -256,7 +256,7 @@ namespace lemon
 		if (numOpcodesAvailable >= 2)
 		{
 			// Merge: Binary operation with an external variable and a constant value
-			if (numOpcodesAvailable >= 3 && opcodes[0].mType == Opcode::Type::GET_VARIABLE_VALUE && (Variable::Type)((uint32)(opcodes[0].mParameter) >> 28) == Variable::Type::EXTERNAL)
+			if (opcodes[0].mType == Opcode::Type::GET_VARIABLE_VALUE && (Variable::Type)((uint32)(opcodes[0].mParameter) >> 28) == Variable::Type::EXTERNAL)
 			{
 				if (opcodes[1].mType == Opcode::Type::PUSH_CONSTANT)
 				{
@@ -267,13 +267,7 @@ namespace lemon
 
 						const uint32 variableId = (uint32)opcodes[0].mParameter;
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						void* valuePointer = (void*)variable.mAccessor();
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = variable.getDataType()->getBytes();
-						if (bytes < 8)
-							valuePointer = (uint8*)valuePointer + (8 - bytes);
-#endif
-						runtimeOpcode.setParameter((uint64)(uintptr_t)valuePointer);
+						runtimeOpcode.setParameter(variable.mAccessor());
 						runtimeOpcode.setParameter(opcodes[1].mParameter, 8);
 						outNumOpcodesConsumed = 3;
 						return true;
@@ -337,12 +331,7 @@ namespace lemon
 						case Variable::Type::GLOBAL:
 						{
 							int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-							const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcodes[0].mDataType);
-							if (bytes < 8)
-								value = (int64*)((uint8*)value + (8 - bytes));
-#endif
-							runtimeOpcode.setParameter((uint64)(uintptr_t)value);
+							runtimeOpcode.setParameter(value);
 
 							switch (DataTypeHelper::getSizeOfBaseType(opcodes[0].mDataType))
 							{
@@ -357,13 +346,7 @@ namespace lemon
 						case Variable::Type::EXTERNAL:
 						{
 							const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-							void* pointer = (void*)variable.mAccessor();
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-							const size_t bytes = variable.getDataType()->getBytes();
-							if (bytes < 8)
-								pointer = (uint8*)pointer + (8 - bytes);
-#endif
-							runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
+							runtimeOpcode.setParameter(variable.mAccessor());
 
 							switch (variable.getDataType()->getBytes())
 							{
@@ -418,9 +401,7 @@ namespace lemon
 						{
 							SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_READ_MEMORY_FIXED_ADDR_DIRECT, opcodes[1].mDataType);
 						}
-
-						void* pointer = result.mDirectAccessPointer;
-						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
+						runtimeOpcode.setParameter(result.mDirectAccessPointer);
 					}
 					else
 					{
@@ -452,9 +433,7 @@ namespace lemon
 						{
 							SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_WRITE_MEMORY_FIXED_ADDR_DIRECT, opcodes[1].mDataType);
 						}
-
-						void* pointer = result.mDirectAccessPointer;
-						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
+						runtimeOpcode.setParameter(result.mDirectAccessPointer);
 					}
 					else
 					{

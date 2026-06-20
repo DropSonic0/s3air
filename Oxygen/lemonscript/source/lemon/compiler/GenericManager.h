@@ -70,7 +70,6 @@ namespace genericmanager
 		class ElementFactoryBase
 		{
 		public:
-			virtual ~ElementFactoryBase() {}
 			virtual ELEMENT& create() = 0;
 			virtual void destroy(ELEMENT& element) = 0;
 			virtual void shrinkPool() {}
@@ -101,12 +100,8 @@ namespace genericmanager
 			template<typename T>
 			FactoryBase& getOrCreateElementFactory()
 			{
-				static constexpr uint32 type = (uint32)T::TYPE;
-#if defined(PLATFORM_PS3)
-				if (type < 0x80)
-#else
+				const constexpr uint32 type = (uint32)T::TYPE;
 				if constexpr (type < 0x80)
-#endif
 				{
 					// Use std::vector
 					if (nullptr != mClassFactoriesList[type])
@@ -194,29 +189,25 @@ namespace genericmanager
 		template<typename TYPE>
 		static TYPE& create()
 		{
-			detail::ElementFactoryBase<ELEMENT>& factory = getFactoryMap().template getOrCreateElementFactory<TYPE>();
+			detail::ElementFactoryBase<ELEMENT>& factory = mFactoryMap.template getOrCreateElementFactory<TYPE>();
 			return static_cast<TYPE&>(factory.create());
 		}
 
 		static void shrinkAllPools()
 		{
-			getFactoryMap().shrinkAllPools();
+			mFactoryMap.shrinkAllPools();
 		}
 
 	private:
 		static void destroy(Element<ELEMENT>& element)
 		{
 			RMX_ASSERT(element.getReferenceCounter() == 0, "Element still has references");
-			detail::ElementFactoryBase<ELEMENT>& factory = getFactoryMap().getElementFactory(element.getType());
+			detail::ElementFactoryBase<ELEMENT>& factory = mFactoryMap.getElementFactory(element.getType());
 			factory.destroy(static_cast<ELEMENT&>(element));
 		}
 
 	private:
-		static detail::ElementFactoryMap<ELEMENT>& getFactoryMap()
-		{
-			static detail::ElementFactoryMap<ELEMENT> mFactoryMap;
-			return mFactoryMap;
-		}
+		static inline detail::ElementFactoryMap<ELEMENT> mFactoryMap;
 	};
 
 
@@ -290,11 +281,7 @@ namespace genericmanager
 			}
 		}
 
-#if defined(PLATFORM_PS3)
 		inline virtual ~ElementList()
-#else
-		inline ~ElementList()
-#endif
 		{
 			clear();
 			if (mElements != mBuffer)

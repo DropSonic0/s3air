@@ -45,7 +45,7 @@ namespace lemon
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return StringRef());
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return StringRef());
 
-			static lemon::detail::FastStringStream result;
+			static detail::FastStringStream result;
 			result.clear();
 			result.addString(str1.getStringRef());
 			result.addString(str2.getStringRef());
@@ -58,7 +58,7 @@ namespace lemon
 			RMX_ASSERT(nullptr != runtime, "No lemon script runtime active");
 			RMX_CHECK(str.isValid(), "Unable to resolve string", return StringRef());
 
-			static lemon::detail::FastStringStream result;
+			static detail::FastStringStream result;
 			result.clear();
 			result.addString(str.getStringRef());
 			result.addDecimal(value, 0);
@@ -71,7 +71,7 @@ namespace lemon
 			RMX_ASSERT(nullptr != runtime, "No lemon script runtime active");
 			RMX_CHECK(str.isValid(), "Unable to resolve string", return StringRef());
 
-			static lemon::detail::FastStringStream result;
+			static detail::FastStringStream result;
 			result.clear();
 			result.addDecimal(value, 0);
 			result.addString(str.getStringRef());
@@ -82,28 +82,28 @@ namespace lemon
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-				return (str1.getString().compare(str2.getString()) < 0);
+			return (str1.getString() < str2.getString());
 		}
 
 		bool string_operator_less_or_equal(StringRef str1, StringRef str2)
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-				return (str1.getString().compare(str2.getString()) <= 0);
+			return (str1.getString() <= str2.getString());
 		}
 
 		bool string_operator_greater(StringRef str1, StringRef str2)
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-				return (str1.getString().compare(str2.getString()) > 0);
+			return (str1.getString() > str2.getString());
 		}
 
 		bool string_operator_greater_or_equal(StringRef str1, StringRef str2)
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-				return (str1.getString().compare(str2.getString()) >= 0);
+			return (str1.getString() >= str2.getString());
 		}
 	}
 

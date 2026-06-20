@@ -18,30 +18,14 @@ namespace lemon
 	struct CompileOptions
 	{
 		// Options to be set before compilation
-#if defined(PLATFORM_PS3)
-		const DataTypeDefinition* mExternalAddressType;
-#else
 		const DataTypeDefinition* mExternalAddressType = &PredefinedDataTypes::UINT_64;
-#endif
 		std::wstring mOutputCombinedSource;
 		std::wstring mOutputNativizedSource;
 		std::wstring mOutputTranslatedSource;
-#if defined(PLATFORM_PS3)
-		bool mConsumeProcessedPragmas;
-#else
 		bool mConsumeProcessedPragmas = true;
-#endif
 
 		// Set during compilation
-#if defined(PLATFORM_PS3)
-		uint32 mScriptFeatureLevel;
-#else
 		uint32 mScriptFeatureLevel = 1;
-#endif
-
-#if defined(PLATFORM_PS3)
-		inline CompileOptions() : mExternalAddressType(&PredefinedDataTypes::UINT_64), mConsumeProcessedPragmas(true), mScriptFeatureLevel(1) {}
-#endif
 	};
 
 	enum class Keyword : uint8

@@ -36,7 +36,7 @@ namespace lemon
 			for (size_t index = 0; index < (size_t)numOpcodesAvailable; )
 			{
 				Nativizer::OpcodeSubtypeInfo info;
-				Nativizer::getOpcodeSubtypeInfo(info, &opcodes[index], numOpcodesAvailable - (int)index, *runtime.getMemoryAccessHandler());
+				Nativizer::getOpcodeSubtypeInfo(info, &opcodes[index], numOpcodesAvailable, *runtime.getMemoryAccessHandler());
 				hash = Nativizer::addOpcodeSubtypeInfoToHash(hash, info);
 				index += info.mConsumedOpcodes;
 
@@ -97,12 +97,7 @@ namespace lemon
 						{
 							const uint32 variableId = (uint32)opcode.mParameter;
 							int64* valuePointer = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-							const size_t bytes = parameter.mDataType != BaseType::VOID ? DataTypeHelper::getSizeOfBaseType(parameter.mDataType) : 8;
-							if (bytes < 8)
-								valuePointer = (int64*)((uint8*)valuePointer + (8 - bytes));
-#endif
-							runtimeOpcode.setParameter((uint64)(uintptr_t)valuePointer, parameter.mOffset);
+							runtimeOpcode.setParameter(valuePointer, parameter.mOffset);
 							break;
 						}
 
@@ -110,26 +105,18 @@ namespace lemon
 						{
 							const uint32 variableId = (uint32)opcode.mParameter;
 							const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-							void* valuePointer = (void*)variable.mAccessor();
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-							const size_t bytes = variable.getDataType()->getBytes();
-							if (bytes < 8)
-								valuePointer = (uint8*)valuePointer + (8 - bytes);
-#endif
-							runtimeOpcode.setParameter((uint64)(uintptr_t)valuePointer, parameter.mOffset);
+							runtimeOpcode.setParameter(variable.mAccessor(), parameter.mOffset);
 							break;
 						}
 
 						case Nativizer::LookupEntry::ParameterInfo::Semantics::FIXED_MEMORY_ADDRESS:
 						{
+							// TODO: "opcode.mDataType" refers to the PUSH_CONSTANT opcode, so it actually does not tell us the correct data type; however, this shouldn't be much of a problem for now
 							const uint64 address = opcode.mParameter;
 							MemoryAccessHandler::SpecializationResult result;
-							runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(parameter.mDataType), false);	// No support for write access here
-							if (result.mResult != MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION)
-								return false;
-
-							void* valuePointer = result.mDirectAccessPointer;
-							runtimeOpcode.setParameter((uint64)(uintptr_t)valuePointer, parameter.mOffset);
+							runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(opcode.mDataType), false);	// No support for write access here
+							RMX_ASSERT(result.mResult == MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION, "No memory access specialization found even though this was previously checked");
+							runtimeOpcode.setParameter(result.mDirectAccessPointer, parameter.mOffset);
 							break;
 						}
 					}

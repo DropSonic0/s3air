@@ -13,9 +13,7 @@
 #include "lemon/compiler/Utility.h"
 #include "lemon/utility/AnyBaseValue.h"
 
-#if !defined(PLATFORM_PS3)
 #include <optional>
-#endif
 
 
 namespace lemon
@@ -40,16 +38,27 @@ namespace lemon
 		};
 
 	public:
-		static bool isLetter(char ch);
-		static bool isDigitOrDot(char ch);
-		static bool isOperatorCharacter(char ch);
+		inline static bool isLetter(char ch)
+		{
+			return mLookup.mIsLetter[(uint8)ch];
+		}
+
+		inline static bool isDigitOrDot(char ch)
+		{
+			return mLookup.mIsDigitOrDot[(uint8)ch];
+		}
+
+		inline static bool isOperatorCharacter(char ch)
+		{
+			return mOperatorLookup.isOperatorCharacter(ch);
+		}
 
 		inline static size_t collectIdentifier(std::string_view input)
 		{
 			size_t pos = 0;
 			for (; pos < input.length(); ++pos)
 			{
-				if (!isIdentifierCharacter(input[pos]))
+				if (!mLookup.mIsIdentifierCharacter[(uint8)input[pos]])
 					return pos;
 			}
 			return pos;
@@ -72,13 +81,31 @@ namespace lemon
 		static size_t skipStringLiteral(std::string_view input, uint32 lineNumber);
 		static ParseNumberResult collectNumber(std::string_view input);
 
-		static size_t findOperator(std::string_view input, Operator& outOperator);
-		static bool isIdentifierCharacter(char ch);
+		inline static size_t findOperator(std::string_view input, Operator& outOperator)
+		{
+			return mOperatorLookup.lookup(input, outOperator);
+		}
 
 	private:
 		struct Lookup
 		{
-			Lookup();
+			constexpr Lookup() :
+				mIsLetter(),
+				mIsDigitOrLetter(),
+				mIsDigitOrDot(),
+				mIsIdentifierCharacter()
+			{
+				for (size_t i = 0; i < 0x100; ++i)
+				{
+					const char ch = (char)i;
+					const bool isLetter = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
+					const bool isDigit = (ch >= '0' && ch <= '9');
+					mIsLetter[i] = isLetter;
+					mIsDigitOrLetter[i] = isDigit || isLetter;
+					mIsDigitOrDot[i] = isDigit || ch == '.';
+					mIsIdentifierCharacter[i] = isDigit || isLetter || (ch == '_') || (ch == '.');
+				}
+			}
 
 			bool mIsLetter[0x100];
 			bool mIsDigitOrLetter[0x100];
@@ -88,7 +115,21 @@ namespace lemon
 
 		struct DigitLookup
 		{
-			DigitLookup(bool hexadecimal);
+			DigitLookup(bool hexadecimal)
+			{
+				for (int i = 0; i < 55; ++i)
+				{
+					const char ch = '0' + (char)i;
+					if (ch >= '0' && ch <= '9')
+						mValues[i] = (uint8)(ch - '0');
+					else if (hexadecimal && ch >= 'A' && ch <= 'F')
+						mValues[i] = (uint8)(ch - 'A') + 10;
+					else if (hexadecimal && ch >= 'a' && ch <= 'f')
+						mValues[i] = (uint8)(ch - 'a') + 10;
+					else
+						mValues[i] = 0x80;	// Uppermost bit encodes an invalid value
+				}
+			}
 
 			inline uint8 getValueByCharacter(char ch) const  { return (ch >= '0' && ch <= 'f') ? mValues[ch - '0'] : 0x80; }
 
@@ -117,9 +158,9 @@ namespace lemon
 		};
 
 	private:
-		static const Lookup mLookup;
-		static const DigitLookup mDigitLookupHex;
-		static const DigitLookup mDigitLookupDec;
+		inline static const Lookup mLookup;
+		inline static const DigitLookup mDigitLookupHex = DigitLookup(true);
+		inline static const DigitLookup mDigitLookupDec = DigitLookup(false);
 		static OperatorLookup mOperatorLookup;
 	};
 

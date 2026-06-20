@@ -33,7 +33,7 @@ namespace lemon
 			case BaseType::FLOAT:		runtimeOpcode.mExecFunc = &_function_<float>;	break; \
 			case BaseType::DOUBLE:		runtimeOpcode.mExecFunc = &_function_<double>;	break; \
 			default: \
-				RMX_CHECK(false, "Invalid opcode data type", abort()); \
+				throw std::runtime_error("Invalid opcode data type"); \
 		} \
 	}
 
@@ -51,7 +51,7 @@ namespace lemon
 			case BaseType::UINT_64:		runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			case BaseType::INT_CONST:	runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			default: \
-				RMX_CHECK(false, "Invalid opcode data type", abort()); \
+				throw std::runtime_error("Invalid opcode data type"); \
 		} \
 	}
 
@@ -68,7 +68,7 @@ namespace lemon
 			case BaseType::FLOAT:		runtimeOpcode.mExecFunc = &_function_<float>;	break; \
 			case BaseType::DOUBLE:		runtimeOpcode.mExecFunc = &_function_<double>;	break; \
 			default: \
-				RMX_CHECK(false, "Invalid opcode data type", abort()); \
+				throw std::runtime_error("Invalid opcode data type"); \
 		} \
 	}
 
@@ -82,7 +82,7 @@ namespace lemon
 
 		static void exec_MOVE_STACK_positive(const RuntimeOpcodeContext context)
 		{
-			const int count = (int)context.getParameter<int64>();
+			const int count = (int)context.getParameter<int16>();
 			for (int i = 0; i < count; ++i)
 				context.writeValueStack(i, 0);
 			context.moveValueStack(count);
@@ -90,7 +90,7 @@ namespace lemon
 
 		static void exec_MOVE_STACK_negative(const RuntimeOpcodeContext context)
 		{
-			context.moveValueStack((int)context.getParameter<int64>());
+			context.moveValueStack(context.getParameter<int16>());
 		}
 
 		static void exec_MOVE_STACK_m1(const RuntimeOpcodeContext context)
@@ -100,7 +100,7 @@ namespace lemon
 
 		static void exec_MOVE_VAR_STACK_positive(const RuntimeOpcodeContext context)
 		{
-			const int count = (int)context.getParameter<int64>();
+			const int count = (int)context.getParameter<int16>();
 			int64* variables = &context.mControlFlow->mLocalVariablesBuffer[context.mControlFlow->mLocalVariablesSize];
 			memset(variables, 0, count * sizeof(int64));
 			context.mControlFlow->mLocalVariablesSize += count;
@@ -109,7 +109,7 @@ namespace lemon
 
 		static void exec_MOVE_VAR_STACK_negative(const RuntimeOpcodeContext context)
 		{
-			const int count = (int)context.getParameter<int64>();
+			const int count = (int)context.getParameter<int16>();
 			context.mControlFlow->mLocalVariablesSize += count;
 		}
 
@@ -121,14 +121,14 @@ namespace lemon
 
 		static void exec_GET_VARIABLE_VALUE_LOCAL(const RuntimeOpcodeContext context)
 		{
-			const uint32 variableId = (uint32)context.getParameter<int64>();
+			const uint32 variableId = context.getParameter<uint32>();
 			*context.mControlFlow->mValueStackPtr = context.readLocalVariable<int64>(variableId);
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		static void exec_GET_VARIABLE_VALUE_USER(const RuntimeOpcodeContext context)
 		{
-			const uint32 variableId = (uint32)context.getParameter<int64>();
+			const uint32 variableId = context.getParameter<uint32>();
 			const GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
 			*context.mControlFlow->mValueStackPtr = variable.getValue();
 			++context.mControlFlow->mValueStackPtr;
@@ -137,21 +137,21 @@ namespace lemon
 		template<typename T>
 		static void exec_GET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
-			*context.mControlFlow->mValueStackPtr = *(T*)(uintptr_t)context.getParameter<uint64>();
+			*context.mControlFlow->mValueStackPtr = *context.getParameter<T*>();
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		static void exec_SET_VARIABLE_VALUE_LOCAL(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			const uint32 variableId = (uint32)context.getParameter<int64>();
+			const uint32 variableId = context.getParameter<uint32>();
 			context.writeLocalVariable<int64>(variableId, value);
 		}
 
 		static void exec_SET_VARIABLE_VALUE_USER(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			const uint32 variableId = (uint32)context.getParameter<int64>();
+			const uint32 variableId = context.getParameter<uint32>();
 			GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
 			variable.setValue(value);
 		}
@@ -160,7 +160,7 @@ namespace lemon
 		static void exec_SET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
-			*(T*)(uintptr_t)context.getParameter<uint64>() = (T)value;
+			*context.getParameter<T*>() = (T)value;
 		}
 
 		template<typename T>
@@ -342,24 +342,20 @@ namespace lemon
 		static void exec_JUMP_CONDITIONAL(const RuntimeOpcodeContext context)
 		{
 			--context.mControlFlow->mValueStackPtr;
-			const size_t offset = (*context.mControlFlow->mValueStackPtr == 0) ? 0 : 8;	// Parameter index 0 if condition is true (i.e. value stack is zero), otherwise index 8
-			const_cast<RuntimeOpcode*>(context.mOpcode)->mNext = (RuntimeOpcode*)context.mOpcode->getParameter<uint64>(offset);
+			const size_t index = (*context.mControlFlow->mValueStackPtr == 0) ? 0 : 8;	// Parameter index 0 if condition is true (i.e. value stack is zero), otherwise index 8
+			const_cast<RuntimeOpcode*>(context.mOpcode)->mNext = context.mOpcode->getParameter<RuntimeOpcode*>(index);
 		}
 	#endif
 
 		static void exec_INLINE_NATIVE_CALL(const RuntimeOpcodeContext context)
 		{
-			const NativeFunction& func = *(const NativeFunction*)(uintptr_t)context.mOpcode->getParameter<uint64>();
+			const NativeFunction& func = *context.mOpcode->getParameter<const NativeFunction*>();
 			func.execute(NativeFunction::Context(*context.mControlFlow));
 		}
 
 		static void exec_NOT_HANDLED(const RuntimeOpcodeContext context)
 		{
-#if !defined(PLATFORM_PS3)
 			throw std::runtime_error("Unhandled opcode");
-#else
-			abort();
-#endif
 		}
 	};
 
@@ -453,12 +449,7 @@ namespace lemon
 					case Variable::Type::GLOBAL:
 					{
 						int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcode.mDataType);
-						if (bytes < 8)
-							value = (int64*)((uint8*)value + (8 - bytes));
-#endif
-						runtimeOpcode.setParameter((uint64)(uintptr_t)value);
+						runtimeOpcode.setParameter(value);
 
 						switch (DataTypeHelper::getSizeOfBaseType(opcode.mDataType))
 						{
@@ -473,13 +464,7 @@ namespace lemon
 					case Variable::Type::EXTERNAL:
 					{
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						void* pointer = (void*)variable.mAccessor();
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = variable.getDataType()->getBytes();
-						if (bytes < 8)
-							pointer = (uint8*)pointer + (8 - bytes);
-#endif
-						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
+						runtimeOpcode.setParameter(variable.mAccessor());
 
 						switch (variable.getDataType()->getBytes())
 						{
@@ -506,12 +491,7 @@ namespace lemon
 					case Variable::Type::GLOBAL:
 					{
 						int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = DataTypeHelper::getSizeOfBaseType(opcode.mDataType);
-						if (bytes < 8)
-							value = (int64*)((uint8*)value + (8 - bytes));
-#endif
-						runtimeOpcode.setParameter((uint64)(uintptr_t)value);
+						runtimeOpcode.setParameter(value);
 
 						switch (DataTypeHelper::getSizeOfBaseType(opcode.mDataType))
 						{
@@ -526,13 +506,7 @@ namespace lemon
 					case Variable::Type::EXTERNAL:
 					{
 						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
-						void* pointer = (void*)variable.mAccessor();
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-						const size_t bytes = variable.getDataType()->getBytes();
-						if (bytes < 8)
-							pointer = (uint8*)pointer + (8 - bytes);
-#endif
-						runtimeOpcode.setParameter((uint64)(uintptr_t)pointer);
+						runtimeOpcode.setParameter(variable.mAccessor());
 
 						switch (variable.getDataType()->getBytes())
 						{
@@ -645,11 +619,7 @@ namespace lemon
 					case BaseCastType::DOUBLE_TO_FLOAT:   runtimeOpcode.mExecFunc = &OpcodeExec::exec_CAST_VALUE<double, float>;   break;
 
 					default:
-#if !defined(PLATFORM_PS3)
 						throw std::runtime_error("Unrecognized cast type");
-#else
-						abort();
-#endif
 				}
 				break;
 			}

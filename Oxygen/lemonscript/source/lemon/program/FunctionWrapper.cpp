@@ -51,16 +51,18 @@ namespace lemon
 		template<>
 		void pushStackGeneric(AnyTypeWrapper value, const NativeFunction::Context context)
 		{
-			context.mControlFlow.pushValueStack<uint64>(value.mValue.get<uint64>());
-			context.mControlFlow.pushValueStack<uint16>(value.mType->getID());
+			context.mControlFlow.pushValueStack(value.mValue);
+			context.mControlFlow.pushValueStack(value.mType->getID());
 		};
 
 		template<>
 		AnyTypeWrapper popStackGeneric(const NativeFunction::Context context)
 		{
+			AnyTypeWrapper result;
 			const uint16 dataTypeId = context.mControlFlow.popValueStack<uint16>();
-			const uint64 value = context.mControlFlow.popValueStack<uint64>();
-			return AnyTypeWrapper(context.mControlFlow.getProgram().getDataTypeByID(dataTypeId), AnyBaseValue(value));
+			result.mType = context.mControlFlow.getProgram().getDataTypeByID(dataTypeId);
+			result.mValue = context.mControlFlow.popValueStack<AnyBaseValue>();
+			return result;
 		}
 	}
 }

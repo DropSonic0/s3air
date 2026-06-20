@@ -70,21 +70,11 @@ namespace lemon
 			TEMP_FLAG	= 0x80		// Only used temporarily during optimization
 		};
 
-#if defined(PLATFORM_PS3)
-		Type mType;
-		BaseType mDataType;
-		BitFlagSet<Flag> mFlags;
-		uint32 mLineNumber;
-		int64 mParameter;	// For constants, or ID in case of variables and calls
-
-		inline Opcode() : mType(Type::NOP), mDataType(BaseType::VOID), mLineNumber(0), mParameter(0) {}
-#else
 		Type mType = Type::NOP;
 		BaseType mDataType = BaseType::VOID;
 		BitFlagSet<Flag> mFlags;
 		uint32 mLineNumber = 0;
 		int64 mParameter = 0;	// For constants, or ID in case of variables and calls
-#endif
 
 	public:
 		static const char* GetTypeString(Type type);

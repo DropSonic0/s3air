@@ -10,14 +10,13 @@
 #include "lemon/program/ModuleSerializer.h"
 #include "lemon/program/Module.h"
 #include "lemon/program/GlobalsLookup.h"
-#include <cstdio>
 
 
 namespace lemon
 {
 	namespace
 	{
-		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO = SourceFileInfo();
+		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO;
 
 		static const BaseType DEFAULT_OPCODE_BASETYPES[(size_t)Opcode::Type::_NUM_TYPES] =
 		{
@@ -63,8 +62,6 @@ namespace lemon
 
 	bool ModuleSerializer::serialize(Module& module, VectorBinarySerializer& outerSerializer, const GlobalsLookup& globalsLookup, uint32 dependencyHash, uint32 appVersion)
 	{
-		RMX_LOG_INFO("ModuleSerializer::serialize: start (reading=" << outerSerializer.isReading() << ")");
-		printf("ModuleSerializer::serialize: start (reading=%d)\n", outerSerializer.isReading()); fflush(stdout);
 		// Format version history:
 		//  - 0x00 = First version, no signature yet
 		//  - 0x01 = Added signature and version number + serialize global variable initial values
@@ -85,40 +82,28 @@ namespace lemon
 		//  - 0x10 = Opcode JUMP_SWITCH added
 
 		// Signature and version number
-		const uint32 SIGNATURE = 0x7c444d4c;	// "LMD|" (Little-Endian)
+		const uint32 SIGNATURE = *(uint32*)"LMD|";	// "Lemonscript Module"
 		const uint16 MINIMUM_VERSION = 0x10;
 		uint16 version = 0x10;
 
 		if (outerSerializer.isReading())
 		{
-			const uint32 signature = rmx::readMemoryUnalignedLE<uint32>(outerSerializer.peek());
+			const uint32 signature = *(const uint32*)outerSerializer.peek();
 			if (signature != SIGNATURE)
-			{
-				RMX_LOG_ERROR("ModuleSerializer: Invalid signature " << rmx::hexString(signature) << " (expected " << rmx::hexString(SIGNATURE) << ")");
 				return false;
-			}
 
 			outerSerializer.skip(4);
 			version = outerSerializer.read<uint16>();
 			if (version < MINIMUM_VERSION)
-			{
-				RMX_LOG_ERROR("ModuleSerializer: Unsupported version " << version << " (minimum " << MINIMUM_VERSION << ")");
 				return false;	// Loading older versions is not supported
-			}
 
 			const uint32 readDependencyHash = outerSerializer.read<uint32>();
 			if (readDependencyHash != dependencyHash)
-			{
-				RMX_LOG_ERROR("ModuleSerializer: Dependency hash mismatch " << rmx::hexString(readDependencyHash) << " (expected " << rmx::hexString(dependencyHash) << ")");
 				return false;
-			}
 
 			const uint32 readAppVersion = outerSerializer.read<uint32>();
 			if (readAppVersion != appVersion)
-			{
-				RMX_LOG_ERROR("ModuleSerializer: App version mismatch " << readAppVersion << " (expected " << appVersion << ")");
 				return false;
-			}
 		}
 		else
 		{
@@ -132,13 +117,8 @@ namespace lemon
 		std::vector<uint8> uncompressed;
 		if (outerSerializer.isReading())
 		{
-			printf("ModuleSerializer::serialize: decompressing %u bytes...\n", (uint32)outerSerializer.getRemaining()); fflush(stdout);
 			if (!ZlibDeflate::decode(uncompressed, outerSerializer.peek(), outerSerializer.getRemaining()))
-			{
-				RMX_LOG_ERROR("ModuleSerializer: Zlib decompression failed (size=" << outerSerializer.getRemaining() << ")");
 				return false;
-			}
-			printf("ModuleSerializer::serialize: decompression done (uncompressed size=%u)\n", (uint32)uncompressed.size()); fflush(stdout);
 			outerSerializer.skip(outerSerializer.getRemaining());
 		}
 		VectorBinarySerializer serializer(outerSerializer.isReading(), uncompressed);
@@ -196,8 +176,6 @@ namespace lemon
 		}
 
 		// Serialize functions
-		RMX_LOG_INFO("ModuleSerializer::serialize: serializing functions...");
-		printf("ModuleSerializer::serialize: serializing functions...\n"); fflush(stdout);
 		serializeFunctions(module, serializer, globalsLookup);
 
 		// Serialize global variables
@@ -369,8 +347,6 @@ namespace lemon
 			outerSerializer.write(&compressed[0], compressed.size());
 		}
 
-		RMX_LOG_INFO("ModuleSerializer::serialize: end");
-		printf("ModuleSerializer::serialize: end\n"); fflush(stdout);
 		return true;
 	}
 
@@ -395,10 +371,6 @@ namespace lemon
 		Function::ParameterList parameters;
 		for (uint32 i = 0; i < numberOfFunctions; ++i)
 		{
-			if (i % 500 == 0)
-			{
-				printf("ModuleSerializer::serializeFunctions: progress %u / %u\n", i, numberOfFunctions); fflush(stdout);
-			}
 			if (serializer.isReading())
 			{
 				const uint8 flags = serializer.read<uint8>();
@@ -522,7 +494,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mAddressHooks.push_back(serializer.read<uint32>());
+							scriptFunc.mAddressHooks.emplace_back(serializer.read<uint32>());
 						}
 					}
 
@@ -532,7 +504,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mPragmas.push_back(serializer.read<std::string>());
+							scriptFunc.mPragmas.emplace_back(serializer.read<std::string>());
 						}
 					}
 				}
@@ -591,10 +563,9 @@ namespace lemon
 
 					// Opcodes
 					serializer.writeAs<uint32>(scriptFunc.mOpcodes.size());
-					for (size_t opIdx = 0; opIdx < scriptFunc.mOpcodes.size(); ++opIdx)
+					for (const Opcode& opcode : scriptFunc.mOpcodes)
 					{
-						const Opcode& opcode = scriptFunc.mOpcodes[opIdx];
-						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64, "Too many opcode types");
+						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64);
 
 						const uint8 parameterBits = (opcode.mParameter == 0)  ? 0 :
 							(opcode.mParameter == 1)  ? 1 :

@@ -9,9 +9,6 @@
 #pragma once
 
 #include "lemon/utility/FlyweightString.h"
-#if !defined(PLATFORM_PS3)
-#include <unordered_map>
-#endif
 
 
 namespace lemon

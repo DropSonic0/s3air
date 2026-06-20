@@ -13,69 +13,7 @@
 namespace lemon
 {
 
-	const ParserHelper::Lookup ParserHelper::mLookup;
-	const ParserHelper::DigitLookup ParserHelper::mDigitLookupHex = ParserHelper::DigitLookup(true);
-	const ParserHelper::DigitLookup ParserHelper::mDigitLookupDec = ParserHelper::DigitLookup(false);
 	ParserHelper::OperatorLookup ParserHelper::mOperatorLookup;
-
-
-	ParserHelper::Lookup::Lookup()
-	{
-		for (size_t i = 0; i < 0x100; ++i)
-		{
-			const char ch = (char)i;
-			const bool isLetter = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z');
-			const bool isDigit = (ch >= '0' && ch <= '9');
-			mIsLetter[i] = isLetter;
-			mIsDigitOrLetter[i] = isDigit || isLetter;
-			mIsDigitOrDot[i] = isDigit || ch == '.';
-			mIsIdentifierCharacter[i] = isDigit || isLetter || (ch == '_') || (ch == '.');
-		}
-	}
-
-
-	bool ParserHelper::isLetter(char ch)
-	{
-		return mLookup.mIsLetter[(uint8)ch];
-	}
-
-	bool ParserHelper::isDigitOrDot(char ch)
-	{
-		return mLookup.mIsDigitOrDot[(uint8)ch];
-	}
-
-	bool ParserHelper::isOperatorCharacter(char ch)
-	{
-		return mOperatorLookup.isOperatorCharacter(ch);
-	}
-
-	size_t ParserHelper::findOperator(std::string_view input, Operator& outOperator)
-	{
-		return mOperatorLookup.lookup(input, outOperator);
-	}
-
-	bool ParserHelper::isIdentifierCharacter(char ch)
-	{
-		return mLookup.mIsIdentifierCharacter[(uint8)ch];
-	}
-
-
-	ParserHelper::DigitLookup::DigitLookup(bool hexadecimal)
-	{
-		for (int i = 0; i < 55; ++i)
-		{
-			const char ch = '0' + (char)i;
-			if (ch >= '0' && ch <= '9')
-				mValues[i] = (uint8)(ch - '0');
-			else if (hexadecimal && ch >= 'A' && ch <= 'F')
-				mValues[i] = (uint8)(ch - 'A') + 10;
-			else if (hexadecimal && ch >= 'a' && ch <= 'f')
-				mValues[i] = (uint8)(ch - 'a') + 10;
-			else
-				mValues[i] = 0x80;	// Uppermost bit encodes an invalid value
-		}
-	}
-
 
 	bool ParserHelper::OperatorLookup::isOperatorCharacter(char character)
 	{
@@ -113,9 +51,8 @@ namespace lemon
 			}
 			else
 			{
-			for (size_t k = 0; k < parentEntry->mChildren.size(); ++k)
+				for (Entry* child : parentEntry->mChildren)
 				{
-				Entry* child = parentEntry->mChildren[k];
 					if (child->mCharacter == character)
 					{
 						currentEntry = child;
@@ -141,53 +78,55 @@ namespace lemon
 
 	void ParserHelper::OperatorLookup::initialize()
 	{
-		static_assert(sizeof(AnyBaseValue) == 8, "AnyBaseValue must be 8 bytes");
+		static_assert(sizeof(AnyBaseValue) == 8);	// This just needs to be placed anywhere, why not here
 
 		if (mInitialized)
 			return;
 
-		std::vector<std::pair<std::string_view, Operator>> operatorStrings;
-		operatorStrings.push_back(std::make_pair("=",   Operator::ASSIGN));
-		operatorStrings.push_back(std::make_pair("+=",  Operator::ASSIGN_PLUS));
-		operatorStrings.push_back(std::make_pair("-=",  Operator::ASSIGN_MINUS));
-		operatorStrings.push_back(std::make_pair("*=",  Operator::ASSIGN_MULTIPLY));
-		operatorStrings.push_back(std::make_pair("/=",  Operator::ASSIGN_DIVIDE));
-		operatorStrings.push_back(std::make_pair("%=",  Operator::ASSIGN_MODULO));
-		operatorStrings.push_back(std::make_pair("<<=", Operator::ASSIGN_SHIFT_LEFT));
-		operatorStrings.push_back(std::make_pair(">>=", Operator::ASSIGN_SHIFT_RIGHT));
-		operatorStrings.push_back(std::make_pair("&=",  Operator::ASSIGN_AND));
-		operatorStrings.push_back(std::make_pair("|=",  Operator::ASSIGN_OR));
-		operatorStrings.push_back(std::make_pair("^=",  Operator::ASSIGN_XOR));
-		operatorStrings.push_back(std::make_pair("+",   Operator::BINARY_PLUS));
-		operatorStrings.push_back(std::make_pair("-",   Operator::BINARY_MINUS));
-		operatorStrings.push_back(std::make_pair("*",   Operator::BINARY_MULTIPLY));
-		operatorStrings.push_back(std::make_pair("/",   Operator::BINARY_DIVIDE));
-		operatorStrings.push_back(std::make_pair("%",   Operator::BINARY_MODULO));
-		operatorStrings.push_back(std::make_pair("<<",  Operator::BINARY_SHIFT_LEFT));
-		operatorStrings.push_back(std::make_pair(">>",  Operator::BINARY_SHIFT_RIGHT));
-		operatorStrings.push_back(std::make_pair("&",   Operator::BINARY_AND));
-		operatorStrings.push_back(std::make_pair("|",   Operator::BINARY_OR));
-		operatorStrings.push_back(std::make_pair("^",   Operator::BINARY_XOR));
-		operatorStrings.push_back(std::make_pair("&&",  Operator::LOGICAL_AND));
-		operatorStrings.push_back(std::make_pair("||",  Operator::LOGICAL_OR));
-		operatorStrings.push_back(std::make_pair("!",   Operator::UNARY_NOT));
-		operatorStrings.push_back(std::make_pair("~",   Operator::UNARY_BITNOT));
-		operatorStrings.push_back(std::make_pair("--",  Operator::UNARY_DECREMENT));
-		operatorStrings.push_back(std::make_pair("++",  Operator::UNARY_INCREMENT));
-		operatorStrings.push_back(std::make_pair("==",  Operator::COMPARE_EQUAL));
-		operatorStrings.push_back(std::make_pair("!=",  Operator::COMPARE_NOT_EQUAL));
-		operatorStrings.push_back(std::make_pair("<",   Operator::COMPARE_LESS));
-		operatorStrings.push_back(std::make_pair("<=",  Operator::COMPARE_LESS_OR_EQUAL));
-		operatorStrings.push_back(std::make_pair(">",   Operator::COMPARE_GREATER));
-		operatorStrings.push_back(std::make_pair(">=",  Operator::COMPARE_GREATER_OR_EQUAL));
-		operatorStrings.push_back(std::make_pair("?",   Operator::QUESTIONMARK));
-		operatorStrings.push_back(std::make_pair(":",   Operator::COLON));
-		operatorStrings.push_back(std::make_pair(";",   Operator::SEMICOLON_SEPARATOR));
-		operatorStrings.push_back(std::make_pair(",",   Operator::COMMA_SEPARATOR));
-		operatorStrings.push_back(std::make_pair("(",   Operator::PARENTHESIS_LEFT));
-		operatorStrings.push_back(std::make_pair(")",   Operator::PARENTHESIS_RIGHT));
-		operatorStrings.push_back(std::make_pair("[",   Operator::BRACKET_LEFT));
-		operatorStrings.push_back(std::make_pair("]",   Operator::BRACKET_RIGHT));
+		const std::vector<std::pair<std::string_view, Operator>> operatorStrings =
+		{
+			{ "=",   Operator::ASSIGN },
+			{ "+=",  Operator::ASSIGN_PLUS },
+			{ "-=",  Operator::ASSIGN_MINUS },
+			{ "*=",  Operator::ASSIGN_MULTIPLY },
+			{ "/=",  Operator::ASSIGN_DIVIDE },
+			{ "%=",  Operator::ASSIGN_MODULO },
+			{ "<<=", Operator::ASSIGN_SHIFT_LEFT },
+			{ ">>=", Operator::ASSIGN_SHIFT_RIGHT },
+			{ "&=",  Operator::ASSIGN_AND },
+			{ "|=",  Operator::ASSIGN_OR },
+			{ "^=",  Operator::ASSIGN_XOR },
+			{ "+",   Operator::BINARY_PLUS },
+			{ "-",   Operator::BINARY_MINUS },
+			{ "*",   Operator::BINARY_MULTIPLY },
+			{ "/",   Operator::BINARY_DIVIDE },
+			{ "%",   Operator::BINARY_MODULO },
+			{ "<<",  Operator::BINARY_SHIFT_LEFT },
+			{ ">>",  Operator::BINARY_SHIFT_RIGHT },
+			{ "&",   Operator::BINARY_AND },
+			{ "|",   Operator::BINARY_OR },
+			{ "^",   Operator::BINARY_XOR },
+			{ "&&",  Operator::LOGICAL_AND },
+			{ "||",  Operator::LOGICAL_OR },
+			{ "!",   Operator::UNARY_NOT },
+			{ "~",   Operator::UNARY_BITNOT },
+			{ "--",  Operator::UNARY_DECREMENT },
+			{ "++",  Operator::UNARY_INCREMENT },
+			{ "==",  Operator::COMPARE_EQUAL },
+			{ "!=",  Operator::COMPARE_NOT_EQUAL },
+			{ "<",   Operator::COMPARE_LESS },
+			{ "<=",  Operator::COMPARE_LESS_OR_EQUAL },
+			{ ">",   Operator::COMPARE_GREATER },
+			{ ">=",  Operator::COMPARE_GREATER_OR_EQUAL },
+			{ "?",   Operator::QUESTIONMARK },
+			{ ":",   Operator::COLON },
+			{ ";",   Operator::SEMICOLON_SEPARATOR },
+			{ ",",   Operator::COMMA_SEPARATOR },
+			{ "(",   Operator::PARENTHESIS_LEFT },
+			{ ")",   Operator::PARENTHESIS_RIGHT },
+			{ "[",   Operator::BRACKET_LEFT },
+			{ "]",   Operator::BRACKET_RIGHT }
+		};
 
 		for (int i = 0; i < 96; ++i)
 		{
@@ -195,9 +134,8 @@ namespace lemon
 			mIsOperatorCharacter[i] = false;
 		}
 
-		for (size_t opIdx = 0; opIdx < operatorStrings.size(); ++opIdx)
+		for (const auto& pair : operatorStrings)
 		{
-			const std::pair<std::string_view, Operator>& pair = operatorStrings[opIdx];
 			const std::string_view& string = pair.first;
 			Entry* parentEntry = nullptr;
 			for (size_t i = 0; i < string.length(); ++i)
@@ -364,9 +302,8 @@ namespace lemon
 			collectedString = collectedString.substr(2);
 			int64 number = 0;
 			uint8 errorCheck = 0;
-			for (size_t i = 0; i < collectedString.length(); ++i)
+			for (char ch : collectedString)
 			{
-				const char ch = collectedString[i];
 				const uint8 value = mDigitLookupHex.getValueByCharacter(ch);
 				number = number * 16 + (int64)value;
 				errorCheck |= value;
@@ -386,9 +323,8 @@ namespace lemon
 		{
 			int64 number = 0;
 			uint8 errorCheck = 0;
-			for (size_t i = 0; i < collectedString.length(); ++i)
+			for (char ch : collectedString)
 			{
-				const char ch = collectedString[i];
 				const uint8 value = mDigitLookupDec.getValueByCharacter(ch);
 				number = number * 10 + (int64)value;
 				errorCheck |= value;
@@ -408,7 +344,7 @@ namespace lemon
 				return result;
 
 			// Handle the special case that there's a minus after the string that is the the exponent's sign and thus part of the number
-			if ((collectedString[collectedString.length() - 1] == 'e' || collectedString[collectedString.length() - 1] == 'E') && (len < input.length() && input[len] == '-'))
+			if ((collectedString.back() == 'e' || collectedString.back() == 'E') && (len < input.length() && input[len] == '-'))
 			{
 				// Collect more characters
 				++len;
@@ -422,7 +358,7 @@ namespace lemon
 			}
 
 			bool isFloat = false;
-			if (collectedString[collectedString.length() - 1] == 'f')
+			if (collectedString.back() == 'f')
 			{
 				collectedString = collectedString.substr(0, collectedString.length()-1);
 				isFloat = true;
@@ -432,26 +368,8 @@ namespace lemon
 			std::string_view fractionalString;
 			std::string_view exponentString;
 			{
-				size_t dotPos = std::string_view::npos;
-				for (size_t i = 0; i < collectedString.length(); ++i)
-				{
-					if (collectedString[i] == '.')
-					{
-						dotPos = i;
-						break;
-					}
-				}
-
-				size_t expPos = std::string_view::npos;
-				for (size_t i = 0; i < collectedString.length(); ++i)
-				{
-					if (collectedString[i] == 'e' || collectedString[i] == 'E')
-					{
-						expPos = i;
-						break;
-					}
-				}
-
+				const size_t dotPos = collectedString.find_first_of('.');
+				const size_t expPos = collectedString.find_first_of("eE");
 				if (dotPos == std::string_view::npos)
 				{
 					if (expPos == std::string_view::npos)
@@ -486,9 +404,8 @@ namespace lemon
 
 			uint8 errorCheck = 0;
 			uint64 integerPart = 0;
-			for (size_t i = 0; i < integerString.length(); ++i)
+			for (char ch : integerString)
 			{
-				const char ch = integerString[i];
 				const uint8 value = mDigitLookupDec.getValueByCharacter(ch);
 				integerPart = integerPart * 10 + (int64)value;
 				errorCheck |= value;
@@ -501,9 +418,8 @@ namespace lemon
 			if (!fractionalString.empty())
 			{
 				uint64 fractionalPart = 0;
-				for (size_t i = 0; i < fractionalString.length(); ++i)
+				for (char ch : fractionalString)
 				{
-					const char ch = fractionalString[i];
 					const uint8 value = mDigitLookupDec.getValueByCharacter(ch);
 					fractionalPart = fractionalPart * 10 + (int64)value;
 					errorCheck |= value;
@@ -511,7 +427,7 @@ namespace lemon
 				if (errorCheck & 0x80)
 					return result;
 
-				doubleNumber += (double)fractionalPart * std::pow(0.1, (double)fractionalString.length());
+				doubleNumber += (double)fractionalPart * std::pow(0.1, fractionalString.length());
 			}
 
 			if (!exponentString.empty())
@@ -525,9 +441,8 @@ namespace lemon
 				}
 
 				int64 exponentPart = 0;
-				for (size_t i = 0; i < exponentString.length(); ++i)
+				for (char ch : exponentString)
 				{
-					const char ch = exponentString[i];
 					const uint8 value = mDigitLookupDec.getValueByCharacter(ch);
 					exponentPart = exponentPart * 10 + (int64)value;
 					errorCheck |= value;
@@ -535,7 +450,7 @@ namespace lemon
 				if (errorCheck & 0x80)
 					return result;
 
-				doubleNumber *= std::pow(10.0, (double)(negativeExponent ? -exponentPart : exponentPart));
+				doubleNumber *= std::pow(10.0, negativeExponent ? -exponentPart : exponentPart);
 			}
 
 			if (isFloat)

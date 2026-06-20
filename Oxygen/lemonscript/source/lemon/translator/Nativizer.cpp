@@ -52,36 +52,21 @@ namespace lemon
 
 
 
-	void Nativizer::LookupDictionary::addEmptyEntries(const void* data, size_t numHashes)
+	void Nativizer::LookupDictionary::addEmptyEntries(const uint64* hashes, size_t numHashes)
 	{
-#if !defined(PLATFORM_PS3)
 		mEntries.reserve(mEntries.size() + numHashes);
-#endif
-		const uint8* ptr = (const uint8*)data;
 		for (size_t i = 0; i < numHashes; ++i)
 		{
-			const uint64 hash = rmx::readMemoryUnalignedLE<uint64>(ptr);
-#if defined(PLATFORM_PS3)
-			mEntries.insert(std::make_pair(hash, LookupEntry()));
-#else
-			mEntries.emplace(hash, LookupEntry());
-#endif
-			ptr += 8;
+			mEntries.emplace(hashes[i], LookupEntry());
 		}
 	}
 
 	void Nativizer::LookupDictionary::loadFunctions(const CompactFunctionEntry* entries, size_t numEntries)
 	{
-#if !defined(PLATFORM_PS3)
 		mEntries.reserve(mEntries.size() + numEntries);
-#endif
 		for (size_t i = 0; i < numEntries; ++i)
 		{
-#if defined(PLATFORM_PS3)
-			mEntries.insert(std::make_pair(entries[i].mHash, LookupEntry(entries[i].mFunctionPointer, entries[i].mParameterStart)));
-#else
 			mEntries.emplace(entries[i].mHash, LookupEntry(entries[i].mFunctionPointer, entries[i].mParameterStart));
-#endif
 		}
 	}
 
@@ -89,15 +74,14 @@ namespace lemon
 	{
 		std::vector<uint8> decompressedData;
 		ZlibDeflate::decode(decompressedData, data, count);
-		mParameterData.resize(decompressedData.size() / 5);
+		mParameterData.resize(decompressedData.size() / 4);
 		data = &decompressedData[0];
 		for (LookupEntry::ParameterInfo& info : mParameterData)
 		{
-			info.mOffset = rmx::readMemoryUnalignedLE<uint16>(&data[0]);
+			info.mOffset = *(uint16*)&data[0];
 			info.mOpcodeIndex = data[2];
 			info.mSemantics = (LookupEntry::ParameterInfo::Semantics)data[3];
-			info.mDataType = (BaseType)data[4];
-			data += 5;
+			data += 4;
 		}
 	}
 
@@ -218,12 +202,7 @@ namespace lemon
 	{
 		const uint8* typePointer = (info.mSpecialType == OpcodeSubtypeInfo::SpecialType::NONE) ? (uint8*)&info.mType : (uint8*)&info.mSpecialType;
 		hash = rmx::addToFNV1a_64(hash, typePointer, 1);
-
-		uint32 subtypeData = info.mSubtypeData;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		subtypeData = rmx::swapBytes<uint32>(subtypeData);
-#endif
-		hash = rmx::addToFNV1a_64(hash, (const uint8*)&subtypeData, 4);
+		hash = rmx::addToFNV1a_64(hash, (uint8*)&info.mSubtypeData, 4);
 		return hash;
 	}
 
@@ -239,8 +218,7 @@ namespace lemon
 			mBuiltDictionary.mParameterData.resize(1);
 			mBuiltDictionary.mParameterData[0].mOffset = 0;
 			mBuiltDictionary.mParameterData[0].mOpcodeIndex = 0xff;
-			mBuiltDictionary.mParameterData[0].mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
-			mBuiltDictionary.mParameterData[0].mDataType = BaseType::VOID;
+			mBuiltDictionary.mParameterData[0].mSemantics = (LookupEntry::ParameterInfo::Semantics)0xff;
 		}
 
 		// Start writing
@@ -270,27 +248,15 @@ namespace lemon
 						entriesToWrite.push_back(pair.first);
 					}
 				}
-				// Ensure that the hashes are always written as Little-Endian
-				for (uint64& hash : entriesToWrite)
-				{
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-					hash = rmx::swapBytes<uint64>(hash);
-#endif
-				}
-
 				const uint8* data = (const uint8*)&entriesToWrite[0];
 				const size_t bytes = entriesToWrite.size() * 8;
 				const size_t chunks = (bytes + 0x7fff) / 0x8000;
 				for (size_t i = 0; i < chunks; ++i)
 				{
-#if defined(PLATFORM_PS3)
-					const std::string identifier = (*String(0, "emptyEntries%d", (int)i));
-#else
 					const std::string identifier = "emptyEntries" + std::to_string(i);
-#endif
 					const size_t restBytes = std::min<size_t>(bytes - i * 0x8000, 0x8000);
 					writeBinaryBlob(writer, identifier, &data[i * 0x8000], restBytes);
-					writer.writeLine("dict.addEmptyEntries(" + identifier + ", " + rmx::hexString(restBytes / 8, 2) + ");");
+					writer.writeLine("dict.addEmptyEntries(reinterpret_cast<const uint64*>(" + identifier + "), " + rmx::hexString(restBytes / 8, 2) + ");");
 					writer.writeEmptyLine();
 				}
 			}
@@ -305,19 +271,18 @@ namespace lemon
 					const LookupEntry& lookupEntry = pair.second;
 					if (nullptr != lookupEntry.mExecFunc)
 					{
-						functionList.push_back(std::make_pair(pair.first, pair.second.mParameterStart));
+						functionList.emplace_back(pair.first, pair.second.mParameterStart);
 					}
 				}
 
-				parameterData.resize(mBuiltDictionary.mParameterData.size() * 5);
+				parameterData.resize(mBuiltDictionary.mParameterData.size() * 4);
 				uint8* outPtr = &parameterData[0];
 				for (const LookupEntry::ParameterInfo& parameterInfo : mBuiltDictionary.mParameterData)
 				{
-					rmx::writeMemoryUnalignedLE<uint16>(&outPtr[0], (uint16)parameterInfo.mOffset);
+					*(uint16*)(&outPtr[0]) = (uint16)parameterInfo.mOffset;
 					outPtr[2] = (uint8)parameterInfo.mOpcodeIndex;
 					outPtr[3] = (uint8)parameterInfo.mSemantics;
-					outPtr[4] = (uint8)parameterInfo.mDataType;
-					outPtr += 5;
+					outPtr += 4;
 				}
 			}
 
@@ -421,15 +386,13 @@ namespace lemon
 					parameterPtr->mOffset = (uint16)params[k].mOffset;
 					parameterPtr->mOpcodeIndex = (uint8)params[k].mOpcodeIndex;
 					parameterPtr->mSemantics = params[k].mSemantics;
-					parameterPtr->mDataType = params[k].mDataType;
 					++parameterPtr;
 				}
 
 				// Add a terminating entry as well
 				parameterPtr->mOffset = (uint16)nativizerInternal.mParameters.mTotalSize;
 				parameterPtr->mOpcodeIndex = 0xff;
-				parameterPtr->mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
-				parameterPtr->mDataType = BaseType::VOID;
+				parameterPtr->mSemantics = (LookupEntry::ParameterInfo::Semantics)0xff;
 			}
 		}
 

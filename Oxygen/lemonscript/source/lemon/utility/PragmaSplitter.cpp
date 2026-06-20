@@ -27,26 +27,14 @@ namespace lemon
 				while (pos < input.length() && input[pos] != 32)
 					++pos;
 
-				mEntries.push_back(Entry());
+				mEntries.emplace_back();
 
 				// Split part string into argument and value
 				const std::string_view part = input.substr(startPos, pos - startPos);
-#if defined(PLATFORM_PS3)
-				size_t left = std::string::npos;
-				for (size_t i = 0; i < part.length(); ++i)
-				{
-					if (part[i] == '(')
-					{
-						left = i;
-						break;
-					}
-				}
-#else
 				const size_t left = part.find_first_of('(');
-#endif
 				if (left != std::string::npos)
 				{
-					RMX_CHECK(part[part.length() - 1] == ')', "No matching parentheses in pragma found", continue);
+					RMX_CHECK(part.back() == ')', "No matching parentheses in pragma found", continue);
 					mEntries.back().mArgument = part.substr(0, left);
 					mEntries.back().mValue = part.substr(left + 1, part.length() - left - 2);
 				}

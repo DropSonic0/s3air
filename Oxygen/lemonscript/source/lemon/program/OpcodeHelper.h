@@ -89,11 +89,7 @@ namespace lemon
 				case BaseCastType::DOUBLE_TO_FLOAT: return BaseType::DOUBLE;
 
 				default:
-#if !defined(PLATFORM_PS3)
 					throw std::runtime_error("Unrecognized cast type");
-#else
-					abort();
-#endif
 			}
 			return BaseType::UINT_64;
 		}
@@ -174,11 +170,7 @@ namespace lemon
 				case BaseCastType::DOUBLE_TO_FLOAT: return BaseType::FLOAT;
 
 				default:
-#if !defined(PLATFORM_PS3)
 					throw std::runtime_error("Unrecognized cast type");
-#else
-					abort();
-#endif
 			}
 			return BaseType::UINT_64;
 		}

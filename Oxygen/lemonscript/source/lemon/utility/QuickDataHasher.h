@@ -36,9 +36,6 @@ namespace lemon
 			if (mSize > 0)
 			{
 				uint64 chunkHash = rmx::getMurmur2_64(mChunk, mSize);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-				chunkHash = rmx::swapBytes<uint64>(chunkHash);
-#endif
 				mHash = rmx::addToFNV1a_64(mHash, (uint8*)&chunkHash, sizeof(chunkHash));
 				mSize = 0;
 			}
@@ -60,11 +57,8 @@ namespace lemon
 
 		void addData(uint64 value)
 		{
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-			value = rmx::swapBytes<uint64>(value);
-#endif
 			memcpy(&mChunk[mSize], &value, sizeof(value));
-			mSize += sizeof(value);
+			++mSize;
 		}
 	};
 }

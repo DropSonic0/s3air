@@ -29,11 +29,7 @@ namespace lemon
 
 		public:
 			rmx::OneTimeAllocPool mAllocPool;
-#if defined(PLATFORM_PS3)
-			std::map<uint64, Entry*> mEntryMap;
-#else
 			std::unordered_map<uint64, Entry*> mEntryMap;
-#endif
 		};
 	}
 
@@ -41,21 +37,12 @@ namespace lemon
 	class FlyweightString
 	{
 	public:
-#if defined(PLATFORM_PS3)
-		inline FlyweightString() : mEntry(nullptr) {}
-		inline explicit FlyweightString(uint64 hash) : mEntry(nullptr) { set(hash); }
-		inline FlyweightString(const char* str) : mEntry(nullptr) { set(str); }
-		inline FlyweightString(std::string_view str) : mEntry(nullptr) { set(str); }
-		inline FlyweightString(const std::string& str) : mEntry(nullptr) { set(str); }
-		inline FlyweightString(const FlyweightString& other) : mEntry(other.mEntry) {}
-#else
 		inline FlyweightString() {}
 		inline explicit FlyweightString(uint64 hash) { set(hash); }
 		inline FlyweightString(const char* str) { set(str); }
 		inline FlyweightString(std::string_view str) { set(str); }
 		inline FlyweightString(const std::string& str) { set(str); }
 		inline FlyweightString(const FlyweightString& other) : mEntry(other.mEntry) {}
-#endif
 
 		inline bool isValid() const  { return (nullptr != mEntry); }
 		inline bool isEmpty() const  { return (nullptr == mEntry || mEntry->mString.empty()); }
@@ -77,17 +64,10 @@ namespace lemon
 		void write(VectorBinarySerializer& serializer) const;
 
 	private:
-#if defined(PLATFORM_PS3)
-		detail::FlyweightStringManager::Entry* mEntry;
-
-		static detail::FlyweightStringManager mManager;
-		static std::string_view EMPTY_STRING_VIEW;
-#else
 		detail::FlyweightStringManager::Entry* mEntry = nullptr;
 
 		inline static detail::FlyweightStringManager mManager;
 		inline static std::string_view EMPTY_STRING_VIEW;
-#endif
 	};
 
 

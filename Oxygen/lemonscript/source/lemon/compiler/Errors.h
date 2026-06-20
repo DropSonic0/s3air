@@ -21,18 +21,9 @@ namespace lemon
 			SCRIPT_FEATURE_LEVEL_TOO_HIGH,	// Script requested a higher script feature level than the compiler offers; mData1 is the requested level, mData2 is the maximum available level
 		};
 
-#if defined(PLATFORM_PS3)
-		Code mCode;
-		uint64 mData1;
-		uint64 mData2;
-		uint32 mLineNumber;
-
-		inline CompilerError() : mCode(Code::UNDEFINED), mData1(0), mData2(0), mLineNumber(0) {}
-#else
 		Code mCode = Code::UNDEFINED;
 		uint64 mData1 = 0;
 		uint64 mData2 = 0;
 		uint32 mLineNumber = 0;
-#endif
 	};
 }

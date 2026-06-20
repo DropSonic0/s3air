@@ -22,7 +22,7 @@ namespace lemon
 		int checkIncludeLine(std::string_view str)
 		{
 			// Check for "include", but ignore leading whitespace
-			static constexpr size_t REQUIRED_LENGTH = 8;		// Length of "include" plus a space
+			const constexpr size_t REQUIRED_LENGTH = 8;		// Length of "include" plus a space
 			size_t pos = 0;
 			while (pos + REQUIRED_LENGTH <= str.length() && (str[pos] == ' ' || str[pos] == '\t'))
 				++pos;
@@ -88,11 +88,7 @@ namespace lemon
 		mScriptFiles.reserve(0x200);
 
 		// Recursively load script files
-#if defined(PLATFORM_PS3)
-		std::set<uint64> includedPathHashes;
-#else
 		std::unordered_set<uint64> includedPathHashes;
-#endif
 		if (!loadScriptInternal(*basepath, *filename, outLines, includedPathHashes))
 			return false;
 
@@ -109,9 +105,7 @@ namespace lemon
 
 	bool Compiler::compileLines(const std::vector<std::string_view>& lines)
 	{
-#if !defined(PLATFORM_PS3)
 		try
-#endif
 		{
 			BlockNode rootNode;
 			std::vector<FunctionNode*> functionNodes;
@@ -132,7 +126,6 @@ namespace lemon
 			// Success
 			return true;
 		}
-#if !defined(PLATFORM_PS3)
 		catch (const CompilerException& e)
 		{
 			const auto& translated = mLineNumberTranslation.translateLineNumber(e.mError.mLineNumber);
@@ -144,14 +137,9 @@ namespace lemon
 		}
 
 		return false;
-#endif
 	}
 
-#if defined(PLATFORM_PS3)
-	bool Compiler::loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::set<uint64>& includedPathHashes)
-#else
 	bool Compiler::loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::unordered_set<uint64>& includedPathHashes)
-#endif
 	{
 		const std::wstring filepath = basepath + filename;
 		const uint64 pathHash = rmx::getMurmur2_64(filepath);
@@ -191,20 +179,17 @@ namespace lemon
 				const int start = pos;
 				size_t length;
 				pos = scriptFile.mContent.getLine(length, start);
-				fileLines.push_back(std::string_view(&scriptFile.mContent[start], length));
+				fileLines.emplace_back(&scriptFile.mContent[start], length);
 			}
 		}
 
 		// Your turn, preprocessor
-#if !defined(PLATFORM_PS3)
 		try
-#endif
 		{
 			mPreprocessor.mPreprocessorDefinitions = &mGlobalsLookup.mPreprocessorDefinitions;
 			mPreprocessor.processLines(fileLines);
 			mModule.registerNewPreprocessorDefinitions(mGlobalsLookup.mPreprocessorDefinitions);
 		}
-#if !defined(PLATFORM_PS3)
 		catch (const CompilerException& e)
 		{
 			ErrorMessage& error = vectorAdd(mErrors);
@@ -213,7 +198,6 @@ namespace lemon
 			error.mError = e.mError;
 			return false;
 		}
-#endif
 
 		// Build output
 		for (uint32 fileLineIndex = 0; fileLineIndex < (uint32)fileLines.size(); ++fileLineIndex)
@@ -265,7 +249,7 @@ namespace lemon
 			}
 			else
 			{
-				outLines.push_back(std::move(fileLines[fileLineIndex]));
+				outLines.emplace_back(std::move(fileLines[fileLineIndex]));
 			}
 		}
 

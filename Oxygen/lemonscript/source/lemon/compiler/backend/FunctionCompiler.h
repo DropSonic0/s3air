@@ -73,11 +73,7 @@ namespace lemon
 			FlyweightString mLabelName;
 			std::vector<uint32> mJumpLocations;
 		};
-#if defined(PLATFORM_PS3)
-		std::map<uint64, CollectedLabel> mCollectedLabels;
-#else
 		std::unordered_map<uint64, CollectedLabel> mCollectedLabels;
-#endif
 	};
 
 }

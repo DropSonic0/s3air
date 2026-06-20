@@ -96,15 +96,9 @@ namespace lemon
 		template<typename T> int64 Math_roundToInt(T value)		{ return (int64)std::round(value); }
 		template<typename T> T Math_frac(T value)				{ return value - std::floor(value); }
 
-#if defined(PLATFORM_PS3)
-		template<typename T> bool Math_isNumber(T value)		{ return (value != (T)0.0 && value == value) || (value == (T)0); }
-		template<typename T> bool Math_isNaN(T value)			{ return (value != value); }
-		template<typename T> bool Math_isInfinite(T value)		{ return (value != (T)0.0 && value == value && (value + (T)1.0 == value)); }
-#else
 		template<typename T> bool Math_isNumber(T value)		{ return std::isnormal(value) || (value == (T)0); }
 		template<typename T> bool Math_isNaN(T value)			{ return std::isnan(value); }
 		template<typename T> bool Math_isInfinite(T value)		{ return std::isinf(value); }
-#endif
 
 		template<typename T> T Math_lerp(T a, T b, T factor)			{ return a + (b - a) * factor; }
 		template<typename T> T Math_lerp_int(T a, T b, float factor)	{ return a + roundToInt((float)(signed)(b - a) * factor); }

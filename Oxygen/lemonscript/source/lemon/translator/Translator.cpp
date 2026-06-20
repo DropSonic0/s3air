@@ -85,14 +85,7 @@ namespace lemon
 				{
 					const LabelNode& labelNode = node.as<LabelNode>();
 					writer.decreaseIndentation();
-#if defined(PLATFORM_PS3)
-					std::string line;
-					line.assign(labelNode.mLabel.getString().data(), labelNode.mLabel.getString().length());
-					line += ":";
-					writer.writeLine(line);
-#else
 					writer.writeLine(std::string(labelNode.mLabel.getString()) + ":");
-#endif
 					writer.increaseIndentation();
 					break;
 				}
@@ -100,14 +93,7 @@ namespace lemon
 				case Node::Type::JUMP:
 				{
 					const JumpNode& jumpNode = node.as<JumpNode>();
-#if defined(PLATFORM_PS3)
-					std::string line = "goto ";
-					line.append(jumpNode.mLabelToken->mName.getString().data(), jumpNode.mLabelToken->mName.getString().length());
-					line += ";";
-					writer.writeLine(line);
-#else
 					writer.writeLine("goto " + std::string(jumpNode.mLabelToken->mName.getString()) + ";");
-#endif
 					break;
 				}
 
@@ -200,11 +186,7 @@ namespace lemon
 
 				default:
 				{
-#if defined(PLATFORM_PS3)
-					writer.writeLine(*String(0, "<unknown_node_%d>", (int)node.getType()));
-#else
 					writer.writeLine("<unknown_node_" + std::to_string((int)node.getType()) + ">");
-#endif
 					break;
 				}
 			}

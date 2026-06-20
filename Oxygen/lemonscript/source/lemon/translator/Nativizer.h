@@ -9,10 +9,7 @@
 #pragma once
 
 #include "lemon/runtime/RuntimeOpcode.h"
-#include <map>
-#if !defined(PLATFORM_PS3)
 #include <unordered_map>
-#endif
 
 
 namespace lemon
@@ -27,8 +24,8 @@ namespace lemon
 	class Nativizer
 	{
 	public:
-		static constexpr size_t MIN_OPCODES = 2;
-		static constexpr size_t MAX_OPCODES = 32;
+		static const constexpr size_t MIN_OPCODES = 2;
+		static const constexpr size_t MAX_OPCODES = 32;
 
 		struct OpcodeSubtypeInfo
 		{
@@ -54,14 +51,12 @@ namespace lemon
 					INTEGER,
 					GLOBAL_VARIABLE,
 					EXTERNAL_VARIABLE,
-					FIXED_MEMORY_ADDRESS,
-					UNDEFINED = 0xff
+					FIXED_MEMORY_ADDRESS
 				};
 
 				uint16 mOffset = 0;
 				uint8 mOpcodeIndex = 0;
 				Semantics mSemantics = Semantics::INTEGER;
-				BaseType mDataType = BaseType::VOID;
 			};
 
 			ExecFunc mExecFunc = nullptr;
@@ -80,15 +75,11 @@ namespace lemon
 
 		struct LookupDictionary
 		{
-			void addEmptyEntries(const void* data, size_t numHashes);
+			void addEmptyEntries(const uint64* hashes, size_t numHashes);
 			void loadFunctions(const CompactFunctionEntry* entries, size_t numEntries);
 			void loadParameterInfo(const uint8* data, size_t count);
 
-#if defined(PLATFORM_PS3)
-			std::map<uint64, LookupEntry> mEntries;
-#else
 			std::unordered_map<uint64, LookupEntry> mEntries;
-#endif
 			std::vector<LookupEntry::ParameterInfo> mParameterData;
 		};
 

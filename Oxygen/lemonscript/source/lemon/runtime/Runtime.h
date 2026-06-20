@@ -24,7 +24,6 @@ namespace lemon
 	class API_EXPORT MemoryAccessHandler
 	{
 	public:
-		virtual ~MemoryAccessHandler() {}
 		struct SpecializationResult
 		{
 			enum class Result : uint8
@@ -69,7 +68,6 @@ namespace lemon
 	class API_EXPORT RuntimeDetailHandler
 	{
 	public:
-		virtual ~RuntimeDetailHandler() {}
 		virtual void preExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow)  {}
 		virtual void postExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow) {}
 	};
@@ -98,7 +96,6 @@ namespace lemon
 
 		struct ExecuteConnector : public ExecuteResult
 		{
-			virtual ~ExecuteConnector() {}
 			virtual bool handleCall(const Function* func, uint64 callTarget) = 0;
 			virtual bool handleReturn() = 0;
 			virtual bool handleExternalCall(uint64 address) = 0;
@@ -121,14 +118,14 @@ namespace lemon
 		};
 
 	public:
-		static ControlFlow* getActiveControlFlow();
-		static Runtime* getActiveRuntime();
+		inline static ControlFlow* getActiveControlFlow()	{ return mActiveControlFlow; }
+		inline static Runtime* getActiveRuntime()			{ return (nullptr == mActiveControlFlow) ? nullptr : &mActiveControlFlow->getRuntime(); }
 
-		template<typename T> inline static const T* getActiveEnvironment()		{ return static_cast<const T*>(getActiveEnvironment()); }		// Note that this is not type safe - you need to be sure the type is correct
+		template<typename T> inline static const T* getActiveEnvironment()		{ return static_cast<T*>(mActiveEnvironment); }		// Note that this is not type safe - you need to be sure the type is correct
 		template<typename T> inline static const T& getActiveEnvironmentSafe()	{ const Environment& env = getActiveEnvironmentSafe(); RMX_ASSERT(env.getType() == T::TYPE, "Wrong active environment type"); return static_cast<const T&>(env); }
-		static const Environment* getActiveEnvironment();
-		static const Environment& getActiveEnvironmentSafe();
-		static void setActiveEnvironment(const Environment* environment);
+		inline static const Environment* getActiveEnvironment()					{ return mActiveEnvironment; }
+		inline static const Environment& getActiveEnvironmentSafe()				{ RMX_ASSERT(nullptr != mActiveEnvironment, "No active environment set"); return *mActiveEnvironment; }
+		inline static void setActiveEnvironment(const Environment* environment)	{ mActiveEnvironment = environment; }
 
 	public:
 		Runtime();
@@ -181,11 +178,8 @@ namespace lemon
 		void setupGlobalVariables();
 
 	private:
-		static ControlFlow* mActiveControlFlow;
-		static const Environment* mActiveEnvironment;
-#if defined(PLATFORM_PS3) || defined(__PS3__) || defined(__CELLOS_LV2__)
-		static int mDiagnosticFrame;
-#endif
+		inline static ControlFlow* mActiveControlFlow = nullptr;
+		inline static const Environment* mActiveEnvironment = nullptr;
 
 	private:
 		const Program* mProgram = nullptr;
@@ -193,13 +187,8 @@ namespace lemon
 		RuntimeDetailHandler* mRuntimeDetailHandler = nullptr;
 
 		std::vector<RuntimeFunction> mRuntimeFunctions;
-#if defined(PLATFORM_PS3)
-		std::map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
-		std::map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
-#else
 		std::unordered_map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
 		std::unordered_map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
-#endif
 		rmx::OneTimeAllocPool mRuntimeOpcodesPool;
 
 		// Static memory contains all global variables

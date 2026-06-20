@@ -20,8 +20,6 @@
 #endif
 
 
-#if !defined(PLATFORM_PS3)
-
 #define CHECK_ERROR_NOLINE(expression, errorMessage) \
 { \
 	if (!(expression)) \
@@ -51,34 +49,6 @@
 	stream << errorMessage; \
 	throw CompilerException(stream.str().c_str(), errorCode, data1, data2); \
 }
-
-#else
-
-#define CHECK_ERROR_NOLINE(expression, errorMessage) \
-{ \
-	if (!(expression)) \
-	{ \
-		LEMON_DEBUG_BREAK(errorMessage); \
-		abort(); \
-	} \
-}
-
-#define CHECK_ERROR(expression, errorMessage, lineNumber) \
-{ \
-	if (!(expression)) \
-	{ \
-		LEMON_DEBUG_BREAK(errorMessage); \
-		abort(); \
-	} \
-}
-
-#define REPORT_ERROR_CODE(errorCode, data1, data2, errorMessage) \
-{ \
-	LEMON_DEBUG_BREAK(errorMessage); \
-	abort(); \
-}
-
-#endif
 
 
 namespace lemon

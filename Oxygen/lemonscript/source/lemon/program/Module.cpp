@@ -26,7 +26,7 @@ namespace lemon
 		mModuleName(name),
 		mModuleId(rmx::getMurmur2_64(name) & 0xffffffffffff0000ull)
 	{
-		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36, "DEFAULT_OPCODE_BASETYPES needs update");	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
+		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36);	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
 	}
 
 	Module::~Module()
@@ -188,25 +188,14 @@ namespace lemon
 			content << "\r\n";
 
 			std::string lastPrefix = ".";		// Start with an invalid prefix so that first function will add a line break
-			for (size_t funcIdx = 0; funcIdx < currentFunctions.size(); ++funcIdx)
+			for (const Function* function : currentFunctions)
 			{
-				const Function* function = currentFunctions[funcIdx];
 				// Separate functions with different prefixes
-				std::string_view nameStr = function->getName().getString();
-				size_t dot = std::string_view::npos;
-				for (size_t i = 0; i < nameStr.length(); ++i)
-				{
-					if (nameStr[i] == '.')
-					{
-						dot = i;
-						break;
-					}
-				}
-
-				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : nameStr.substr(0, dot);
+				const size_t dot = function->getName().getString().find_first_of('.');
+				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : function->getName().getString().substr(0, dot);
 				if (prefix != lastPrefix)
 				{
-					lastPrefix.assign(prefix.data(), prefix.length());
+					lastPrefix = prefix;
 					content << "\r\n";
 				}
 
@@ -259,7 +248,7 @@ namespace lemon
 			const PreprocessorDefinition* definition = preprocessorDefinitions.getDefinition(hash);
 			RMX_ASSERT(nullptr != definition, "Invalid entry in PreprocessorDefinitionMap's new definitions set");
 			Constant& constant = addPreprocessorDefinition(definition->mIdentifier, definition->mValue);
-			mPreprocessorDefinitions.push_back(&constant);
+			mPreprocessorDefinitions.emplace_back(&constant);
 		}
 		preprocessorDefinitions.clearNewDefinitions();
 	}
@@ -270,7 +259,7 @@ namespace lemon
 		constant.mName = name;
 		constant.mDataType = &PredefinedDataTypes::INT_64;
 		constant.mValue.set(value);
-		mPreprocessorDefinitions.push_back(&constant);
+		mPreprocessorDefinitions.emplace_back(&constant);
 		return constant;
 	}
 
@@ -345,7 +334,6 @@ namespace lemon
 		return variable;
 	}
 
-#if !defined(PLATFORM_PS3)
 	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor)
 	{
 		// TODO: Add an object pool for this
@@ -354,23 +342,13 @@ namespace lemon
 		addGlobalVariable(variable, name, dataType);
 		return variable;
 	}
-#else
-	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, int64* (*accessor)())
-	{
-		// TODO: Add an object pool for this
-		ExternalVariable& variable = *new ExternalVariable();
-		variable.mAccessor = accessor;
-		addGlobalVariable(variable, name, dataType);
-		return variable;
-	}
-#endif
 
 	void Module::addGlobalVariable(Variable& variable, FlyweightString name, const DataTypeDefinition* dataType)
 	{
 		variable.mName = name;
 		variable.mDataType = dataType;
 		variable.mID = mFirstVariableID + (uint32)mGlobalVariables.size() + ((uint32)variable.mType << 28);
-		mGlobalVariables.push_back(&variable);
+		mGlobalVariables.emplace_back(&variable);
 	}
 
 	LocalVariable& Module::createLocalVariable()
@@ -389,7 +367,7 @@ namespace lemon
 		constant.mName = name;
 		constant.mDataType = dataType;
 		constant.mValue = value;
-		mConstants.push_back(&constant);
+		mConstants.emplace_back(&constant);
 		return constant;
 	}
 
@@ -403,7 +381,7 @@ namespace lemon
 			constantArray.setContent(values, size);
 		else if (size > 0)
 			constantArray.setSize(size);
-		mConstantArrays.push_back(&constantArray);
+		mConstantArrays.emplace_back(&constantArray);
 
 		if (isGlobalDefinition)
 		{
@@ -418,7 +396,7 @@ namespace lemon
 		Define& define = mDefinePool.createObject();
 		define.mName = name;
 		define.mDataType = dataType;
-		mDefines.push_back(&define);
+		mDefines.emplace_back(&define);
 		return define;
 	}
 

@@ -10,12 +10,6 @@
 #include "oxygen/simulation/bindings/LemonScriptBindings.h"
 #include "oxygen/simulation/bindings/RendererBindings.h"
 #include "oxygen/simulation/CodeExec.h"
-#include "Endian/S3AIREndian.hpp"
-
-#if defined(PLATFORM_PS3)
-DebugNotificationInterface* LemonScriptBindings::mDebugNotificationInterface = nullptr;
-#endif
-
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/simulation/PersistentData.h"
@@ -78,37 +72,11 @@ namespace
 		return *lemon::Runtime::getActiveEnvironmentSafe<RuntimeEnvironment>().mEmulatorInterface;
 	}
 
-#if !defined(PLATFORM_PS3)
 	int64* accessRegister(size_t index)
 	{
 		uint32& reg = getEmulatorInterface().getRegister(index);
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-		// Since we're on a Big-Endian system and the register is only 32-bit,
-		// we can't just return a pointer to it casted to int64*.
-		// If LemonScript expects an 8-byte value, it would read the 4 bytes of the register
-		// and 4 bytes of whatever comes after it.
-		// However, LemonScript's ExternalVariable mechanism requires returning an int64* pointer.
-		// For Big-Endian compatibility with 4-byte variables, the pointer must be offset
-		// so that the 4 bytes of the uint32 appear at the end of the 8-byte read.
-		// BUT: EmulatorInterface registers are in an array of uint32.
-		// A safe way would be to have 8-byte storage for them, but that's a larger change.
-		// For now, we assume that LemonScript will correctly use the data type size.
-		return (int64*)((uint8*)&reg);
-#else
 		return reinterpret_cast<int64*>(&reg);
-#endif
 	}
-#endif
-
-#if defined(PLATFORM_PS3)
-	template<size_t index, size_t size> int64* accessRegisterPS3()
-	{
-		uint32& reg = getEmulatorInterface().getRegister(index);
-		// On PS3 (BE), the registers are uint32. 
-		// For a u16 access to the low 16 bits, we need to point to the last 2 bytes of the uint32.
-		return (int64*)((uint8*)&reg + (4 - size));
-	}
-#endif
 
 	void scriptAssert1(uint8 condition, lemon::StringRef text)
 	{
@@ -119,8 +87,7 @@ namespace
 
 			if (text.isValid())
 			{
-				const std::string_view textString = text.getString();
-				RMX_ERROR("Script assertion failed:\n'" << std::string(textString.data(), textString.length()) << "'.\nIn " << locationText << ".", );
+				RMX_ERROR("Script assertion failed:\n'" << text.getString() << "'.\nIn " << locationText << ".", );
 			}
 			else
 			{
@@ -188,9 +155,10 @@ namespace
 
 		uint8* pointer = getEmulatorInterface().getMemoryPointer(startAddress, true, bytes);
 
+		value = (value << 8) + (value >> 8);
 		for (uint32 i = 0; i < bytes; i += 2)
 		{
-			rmx::writeMemoryUnalignedBE<uint16>(&pointer[i], value);
+			*(uint16*)(&pointer[i]) = value;
 		}
 	}
 
@@ -201,9 +169,14 @@ namespace
 
 		uint8* pointer = getEmulatorInterface().getMemoryPointer(startAddress, true, bytes);
 
+		value = ((value & 0x000000ff) << 24)
+			  + ((value & 0x0000ff00) << 8)
+			  + ((value & 0x00ff0000) >> 8)
+			  + ((value & 0xff000000) >> 24);
+
 		for (uint32 i = 0; i < bytes; i += 4)
 		{
-			rmx::writeMemoryUnalignedBE<uint32>(&pointer[i], value);
+			*(uint32*)(&pointer[i]) = value;
 		}
 	}
 
@@ -360,10 +333,10 @@ namespace
 
 		const std::vector<Color>& colors = palette->mColors;
 		const size_t numColors = std::min<size_t>(colors.size(), maxColors);
-		uint8* targetPointer = getEmulatorInterface().getMemoryPointer(targetAddress, true, (uint32)numColors * 4);
+		uint32* targetPointer = (uint32*)getEmulatorInterface().getMemoryPointer(targetAddress, true, (uint32)numColors * 4);
 		for (size_t i = 0; i < numColors; ++i)
 		{
-			rmx::writeMemoryUnalignedBE<uint32>(&targetPointer[i * 4], palette->mColors[i].getRGBA32());
+			targetPointer[i] = palette->mColors[i].getRGBA32();
 		}
 		return (uint16)numColors;
 	}
@@ -379,13 +352,11 @@ namespace
 			LemonScriptBindings::mDebugNotificationInterface->onScriptLog(*String(0, "%04d", lineNumber), valueString);
 	}
 
-#if !defined(PLATFORM_PS3)
 	void logSetter(int64 value, bool decimal)
 	{
 		const std::string valueString = decimal ? *String(0, "%d", value) : *String(0, "%08x", value);
 		debugLogInternal(valueString);
 	}
-#endif
 
 	template<typename T>
 	void debugLogIntSigned(T value)
@@ -491,14 +462,12 @@ namespace
 		}
 	}
 
-#if !defined(PLATFORM_PS3)
 	void debugLogValueStack()
 	{
 		const size_t valueStackSize = Application::instance().getSimulation().getCodeExec().getLemonScriptRuntime().getInternalLemonRuntime().getActiveControlFlow()->getValueStackSize();
 		const std::string valueString = *String(0, "Value Stack Size = %d", valueStackSize);
 		debugLogInternal(valueString);
 	}
-#endif
 
 
 	uint16 Input_getController(uint8 controllerIndex)
@@ -605,20 +574,10 @@ namespace
 					const std::string_view textString = str->getString();
 
 					// Does the string contain any uppercase letters?
-					bool hasUppercase = false;
-					for (size_t i = 0; i < textString.length(); ++i)
-					{
-						if (textString[i] >= 'A' && textString[i] <= 'Z')
-						{
-							hasUppercase = true;
-							break;
-						}
-					}
-
-					if (hasUppercase)
+					if (containsByPredicate(textString, [](char ch) { return (ch >= 'A' && ch <= 'Z'); } ))
 					{
 						// Convert to lowercase and try again
-						String tempStr(0, "%.*s", (int)textString.length(), textString.data());
+						String tempStr = textString;
 						tempStr.lowerCase();
 						sfxId = rmx::getMurmur2_64(tempStr);
 						EngineMain::instance().getAudioOut().playAudioBase(sfxId, contextId);
@@ -709,7 +668,6 @@ namespace
 	}
 
 
-#if !defined(PLATFORM_PS3)
 	uint64 debugKeyGetter(int index)
 	{
 		if (EngineMain::getDelegate().useDeveloperFeatures())
@@ -722,7 +680,6 @@ namespace
 			return 0;
 		}
 	}
-#endif
 
 
 	void debugWatch(uint32 address, uint16 bytes)
@@ -748,9 +705,8 @@ namespace
 
 			if (filename.isValid())
 			{
-				const std::string_view filenameString = filename.getString();
 				const uint8* src = emulatorInterface.getMemoryPointer(startAddress, false, bytes);
-				FTX::FileSystem->saveFile(std::string(filenameString.data(), filenameString.length()), src, (size_t)bytes);
+				FTX::FileSystem->saveFile(filename.getString(), src, (size_t)bytes);
 			}
 		}
 	}
@@ -905,7 +861,6 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 	{
 		// Register access
 		const std::string registerNamesDAR[16] = { "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
-#if !defined(PLATFORM_PS3)
 		for (size_t i = 0; i < 16; ++i)
 		{
 			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
@@ -916,26 +871,6 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  std::bind(accessRegister, i));
 		}
-#else
-		auto addExternalVariablePS3 = [&](const std::string& name, const lemon::DataTypeDefinition* dataType, int64* (*accessor)())
-		{
-			module.addExternalVariable(name, dataType, accessor);
-		};
-
-		#define REGISTER_PS3(idx) \
-			addExternalVariablePS3(registerNamesDAR[idx],         &lemon::PredefinedDataTypes::UINT_32, &accessRegisterPS3<idx, 4>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  &accessRegisterPS3<idx, 1>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   &accessRegisterPS3<idx, 1>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".u16", &lemon::PredefinedDataTypes::UINT_16, &accessRegisterPS3<idx, 2>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".s16", &lemon::PredefinedDataTypes::INT_16,  &accessRegisterPS3<idx, 2>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".u32", &lemon::PredefinedDataTypes::UINT_32, &accessRegisterPS3<idx, 4>); \
-			addExternalVariablePS3(registerNamesDAR[idx] + ".s32", &lemon::PredefinedDataTypes::INT_32,  &accessRegisterPS3<idx, 4>);
-
-		REGISTER_PS3(0);  REGISTER_PS3(1);  REGISTER_PS3(2);  REGISTER_PS3(3);
-		REGISTER_PS3(4);  REGISTER_PS3(5);  REGISTER_PS3(6);  REGISTER_PS3(7);
-		REGISTER_PS3(8);  REGISTER_PS3(9);  REGISTER_PS3(10); REGISTER_PS3(11);
-		REGISTER_PS3(12); REGISTER_PS3(13); REGISTER_PS3(14); REGISTER_PS3(15);
-#endif
 
 		// Query flags
 		module.addNativeFunction("_equal", lemon::wrap(&checkFlags_equal), defaultFlags);
@@ -1177,21 +1112,11 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug log output
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Log", &lemon::PredefinedDataTypes::UINT_32);
-#if !defined(PLATFORM_PS3)
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, false);
-#else
-			// On PS3, we can't use std::bind for setters.
-			// However, to keep the dependency hash consistent, the variable must be registered even if its setter is null.
-#endif
 		}
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("LogDec", &lemon::PredefinedDataTypes::UINT_32);
-#if !defined(PLATFORM_PS3)
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, true);
-#else
-			// On PS3, we can't use std::bind for setters.
-			// However, to keep the dependency hash consistent, the variable must be registered even if its setter is null.
-#endif
 		}
 
 		module.addNativeFunction("debugLog", lemon::wrap(&debugLog), defaultFlags)
@@ -1211,13 +1136,8 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug keys
 		for (int i = 0; i < 10; ++i)
 		{
-			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::string(*String(0, "%d", i)), &lemon::PredefinedDataTypes::UINT_8);
-#if !defined(PLATFORM_PS3)
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::to_string(i), &lemon::PredefinedDataTypes::UINT_8);
 			var.mGetter = std::bind(debugKeyGetter, i);
-#else
-			// On PS3, we can't use std::bind for getters, and we can't easily use templates for this as the key indices might change.
-			// However, to keep the dependency hash consistent, the variable must be registered even if its getter is null.
-#endif
 		}
 
 

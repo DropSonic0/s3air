@@ -14,9 +14,7 @@
 #include "lemon/program/Function.h"
 #include "lemon/program/SourceFileInfo.h"
 #include "lemon/program/StringRef.h"
-#if !defined(PLATFORM_PS3)
 #include <unordered_map>
-#endif
 
 
 namespace lemon
@@ -51,7 +49,6 @@ namespace lemon
 		Constant& addPreprocessorDefinition(FlyweightString name, int64 value);
 
 		// Functions
-		inline const std::vector<Function*>& getFunctions() const { return mFunctions; }
 		inline const std::vector<ScriptFunction*>& getScriptFunctions() const { return mScriptFunctions; }
 		const Function* getFunctionByUniqueId(uint64 uniqueId) const;
 
@@ -63,18 +60,12 @@ namespace lemon
 		inline const std::vector<Variable*>& getGlobalVariables() const  { return mGlobalVariables; }
 		GlobalVariable& addGlobalVariable(FlyweightString name, const DataTypeDefinition* dataType);
 		UserDefinedVariable& addUserDefinedVariable(FlyweightString name, const DataTypeDefinition* dataType);
-#if !defined(PLATFORM_PS3)
 		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor);
-#else
-		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, int64* (*accessor)());
-#endif
 
 		// Constants
-		inline const std::vector<Constant*>& getConstants() const { return mConstants; }
 		Constant& addConstant(FlyweightString name, const DataTypeDefinition* dataType, AnyBaseValue value);
 
 		// Constant arrays
-		inline const std::vector<ConstantArray*>& getConstantArrays() const { return mConstantArrays; }
 		ConstantArray& addConstantArray(FlyweightString name, const DataTypeDefinition* elementDataType, const uint64* values, size_t size, bool isGlobalDefinition);
 
 		// Defines

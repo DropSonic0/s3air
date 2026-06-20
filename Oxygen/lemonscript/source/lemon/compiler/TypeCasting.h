@@ -11,9 +11,7 @@
 #include "lemon/program/Function.h"
 #include "lemon/compiler/Operators.h"
 
-#if !defined(PLATFORM_PS3)
 #include <optional>
-#endif
 
 
 namespace lemon
@@ -24,7 +22,7 @@ namespace lemon
 	class TypeCasting
 	{
 	public:
-		static constexpr uint8 CANNOT_CAST = 0xff;
+		static const constexpr uint8 CANNOT_CAST = 0xff;
 
 		struct CastHandling
 		{
