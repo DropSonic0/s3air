@@ -9,6 +9,7 @@
 #pragma once
 
 #include "lemon/runtime/RuntimeOpcode.h"
+#include <map>
 #if !defined(PLATFORM_PS3)
 #include <unordered_map>
 #endif

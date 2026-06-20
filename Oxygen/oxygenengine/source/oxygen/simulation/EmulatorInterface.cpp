@@ -429,7 +429,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 		address &= 0x00ffff;
 		if (address + size > sizeof(mInternal.mRam))
 		{
-			RMX_ERROR("Too large memory " << (writeAccess ? "write" : "read") << " access of " << rmx::hexString(size) << " bytes at RAM address " << rmx::hexString(0xffff0000 + address, 6), );
 			outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 		}
 		else
@@ -442,7 +441,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 	{
 		if (address + size > sizeof(mInternal.mRom))
 		{
-			RMX_ERROR("Too large memory " << (writeAccess ? "write" : "read") << " access of " << rmx::hexString(size) << " bytes at ROM address " << rmx::hexString(address, 6), );
 			outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 		}
 		else
@@ -456,7 +454,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 		address &= 0x0fffff;
 		if (address + size > sizeof(mInternal.mSharedMemory))
 		{
-			RMX_ERROR("Too large memory " << (writeAccess ? "write" : "read") << " access of " << rmx::hexString(size) << " bytes at shared memory address " << rmx::hexString(0x800000 + address, 6), );
 			outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 		}
 		else
@@ -478,7 +475,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 	}
 	else
 	{
-		RMX_ERROR("Invalid memory access at " << rmx::hexString(address, 6) << " of " << rmx::hexString(size) << " bytes", );
 		outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 	}
 }
