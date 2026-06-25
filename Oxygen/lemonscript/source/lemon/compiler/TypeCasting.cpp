@@ -276,7 +276,11 @@ namespace lemon
 		return result;
 	}
 
-	std::optional<size_t> TypeCasting::getBestOperatorSignature(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right) const
+	#if !defined(PLATFORM_PS3)
+	std::optional<size_t> TypeCasting::getBestOperatorSignature(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right, size_t* outIndex) const
+#else
+	bool TypeCasting::getBestOperatorSignature(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right, size_t* outIndex) const
+#endif
 	{
 		std::optional<size_t> bestIndex;
 		uint16 bestPriority = 0xff00;
@@ -296,7 +300,16 @@ namespace lemon
 				bestPriority = priority;
 			}
 		}
+		#if !defined(PLATFORM_PS3)
 		return bestIndex;
+#else
+		if (bestIndex.has_value())
+		{
+			if (outIndex) *outIndex = *bestIndex;
+			return true;
+		}
+		return false;
+#endif
 	}
 
 	uint8 TypeCasting::getImplicitCastPriority(const DataTypeDefinition* original, const DataTypeDefinition* target) const

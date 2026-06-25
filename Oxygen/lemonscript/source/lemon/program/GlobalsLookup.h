@@ -95,11 +95,17 @@ namespace lemon
 
 	private:
 		// All identifiers
+#if !defined(PLATFORM_PS3)
 		std::unordered_map<uint64, Identifier> mAllIdentifiers;
 
 		// Functions
 		std::unordered_map<uint64, std::vector<Function*>> mFunctionsByName;	// Key is the hashed function name
 		std::unordered_map<uint64, std::vector<Function*>> mMethodsByName;		// Key is the sum of hashed context name + hashed function name
+#else
+		std::map<uint64, Identifier> mAllIdentifiers;
+		std::map<uint64, std::vector<Function*>> mFunctionsByName;
+		std::map<uint64, std::vector<Function*>> mMethodsByName;
+#endif
 		uint32 mNextFunctionID = 0;
 
 		// Global variables

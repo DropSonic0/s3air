@@ -27,7 +27,11 @@ namespace lemon
 		void addFromList(const std::vector<FlyweightString>& list);
 
 	private:
+#if !defined(PLATFORM_PS3)
 		std::unordered_map<uint64, FlyweightString> mStrings;
+#else
+		std::map<uint64, FlyweightString> mStrings;
+#endif
 	};
 
 

@@ -9,7 +9,19 @@
 #pragma once
 
 #include "lemon/runtime/RuntimeOpcode.h"
+#if !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PS3)
 #include <unordered_map>
+#else
+#include <map>
+#endif
+#else
+#include <map>
+#endif
+#else
+#include <map>
+#endif
 
 
 namespace lemon
@@ -79,7 +91,19 @@ namespace lemon
 			void loadFunctions(const CompactFunctionEntry* entries, size_t numEntries);
 			void loadParameterInfo(const uint8* data, size_t count);
 
-			std::unordered_map<uint64, LookupEntry> mEntries;
+			#if !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PS3)
+std::unordered_map
+#else
+std::map
+#endif
+#else
+std::map
+#endif
+#else
+std::map
+#endif<uint64, LookupEntry> mEntries;
 			std::vector<LookupEntry::ParameterInfo> mParameterData;
 		};
 

@@ -102,3 +102,22 @@ namespace lemon
 	}
 
 }
+
+namespace lemon
+{
+	const VoidDataType PredefinedDataTypes::VOID;
+	const AnyDataType PredefinedDataTypes::ANY;
+	const IntegerDataType PredefinedDataTypes::BOOL("bool", 2, 1, IntegerDataType::Semantics::BOOLEAN, false, BaseType::UINT_8);
+	const IntegerDataType PredefinedDataTypes::UINT_8("u8", 2, 1, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_8);
+	const IntegerDataType PredefinedDataTypes::UINT_16("u16", 3, 2, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_16);
+	const IntegerDataType PredefinedDataTypes::UINT_32("u32", 4, 4, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_32);
+	const IntegerDataType PredefinedDataTypes::UINT_64("u64", 5, 8, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_64);
+	const IntegerDataType PredefinedDataTypes::INT_8("s8", 6, 1, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_8);
+	const IntegerDataType PredefinedDataTypes::INT_16("s16", 7, 2, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_16);
+	const IntegerDataType PredefinedDataTypes::INT_32("s32", 8, 4, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_32);
+	const IntegerDataType PredefinedDataTypes::INT_64("s64", 9, 8, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_64);
+	const IntegerDataType PredefinedDataTypes::CONST_INT("const_int", 10, 8, IntegerDataType::Semantics::CONSTANT, true, BaseType::INT_CONST);
+	const FloatDataType PredefinedDataTypes::FLOAT("float", 11, 4);
+	const FloatDataType PredefinedDataTypes::DOUBLE("double", 12, 8);
+	const StringDataType PredefinedDataTypes::STRING(13);
+}

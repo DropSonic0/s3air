@@ -11,7 +11,9 @@
 #include "lemon/program/Function.h"
 #include "lemon/compiler/Operators.h"
 
+#if !defined(PLATFORM_PS3)
 #include <optional>
+#endif
 
 
 namespace lemon
@@ -62,10 +64,14 @@ namespace lemon
 		CastHandling getCastHandling(const DataTypeDefinition* original, const DataTypeDefinition* target, bool explicitCast) const;
 
 		bool canMatchSignature(const std::vector<const DataTypeDefinition*>& original, const Function::ParameterList& target, size_t* outFailedIndex = nullptr) const;
-		uint16 getPriorityOfSignature(const BinaryOperatorSignature& signature, const DataTypeDefinition* left, const DataTypeDefinition* right) const;
+		uint16 getPriorityOfSignature(const BinaryOperatorSignature& signature, const DataTypeDefinition* left, const DataTypeDefinition* right, size_t* outIndex = nullptr) const;
 		uint32 getPriorityOfSignature(const std::vector<const DataTypeDefinition*>& original, const Function::ParameterList& target) const;
 
-		std::optional<size_t> getBestOperatorSignature(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right) const;
+		#if !defined(PLATFORM_PS3)
+		std::optional<size_t> getBestOperatorSignature
+#else
+		bool getBestOperatorSignature
+#endif(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right, size_t* outIndex = nullptr) const;
 
 	private:
 		uint8 getImplicitCastPriority(const DataTypeDefinition* original, const DataTypeDefinition* target) const;

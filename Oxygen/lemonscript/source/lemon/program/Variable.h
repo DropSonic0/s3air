@@ -111,3 +111,8 @@ namespace lemon
 	};
 
 }
+
+	inline void* UserDefinedVariable::getValue(void* instance) const { return mGetter(instance); }
+	inline void UserDefinedVariable::setValue(void* instance, void* value) const { mSetter(instance, value); }
+	inline void* ExternalVariable::getValue() const { return mGetter(); }
+	inline void ExternalVariable::setValue(void* value) const { mSetter(value); }

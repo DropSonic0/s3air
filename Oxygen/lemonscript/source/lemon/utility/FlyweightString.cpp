@@ -76,3 +76,9 @@ namespace lemon
 		serializer.write(getString(), 0xffff);
 	}
 }
+
+namespace lemon
+{
+	detail::FlyweightStringManager FlyweightString::mManager;
+	std::string_view FlyweightString::EMPTY_STRING_VIEW;
+}

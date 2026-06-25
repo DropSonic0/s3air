@@ -1297,7 +1297,13 @@ namespace lemon
 		{
 			const std::vector<TypeCasting::BinaryOperatorSignature>& signatures = TypeCasting::getBinarySignaturesForOperator(op);
 			const bool exactMatchLeftRequired = (OperatorHelper::getOperatorType(op) == OperatorHelper::OperatorType::ASSIGNMENT);
+			#if !defined(PLATFORM_PS3)
 			const std::optional<size_t> bestIndex = mTypeCasting.getBestOperatorSignature(signatures, exactMatchLeftRequired, leftDataType, rightDataType);
+#else
+			size_t bestIndexStorage;
+			std::optional<size_t> bestIndex;
+			if (mTypeCasting.getBestOperatorSignature(signatures, exactMatchLeftRequired, leftDataType, rightDataType, &bestIndexStorage)) bestIndex = bestIndexStorage;
+#endif
 			if (bestIndex.has_value())
 			{
 				result.mSignature = &signatures[*bestIndex];

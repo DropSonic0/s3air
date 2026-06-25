@@ -29,7 +29,7 @@ namespace lemon
 
 		public:
 			rmx::OneTimeAllocPool mAllocPool;
-			std::unordered_map<uint64, Entry*> mEntryMap;
+			LEMON_UNORDERED_MAP<uint64, Entry*> mEntryMap;
 		};
 	}
 
@@ -66,8 +66,8 @@ namespace lemon
 	private:
 		detail::FlyweightStringManager::Entry* mEntry = nullptr;
 
-		inline static detail::FlyweightStringManager mManager;
-		inline static std::string_view EMPTY_STRING_VIEW;
+		static detail::FlyweightStringManager mManager;
+		static std::string_view EMPTY_STRING_VIEW;
 	};
 
 

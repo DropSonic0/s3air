@@ -14,7 +14,19 @@
 #include "lemon/program/Function.h"
 #include "lemon/program/SourceFileInfo.h"
 #include "lemon/program/StringRef.h"
+#if !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PS3)
+#if !defined(PLATFORM_PS3)
 #include <unordered_map>
+#else
+#include <map>
+#endif
+#else
+#include <map>
+#endif
+#else
+#include <map>
+#endif
 
 
 namespace lemon

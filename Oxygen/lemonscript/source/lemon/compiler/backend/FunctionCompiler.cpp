@@ -124,7 +124,10 @@ namespace lemon
 		buildOpcodesFromNodes(blockNode, context);
 
 		// Process all jumps to labels
-		for (const auto& [key, collectedLabel] : mCollectedLabels)
+		for (LEMON_UNORDERED_MAP<uint64, CollectedLabel>::const_iterator it = mCollectedLabels.begin(); it != mCollectedLabels.end(); ++it)
+		{
+			const auto& key = it->first;
+			const auto& collectedLabel = it->second;
 		{
 			for (size_t jumpLocation : collectedLabel.mJumpLocations)
 			{
