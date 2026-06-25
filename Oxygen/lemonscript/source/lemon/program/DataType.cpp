@@ -103,8 +103,7 @@ namespace lemon
 
 }
 
-namespace lemon
-{
+namespace lemon {
 	const VoidDataType PredefinedDataTypes::VOID;
 	const AnyDataType PredefinedDataTypes::ANY;
 	const IntegerDataType PredefinedDataTypes::BOOL("bool", 2, 1, IntegerDataType::Semantics::BOOLEAN, false, BaseType::UINT_8);

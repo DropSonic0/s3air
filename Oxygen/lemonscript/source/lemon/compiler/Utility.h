@@ -54,29 +54,9 @@
 
 #else
 
-#define CHECK_ERROR_NOLINE(expression, errorMessage) \
-{ \
-	if (!(expression)) \
-	{ \
-		LEMON_DEBUG_BREAK(errorMessage); \
-		abort(); \
-	} \
-}
-
-#define CHECK_ERROR(expression, errorMessage, lineNumber) \
-{ \
-	if (!(expression)) \
-	{ \
-		LEMON_DEBUG_BREAK(errorMessage); \
-		abort(); \
-	} \
-}
-
-#define REPORT_ERROR_CODE(errorCode, data1, data2, errorMessage) \
-{ \
-	LEMON_DEBUG_BREAK(errorMessage); \
-	abort(); \
-}
+#define CHECK_ERROR_NOLINE(expression, errorMessage) { if (!(expression)) { abort(); } }
+#define CHECK_ERROR(expression, errorMessage, lineNumber) { if (!(expression)) { abort(); } }
+#define REPORT_ERROR_CODE(errorCode, data1, data2, errorMessage) { abort(); }
 
 #endif
 

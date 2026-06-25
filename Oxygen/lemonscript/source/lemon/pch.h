@@ -26,12 +26,12 @@
 	#include <unordered_set>
 	#include <optional>
 	#include <string_view>
-#else
-	#define LEMON_UNORDERED_MAP std::map
-	#define LEMON_UNORDERED_SET std::set
 #endif
 
-#if !defined(LEMON_UNORDERED_MAP)
+#if defined(PLATFORM_PS3)
+	#define LEMON_UNORDERED_MAP std::map
+	#define LEMON_UNORDERED_SET std::set
+#else
 	#define LEMON_UNORDERED_MAP std::unordered_map
 	#define LEMON_UNORDERED_SET std::unordered_set
 #endif

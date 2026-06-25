@@ -20,6 +20,7 @@ namespace lemon
 
 
 	class API_EXPORT Variable
+	public: virtual ~Variable() {}
 	{
 	friend class Module;
 	friend class Runtime;
@@ -59,6 +60,7 @@ namespace lemon
 
 
 	class API_EXPORT LocalVariable : public Variable
+	public: virtual ~LocalVariable() {}
 	{
 	public:
 		inline LocalVariable() : Variable(Type::LOCAL) {}
@@ -70,6 +72,7 @@ namespace lemon
 
 
 	class API_EXPORT GlobalVariable : public Variable
+	public: virtual ~GlobalVariable() {}
 	{
 	public:
 		inline GlobalVariable() : Variable(Type::GLOBAL) {}
@@ -85,11 +88,12 @@ namespace lemon
 
 	class API_EXPORT UserDefinedVariable : public Variable
 	{
+	public: virtual ~UserDefinedVariable() {}
 	public:
 		inline UserDefinedVariable() : Variable(Type::USER) {}
 
-		int64 getValue() const override		 { return (mGetter) ? mGetter() : 0; }
-		void setValue(int64 value) override  { if (mSetter) mSetter(value); }
+		int64 getValue() const override;
+		void setValue(int64 value) override;
 
 	public:
 		std::function<int64()> mGetter;
@@ -99,6 +103,7 @@ namespace lemon
 
 	class API_EXPORT ExternalVariable : public Variable
 	{
+	public: virtual ~ExternalVariable() {}
 	public:
 		inline ExternalVariable() : Variable(Type::EXTERNAL) {}
 
@@ -112,7 +117,5 @@ namespace lemon
 
 }
 
-	inline void* UserDefinedVariable::getValue(void* instance) const { return mGetter(instance); }
-	inline void UserDefinedVariable::setValue(void* instance, void* value) const { mSetter(instance, value); }
-	inline void* ExternalVariable::getValue() const { return mGetter(); }
-	inline void ExternalVariable::setValue(void* value) const { mSetter(value); }
+	inline int64 UserDefinedVariable::getValue() const { return (mGetter) ? mGetter() : 0; }
+	inline void UserDefinedVariable::setValue(int64 value) { if (mSetter) mSetter(value); }

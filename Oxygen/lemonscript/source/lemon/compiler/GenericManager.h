@@ -71,8 +71,7 @@ namespace genericmanager
 		{
 		public:
 			virtual ELEMENT& create() = 0;
-			virtual ~ElementFactoryBase() {}
-			virtual void destroy(ELEMENT& element) = 0;
+			virtual ~ElementFactoryBase() {} virtual void destroy(ELEMENT& element) = 0;
 			virtual void shrinkPool() {}
 		};
 
@@ -529,7 +528,3 @@ namespace genericmanager
 	};
 
 }
-
-
-	template<class ELEMENT>
-	detail::ElementFactoryMap<ELEMENT> Manager<ELEMENT>::mFactoryMap;

@@ -303,11 +303,7 @@ namespace lemon
 		#if !defined(PLATFORM_PS3)
 		return bestIndex;
 #else
-		if (bestIndex.has_value())
-		{
-			if (outIndex) *outIndex = *bestIndex;
-			return true;
-		}
+		if (bestIndex.has_value()) { if (outIndex) *outIndex = *bestIndex; return true; }
 		return false;
 #endif
 	}

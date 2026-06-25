@@ -146,8 +146,8 @@ namespace lemon
 		static const IntegerDataType INT_64	  = IntegerDataType("s64",  9, 8, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_64);
 		static const IntegerDataType CONST_INT = IntegerDataType("const_int", 10, 8, IntegerDataType::Semantics::CONSTANT, true, BaseType::INT_CONST);
 
-		static const FloatDataType FLOAT	  = FloatDataType("float", 11, 4);
-		static const FloatDataType DOUBLE	  = FloatDataType("double", 12, 8);
+		static const FloatDataType& FLOAT	  = FloatDataType("float", 11, 4);
+		static const FloatDataType& DOUBLE	  = FloatDataType("double", 12, 8);
 
 		static const StringDataType STRING     = StringDataType(13);
 
