@@ -115,7 +115,7 @@ namespace lemon
 		mLocalVariablesByIdentifier.emplace(name.getHash(), &variable);
 
 		variable.mID = (uint32)mLocalVariablesByID.size();
-		mLocalVariablesByID.emplace_back(&variable);
+		mLocalVariablesByID.push_back(&variable);
 
 		return variable;
 	}
@@ -186,7 +186,7 @@ namespace lemon
 		}
 
 		// Store this pragma as string
-		mPragmas.emplace_back(pragmaString);
+		mPragmas.push_back(pragmaString);
 	}
 
 	uint64 ScriptFunction::addToCompiledHash(uint64 hash) const

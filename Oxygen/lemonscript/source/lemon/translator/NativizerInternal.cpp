@@ -41,7 +41,7 @@ namespace lemon
 
 			if (BaseTypeHelper::isIntegerType(dataType))
 			{
-				const bool isSigned = ignoreSigned ? false : BaseTypeHelper::isIntegerSigned(dataType);
+				const bool isSigned = ignoreSigned ? false : BaseTypeHelper::isIntegerSigned(dataType));
 				switch (BaseTypeHelper::getIntegerSizeFlags(dataType))
 				{
 					case 0x00:  return isSigned ? TYPESTRING_int8  : TYPESTRING_uint8;
@@ -457,15 +457,15 @@ namespace lemon
 						// First add an assignment to push the address to the stack
 						const size_t parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::INTEGER);
 						Assignment& assignment = vectorAdd(mAssignments);
-						assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition);
-						assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::PARAMETER, opcode.mDataType, 0, parameterOffset);
+						{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition); assignment.mDest = &newNode; }
+						{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::PARAMETER, opcode.mDataType, 0, parameterOffset); assignment.mSource = &newNode; }
 						++stackPosition;
 					}
 
 					const size_t parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::FIXED_MEMORY_ADDRESS);
 					Assignment& assignment = vectorAdd(mAssignments);
-					assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, dataType, stackPosition);
-					assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::MEMORY_FIXED, dataType, swapBytesFlag, parameterOffset);
+					{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, dataType, stackPosition); assignment.mDest = &newNode; }
+					{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::MEMORY_FIXED, dataType, swapBytesFlag, parameterOffset); assignment.mSource = &newNode; }
 					++stackPosition;
 					break;
 				}
@@ -485,11 +485,11 @@ namespace lemon
 						{
 							// Normal processing of the PUSH_CONSTANT opcode
 							Assignment& assignment = vectorAdd(mAssignments);
-							assignment.mDest = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition);
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition); assignment.mDest = &newNode; }
 							if (info.mSubtypeInfo.mSubtypeData & 0x8000)
 							{
 								// Specialized version hard-codes the constant value
-								assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::CONSTANT, opcode.mDataType, opcode.mParameter);
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::CONSTANT, opcode.mDataType, opcode.mParameter); assignment.mSource = &newNode; }
 							}
 							else
 							{
@@ -497,7 +497,7 @@ namespace lemon
 								//  -> Integer constants are always read as int64
 								const size_t parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::INTEGER);
 								const BaseType constantDataType = BaseTypeHelper::isIntegerType(opcode.mDataType) ? BaseType::INT_64 : opcode.mDataType;
-								assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::PARAMETER, constantDataType, 0, parameterOffset);
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::PARAMETER, constantDataType, 0, parameterOffset); assignment.mSource = &newNode; }
 							}
 							++stackPosition;
 							break;
@@ -512,7 +512,7 @@ namespace lemon
 							{
 								case Variable::Type::EXTERNAL:
 								{
-									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::EXTERNAL_VARIABLE, opcode.mDataType);
+									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::EXTERNAL_VARIABLE, opcode.mDataType));
 									break;
 								}
 								case Variable::Type::GLOBAL:
@@ -530,15 +530,15 @@ namespace lemon
 							if (opcode.mType == Opcode::Type::GET_VARIABLE_VALUE)
 							{
 								Assignment& assignment = vectorAdd(mAssignments);
-								assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition);
-								assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::VARIABLE, opcode.mDataType, (uint32)opcode.mParameter, parameterOffset);
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition); assignment.mDest = &newNode; }
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VARIABLE, opcode.mDataType, (uint32)opcode.mParameter, parameterOffset); assignment.mSource = &newNode; }
 								++stackPosition;
 							}
 							else
 							{
 								Assignment& assignment = vectorAdd(mAssignments);
-								assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VARIABLE, opcode.mDataType, (uint32)opcode.mParameter, parameterOffset);
-								assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1);
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VARIABLE, opcode.mDataType, (uint32)opcode.mParameter, parameterOffset); assignment.mSource = &newNode; }
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
 							}
 							break;
 						}
@@ -547,9 +547,9 @@ namespace lemon
 						{
 							const bool consumeInput = (opcode.mParameter == 0);
 							Assignment& assignment = vectorAdd(mAssignments);
-							assignment.mDest			  = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (consumeInput ? 1 : 0));
-							assignment.mSource			  = &mNodes.emplace_back(Assignment::Node::Type::MEMORY, opcode.mDataType);
-							assignment.mSource->mChild[0] = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - 1);
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (consumeInput ? 1 : 0)); assignment.mDest = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::MEMORY, opcode.mDataType));
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - 1); assignment.mSource = &newNode; }
 							if (!consumeInput)
 								++stackPosition;
 							break;
@@ -561,16 +561,16 @@ namespace lemon
 							{
 								// Main assignment
 								Assignment& assignment = vectorAdd(mAssignments);
-								assignment.mDest			= &mNodes.emplace_back(Assignment::Node::Type::MEMORY, opcode.mDataType);
-								assignment.mDest->mChild[0]	= &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - (exchangedInputs ? 2 : 1));
-								assignment.mSource			= &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (exchangedInputs ? 1 : 2));
+								assignment.mDest			= &vectorAdd(mNodes) = Assignment::Node(Assignment::Node::Type::MEMORY, opcode.mDataType));
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - (exchangedInputs ? 2 : 1));
+								assignment.mSource			= &vectorAdd(mNodes) = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (exchangedInputs ? 1 : 2));
 							}
 							if (exchangedInputs)
 							{
 								// Add another assignment to copy the value to the top-of-stack, where it might be expected by the next assignments
 								Assignment& assignment = vectorAdd(mAssignments);
-								assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 2);
-								assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1);
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 2); assignment.mDest = &newNode; }
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
 							}
 							--stackPosition;
 							break;
@@ -581,8 +581,8 @@ namespace lemon
 							const BaseType targetType = OpcodeHelper::getCastTargetType(opcode);
 							const BaseType sourceType = OpcodeHelper::getCastSourceType(opcode);
 							Assignment& assignment = vectorAdd(mAssignments);
-							assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, targetType, stackPosition - 1);
-							assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, sourceType, stackPosition - 1);
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, targetType, stackPosition - 1); assignment.mSource = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, sourceType, stackPosition - 1); assignment.mSource = &newNode; }
 							break;
 						}
 
@@ -605,10 +605,10 @@ namespace lemon
 						{
 							const BaseType returnType = (opcode.mType >= Opcode::Type::COMPARE_EQ) ? BaseType::BOOL : opcode.mDataType;
 							Assignment& assignment = vectorAdd(mAssignments);
-							assignment.mDest			  = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, returnType, stackPosition - 2);
-							assignment.mSource			  = &mNodes.emplace_back(Assignment::Node::Type::OPERATION_BINARY, opcode.mDataType, (uint64)opcode.mType);
-							assignment.mSource->mChild[0] = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 2);
-							assignment.mSource->mChild[1] = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1);
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, returnType, stackPosition - 2); assignment.mDest = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::OPERATION_BINARY, opcode.mDataType, (uint64)opcode.mType); assignment.mSource = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 2); assignment.mDest = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
 							--stackPosition;
 							break;
 						}
@@ -618,9 +618,9 @@ namespace lemon
 						case Opcode::Type::ARITHM_BITNOT:
 						{
 							Assignment& assignment = vectorAdd(mAssignments);
-							assignment.mDest			  = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1);
-							assignment.mSource			  = &mNodes.emplace_back(Assignment::Node::Type::OPERATION_UNARY, opcode.mDataType, (uint64)opcode.mType);
-							assignment.mSource->mChild[0] = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1);
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::OPERATION_UNARY, opcode.mDataType, (uint64)opcode.mType); assignment.mSource = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
 							break;
 						}
 
@@ -747,7 +747,7 @@ namespace lemon
 			if (isValueStackWrite)
 			{
 				const int writeStackPosition = (int)assignment.mDest->mValue;
-				lowestWrittenStackPosition = std::min(lowestWrittenStackPosition, writeStackPosition);
+				lowestWrittenStackPosition = std::min(lowestWrittenStackPosition, writeStackPosition); assignment.mDest = &newNode; }
 
 				TempVar& tempVar = vectorAdd(tempVars);
 				tempVarByStackPosition[writeStackPosition] = &tempVar;
@@ -810,8 +810,8 @@ namespace lemon
 			if (tempVar.mOutputToStack)
 			{
 				Assignment& assignment = vectorAdd(mAssignments);
-				assignment.mDest   = &mNodes.emplace_back(Assignment::Node::Type::VALUE_STACK, write.mSource->mDataType, writeStackPosition);
-				assignment.mSource = &mNodes.emplace_back(Assignment::Node::Type::TEMP_VAR, write.mSource->mDataType, nextTempVarNumber);
+				{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, write.mSource->mDataType, writeStackPosition); assignment.mDest = &newNode; }
+				{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::TEMP_VAR, write.mSource->mDataType, nextTempVarNumber); assignment.mSource = &newNode; }
 
 				// Register as a read, otherwise the optimization below could try to integrate this temp var
 				Read& read = vectorAdd(tempVar.mReads);

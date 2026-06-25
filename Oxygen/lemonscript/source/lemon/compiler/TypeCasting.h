@@ -24,7 +24,7 @@ namespace lemon
 	class TypeCasting
 	{
 	public:
-		static const constexpr uint8 CANNOT_CAST = 0xff;
+		static const uint8 CANNOT_CAST = 0xff;
 
 		struct CastHandling
 		{
@@ -71,7 +71,8 @@ namespace lemon
 		std::optional<size_t> getBestOperatorSignature
 #else
 		bool getBestOperatorSignature
-#endif(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right, size_t* outIndex = nullptr) const;
+#endif
+		(const std::vector<BinaryOperatorSignature>& signatures, bool exactMatchLeftRequired, const DataTypeDefinition* left, const DataTypeDefinition* right, size_t* outIndex = nullptr) const;
 
 	private:
 		uint8 getImplicitCastPriority(const DataTypeDefinition* original, const DataTypeDefinition* target) const;

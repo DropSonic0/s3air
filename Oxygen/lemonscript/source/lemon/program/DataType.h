@@ -17,7 +17,6 @@ namespace lemon
 
 	struct DataTypeDefinition
 	{
-	public:
 		enum class Class : uint8
 		{
 			VOID,
@@ -53,10 +52,10 @@ namespace lemon
 		const char* mNameString;
 		mutable FlyweightString mName;
 
-		uint16 mID = 0;
-		const size_t mBytes = 0;
-		const Class mClass = Class::VOID;
-		const BaseType mBaseType = BaseType::VOID;	// If compatible to a base type (from the runtime's point of view), set this to something different than VOID
+		uint16 mID;
+		const size_t mBytes;
+		const Class mClass;
+		const BaseType mBaseType;	// If compatible to a base type (from the runtime's point of view), set this to something different than VOID
 	};
 
 
@@ -88,16 +87,16 @@ namespace lemon
 			BOOLEAN
 		};
 
-		const Semantics mSemantics = Semantics::DEFAULT;
-		const bool mIsSigned = false;
-		const uint8 mSizeBits = 0;	// 0 for 8-bit data types, 1 for 16-bit, 2 for 32-bit, 3 for 64-bit
+		const Semantics mSemantics;
+		const bool mIsSigned;
+		const uint8 mSizeBits;	// 0 for 8-bit data types, 1 for 16-bit, 2 for 32-bit, 3 for 64-bit
 
 	public:
 		inline IntegerDataType(const char* name, uint16 id, size_t bytes, Semantics semantics, bool isSigned, BaseType baseType) :
 			DataTypeDefinition(name, id, Class::INTEGER, bytes, baseType),
 			mSemantics(semantics),
-			mSizeBits((bytes == 1) ? 0 : (bytes == 2) ? 1 : (bytes == 4) ? 2 : 3),
-			mIsSigned(isSigned)
+			mIsSigned(isSigned),
+			mSizeBits((bytes == 1) ? 0 : (bytes == 2) ? 1 : (bytes == 4) ? 2 : 3)
 		{}
 	};
 
@@ -132,24 +131,24 @@ namespace lemon
 
 	struct PredefinedDataTypes
 	{
-		static const VoidDataType VOID		  = VoidDataType();
-		static const AnyDataType ANY			  = AnyDataType();
+		static const VoidDataType VOID;
+		static const AnyDataType ANY;
 
-		static const IntegerDataType BOOL	  = IntegerDataType("bool", 2, 1, IntegerDataType::Semantics::BOOLEAN, false, BaseType::UINT_8);	// Using the same ID as u8, to not break overriding from before introduction of bool
-		static const IntegerDataType UINT_8	  = IntegerDataType("u8",   2, 1, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_8);
-		static const IntegerDataType UINT_16	  = IntegerDataType("u16",  3, 2, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_16);
-		static const IntegerDataType UINT_32	  = IntegerDataType("u32",  4, 4, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_32);
-		static const IntegerDataType UINT_64	  = IntegerDataType("u64",  5, 8, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_64);
-		static const IntegerDataType INT_8	  = IntegerDataType("s8",   6, 1, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_8);
-		static const IntegerDataType INT_16	  = IntegerDataType("s16",  7, 2, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_16);
-		static const IntegerDataType INT_32	  = IntegerDataType("s32",  8, 4, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_32);
-		static const IntegerDataType INT_64	  = IntegerDataType("s64",  9, 8, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_64);
-		static const IntegerDataType CONST_INT = IntegerDataType("const_int", 10, 8, IntegerDataType::Semantics::CONSTANT, true, BaseType::INT_CONST);
+		static const IntegerDataType BOOL;
+		static const IntegerDataType UINT_8;
+		static const IntegerDataType UINT_16;
+		static const IntegerDataType UINT_32;
+		static const IntegerDataType UINT_64;
+		static const IntegerDataType INT_8;
+		static const IntegerDataType INT_16;
+		static const IntegerDataType INT_32;
+		static const IntegerDataType INT_64;
+		static const IntegerDataType CONST_INT;
 
-		static const FloatDataType& FLOAT	  = FloatDataType("float", 11, 4);
-		static const FloatDataType& DOUBLE	  = FloatDataType("double", 12, 8);
+		static const FloatDataType FLOAT;
+		static const FloatDataType DOUBLE;
 
-		static const StringDataType STRING     = StringDataType(13);
+		static const StringDataType STRING;
 
 		static void collectPredefinedDataTypes(std::vector<const DataTypeDefinition*>& outDataTypes);
 	};

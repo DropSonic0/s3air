@@ -494,7 +494,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mAddressHooks.emplace_back(serializer.read<uint32>());
+							scriptFunc.mAddressHooks.push_back(serializer.read<uint32>());
 						}
 					}
 
@@ -504,7 +504,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mPragmas.emplace_back(serializer.read<std::string>());
+							scriptFunc.mPragmas.push_back(serializer.read<std::string>());
 						}
 					}
 				}

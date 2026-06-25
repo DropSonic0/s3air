@@ -427,7 +427,7 @@ namespace lemon
 			{
 				// Must be a type and identifier as next tokens, then a comma or closing parentheses
 				CHECK_ERROR(offset + 2 < tokens.size(), "Expected function parameter definition", lineNumber);
-				parameters.emplace_back();
+				vectorAdd(parameters);
 
 				CHECK_ERROR(tokens[offset].isA<VarTypeToken>(), "Expected type in function parameter definition", lineNumber);
 				parameters.back().mDataType = tokens[offset].as<VarTypeToken>().mDataType;

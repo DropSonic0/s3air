@@ -271,7 +271,7 @@ namespace lemon
 					const LookupEntry& lookupEntry = pair.second;
 					if (nullptr != lookupEntry.mExecFunc)
 					{
-						functionList.emplace_back(pair.first, pair.second.mParameterStart);
+						functionList.push_back(pair.first, pair.second.mParameterStart);
 					}
 				}
 

@@ -248,7 +248,7 @@ namespace lemon
 			const PreprocessorDefinition* definition = preprocessorDefinitions.getDefinition(hash);
 			RMX_ASSERT(nullptr != definition, "Invalid entry in PreprocessorDefinitionMap's new definitions set");
 			Constant& constant = addPreprocessorDefinition(definition->mIdentifier, definition->mValue);
-			mPreprocessorDefinitions.emplace_back(&constant);
+			mPreprocessorDefinitions.push_back(&constant);
 		}
 		preprocessorDefinitions.clearNewDefinitions();
 	}
@@ -259,7 +259,7 @@ namespace lemon
 		constant.mName = name;
 		constant.mDataType = &PredefinedDataTypes::INT_64;
 		constant.mValue.set(value);
-		mPreprocessorDefinitions.emplace_back(&constant);
+		mPreprocessorDefinitions.push_back(&constant);
 		return constant;
 	}
 
@@ -348,7 +348,7 @@ namespace lemon
 		variable.mName = name;
 		variable.mDataType = dataType;
 		variable.mID = mFirstVariableID + (uint32)mGlobalVariables.size() + ((uint32)variable.mType << 28);
-		mGlobalVariables.emplace_back(&variable);
+		mGlobalVariables.push_back(&variable);
 	}
 
 	LocalVariable& Module::createLocalVariable()
@@ -367,7 +367,7 @@ namespace lemon
 		constant.mName = name;
 		constant.mDataType = dataType;
 		constant.mValue = value;
-		mConstants.emplace_back(&constant);
+		mConstants.push_back(&constant);
 		return constant;
 	}
 
@@ -381,7 +381,7 @@ namespace lemon
 			constantArray.setContent(values, size);
 		else if (size > 0)
 			constantArray.setSize(size);
-		mConstantArrays.emplace_back(&constantArray);
+		mConstantArrays.push_back(&constantArray);
 
 		if (isGlobalDefinition)
 		{
@@ -396,7 +396,7 @@ namespace lemon
 		Define& define = mDefinePool.createObject();
 		define.mName = name;
 		define.mDataType = dataType;
-		mDefines.emplace_back(&define);
+		mDefines.push_back(&define);
 		return define;
 	}
 

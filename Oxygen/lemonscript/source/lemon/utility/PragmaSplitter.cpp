@@ -27,7 +27,7 @@ namespace lemon
 				while (pos < input.length() && input[pos] != 32)
 					++pos;
 
-				mEntries.emplace_back();
+				mEntries.push_back();
 
 				// Split part string into argument and value
 				const std::string_view part = input.substr(startPos, pos - startPos);

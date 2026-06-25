@@ -33,7 +33,8 @@ namespace lemon
 
 		struct Parameter
 		{
-			const DataTypeDefinition* mDataType = nullptr;
+			inline Parameter() : mDataType(nullptr) {}
+			const DataTypeDefinition* mDataType;
 			FlyweightString mName;
 		};
 		typedef std::vector<Parameter> ParameterList;
@@ -74,26 +75,26 @@ namespace lemon
 		uint32 getSignatureHash() const;
 
 	protected:
-		inline Function(Type type) : mType(type) {}
+		inline Function(Type type) : mType(type), mID(0), mNameAndSignatureHash(0), mReturnType(&PredefinedDataTypes::VOID), mSignatureHash(0) {}
 		inline virtual ~Function() {}
 
 		void setParametersByTypes(const std::vector<const DataTypeDefinition*>& parameterTypes);
 
 	protected:
 		Type mType;
-		uint32 mID = 0;
+		uint32 mID;
 		BitFlagSet<Flag> mFlags;
 
 		// Metadata
 		FlyweightString mContext;		// Name of the type if this is a method-like function
 		FlyweightString mName;
-		uint64 mNameAndSignatureHash = 0;
+		uint64 mNameAndSignatureHash;
 		std::vector<FlyweightString> mAliasNames;
 
 		// Signature
-		const DataTypeDefinition* mReturnType = &PredefinedDataTypes::VOID;
+		const DataTypeDefinition* mReturnType;
 		ParameterList mParameters;
-		mutable uint32 mSignatureHash = 0;
+		mutable uint32 mSignatureHash;
 	};
 
 
@@ -107,7 +108,7 @@ namespace lemon
 		};
 
 	public:
-		inline ScriptFunction() : Function(Type::SCRIPT) {}
+		inline ScriptFunction() : Function(Type::SCRIPT), mSourceFileInfo(nullptr), mStartLineNumber(0), mSourceBaseLineOffset(0), mModule(nullptr) {}
 		~ScriptFunction();
 
 		inline const Module& getModule() const	{ return *mModule; }
@@ -146,12 +147,12 @@ namespace lemon
 		std::vector<std::string> mPragmas;
 
 		// Source
-		const SourceFileInfo* mSourceFileInfo = nullptr;
-		uint32 mStartLineNumber = 0;
-		uint32 mSourceBaseLineOffset = 0;	// Offset translating from the full line number (when all includes are fully resolved) to line number inside the original script file
+		const SourceFileInfo* mSourceFileInfo;
+		uint32 mStartLineNumber;
+		uint32 mSourceBaseLineOffset;	// Offset translating from the full line number (when all includes are fully resolved) to line number inside the original script file
 
 	private:
-		Module* mModule = nullptr;
+		Module* mModule;
 	};
 
 

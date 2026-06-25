@@ -88,23 +88,7 @@ namespace lemon
 		mScriptFiles.reserve(0x200);
 
 		// Recursively load script files
-		#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-std::unordered_set
-#else
-std::set
-#endif
-#else
-std::set
-#endif
-#else
-std::set
-#endif
-#else
-std::set
-#endif<uint64> includedPathHashes;
+			LEMON_UNORDERED_SET<uint64> includedPathHashes;
 		if (!loadScriptInternal(*basepath, *filename, outLines, includedPathHashes))
 			return false;
 
@@ -121,7 +105,6 @@ std::set
 
 	bool Compiler::compileLines(const std::vector<std::string_view>& lines)
 	{
-		try
 		{
 			BlockNode rootNode;
 			std::vector<FunctionNode*> functionNodes;
@@ -129,49 +112,20 @@ std::set
 			// Frontend part: Convert input text lines into a syntax tree like structure (built of nodes and tokens)
 			CompilerFrontend frontend(mModule, mGlobalsLookup, mCompileOptions, mLineNumberTranslation, functionNodes);
 			frontend.runCompilerFrontend(rootNode, lines);
+				// Optional translation
+				if (!mCompileOptions.mOutputTranslatedSource.empty())
+				{
+					Translator::translateToCppAndSave(mCompileOptions.mOutputTranslatedSource, rootNode);
+				}
 
-			// Optional translation
-			if (!mCompileOptions.mOutputTranslatedSource.empty())
-			{
-				Translator::translateToCppAndSave(mCompileOptions.mOutputTranslatedSource, rootNode);
-			}
+				// Backend part: Compile functions syntax tree structure into opcodes
+				runCompilerBackend(functionNodes);
 
-			// Backend part: Compile functions' syntax tree structure into opcodes
-			runCompilerBackend(functionNodes);
-
-			// Success
-			return true;
+				// Success
+				return true;
 		}
-		catch (const CompilerException& e)
-		{
-			const auto& translated = mLineNumberTranslation.translateLineNumber(e.mError.mLineNumber);
-			ErrorMessage& error = vectorAdd(mErrors);
-			error.mMessage = e.what();
-			error.mFilename = translated.mSourceFileInfo->mFilename;
-			error.mError = e.mError;
-			error.mError.mLineNumber = translated.mLineNumber + 1;	// Add one because line numbers always start at 1 for user display
-		}
-
-		return false;
 	}
-
-	bool Compiler::loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, #if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-std::unordered_set
-#else
-std::set
-#endif
-#else
-std::set
-#endif
-#else
-std::set
-#endif
-#else
-std::set
-#endif<uint64>& includedPathHashes)
+	bool Compiler::loadScriptInternal(const std::wstring& basepath, const std::wstring& filename, std::vector<std::string_view>& outLines, LEMON_UNORDERED_SET<uint64>& includedPathHashes)
 	{
 		const std::wstring filepath = basepath + filename;
 		const uint64 pathHash = rmx::getMurmur2_64(filepath);
@@ -211,7 +165,7 @@ std::set
 				const int start = pos;
 				size_t length;
 				pos = scriptFile.mContent.getLine(length, start);
-				fileLines.emplace_back(&scriptFile.mContent[start], length);
+				fileLines.push_back(std::string_view(&scriptFile.mContent[start], length));
 			}
 		}
 
@@ -234,20 +188,11 @@ std::set
 		// Build output
 		for (uint32 fileLineIndex = 0; fileLineIndex < (uint32)fileLines.size(); ++fileLineIndex)
 		{
-			const std::string_view line = fileLines[fileLineIndex];
 
 			// Resolve include
 			const int locationAfterInclude = checkIncludeLine(line);
 			if (locationAfterInclude >= 0)
 			{
-				String includeFilename = line.substr(locationAfterInclude);
-				includeFilename.makeSubString(0, includeFilename.findChars(" \t", 0, +1));
-
-				// Use only forward slashes
-				includeFilename.replace('\\', '/');
-
-				// Split into base path and file name
-				String includeBasepath;
 				int pos = includeFilename.findChar('/', includeFilename.length()-1, -1);
 				if (pos > 0)
 				{
@@ -281,7 +226,7 @@ std::set
 			}
 			else
 			{
-				outLines.emplace_back(std::move(fileLines[fileLineIndex]));
+				outLines.push_back(fileLines[fileLineIndex]);
 			}
 		}
 
