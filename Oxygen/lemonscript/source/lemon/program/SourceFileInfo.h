@@ -15,8 +15,10 @@ namespace lemon
 {
 	struct SourceFileInfo
 	{
+		SourceFileInfo() : mIndex(0) {}
+
 		std::wstring mFilename;		// File name only, without path
 		std::wstring mFullPath;		// Path including file name
-		size_t mIndex = 0;
+		size_t mIndex;
 	};
 }

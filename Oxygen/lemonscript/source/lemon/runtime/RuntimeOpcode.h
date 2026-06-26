@@ -25,6 +25,7 @@ namespace lemon
 	class API_EXPORT RuntimeOpcodeProvider
 	{
 	public:
+		virtual ~RuntimeOpcodeProvider() {}
 		virtual bool buildRuntimeOpcode(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime) = 0;
 	};
 
@@ -50,7 +51,7 @@ namespace lemon
 	struct API_EXPORT RuntimeOpcode : public RuntimeOpcodeBase
 	{
 	public:
-		static const constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
+		static constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
 
 		template<typename T> FORCE_INLINE T getParameter() const
 		{

@@ -10,15 +10,7 @@
 
 #include "lemon/runtime/RuntimeOpcode.h"
 #if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
 #include <unordered_map>
-#else
-#include <map>
-#endif
-#else
-#include <map>
-#endif
 #else
 #include <map>
 #endif
@@ -36,8 +28,8 @@ namespace lemon
 	class Nativizer
 	{
 	public:
-		static const constexpr size_t MIN_OPCODES = 2;
-		static const constexpr size_t MAX_OPCODES = 32;
+		static constexpr size_t MIN_OPCODES = 2;
+		static constexpr size_t MAX_OPCODES = 32;
 
 		struct OpcodeSubtypeInfo
 		{
@@ -91,19 +83,11 @@ namespace lemon
 			void loadFunctions(const CompactFunctionEntry* entries, size_t numEntries);
 			void loadParameterInfo(const uint8* data, size_t count);
 
-			#if !defined(PLATFORM_PS3)
 #if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-std::unordered_map
+			std::unordered_map<uint64, LookupEntry> mEntries;
 #else
-std::map
+			std::map<uint64, LookupEntry> mEntries;
 #endif
-#else
-std::map
-#endif
-#else
-std::map
-#endif<uint64, LookupEntry> mEntries;
 			std::vector<LookupEntry::ParameterInfo> mParameterData;
 		};
 

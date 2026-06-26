@@ -271,7 +271,7 @@ namespace lemon
 	{
 		if (mSelectedControlFlow->mLocalVariablesSize + runtimeFunction.mFunction->mLocalVariablesByID.size() > ControlFlow::VAR_STACK_LIMIT)
 		{
-			throw std::runtime_error("Reached var stack limit, probably due to recursive function calls");
+			RMX_CHECK(false, "Reached var stack limit, probably due to recursive function calls", RMX_REACT_THROW);
 		}
 
 		// Push new state to call stack
@@ -494,7 +494,7 @@ namespace lemon
 
 					case Opcode::Type::JUMP:
 					{
-						state.mProgramCounter = reinterpret_cast<const uint8*>(context.mOpcode->getParameter<uint64>());
+						state.mProgramCounter = reinterpret_cast<const uint8*>((uintptr_t)context.mOpcode->getParameter<uint64>());
 
 						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
 						//  -> This is needed to prevent endless loops
@@ -515,7 +515,7 @@ namespace lemon
 						if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
 						{
 							--mSelectedControlFlow->mValueStackPtr;
-							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>(context.mOpcode->getParameter<uint64>());
+							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>((uintptr_t)context.mOpcode->getParameter<uint64>());
 						}
 						else
 						{
@@ -612,7 +612,8 @@ namespace lemon
 					}
 
 					default:
-						throw std::runtime_error("Unhandled opcode");
+						RMX_CHECK(false, "Unhandled opcode", RMX_REACT_THROW);
+						break;
 				}
 			}
 		}
@@ -746,7 +747,7 @@ namespace lemon
 					if (nullptr == function || function->getType() != Function::Type::SCRIPT)
 					{
 						if (nullptr != outError)
-							*outError = "Could not match function signature for script function of name '" + std::string(functionName) + "'";
+							*outError = "Could not match function signature for script function of name '" + std::string(functionName.data(), functionName.size()) + "'";
 						controlFlow.mCallStack.clear();
 						return false;
 					}

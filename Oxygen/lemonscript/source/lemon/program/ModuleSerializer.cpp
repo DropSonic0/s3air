@@ -567,7 +567,7 @@ namespace lemon
 					serializer.writeAs<uint32>(scriptFunc.mOpcodes.size());
 					for (const Opcode& opcode : scriptFunc.mOpcodes)
 					{
-						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64);
+						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64, "Opcode::Type count exceeds 64");
 
 						const uint8 parameterBits = (opcode.mParameter == 0)  ? 0 :
 							(opcode.mParameter == 1)  ? 1 :

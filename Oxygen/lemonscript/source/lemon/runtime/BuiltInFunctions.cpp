@@ -82,28 +82,36 @@ namespace lemon
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-			return (str1.getString() < str2.getString());
+			std::string_view s1 = str1.getString();
+			std::string_view s2 = str2.getString();
+			return (s1.compare(s2) < 0);
 		}
 
 		bool string_operator_less_or_equal(StringRef str1, StringRef str2)
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-			return (str1.getString() <= str2.getString());
+			std::string_view s1 = str1.getString();
+			std::string_view s2 = str2.getString();
+			return (s1.compare(s2) <= 0);
 		}
 
 		bool string_operator_greater(StringRef str1, StringRef str2)
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-			return (str1.getString() > str2.getString());
+			std::string_view s1 = str1.getString();
+			std::string_view s2 = str2.getString();
+			return (s1.compare(s2) > 0);
 		}
 
 		bool string_operator_greater_or_equal(StringRef str1, StringRef str2)
 		{
 			RMX_CHECK(str1.isValid(), "Unable to resolve string", return false);
 			RMX_CHECK(str2.isValid(), "Unable to resolve string", return false);
-			return (str1.getString() >= str2.getString());
+			std::string_view s1 = str1.getString();
+			std::string_view s2 = str2.getString();
+			return (s1.compare(s2) >= 0);
 		}
 	}
 
