@@ -167,7 +167,7 @@ namespace lemon
 						else
 						{
 							// Block comment exceeds this line
-							line.remove_suffix(line.length() - blockCommentStart);
+								line = line.substr(0, blockCommentStart);
 							break;
 						}
 					}
@@ -221,12 +221,12 @@ namespace lemon
 			// Is this something that can be handled with only making changes of the string_view's range?
 			if (offset == 0)
 			{
-				line.remove_prefix(count);
+					line = line.substr(count);
 				return;
 			}
 			else if (offset + count >= line.length())
 			{
-				line.remove_suffix(line.length() - offset);
+					line = line.substr(0, offset);
 				return;
 			}
 
@@ -234,7 +234,7 @@ namespace lemon
 			modifiedLine = &mModifiedLines.createObject();
 		}
 
-		*modifiedLine = line;
+			modifiedLine->assign(line.data(), line.size());
 		modifiedLine->erase(offset, count);
 		line = std::string_view(*modifiedLine);
 	}

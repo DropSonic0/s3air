@@ -24,6 +24,8 @@ namespace lemon
 	class API_EXPORT MemoryAccessHandler
 	{
 	public:
+		virtual ~MemoryAccessHandler() {}
+
 		struct SpecializationResult
 		{
 			enum class Result : uint8
@@ -68,6 +70,7 @@ namespace lemon
 	class API_EXPORT RuntimeDetailHandler
 	{
 	public:
+		virtual ~RuntimeDetailHandler() {}
 		virtual void preExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow)  {}
 		virtual void postExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow) {}
 	};
@@ -96,6 +99,7 @@ namespace lemon
 
 		struct ExecuteConnector : public ExecuteResult
 		{
+			virtual ~ExecuteConnector() {}
 			virtual bool handleCall(const Function* func, uint64 callTarget) = 0;
 			virtual bool handleReturn() = 0;
 			virtual bool handleExternalCall(uint64 address) = 0;
@@ -116,6 +120,10 @@ namespace lemon
 			const lemon::DataTypeDefinition* mReturnType = nullptr;
 			std::vector<Parameter> mParams;
 		};
+
+	private:
+		static ControlFlow* mActiveControlFlow;
+		static const Environment* mActiveEnvironment;
 
 	public:
 		inline static ControlFlow* getActiveControlFlow()	{ return mActiveControlFlow; }
@@ -178,41 +186,19 @@ namespace lemon
 		void setupGlobalVariables();
 
 	private:
-		inline static ControlFlow* mActiveControlFlow = nullptr;
-		inline static const Environment* mActiveEnvironment = nullptr;
-
-	private:
 		const Program* mProgram = nullptr;
 		MemoryAccessHandler* mMemoryAccessHandler = nullptr;
 		RuntimeDetailHandler* mRuntimeDetailHandler = nullptr;
 
 		std::vector<RuntimeFunction> mRuntimeFunctions;
-		#if !defined(PLATFORM_PS3)
+
 #if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-std::unordered_map
+		std::unordered_map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
+		std::unordered_map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
 #else
-std::map
+		std::map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
+		std::map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
 #endif
-#else
-std::map
-#endif
-#else
-std::map
-#endif<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
-		#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-std::unordered_map
-#else
-std::map
-#endif
-#else
-std::map
-#endif
-#else
-std::map
-#endif<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
 		rmx::OneTimeAllocPool mRuntimeOpcodesPool;
 
 		// Static memory contains all global variables

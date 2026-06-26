@@ -100,36 +100,40 @@ namespace genericmanager
 			template<typename T>
 			FactoryBase& getOrCreateElementFactory()
 			{
-				const constexpr uint32 type = (uint32)T::TYPE;
+				static constexpr uint32 type = (uint32)T::TYPE;
+	#if !defined(PLATFORM_PS3)
 				if constexpr (type < 0x80)
+	#else
+				if (type < 0x80)
+	#endif
+			{
+				// Use std::vector
+				if (nullptr != mClassFactoriesList[type])
 				{
-					// Use std::vector
-					if (nullptr != mClassFactoriesList[type])
-					{
-						return *mClassFactoriesList[type];
-					}
-					else
-					{
-						FactoryBase* factory = new ElementFactory<ELEMENT, T>();
-						mClassFactoriesList[type] = factory;
-						return *factory;
-					}
+					return *mClassFactoriesList[type];
 				}
 				else
 				{
-					// Use std::map
-					const auto it = mClassFactoriesMap.find(type);
-					if (it != mClassFactoriesMap.end())
-					{
-						return *it->second;
-					}
-					else
-					{
-						FactoryBase* factory = new ElementFactory<ELEMENT, T>();
-						mClassFactoriesMap[type] = factory;
-						return *factory;
-					}
+					FactoryBase* factory = new ElementFactory<ELEMENT, T>();
+					mClassFactoriesList[type] = factory;
+					return *factory;
 				}
+			}
+			else
+			{
+				// Use std::map
+				const auto it = mClassFactoriesMap.find(type);
+				if (it != mClassFactoriesMap.end())
+				{
+					return *it->second;
+				}
+				else
+				{
+					FactoryBase* factory = new ElementFactory<ELEMENT, T>();
+					mClassFactoriesMap[type] = factory;
+					return *factory;
+				}
+			}
 			}
 
 			FactoryBase& getElementFactory(Type type_)

@@ -12,18 +12,11 @@
 #include "lemon/program/ConstantArray.h"
 #include "lemon/program/Define.h"
 #include "lemon/program/Function.h"
+#include "lemon/program/Variable.h"
 #include "lemon/program/SourceFileInfo.h"
 #include "lemon/program/StringRef.h"
 #if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
-#if !defined(PLATFORM_PS3)
 #include <unordered_map>
-#else
-#include <map>
-#endif
-#else
-#include <map>
-#endif
 #else
 #include <map>
 #endif
@@ -72,7 +65,7 @@ namespace lemon
 		inline const std::vector<Variable*>& getGlobalVariables() const  { return mGlobalVariables; }
 		GlobalVariable& addGlobalVariable(FlyweightString name, const DataTypeDefinition* dataType);
 		UserDefinedVariable& addUserDefinedVariable(FlyweightString name, const DataTypeDefinition* dataType);
-		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor);
+		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, VariableAccessorType&& accessor);
 
 		// Constants
 		Constant& addConstant(FlyweightString name, const DataTypeDefinition* dataType, AnyBaseValue value);

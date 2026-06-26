@@ -44,6 +44,26 @@ namespace lemon
 			size_t mProgramCounter = 0;
 		};
 
+	private:
+		static const size_t VALUE_STACK_MAX_SIZE    = 128;
+		static const size_t VALUE_STACK_FIRST_INDEX = 4;			// Leave 4 elements so that removing too many elements from the stack doesn't break everything immediately
+		static const size_t VALUE_STACK_LAST_INDEX  = VALUE_STACK_MAX_SIZE - 8;
+		static const size_t VAR_STACK_LIMIT         = 1024;
+
+		Runtime& mRuntime;
+		const Program* mProgram = nullptr;
+
+		CArray<State> mCallStack;	// Not using std::vector for performance reasons in debug builds
+		uint64 mValueStackBuffer[VALUE_STACK_MAX_SIZE] = { 0 };
+		uint64* mValueStackStart = &mValueStackBuffer[VALUE_STACK_FIRST_INDEX];
+		uint64* mValueStackPtr   = &mValueStackBuffer[VALUE_STACK_FIRST_INDEX];
+		int64 mLocalVariablesBuffer[VAR_STACK_LIMIT] = { 0 };
+		size_t mLocalVariablesSize = 0;							// Current used size of the local variables buffer
+
+		// Only as optimization for OpcodeExec
+		int64* mCurrentLocalVariables = nullptr;
+		MemoryAccessHandler* mMemoryAccessHandler = nullptr;
+
 	public:
 		explicit ControlFlow(Runtime& runtime);
 
@@ -94,24 +114,6 @@ namespace lemon
 		}
 
 	private:
-		inline static const size_t VALUE_STACK_MAX_SIZE    = 128;
-		inline static const size_t VALUE_STACK_FIRST_INDEX = 4;			// Leave 4 elements so that removing too many elements from the stack doesn't break everything immediately
-		inline static const size_t VALUE_STACK_LAST_INDEX  = VALUE_STACK_MAX_SIZE - 8;
-		inline static const size_t VAR_STACK_LIMIT         = 1024;
-
-		Runtime& mRuntime;
-		const Program* mProgram = nullptr;
-
-		CArray<State> mCallStack;	// Not using std::vector for performance reasons in debug builds
-		uint64 mValueStackBuffer[VALUE_STACK_MAX_SIZE] = { 0 };
-		uint64* mValueStackStart = &mValueStackBuffer[VALUE_STACK_FIRST_INDEX];
-		uint64* mValueStackPtr   = &mValueStackBuffer[VALUE_STACK_FIRST_INDEX];
-		int64 mLocalVariablesBuffer[VAR_STACK_LIMIT] = { 0 };
-		size_t mLocalVariablesSize = 0;							// Current used size of the local variables buffer
-
-		// Only as optimization for OpcodeExec
-		int64* mCurrentLocalVariables = nullptr;
-		MemoryAccessHandler* mMemoryAccessHandler = nullptr;
 	};
 
 }

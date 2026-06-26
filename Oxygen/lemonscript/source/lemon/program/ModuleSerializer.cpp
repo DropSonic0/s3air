@@ -18,6 +18,8 @@ namespace lemon
 	{
 		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO;
 
+		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36, "Opcode::Type count must be 36");
+
 		static const BaseType DEFAULT_OPCODE_BASETYPES[(size_t)Opcode::Type::_NUM_TYPES] =
 		{
 			BaseType::VOID,			// NOP

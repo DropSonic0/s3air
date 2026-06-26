@@ -22,7 +22,7 @@ namespace lemon
 		int checkIncludeLine(std::string_view str)
 		{
 			// Check for "include", but ignore leading whitespace
-			const constexpr size_t REQUIRED_LENGTH = 8;		// Length of "include" plus a space
+			static constexpr size_t REQUIRED_LENGTH = 8;		// Length of "include" plus a space
 			size_t pos = 0;
 			while (pos + REQUIRED_LENGTH <= str.length() && (str[pos] == ' ' || str[pos] == '\t'))
 				++pos;
@@ -170,12 +170,15 @@ namespace lemon
 		}
 
 		// Your turn, preprocessor
+#if !defined(PLATFORM_PS3)
 		try
+#endif
 		{
 			mPreprocessor.mPreprocessorDefinitions = &mGlobalsLookup.mPreprocessorDefinitions;
 			mPreprocessor.processLines(fileLines);
 			mModule.registerNewPreprocessorDefinitions(mGlobalsLookup.mPreprocessorDefinitions);
 		}
+#if !defined(PLATFORM_PS3)
 		catch (const CompilerException& e)
 		{
 			ErrorMessage& error = vectorAdd(mErrors);
@@ -184,15 +187,22 @@ namespace lemon
 			error.mError = e.mError;
 			return false;
 		}
+#endif
 
 		// Build output
 		for (uint32 fileLineIndex = 0; fileLineIndex < (uint32)fileLines.size(); ++fileLineIndex)
 		{
+			const std::string_view& line = fileLines[fileLineIndex];
 
 			// Resolve include
 			const int locationAfterInclude = checkIncludeLine(line);
 			if (locationAfterInclude >= 0)
 			{
+				String includeBasepath;
+					String includeFilename;
+					const std::string_view includeFilenameView = line.substr(locationAfterInclude);
+					includeFilename << includeFilenameView;
+
 				int pos = includeFilename.findChar('/', includeFilename.length()-1, -1);
 				if (pos > 0)
 				{

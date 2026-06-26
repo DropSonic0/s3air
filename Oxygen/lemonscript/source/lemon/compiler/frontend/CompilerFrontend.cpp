@@ -99,7 +99,8 @@ namespace lemon
 		Parser parser;
 		ParserTokenList parserTokens;
 
-		std::vector<BlockNode*> blockStack = { &rootNode };
+		std::vector<BlockNode*> blockStack;
+		blockStack.push_back(&rootNode);
 		uint32 lineNumber = 0;
 
 		for (const std::string_view line : lines)
@@ -1070,7 +1071,7 @@ namespace lemon
 			if (value > 0)
 			{
 				// Don't allow a higher script feature level than actually supported
-				const constexpr uint32 MAX_SCRIPT_FEATURE_LEVEL = 2;
+				static constexpr uint32 MAX_SCRIPT_FEATURE_LEVEL = 2;
 				if (value > MAX_SCRIPT_FEATURE_LEVEL)
 				{
 					REPORT_ERROR_CODE(CompilerError::Code::SCRIPT_FEATURE_LEVEL_TOO_HIGH, value, MAX_SCRIPT_FEATURE_LEVEL, "Script uses feature level " << value << ", but the highest supported level is " << MAX_SCRIPT_FEATURE_LEVEL);

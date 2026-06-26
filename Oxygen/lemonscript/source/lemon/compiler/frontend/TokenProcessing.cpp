@@ -22,6 +22,7 @@ namespace lemon
 
 	namespace
 	{
+#if !defined(PLATFORM_PS3)
 		std::string getOperatorNotAllowedErrorMessage(Operator op)
 		{
 			if (op >= Operator::UNARY_NOT && op <= Operator::UNARY_INCREMENT)
@@ -47,6 +48,7 @@ namespace lemon
 			}
 			return "Operator is not allowed here";
 		}
+#endif
 
 		bool tryReplaceConstantsUnary(const ConstantToken& constRight, Operator op, int64& outValue)
 		{
@@ -1044,7 +1046,11 @@ namespace lemon
 				if (tokens[i].isA<OperatorToken>())
 				{
 					const Operator op = tokens[i].as<OperatorToken>().mOperator;
+#if !defined(PLATFORM_PS3)
 					CHECK_ERROR((i > 0 && i < tokens.size()-1) && (op != Operator::SEMICOLON_SEPARATOR), getOperatorNotAllowedErrorMessage(op), mLineNumber);
+#else
+					CHECK_ERROR((i > 0 && i < tokens.size()-1) && (op != Operator::SEMICOLON_SEPARATOR), "Operator is not allowed here", mLineNumber);
+#endif
 
 					const uint8 priority = OperatorHelper::getOperatorPriority(op);
 					const bool isLower = (priority == bestPriority) ? OperatorHelper::isOperatorAssociative(op) : (priority < bestPriority);

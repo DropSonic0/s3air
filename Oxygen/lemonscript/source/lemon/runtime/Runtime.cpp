@@ -16,6 +16,9 @@
 
 namespace lemon
 {
+	ControlFlow* Runtime::mActiveControlFlow = nullptr;
+	const Environment* Runtime::mActiveEnvironment = nullptr;
+
 	namespace
 	{
 		int matchCallerProgramCounter(const Program& program, const ControlFlow::State& parentState, const ControlFlow::State& childLocation)

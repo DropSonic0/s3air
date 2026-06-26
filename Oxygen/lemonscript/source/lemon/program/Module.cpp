@@ -26,7 +26,7 @@ namespace lemon
 		mModuleName(name),
 		mModuleId(rmx::getMurmur2_64(name) & 0xffffffffffff0000ull)
 	{
-		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36);	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
+		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36, "Opcode::Type count must be 36");	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
 	}
 
 	Module::~Module()
@@ -191,11 +191,20 @@ namespace lemon
 			for (const Function* function : currentFunctions)
 			{
 				// Separate functions with different prefixes
-				const size_t dot = function->getName().getString().find_first_of('.');
-				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : function->getName().getString().substr(0, dot);
+				size_t dot = std::string_view::npos;
+				const std::string_view functionNameStr = function->getName().getString();
+				for (size_t k = 0; k < functionNameStr.length(); ++k)
+				{
+					if (functionNameStr[k] == '.')
+					{
+						dot = k;
+						break;
+					}
+				}
+				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : functionNameStr.substr(0, dot);
 				if (prefix != lastPrefix)
 				{
-					lastPrefix = prefix;
+					lastPrefix.assign(prefix.data(), prefix.size());
 					content << "\r\n";
 				}
 
@@ -334,7 +343,7 @@ namespace lemon
 		return variable;
 	}
 
-	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor)
+	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, VariableAccessorType&& accessor)
 	{
 		// TODO: Add an object pool for this
 		ExternalVariable& variable = *new ExternalVariable();
