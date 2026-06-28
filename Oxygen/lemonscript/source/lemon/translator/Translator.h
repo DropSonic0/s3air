@@ -17,6 +17,6 @@ namespace lemon
 	{
 	public:
 		static void translateToCpp(String& output, const BlockNode& rootNode);
-		static void translateToCppAndSave(std::wstring_view filename, const BlockNode& rootNode);
+		static void translateToCppAndSave(const wchar_t* filename, const BlockNode& rootNode);
 	};
 }

@@ -115,7 +115,7 @@ namespace lemon
 				// Optional translation
 				if (!mCompileOptions.mOutputTranslatedSource.empty())
 				{
-					Translator::translateToCppAndSave(mCompileOptions.mOutputTranslatedSource, rootNode);
+					Translator::translateToCppAndSave(mCompileOptions.mOutputTranslatedSource.c_str(), rootNode);
 				}
 
 				// Backend part: Compile functions syntax tree structure into opcodes

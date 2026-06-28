@@ -8,32 +8,5 @@
 
 #pragma once
 
-#include <rmxbase.h>
-
-#if defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
-	#ifndef PLATFORM_PS3
-		#define PLATFORM_PS3
-	#endif
-#endif
-
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
-
-#if !defined(PLATFORM_PS3)
-	#include <unordered_map>
-	#include <unordered_set>
-	#include <optional>
-	#include <string_view>
-#endif
-
-#if defined(PLATFORM_PS3)
-	#define LEMON_UNORDERED_MAP std::map
-	#define LEMON_UNORDERED_SET std::set
-#else
-	#define LEMON_UNORDERED_MAP std::unordered_map
-	#define LEMON_UNORDERED_SET std::unordered_set
-#endif
-
+#include "lemon/Common.h"
 #include "lemon/compiler/Utility.h"

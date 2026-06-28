@@ -25,42 +25,30 @@ namespace lemon
 	namespace
 	{
 
-		const std::string& getDataTypeString(BaseType dataType, bool ignoreSigned = false)
+		const char* getDataTypeString(BaseType dataType, bool ignoreSigned = false)
 		{
-			static const std::string TYPESTRING_uint8  = "uint8";
-			static const std::string TYPESTRING_uint16 = "uint16";
-			static const std::string TYPESTRING_uint32 = "uint32";
-			static const std::string TYPESTRING_uint64 = "uint64";
-			static const std::string TYPESTRING_int8   = "int8";
-			static const std::string TYPESTRING_int16  = "int16";
-			static const std::string TYPESTRING_int32  = "int32";
-			static const std::string TYPESTRING_int64  = "int64";
-			static const std::string TYPESTRING_float  = "float";
-			static const std::string TYPESTRING_double = "double";
-			static const std::string TYPESTRING_empty  = "";
-
 			if (BaseTypeHelper::isIntegerType(dataType))
 			{
-				const bool isSigned = ignoreSigned ? false : BaseTypeHelper::isIntegerSigned(dataType));
+				const bool isSigned = ignoreSigned ? false : BaseTypeHelper::isIntegerSigned(dataType);
 				switch (BaseTypeHelper::getIntegerSizeFlags(dataType))
 				{
-					case 0x00:  return isSigned ? TYPESTRING_int8  : TYPESTRING_uint8;
-					case 0x01:  return isSigned ? TYPESTRING_int16 : TYPESTRING_uint16;
-					case 0x02:  return isSigned ? TYPESTRING_int32 : TYPESTRING_uint32;
-					case 0x03:  return isSigned ? TYPESTRING_int64 : TYPESTRING_uint64;
+					case 0x00:  return isSigned ? "int8"  : "uint8";
+					case 0x01:  return isSigned ? "int16" : "uint16";
+					case 0x02:  return isSigned ? "int32" : "uint32";
+					case 0x03:  return isSigned ? "int64" : "uint64";
 				}
 			}
 			else if (BaseTypeHelper::isFloatingPointType(dataType))
 			{
 				switch (dataType)
 				{
-					case BaseType::FLOAT:  return TYPESTRING_float;
-					case BaseType::DOUBLE: return TYPESTRING_double;
+					case BaseType::FLOAT:  return "float";
+					case BaseType::DOUBLE: return "double";
 					default:  break;
 				}
 			}
 			RMX_ERROR("Unsupported base type " << (int)dataType, );
-			return TYPESTRING_empty;
+			return "";
 		}
 
 		size_t getIntegerDataTypeBits(BaseType dataType)
@@ -78,34 +66,32 @@ namespace lemon
 
 
 
-	void NativizerInternal::Assignment::outputParameter(std::string& line, int64 value, BaseType dataType, bool isPointer) const
+	void NativizerInternal::Assignment::outputParameter(String& line, int64 value, BaseType dataType, bool isPointer) const
 	{
-		const std::string& dataTypeString = getDataTypeString(dataType, false);
+		const char* dataTypeString = getDataTypeString(dataType, false);
 		if (isPointer)
 		{
-			line += "*context.getParameter<" + dataTypeString + "*>(";
+			line << "*context.getParameter<" << dataTypeString << "*>(";
 		}
 		else
 		{
-			line += "context.getParameter<" + dataTypeString + ">(";
+			line << "context.getParameter<" << dataTypeString << ">(";
 		}
 		if (value != 0)
 		{
-			line += ((String() << value).getString());
+			line << (int)value;
 		}
-		line += ")";
+		line << ")";
 	}
 
-	void NativizerInternal::Assignment::outputDestNode(std::string& line, const Node& node, bool& closeParenthesis) const
+	void NativizerInternal::Assignment::outputDestNode(String& line, const Node& node, bool& closeParenthesis) const
 	{
 		switch (node.mType)
 		{
 			case Node::Type::VALUE_STACK:
 			{
-				const std::string& dataTypeString = getDataTypeString(node.mDataType);
-				line += "context.writeValueStack<" + dataTypeString + ">(";
-				line += ((String() << (int).getString())node.mValue);
-				line += ", ";
+				const char* dataTypeString = getDataTypeString(node.mDataType);
+				line << "context.writeValueStack<" << dataTypeString << ">(" << (int)node.mValue << ", ";
 				closeParenthesis = true;
 				break;
 			}
@@ -118,19 +104,19 @@ namespace lemon
 				{
 					case Variable::Type::LOCAL:
 					{
-						const std::string& dataTypeString = getDataTypeString(node.mDataType);
-						line += "context.writeLocalVariable<" + dataTypeString + ">(";
+						const char* dataTypeString = getDataTypeString(node.mDataType);
+						line << "context.writeLocalVariable<" << dataTypeString << ">(";
 						outputParameter(line, node.mParameterOffset, BaseType::UINT_32);
-						line += ", ";
+						line << ", ";
 						closeParenthesis = true;
 						break;
 					}
 
 					case Variable::Type::USER:
 					{
-						line += "static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(";
+						line << "static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(";
 						outputParameter(line, node.mParameterOffset, BaseType::UINT_32);
-						line += ")).setValue(";
+						line << ")).setValue(";
 						closeParenthesis = true;
 						break;
 					}
@@ -147,18 +133,18 @@ namespace lemon
 
 			case Node::Type::MEMORY:
 			{
-				const std::string& dataTypeString = getDataTypeString(node.mDataType, true);
-				line += "OpcodeExecUtils::writeMemory<" + dataTypeString + ">(*context.mControlFlow, ";
+				const char* dataTypeString = getDataTypeString(node.mDataType, true);
+				line << "OpcodeExecUtils::writeMemory<" << dataTypeString << ">(*context.mControlFlow, ";
 				outputSourceNode(line, *node.mChild[0]);
-				line += ", ";
+				line << ", ";
 				closeParenthesis = true;
 				break;
 			}
 
 			case Node::Type::TEMP_VAR:
 			{
-				const std::string& dataTypeString = getDataTypeString(node.mDataType);
-				line += *String(0, "const AnyBaseValue var%d((%s)", (int)node.mValue, dataTypeString.c_str());
+				const char* dataTypeString = getDataTypeString(node.mDataType);
+				line << "const AnyBaseValue var" << (int)node.mValue << "((" << dataTypeString << ")";
 				closeParenthesis = true;
 				break;
 			}
@@ -169,7 +155,7 @@ namespace lemon
 		}
 	}
 
-	void NativizerInternal::Assignment::outputSourceNode(std::string& line, const Node& node) const
+	void NativizerInternal::Assignment::outputSourceNode(String& line, const Node& node) const
 	{
 		switch (node.mType)
 		{
@@ -178,17 +164,17 @@ namespace lemon
 				const AnyBaseValue constant(node.mValue);
 				switch (node.mDataType)
 				{
-					case BaseType::INT_8:	line += ((String() << constant.get<int8>().getString()));			break;
-					case BaseType::INT_16:	line += ((String() << constant.get<int16>().getString()));			break;
-					case BaseType::INT_32:	line += ((String() << constant.get<int32>().getString()));			break;
-					case BaseType::INT_64:	line += ((String() << constant.get<int64>().getString())) + "ll";	break;
-					case BaseType::UINT_8:	line += ((String() << constant.get<uint8>().getString()));			break;
-					case BaseType::UINT_16:	line += ((String() << constant.get<uint16>().getString()));			break;
-					case BaseType::UINT_32:	line += ((String() << constant.get<uint32>().getString()));			break;
-					case BaseType::UINT_64:	line += ((String() << constant.get<uint64>().getString())) + "ull";	break;
-					case BaseType::FLOAT:	line += ((String() << constant.get<float>().getString())) + 'f';	break;
-					case BaseType::DOUBLE:	line += ((String() << constant.get<double>().getString()));			break;
-					default:				line += ((String() << constant.get<uint32>().getString()));			break;
+					case BaseType::INT_8:	line << (int)constant.get<int8>();			break;
+					case BaseType::INT_16:	line << (int)constant.get<int16>();			break;
+					case BaseType::INT_32:	line << (int)constant.get<int32>();			break;
+					case BaseType::INT_64:	line << "0x" << rmx::hexString(constant.get<int64>(), 16, "") << "ll";	break;
+					case BaseType::UINT_8:	line << (int)constant.get<uint8>();			break;
+					case BaseType::UINT_16:	line << (int)constant.get<uint16>();			break;
+					case BaseType::UINT_32:	line << (int)constant.get<uint32>();			break;
+					case BaseType::UINT_64:	line << "0x" << rmx::hexString(constant.get<uint64>(), 16, "") << "ull";	break;
+					case BaseType::FLOAT:	line << (float)constant.get<float>() << 'f';	break;
+					case BaseType::DOUBLE:	line << (double)constant.get<double>();			break;
+					default:				line << (int)constant.get<uint32>();			break;
 				}
 				break;
 			}
@@ -201,10 +187,8 @@ namespace lemon
 
 			case Node::Type::VALUE_STACK:
 			{
-				const std::string& dataTypeString = getDataTypeString(node.mDataType);
-				line += "context.readValueStack<" + dataTypeString + ">(";
-				line += ((String() << (int).getString())node.mValue);
-				line += ")";
+				const char* dataTypeString = getDataTypeString(node.mDataType);
+				line << "context.readValueStack<" << dataTypeString << ">(" << (int)node.mValue << ")";
 				break;
 			}
 
@@ -216,18 +200,18 @@ namespace lemon
 				{
 					case Variable::Type::LOCAL:
 					{
-						const std::string& dataTypeString = getDataTypeString(node.mDataType);
-						line += "context.readLocalVariable<" + dataTypeString + ">(";
+						const char* dataTypeString = getDataTypeString(node.mDataType);
+						line << "context.readLocalVariable<" << dataTypeString << ">(";
 						outputParameter(line, node.mParameterOffset, BaseType::UINT_32);
-						line += ")";
+						line << ")";
 						break;
 					}
 
 					case Variable::Type::USER:
 					{
-						line += "static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(";
+						line << "static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(";
 						outputParameter(line, node.mParameterOffset, BaseType::UINT_32);
-						line += ")).getValue()";
+						line << ")).getValue()";
 						break;
 					}
 
@@ -243,10 +227,10 @@ namespace lemon
 
 			case Node::Type::MEMORY:
 			{
-				const std::string& dataTypeString = getDataTypeString(node.mDataType, true);
-				line += "OpcodeExecUtils::readMemory<" + dataTypeString + ">(*context.mControlFlow, ";
+				const char* dataTypeString = getDataTypeString(node.mDataType, true);
+				line << "OpcodeExecUtils::readMemory<" << dataTypeString << ">(*context.mControlFlow, ";
 				outputSourceNode(line, *node.mChild[0]);
-				line += ")";
+				line << ")";
 				break;
 			}
 
@@ -256,9 +240,9 @@ namespace lemon
 				const size_t bytes = DataTypeHelper::getSizeOfBaseType(node.mDataType);
 				if (swapBytes && bytes >= 2)
 				{
-					line += *String(0, "swapBytes%d(", bytes * 8);
+					line << "swapBytes" << (int)(bytes * 8) << "(";
 					outputParameter(line, node.mParameterOffset, node.mDataType, true);
-					line += ")";
+					line << ")";
 				}
 				else
 				{
@@ -272,39 +256,38 @@ namespace lemon
 				const char* operatorString = "";
 				const char* functionCall = nullptr;
 				bool ignoreSigned = false;
-				bool booleanResult = false;		// TODO: This is probably not really needed
 				bool isShift = false;
 				switch ((Opcode::Type)node.mValue)
 				{
-					case Opcode::Type::ARITHM_ADD:	operatorString = "+";   ignoreSigned = true;   booleanResult = false;	break;
-					case Opcode::Type::ARITHM_SUB:	operatorString = "-";   ignoreSigned = true;   booleanResult = false;	break;
-					case Opcode::Type::ARITHM_MUL:	operatorString = "*";   ignoreSigned = false;  booleanResult = false;	break;
-					case Opcode::Type::ARITHM_DIV:	functionCall = "OpcodeExecUtils::safeDivide";   ignoreSigned = false;  booleanResult = false;	break;
-					case Opcode::Type::ARITHM_MOD:	functionCall = "OpcodeExecUtils::safeModulo";   ignoreSigned = false;  booleanResult = false;	break;
-					case Opcode::Type::ARITHM_AND:	operatorString = "&";   ignoreSigned = true;   booleanResult = false;	break;
-					case Opcode::Type::ARITHM_OR:	operatorString = "|";   ignoreSigned = true;   booleanResult = false;	break;
-					case Opcode::Type::ARITHM_XOR:	operatorString = "^";   ignoreSigned = true;   booleanResult = false;	break;
-					case Opcode::Type::ARITHM_SHL:	operatorString = "<<";  ignoreSigned = true;   booleanResult = false;  isShift = true;  break;
-					case Opcode::Type::ARITHM_SHR:	operatorString = ">>";  ignoreSigned = false;  booleanResult = false;  isShift = true;  break;
-					case Opcode::Type::COMPARE_EQ:	operatorString = "==";  ignoreSigned = true;   booleanResult = true;	break;
-					case Opcode::Type::COMPARE_NEQ:	operatorString = "!=";  ignoreSigned = true;   booleanResult = true;	break;
-					case Opcode::Type::COMPARE_LT:	operatorString = "<";   ignoreSigned = false;  booleanResult = true;	break;
-					case Opcode::Type::COMPARE_LE:	operatorString = "<=";  ignoreSigned = false;  booleanResult = true;	break;
-					case Opcode::Type::COMPARE_GT:	operatorString = ">";   ignoreSigned = false;  booleanResult = true;	break;
-					case Opcode::Type::COMPARE_GE:	operatorString = ">=";  ignoreSigned = false;  booleanResult = true;	break;
+					case Opcode::Type::ARITHM_ADD:	operatorString = "+";   ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_SUB:	operatorString = "-";   ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_MUL:	operatorString = "*";   ignoreSigned = false;  break;
+					case Opcode::Type::ARITHM_DIV:	functionCall = "OpcodeExecUtils::safeDivide";   ignoreSigned = false;  break;
+					case Opcode::Type::ARITHM_MOD:	functionCall = "OpcodeExecUtils::safeModulo";   ignoreSigned = false;  break;
+					case Opcode::Type::ARITHM_AND:	operatorString = "&";   ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_OR:	operatorString = "|";   ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_XOR:	operatorString = "^";   ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_SHL:	operatorString = "<<";  ignoreSigned = true;   isShift = true;  break;
+					case Opcode::Type::ARITHM_SHR:	operatorString = ">>";  ignoreSigned = false;  isShift = true;  break;
+					case Opcode::Type::COMPARE_EQ:	operatorString = "==";  ignoreSigned = true;   break;
+					case Opcode::Type::COMPARE_NEQ:	operatorString = "!=";  ignoreSigned = true;   break;
+					case Opcode::Type::COMPARE_LT:	operatorString = "<";   ignoreSigned = false;  break;
+					case Opcode::Type::COMPARE_LE:	operatorString = "<=";  ignoreSigned = false;  break;
+					case Opcode::Type::COMPARE_GT:	operatorString = ">";   ignoreSigned = false;  break;
+					case Opcode::Type::COMPARE_GE:	operatorString = ">=";  ignoreSigned = false;  break;
 					default:
 						break;
 				}
 
-				const std::string& dataTypeString = getDataTypeString(node.mDataType, ignoreSigned);
+				const char* dataTypeString = getDataTypeString(node.mDataType, ignoreSigned);
 				if (nullptr == functionCall)
 				{
-					line += "(";
+					line << "(";
 
 					// Left side
 					if (node.mChild[0]->mDataType != node.mDataType)
 					{
-						line += "(" + dataTypeString + ")";
+						line << "(" << dataTypeString << ")";
 						outputSourceNode(line, *node.mChild[0]);
 					}
 					else
@@ -313,30 +296,30 @@ namespace lemon
 					}
 
 					// Operator
-					line += std::string(" ") + operatorString + " ";
+					line << " " << operatorString << " ";
 
 					// Right side
 					if (node.mChild[1]->mDataType != node.mDataType)
 					{
-						line += "(" + dataTypeString + ")(";
+						line << "(" << dataTypeString << ")(";
 						if (isShift)
 						{
 							outputSourceNode(line, *node.mChild[1]);
-							line += " & " + rmx::hexString(getIntegerDataTypeBits(node.mDataType) - 1, 2);		// Assuming the right side of a shift is always an integer
+							line << " & " << rmx::hexString(getIntegerDataTypeBits(node.mDataType) - 1, 2);		// Assuming the right side of a shift is always an integer
 						}
 						else
 						{
 							outputSourceNode(line, *node.mChild[1]);
 						}
-						line += ")";
+						line << ")";
 					}
 					else
 					{
 						if (isShift)
 						{
-							line += "(";
+							line << "(";
 							outputSourceNode(line, *node.mChild[1]);
-							line += " & " + rmx::hexString(getIntegerDataTypeBits(node.mDataType) - 1, 2) + ")";		// Assuming the right side of a shift is always an integer
+							line << " & " << rmx::hexString(getIntegerDataTypeBits(node.mDataType) - 1, 2) << ")";		// Assuming the right side of a shift is always an integer
 						}
 						else
 						{
@@ -344,16 +327,16 @@ namespace lemon
 						}
 					}
 
-					line += ")";
+					line << ")";
 				}
 				else
 				{
-					line += functionCall;
-					line += "<" + dataTypeString + ">((" + dataTypeString + ")";
+					line << functionCall;
+					line << "<" << dataTypeString << ">((" << dataTypeString << ")";
 					outputSourceNode(line, *node.mChild[0]);
-					line += ", (" + dataTypeString + ")";
+					line << ", (" << dataTypeString << ")";
 					outputSourceNode(line, *node.mChild[1]);
-					line += ")";
+					line << ")";
 				}
 				break;
 			}
@@ -363,22 +346,22 @@ namespace lemon
 				bool ignoreSigned = false;
 				switch ((Opcode::Type)node.mValue)
 				{
-					case Opcode::Type::ARITHM_NEG:	  line += "-";  ignoreSigned = false;  break;
-					case Opcode::Type::ARITHM_NOT:	  line += "!";  ignoreSigned = true;   break;
-					case Opcode::Type::ARITHM_BITNOT: line += "~";  ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_NEG:	  line << "-";  ignoreSigned = false;  break;
+					case Opcode::Type::ARITHM_NOT:	  line << "!";  ignoreSigned = true;   break;
+					case Opcode::Type::ARITHM_BITNOT: line << "~";  ignoreSigned = true;   break;
 					default:  break;
 				}
 
 				if (!ignoreSigned)
-					line += "(signed)";		// TODO: This is more of a hack....
+					line << "(signed)";		// TODO: This is more of a hack....
 				outputSourceNode(line, *node.mChild[0]);
 				break;
 			}
 
 			case Node::Type::TEMP_VAR:
 			{
-				const std::string& dataTypeString = getDataTypeString(node.mDataType);
-				line += *String(0, "var%d.get<%s>()", (int)node.mValue, dataTypeString.c_str());
+				const char* dataTypeString = getDataTypeString(node.mDataType);
+				line << "var" << (int)node.mValue << ".get<" << dataTypeString << ">()";
 				break;
 			}
 
@@ -388,22 +371,22 @@ namespace lemon
 		}
 	}
 
-	void NativizerInternal::Assignment::outputLine(std::string& line) const
+	void NativizerInternal::Assignment::outputLine(String& line) const
 	{
 		// Output this assignment into a text line
 		bool closeParenthesis = false;
 		outputDestNode(line, *mDest, closeParenthesis);
 
 		if (!closeParenthesis)
-			line += " = ";
+			line << " = ";
 		if (mDest->mDataType != mSource->mDataType)
-			line += "(" + getDataTypeString(mDest->mDataType, true) + ")";
+			line << "(" << getDataTypeString(mDest->mDataType, true) << ")";
 
 		outputSourceNode(line, *mSource);
 
 		if (closeParenthesis)
-			line += ")";
-		line += ";";
+			line << ")";
+		line << ";";
 	}
 
 
@@ -512,7 +495,7 @@ namespace lemon
 							{
 								case Variable::Type::EXTERNAL:
 								{
-									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::EXTERNAL_VARIABLE, opcode.mDataType));
+									parameterOffset = mParameters.add(opcodeIndex, 8, ParameterInfo::Semantics::EXTERNAL_VARIABLE, opcode.mDataType);
 									break;
 								}
 								case Variable::Type::GLOBAL:
@@ -537,7 +520,7 @@ namespace lemon
 							else
 							{
 								Assignment& assignment = vectorAdd(mAssignments);
-								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VARIABLE, opcode.mDataType, (uint32)opcode.mParameter, parameterOffset); assignment.mSource = &newNode; }
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VARIABLE, opcode.mDataType, (uint32)opcode.mParameter, parameterOffset); assignment.mDest = &newNode; }
 								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
 							}
 							break;
@@ -548,8 +531,10 @@ namespace lemon
 							const bool consumeInput = (opcode.mParameter == 0);
 							Assignment& assignment = vectorAdd(mAssignments);
 							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (consumeInput ? 1 : 0)); assignment.mDest = &newNode; }
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::MEMORY, opcode.mDataType));
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - 1); assignment.mSource = &newNode; }
+							{
+								Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::MEMORY, opcode.mDataType); assignment.mSource = &newNode;
+								{ Assignment::Node& childNode = vectorAdd(mNodes); childNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - 1); newNode.mChild[0] = &childNode; }
+							}
 							if (!consumeInput)
 								++stackPosition;
 							break;
@@ -561,9 +546,11 @@ namespace lemon
 							{
 								// Main assignment
 								Assignment& assignment = vectorAdd(mAssignments);
-								assignment.mDest			= &vectorAdd(mNodes) = Assignment::Node(Assignment::Node::Type::MEMORY, opcode.mDataType));
-								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - (exchangedInputs ? 2 : 1));
-								assignment.mSource			= &vectorAdd(mNodes) = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (exchangedInputs ? 1 : 2));
+								{
+									Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::MEMORY, opcode.mDataType); assignment.mDest = &newNode;
+									{ Assignment::Node& childNode = vectorAdd(mNodes); childNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, BaseType::UINT_32, stackPosition - (exchangedInputs ? 2 : 1)); newNode.mChild[0] = &childNode; }
+								}
+								{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - (exchangedInputs ? 1 : 2)); assignment.mSource = &newNode; }
 							}
 							if (exchangedInputs)
 							{
@@ -581,7 +568,7 @@ namespace lemon
 							const BaseType targetType = OpcodeHelper::getCastTargetType(opcode);
 							const BaseType sourceType = OpcodeHelper::getCastSourceType(opcode);
 							Assignment& assignment = vectorAdd(mAssignments);
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, targetType, stackPosition - 1); assignment.mSource = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, targetType, stackPosition - 1); assignment.mDest = &newNode; }
 							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, sourceType, stackPosition - 1); assignment.mSource = &newNode; }
 							break;
 						}
@@ -606,9 +593,11 @@ namespace lemon
 							const BaseType returnType = (opcode.mType >= Opcode::Type::COMPARE_EQ) ? BaseType::BOOL : opcode.mDataType;
 							Assignment& assignment = vectorAdd(mAssignments);
 							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, returnType, stackPosition - 2); assignment.mDest = &newNode; }
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::OPERATION_BINARY, opcode.mDataType, (uint64)opcode.mType); assignment.mSource = &newNode; }
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 2); assignment.mDest = &newNode; }
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
+							{
+								Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::OPERATION_BINARY, opcode.mDataType, (uint64)opcode.mType); assignment.mSource = &newNode;
+								{ Assignment::Node& childNode = vectorAdd(mNodes); childNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 2); newNode.mChild[0] = &childNode; }
+								{ Assignment::Node& childNode = vectorAdd(mNodes); childNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); newNode.mChild[1] = &childNode; }
+							}
 							--stackPosition;
 							break;
 						}
@@ -618,9 +607,11 @@ namespace lemon
 						case Opcode::Type::ARITHM_BITNOT:
 						{
 							Assignment& assignment = vectorAdd(mAssignments);
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::OPERATION_UNARY, opcode.mDataType, (uint64)opcode.mType); assignment.mSource = &newNode; }
-							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mSource = &newNode; }
+							{ Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); assignment.mDest = &newNode; }
+							{
+								Assignment::Node& newNode = vectorAdd(mNodes); newNode = Assignment::Node(Assignment::Node::Type::OPERATION_UNARY, opcode.mDataType, (uint64)opcode.mType); assignment.mSource = &newNode;
+								{ Assignment::Node& childNode = vectorAdd(mNodes); childNode = Assignment::Node(Assignment::Node::Type::VALUE_STACK, opcode.mDataType, stackPosition - 1); newNode.mChild[0] = &childNode; }
+							}
 							break;
 						}
 
@@ -647,30 +638,21 @@ namespace lemon
 		}
 	}
 
-	void NativizerInternal::performPostProcessing()
-	{
-		// Postprocessing
-		//  -> Note that this whole function is only an optimization and can be skipped entirely
-		//  -> It builds temp vars where a value is both read (from any source) and written (to stack) inside our nativized function
-
 	#if NATIVIZER_OPTIMIZATION_LEVEL >= 1
-
+	namespace
+	{
 		struct Read
 		{
-			Assignment* mAssignment = nullptr;
-			Assignment::Node* mNode = nullptr;
+			NativizerInternal::Assignment* mAssignment = nullptr;
+			NativizerInternal::Assignment::Node* mNode = nullptr;
 		};
 		struct TempVar
 		{
-			Assignment* mWrite = nullptr;
+			NativizerInternal::Assignment* mWrite = nullptr;
 			std::vector<Read> mReads;
 			bool mPreserve = false;			// If set, this temp var must not be removed
 			bool mOutputToStack = false;	// If set, this temp var must also write to the stack, in addition to be used in the reads
 		};
-
-		static std::vector<TempVar> tempVars;
-		tempVars.clear();
-		tempVars.reserve(0x20);
 
 		// This lookup is meant to mirror the stack
 		//  -> It's used to track which assignment nodes consume the value written by which other assignment
@@ -679,17 +661,43 @@ namespace lemon
 		struct StackAssignment
 		{
 			TempVar*& operator[](int offset) { return mLookup[Nativizer::MAX_OPCODES + offset]; }
-			TempVar* mLookup[Nativizer::MAX_OPCODES * 2] = { nullptr };		// Index MAX_OPCODES represents the initial stack position
+			TempVar* mLookup[Nativizer::MAX_OPCODES * 2];		// Index MAX_OPCODES represents the initial stack position
+
+			inline StackAssignment()
+			{
+				for (size_t i = 0; i < Nativizer::MAX_OPCODES * 2; ++i)
+					mLookup[i] = nullptr;
+			}
 		};
+	}
+	#endif
+
+	void NativizerInternal::performPostProcessing()
+	{
+		// Postprocessing
+		//  -> Note that this whole function is only an optimization and can be skipped entirely
+		//  -> It builds temp vars where a value is both read (from any source) and written (to stack) inside our nativized function
+
+	#if NATIVIZER_OPTIMIZATION_LEVEL >= 1
+
+		static std::vector<TempVar> tempVars;
+		tempVars.clear();
+		tempVars.reserve(0x20);
+
 		StackAssignment tempVarByStackPosition;
 		int lowestWrittenStackPosition = mFinalStackPosition;
 
 		// First collect temp vars
-		for (Assignment& assignment : mAssignments)
+		for (size_t k = 0; k < mAssignments.size(); ++k)
 		{
+			Assignment& assignment = mAssignments[k];
+
 			// Iterate recursively through the node and its inner child nodes
 			static std::vector<Assignment::Node*> nodeStack;
 			nodeStack.clear();
+
+			if (nullptr == assignment.mDest)
+				continue;
 
 			const bool isValueStackWrite = (assignment.mDest->mType == Assignment::Node::Type::VALUE_STACK);
 
@@ -747,7 +755,7 @@ namespace lemon
 			if (isValueStackWrite)
 			{
 				const int writeStackPosition = (int)assignment.mDest->mValue;
-				lowestWrittenStackPosition = std::min(lowestWrittenStackPosition, writeStackPosition); assignment.mDest = &newNode; }
+				lowestWrittenStackPosition = std::min(lowestWrittenStackPosition, writeStackPosition);
 
 				TempVar& tempVar = vectorAdd(tempVars);
 				tempVarByStackPosition[writeStackPosition] = &tempVar;
@@ -876,21 +884,26 @@ namespace lemon
 
 	void NativizerInternal::generateCppCode(CppWriter& writer, const ScriptFunction& function, const Opcode& firstOpcode, uint64 hash)
 	{
-		std::string line = "// First occurrence: ";
-		line.append(function.getName().getString());
+		String line = "// First occurrence: ";
+		line << function.getName().getString();
 		if (firstOpcode.mLineNumber != 0)
-			line = line + ", line " + ((String() << firstOpcode.mLineNumber - function.mSourceBaseLineOffset + 1).getString());
+			line << ", line " << (int)(firstOpcode.mLineNumber - function.mSourceBaseLineOffset + 1);
 		writer.writeLine(line);
 
-		writer.writeLine("static void exec_" + rmx::hexString(hash, 16, "") + "(const RuntimeOpcodeContext context)");
+		{
+			line = "static void exec_";
+			line << rmx::hexString(hash, 16, "") << "(const RuntimeOpcodeContext context)";
+			writer.writeLine(line);
+		}
 		writer.beginBlock();
 
 		// Write lines
-		for (const Assignment& assignment : mAssignments)
+		for (size_t i = 0; i < mAssignments.size(); ++i)
 		{
+			const Assignment& assignment = mAssignments[i];
 			if (nullptr != assignment.mDest)	// Ignore the invalidated assignments
 			{
-				line.clear();
+				line = "";
 				assignment.outputLine(line);
 				writer.writeLine(line);
 			}
@@ -898,7 +911,9 @@ namespace lemon
 
 		if (mFinalStackPosition != 0)
 		{
-			writer.writeLine("context.moveValueStack(" + ((String() << mFinalStackPosition).getString()) + ");");
+			line = "context.moveValueStack(";
+			line << (int)mFinalStackPosition << ");";
+			writer.writeLine(line);
 		}
 
 		writer.endBlock();

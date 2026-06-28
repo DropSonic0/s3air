@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include "lemon/Common.h"
 #include "lemon/compiler/Definitions.h"
 #include "lemon/compiler/Errors.h"
 #include "lemon/compiler/LineNumberTranslation.h"

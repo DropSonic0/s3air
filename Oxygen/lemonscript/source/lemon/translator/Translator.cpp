@@ -85,7 +85,11 @@ namespace lemon
 				{
 					const LabelNode& labelNode = node.as<LabelNode>();
 					writer.decreaseIndentation();
-					writer.writeLine(std::string(labelNode.mLabel.getString()) + ":");
+					{
+						String line;
+						line << labelNode.mLabel.getString() << ":";
+						writer.writeLine(line);
+					}
 					writer.increaseIndentation();
 					break;
 				}
@@ -93,7 +97,11 @@ namespace lemon
 				case Node::Type::JUMP:
 				{
 					const JumpNode& jumpNode = node.as<JumpNode>();
-					writer.writeLine("goto " + std::string(jumpNode.mLabelToken->mName.getString()) + ";");
+					{
+						String line = "goto ";
+						line << jumpNode.mLabelToken->mName.getString() << ";";
+						writer.writeLine(line);
+					}
 					break;
 				}
 
@@ -186,7 +194,9 @@ namespace lemon
 
 				default:
 				{
-					writer.writeLine("<unknown_node_" + ((String() << (int).getString())node.getType()) + ">");
+					String line = "<unknown_node_";
+					line << (int)node.getType() << ">";
+					writer.writeLine(line);
 					break;
 				}
 			}
@@ -399,7 +409,7 @@ namespace lemon
 		cppTranslator.translate(output, rootNode);
 	}
 
-	void Translator::translateToCppAndSave(std::wstring_view filename, const BlockNode& rootNode)
+	void Translator::translateToCppAndSave(const wchar_t* filename, const BlockNode& rootNode)
 	{
 		String output;
 		translateToCpp(output, rootNode);
