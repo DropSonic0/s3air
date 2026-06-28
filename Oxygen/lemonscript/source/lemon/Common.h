@@ -6,6 +6,7 @@
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
 */
 
+#ifndef LEMON_COMMON_H
 #define LEMON_COMMON_H
 
 #include <rmxbase.h>
