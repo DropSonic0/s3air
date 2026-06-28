@@ -54,6 +54,7 @@ namespace lemon
 		Constant& addPreprocessorDefinition(FlyweightString name, int64 value);
 
 		// Functions
+		inline const std::vector<Function*>& getFunctions() const { return mFunctions; }
 		inline const std::vector<ScriptFunction*>& getScriptFunctions() const { return mScriptFunctions; }
 		const Function* getFunctionByUniqueId(uint64 uniqueId) const;
 
@@ -68,9 +69,11 @@ namespace lemon
 		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, VariableAccessorType&& accessor);
 
 		// Constants
+		inline const std::vector<Constant*>& getConstants() const { return mConstants; }
 		Constant& addConstant(FlyweightString name, const DataTypeDefinition* dataType, AnyBaseValue value);
 
 		// Constant arrays
+		inline const std::vector<ConstantArray*>& getConstantArrays() const { return mConstantArrays; }
 		ConstantArray& addConstantArray(FlyweightString name, const DataTypeDefinition* elementDataType, const uint64* values, size_t size, bool isGlobalDefinition);
 
 		// Defines

@@ -8,3 +8,7 @@
 
 #include "lemon/pch.h"
 #include "lemon/compiler/Node.h"
+
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+template<> genericmanager::detail::ElementFactoryMap<lemon::Node> genericmanager::Manager<lemon::Node>::mFactoryMap = genericmanager::detail::ElementFactoryMap<lemon::Node>();
+#endif

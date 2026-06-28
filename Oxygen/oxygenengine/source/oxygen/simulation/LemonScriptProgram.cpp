@@ -272,6 +272,7 @@ LemonScriptProgram::LoadScriptsResult LemonScriptProgram::loadScripts(const std:
 				{
 					RMX_LOG_ERROR("Failed to load scripts: coreModuleDependencyHash=" << rmx::hexString(coreModuleDependencyHash) << ", appVersion=" << loadOptions.mAppVersion);
 
+				#if !defined(PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__PPU__) && !defined(__SN_TARGET_PS3__) && !defined(__cell__)
 					auto logModuleCounts = [](const lemon::Module& module)
 					{
 						RMX_LOG_INFO("Module '" << module.getModuleName() << "' counts: "
@@ -293,6 +294,7 @@ LemonScriptProgram::LoadScriptsResult LemonScriptProgram::loadScripts(const std:
 					};
 					logModuleCounts(mInternal.mLemonCoreModule);
 					logModuleCounts(mInternal.mOxygenCoreModule);
+				#endif
 				}
 				RMX_CHECK(scriptsLoaded, "Failed to load 'scripts.bin'", );
 			}
@@ -482,8 +484,14 @@ void LemonScriptProgram::evaluateDefines()
 					var.mBytes = (uint8)dataType.getBytes();
 					var.mSigned = dataType.as<lemon::IntegerDataType>().mIsSigned;
 
+				#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+					const std::string_view nameView = var.mName.getString();
+					const int pos = String(0, "%.*s", (int)nameView.length(), nameView.data()).findChar('.', 0, 1);	// Position of the dot
+					var.mCategoryHash = (pos == -1) ? 0 : rmx::getMurmur2_64(nameView.substr(0, pos));
+				#else
 					const int pos = String(var.mName.getString()).findChar('.', 0, 1);	// Position of the dot
 					var.mCategoryHash = (pos == -1) ? 0 : rmx::getMurmur2_64(var.mName.getString().substr(0, pos));
+				#endif
 				}
 			}
 		}

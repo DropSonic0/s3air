@@ -24,5 +24,9 @@ public:
 	void setDebugNotificationInterface(DebugNotificationInterface* debugNotificationInterface);
 
 public:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+	static DebugNotificationInterface* mDebugNotificationInterface;
+#else
 	static inline DebugNotificationInterface* mDebugNotificationInterface = nullptr;
+#endif
 };

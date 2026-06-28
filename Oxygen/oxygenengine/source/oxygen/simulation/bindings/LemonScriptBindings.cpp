@@ -35,6 +35,10 @@
 
 #include <iomanip>
 
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+DebugNotificationInterface* LemonScriptBindings::mDebugNotificationInterface = nullptr;
+#endif
+
 
 namespace
 {
@@ -87,7 +91,12 @@ namespace
 
 			if (text.isValid())
 			{
+			#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+				const std::string_view textString = text.getString();
+				RMX_ERROR("Script assertion failed:\n'" << std::string(textString.data(), textString.size()) << "'.\nIn " << locationText << ".", );
+			#else
 				RMX_ERROR("Script assertion failed:\n'" << text.getString() << "'.\nIn " << locationText << ".", );
+			#endif
 			}
 			else
 			{
@@ -462,12 +471,14 @@ namespace
 		}
 	}
 
+#if !defined(PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__PPU__) && !defined(__SN_TARGET_PS3__) && !defined(__cell__)
 	void debugLogValueStack()
 	{
 		const size_t valueStackSize = Application::instance().getSimulation().getCodeExec().getLemonScriptRuntime().getInternalLemonRuntime().getActiveControlFlow()->getValueStackSize();
 		const std::string valueString = *String(0, "Value Stack Size = %d", valueStackSize);
 		debugLogInternal(valueString);
 	}
+#endif
 
 
 	uint16 Input_getController(uint8 controllerIndex)
@@ -574,7 +585,17 @@ namespace
 					const std::string_view textString = str->getString();
 
 					// Does the string contain any uppercase letters?
-					if (containsByPredicate(textString, [](char ch) { return (ch >= 'A' && ch <= 'Z'); } ))
+					bool hasUppercase = false;
+					for (size_t i = 0; i < textString.size(); ++i)
+					{
+						if (textString[i] >= 'A' && textString[i] <= 'Z')
+						{
+							hasUppercase = true;
+							break;
+						}
+					}
+
+					if (hasUppercase)
 					{
 						// Convert to lowercase and try again
 						String tempStr = textString;
@@ -847,6 +868,30 @@ namespace
 		}
 	}
 
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+	template<int Index>
+	int64* accessRegister_wrapper()
+	{
+		return accessRegister(Index);
+	}
+
+	void logSetter_false(int64 value)
+	{
+		logSetter(value, false);
+	}
+
+	void logSetter_true(int64 value)
+	{
+		logSetter(value, true);
+	}
+
+	template<int Index>
+	int64 debugKeyGetter_wrapper()
+	{
+		return (int64)debugKeyGetter(Index);
+	}
+#endif
+
 }
 
 
@@ -861,15 +906,36 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 	{
 		// Register access
 		const std::string registerNamesDAR[16] = { "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
+	#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+		lemon::VariableAccessorType accessRegisterWrappers[16] = {
+			&accessRegister_wrapper<0>,  &accessRegister_wrapper<1>,  &accessRegister_wrapper<2>,  &accessRegister_wrapper<3>,
+			&accessRegister_wrapper<4>,  &accessRegister_wrapper<5>,  &accessRegister_wrapper<6>,  &accessRegister_wrapper<7>,
+			&accessRegister_wrapper<8>,  &accessRegister_wrapper<9>,  &accessRegister_wrapper<10>, &accessRegister_wrapper<11>,
+			&accessRegister_wrapper<12>, &accessRegister_wrapper<13>, &accessRegister_wrapper<14>, &accessRegister_wrapper<15>
+		};
+	#endif
+
 		for (size_t i = 0; i < 16; ++i)
 		{
-			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
-			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  std::bind(accessRegister, i));
-			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   std::bind(accessRegister, i));
-			module.addExternalVariable(registerNamesDAR[i] + ".u16", &lemon::PredefinedDataTypes::UINT_16, std::bind(accessRegister, i));
-			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  std::bind(accessRegister, i));
-			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
-			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  std::bind(accessRegister, i));
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+			const std::string& regName = registerNamesDAR[i];
+			lemon::VariableAccessorType accessor = accessRegisterWrappers[i];
+			module.addExternalVariable(regName,			 &lemon::PredefinedDataTypes::UINT_32, accessor);
+			module.addExternalVariable(regName + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  accessor);
+			module.addExternalVariable(regName + ".s8",  &lemon::PredefinedDataTypes::INT_8,   accessor);
+			module.addExternalVariable(regName + ".u16", &lemon::PredefinedDataTypes::UINT_16, accessor);
+			module.addExternalVariable(regName + ".s16", &lemon::PredefinedDataTypes::INT_16,  accessor);
+			module.addExternalVariable(regName + ".u32", &lemon::PredefinedDataTypes::UINT_32, accessor);
+			module.addExternalVariable(regName + ".s32", &lemon::PredefinedDataTypes::INT_32,  accessor);
+		#else
+			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, [i]() { return accessRegister(i); });
+			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  [i]() { return accessRegister(i); });
+			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   [i]() { return accessRegister(i); });
+			module.addExternalVariable(registerNamesDAR[i] + ".u16", &lemon::PredefinedDataTypes::UINT_16, [i]() { return accessRegister(i); });
+			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  [i]() { return accessRegister(i); });
+			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, [i]() { return accessRegister(i); });
+			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  [i]() { return accessRegister(i); });
+		#endif
 		}
 
 		// Query flags
@@ -1112,11 +1178,19 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug log output
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Log", &lemon::PredefinedDataTypes::UINT_32);
-			var.mSetter = std::bind(logSetter, std::placeholders::_1, false);
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+			var.mSetter = &logSetter_false;
+		#else
+			var.mSetter = [](int64 value) { logSetter(value, false); };
+		#endif
 		}
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("LogDec", &lemon::PredefinedDataTypes::UINT_32);
-			var.mSetter = std::bind(logSetter, std::placeholders::_1, true);
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+			var.mSetter = &logSetter_true;
+		#else
+			var.mSetter = [](int64 value) { logSetter(value, true); };
+		#endif
 		}
 
 		module.addNativeFunction("debugLog", lemon::wrap(&debugLog), defaultFlags)
@@ -1134,10 +1208,21 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 
 
 		// Debug keys
+	#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+		lemon::VariableGetterType debugKeyGetterWrappers[10] = {
+			&debugKeyGetter_wrapper<0>, &debugKeyGetter_wrapper<1>, &debugKeyGetter_wrapper<2>, &debugKeyGetter_wrapper<3>, &debugKeyGetter_wrapper<4>,
+			&debugKeyGetter_wrapper<5>, &debugKeyGetter_wrapper<6>, &debugKeyGetter_wrapper<7>, &debugKeyGetter_wrapper<8>, &debugKeyGetter_wrapper<9>
+		};
+	#endif
+
 		for (int i = 0; i < 10; ++i)
 		{
-			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::to_string(i), &lemon::PredefinedDataTypes::UINT_8);
-			var.mGetter = std::bind(debugKeyGetter, i);
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable(*String(0, "Key%d", i), &lemon::PredefinedDataTypes::UINT_8);
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+			var.mGetter = debugKeyGetterWrappers[i];
+		#else
+			var.mGetter = [i]() { return debugKeyGetter(i); };
+		#endif
 		}
 
 
