@@ -8,6 +8,7 @@
 
 #include "lemon/pch.h"
 #include "lemon/utility/FlyweightString.h"
+#include <string>
 
 
 namespace lemon
@@ -63,6 +64,12 @@ namespace lemon
 		if (serializer.isReading())
 		{
 			const std::string_view stringView = serializer.readStringView(0xffff);
+			static int logCounter = 0;
+			if (logCounter < 20)
+			{
+				RMX_LOG_INFO("FlyweightString::serialize #" << logCounter << ": " << std::string(stringView.data(), stringView.size()));
+				++logCounter;
+			}
 			set(rmx::getMurmur2_64(stringView), stringView);
 		}
 		else

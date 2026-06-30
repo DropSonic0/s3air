@@ -12,6 +12,8 @@
 #include "lemon/runtime/RuntimeOpcodeContext.h"
 #include "lemon/program/Program.h"
 #include "lemon/program/StringRef.h"
+#include "lemon/program/Opcode.h"
+#include <string>
 
 
 namespace lemon
@@ -107,6 +109,11 @@ namespace lemon
 
 
 	Runtime::Runtime()
+		: mExecuteStepsLogCounter(0)
+		, mCallReturnLogCounter(0)
+		, mNativeCallLogCounter(0)
+		, mJumpLogCounter(0)
+		, mMiscLogCounter(0)
 	{
 		// Create default control flow
 		mControlFlows.push_back(new ControlFlow(*this));
@@ -192,6 +199,7 @@ namespace lemon
 
 	void Runtime::buildAllRuntimeFunctions()
 	{
+			RMX_LOG_INFO("Runtime: Building all runtime functions...");
 		for (Function* function : mProgram->getFunctions())
 		{
 			if (function->getType() == Function::Type::SCRIPT)
@@ -199,6 +207,7 @@ namespace lemon
 				getRuntimeFunction(*static_cast<ScriptFunction*>(function));
 			}
 		}
+			RMX_LOG_INFO("Runtime: All runtime functions built successfully.");
 	}
 
 	RuntimeFunction* Runtime::getRuntimeFunction(const ScriptFunction& scriptFunction)
@@ -274,6 +283,12 @@ namespace lemon
 			RMX_CHECK(false, "Reached var stack limit, probably due to recursive function calls", RMX_REACT_THROW);
 		}
 
+		if (mCallReturnLogCounter++ % 100 == 0)
+		{
+			const std::string name(runtimeFunction.mFunction->getName().getString().data(), runtimeFunction.mFunction->getName().getString().size());
+			RMX_LOG_INFO("Runtime: -> calling SCRIPT '" << name << "'");
+		}
+
 		// Push new state to call stack
 		ControlFlow::State& state = *mSelectedControlFlow->mCallStack.add();
 		state.mRuntimeFunction = &runtimeFunction;
@@ -289,7 +304,7 @@ namespace lemon
 			case Function::Type::SCRIPT:
 			{
 				const ScriptFunction& func = static_cast<const ScriptFunction&>(function);
-				callRuntimeFunction(*getRuntimeFunction(func));
+				callRuntimeFunction(*getRuntimeFunction(func), baseCallIndex);
 				break;
 			}
 
@@ -297,7 +312,18 @@ namespace lemon
 			{
 				// Directly execute it
 				const NativeFunction& func = static_cast<const NativeFunction&>(function);
-				func.execute(NativeFunction::Context(*mSelectedControlFlow));
+				const bool doLog = (mNativeCallLogCounter++ % 100 == 0);
+				if (doLog)
+				{
+					const std::string name(func.getName().getString().data(), func.getName().getString().size());
+					RMX_LOG_INFO("Runtime: -> calling NATIVE '" << name << "'");
+					func.execute(NativeFunction::Context(*mSelectedControlFlow));
+					RMX_LOG_INFO("Runtime: <- returned from NATIVE '" << name << "'");
+				}
+				else
+				{
+					func.execute(NativeFunction::Context(*mSelectedControlFlow));
+				}
 				break;
 			}
 		}
@@ -397,6 +423,11 @@ namespace lemon
 
 	void Runtime::executeSteps(ExecuteConnector& result, size_t stepsLimit, size_t minimumCallStackSize)
 	{
+		if (mMiscLogCounter++ % 100 == 0)
+		{
+			RMX_LOG_INFO("Runtime::executeSteps (entry #" << (uint32)mMiscLogCounter << ", stack=" << (uint32)mSelectedControlFlow->mCallStack.count << ")");
+		}
+
 		result.mStepsExecuted = 0;
 		result.mResult = ExecuteResult::Result::OKAY;
 
@@ -449,6 +480,28 @@ namespace lemon
 			bool stayInsideInnerLoop = true;
 			while (stayInsideInnerLoop)
 			{
+				if (mExecuteStepsLogCounter++ % 50 == 0)
+				{
+					const std::string_view nameView = state.mRuntimeFunction->mFunction->getName().getString();
+					const uint32 relativePC = (uint32)((const uint8*)context.mOpcode - (const uint8*)state.mRuntimeFunction->getFirstRuntimeOpcode());
+					const uint64 TOS = (mSelectedControlFlow->mValueStackPtr > mSelectedControlFlow->mValueStackStart) ? (uint64)*(mSelectedControlFlow->mValueStackPtr - 1) : 0;
+					const uint32 opType = (uint32)context.mOpcode->mOpcodeType;
+
+					if (opType == (uint32)Opcode::Type::PUSH_CONSTANT)
+					{
+							RMX_LOG_INFO("Runtime: #" << (uint32)mExecuteStepsLogCounter << " '" << std::string(nameView.data(), nameView.size()) << "' relPC=" << (uint32)relativePC << " Op=PUSH_CONSTANT val=" << (int64)context.mOpcode->getParameter<int64>() << " TOS=" << (uint64)TOS << " steps=" << (uint32)result.mStepsExecuted);
+					}
+					else if (opType == (uint32)Opcode::Type::GET_VARIABLE_VALUE || opType == (uint32)Opcode::Type::SET_VARIABLE_VALUE)
+					{
+						const uint32 varID = (uint32)context.mOpcode->getParameter<uint32>();
+							RMX_LOG_INFO("Runtime: #" << (uint32)mExecuteStepsLogCounter << " '" << std::string(nameView.data(), nameView.size()) << "' relPC=" << (uint32)relativePC << " Op=" << (opType == (uint32)Opcode::Type::GET_VARIABLE_VALUE ? "GET_VAR" : "SET_VAR") << " ID=" << (uint32)varID << " TOS=" << (uint64)TOS << " steps=" << (uint32)result.mStepsExecuted);
+					}
+					else
+					{
+							RMX_LOG_INFO("Runtime: #" << (uint32)mExecuteStepsLogCounter << " '" << std::string(nameView.data(), nameView.size()) << "' relPC=" << (uint32)relativePC << " Op=" << Opcode::GetTypeString(context.mOpcode->mOpcodeType) << " TOS=" << (uint64)TOS << " steps=" << (uint32)result.mStepsExecuted);
+					}
+				}
+
 				while (context.mOpcode->mSuccessiveHandledOpcodes > 0)
 				{
 					// Optimization: Do multiple opcodes in a row without overheads if possible
@@ -482,7 +535,13 @@ namespace lemon
 					case Opcode::Type::JUMP_CONDITIONAL:
 					{
 						--mSelectedControlFlow->mValueStackPtr;
-						if (*mSelectedControlFlow->mValueStackPtr != 0)
+						const bool condition = (*mSelectedControlFlow->mValueStackPtr != 0);
+						if (mJumpLogCounter++ % 100 == 0)
+						{
+							RMX_LOG_INFO("Runtime: JUMP_CONDITIONAL cond=" << (uint32)condition);
+						}
+
+						if (condition)
 						{
 							context.mOpcode = context.mOpcode->mNext;
 							++result.mStepsExecuted;
@@ -495,12 +554,19 @@ namespace lemon
 					case Opcode::Type::JUMP:
 					{
 						state.mProgramCounter = reinterpret_cast<const uint8*>((uintptr_t)context.mOpcode->getParameter<uint64>());
+						
+						if (mJumpLogCounter++ % 100 == 0)
+						{
+							const uint32 targetRelPC = (uint32)((const uint8*)state.mProgramCounter - (const uint8*)state.mRuntimeFunction->getFirstRuntimeOpcode());
+							RMX_LOG_INFO("Runtime: JUMP to relPC=" << (uint32)targetRelPC);
+						}
 
 						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
 						//  -> This is needed to prevent endless loops
 						++result.mStepsExecuted;
 						if (result.mStepsExecuted >= stepsLimit)
 						{
+							RMX_LOG_INFO("Runtime: stepsLimit reached (" << (uint32)result.mStepsExecuted << ")");
 							mActiveControlFlow = nullptr;
 							return;
 						}
@@ -512,7 +578,13 @@ namespace lemon
 					case Opcode::Type::JUMP_SWITCH:
 					{
 						// Jump if top of stack is zero
-						if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
+						const bool doJump = (mSelectedControlFlow->mValueStackPtr[-1] == 0);
+						if (mJumpLogCounter++ % 100 == 0)
+						{
+							RMX_LOG_INFO("Runtime: JUMP_SWITCH val=" << (uint64)mSelectedControlFlow->mValueStackPtr[-1]);
+						}
+
+						if (doJump)
 						{
 							--mSelectedControlFlow->mValueStackPtr;
 							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>((uintptr_t)context.mOpcode->getParameter<uint64>());
@@ -531,6 +603,10 @@ namespace lemon
 					{
 						state.mProgramCounter = (uint8*)context.mOpcode->mNext;
 						const uint64 callTarget = context.mOpcode->getParameter<uint64>();
+						if (mCallReturnLogCounter++ % 100 == 0)
+						{
+							RMX_LOG_INFO("Runtime: CALL target signature " << callTarget);
+						}
 						++result.mStepsExecuted;
 
 						const Function* func = handleResultCall(*context.mOpcode);
@@ -550,6 +626,12 @@ namespace lemon
 
 					case Opcode::Type::RETURN:
 					{
+						if (mCallReturnLogCounter++ % 100 == 0)
+						{
+							const ControlFlow::State& s = mSelectedControlFlow->mCallStack.back();
+							const std::string name(s.mRuntimeFunction->mFunction->getName().getString().data(), s.mRuntimeFunction->mFunction->getName().getString().size());
+							RMX_LOG_INFO("Runtime: <- returned from SCRIPT '" << name << "' (stack=" << (uint32)mSelectedControlFlow->mCallStack.count << ")");
+						}
 						mSelectedControlFlow->mLocalVariablesSize = mSelectedControlFlow->mCallStack.back().mLocalVariablesStart;
 						mSelectedControlFlow->mCallStack.pop_back();
 						++result.mStepsExecuted;
@@ -575,10 +657,12 @@ namespace lemon
 						state.mProgramCounter = (uint8*)context.mOpcode + context.mOpcode->mSize;
 						--mSelectedControlFlow->mValueStackPtr;
 						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
+						RMX_LOG_INFO("Runtime: -> EXTERNAL_CALL to " << rmx::hexString(targetAddress, 16));
 						++result.mStepsExecuted;
 
 						if (result.handleExternalCall(targetAddress))
 						{
+							RMX_LOG_INFO("Runtime: <- returned from EXTERNAL_CALL");
 							// Restart the outer loop now that the running function has changed
 							stayInsideInnerLoop = false;
 							break;
@@ -596,10 +680,12 @@ namespace lemon
 						--mSelectedControlFlow->mValueStackPtr;
 						returnFromFunction();
 						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
+						RMX_LOG_INFO("Runtime: -> EXTERNAL_JUMP to " << rmx::hexString(targetAddress, 16));
 						++result.mStepsExecuted;
 
 						if (result.handleExternalJump(targetAddress))
 						{
+							RMX_LOG_INFO("Runtime: <- returned from EXTERNAL_JUMP");
 							// Restart the outer loop now that the running function has changed
 							stayInsideInnerLoop = false;
 							break;
@@ -619,6 +705,7 @@ namespace lemon
 		}
 
 		// Outer loop was exited by a stop signal
+		RMX_LOG_INFO("Runtime: executeSteps returning (halt or stepsLimit reached)");
 		mActiveControlFlow = nullptr;
 	}
 

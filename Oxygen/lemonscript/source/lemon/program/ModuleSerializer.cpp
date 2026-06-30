@@ -64,6 +64,8 @@ namespace lemon
 
 	bool ModuleSerializer::serialize(Module& module, VectorBinarySerializer& outerSerializer, const GlobalsLookup& globalsLookup, uint32 dependencyHash, uint32 appVersion)
 	{
+		RMX_LOG_INFO("ModuleSerializer::serialize - " << (outerSerializer.isReading() ? "Reading" : "Writing") << " module (depHash=" << dependencyHash << ", appVer=" << appVersion << ")");
+
 		// Format version history:
 		//  - 0x00 = First version, no signature yet
 		//  - 0x01 = Added signature and version number + serialize global variable initial values
@@ -119,17 +121,21 @@ namespace lemon
 		std::vector<uint8> uncompressed;
 		if (outerSerializer.isReading())
 		{
+			RMX_LOG_INFO("Zlib decoding module...");
 			if (!ZlibDeflate::decode(uncompressed, outerSerializer.peek(), outerSerializer.getRemaining()))
 				return false;
 			outerSerializer.skip(outerSerializer.getRemaining());
+			RMX_LOG_INFO("Zlib decoding done, size=" << (uint32)uncompressed.size());
 		}
 		VectorBinarySerializer serializer(outerSerializer.isReading(), uncompressed);
 
 		// Serialize module
 		serializer & module.mFirstFunctionID;
 		serializer & module.mFirstVariableID;
+		RMX_LOG_INFO("Module IDs: firstFunction=" << module.mFirstFunctionID << ", firstVariable=" << module.mFirstVariableID);
 
 		// Serialize source file info
+		RMX_LOG_INFO("ModuleSerializer: Source file info...");
 		{
 			size_t numberOfSourceFiles = module.mAllSourceFiles.size();
 			serializer.serializeAs<uint16>(numberOfSourceFiles);
@@ -153,6 +159,7 @@ namespace lemon
 		}
 
 		// Serialize preprocessor definitions
+		RMX_LOG_INFO("ModuleSerializer: Preprocessor definitions...");
 		{
 			size_t numberOfConstants = module.mPreprocessorDefinitions.size();
 			serializer.serializeAs<uint16>(numberOfConstants);
@@ -178,9 +185,11 @@ namespace lemon
 		}
 
 		// Serialize functions
+		RMX_LOG_INFO("ModuleSerializer: Functions...");
 		serializeFunctions(module, serializer, globalsLookup);
 
 		// Serialize global variables
+		RMX_LOG_INFO("ModuleSerializer: Global variables...");
 		if (serializer.isReading())
 		{
 			const uint32 numberOfUserDefined = serializer.read<uint32>();
@@ -224,6 +233,7 @@ namespace lemon
 		}
 
 		// Serialize constants
+		RMX_LOG_INFO("ModuleSerializer: Constants...");
 		{
 			size_t numberOfConstants = module.mConstants.size();
 			serializer.serializeAs<uint16>(numberOfConstants);
@@ -251,6 +261,7 @@ namespace lemon
 		}
 
 		// Serialize constant arrays
+		RMX_LOG_INFO("ModuleSerializer: Constant arrays...");
 		{
 			size_t numberOfConstantArrays = module.mConstantArrays.size();
 			serializer.serializeAs<uint16>(numberOfConstantArrays);
@@ -280,6 +291,7 @@ namespace lemon
 		}
 
 		// Serialize defines
+		RMX_LOG_INFO("ModuleSerializer: Defines...");
 		{
 			size_t numberOfDefines = module.mDefines.size();
 			serializer.serializeAs<uint16>(numberOfDefines);
@@ -308,6 +320,7 @@ namespace lemon
 		}
 
 		// Serialize string literals
+		RMX_LOG_INFO("ModuleSerializer: String literals...");
 		{
 			serializer.serializeArraySize(module.mStringLiterals);
 			for (FlyweightString& str : module.mStringLiterals)
@@ -317,6 +330,7 @@ namespace lemon
 		}
 
 		// Serialize data types
+		RMX_LOG_INFO("ModuleSerializer: Data types...");
 		{
 			size_t numberOfDataTypes = module.mDataTypes.size();
 			serializer.serializeAs<uint16>(numberOfDataTypes);
@@ -349,6 +363,8 @@ namespace lemon
 			outerSerializer.write(&compressed[0], compressed.size());
 		}
 
+		RMX_LOG_INFO("ModuleSerializer::serialize - Done");
+
 		return true;
 	}
 
@@ -356,6 +372,7 @@ namespace lemon
 	{
 		uint32 numberOfFunctions = (uint32)module.mFunctions.size();
 		serializer & numberOfFunctions;
+		RMX_LOG_INFO("ModuleSerializer::serializeFunctions - count=" << (uint32)numberOfFunctions);
 
 		enum FunctionSerializationFlags
 		{
@@ -375,6 +392,8 @@ namespace lemon
 		{
 			if (serializer.isReading())
 			{
+				if (i % 500 == 0) RMX_LOG_INFO(" - Reading function #" << (uint32)i);
+
 				const uint8 flags = serializer.read<uint8>();
 				const Function::Type type = (flags & FLAG_NATIVE_FUNCTION) ? Function::Type::NATIVE : Function::Type::SCRIPT;
 
@@ -465,6 +484,8 @@ namespace lemon
 
 						opcode.mLineNumber = (lineNumberBits == 31) ? serializer.read<uint32>() : (lastLineNumber + lineNumberBits);
 						lastLineNumber = opcode.mLineNumber;
+
+						if (k % 2000 == 0 && count > 2000) RMX_LOG_INFO("   - Opcode " << (uint32)k << " / " << (uint32)count);
 					}
 
 					// Local variables

@@ -85,6 +85,13 @@ namespace lemon
 	friend struct RuntimeOpcodeContext;
 
 	public:
+		unsigned int mExecuteStepsLogCounter;
+		unsigned int mCallReturnLogCounter;
+		unsigned int mNativeCallLogCounter;
+		unsigned int mJumpLogCounter;
+		unsigned int mMiscLogCounter;
+
+	public:
 		struct ExecuteResult
 		{
 			enum class Result

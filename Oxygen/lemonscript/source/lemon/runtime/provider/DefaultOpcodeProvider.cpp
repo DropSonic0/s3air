@@ -13,6 +13,7 @@
 #include "lemon/runtime/OpcodeExecUtils.h"
 #include "lemon/program/OpcodeHelper.h"
 #include "lemon/program/Program.h"
+#include <string>
 
 
 namespace lemon
@@ -124,14 +125,24 @@ namespace lemon
 
 		static void exec_PUSH_CONSTANT(const RuntimeOpcodeContext context)
 		{
-			*context.mControlFlow->mValueStackPtr = context.getParameter<int64>();
+			const int64 value = context.getParameter<int64>();
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: PUSH_CONSTANT val=" << value);
+			}
+			*context.mControlFlow->mValueStackPtr = value;
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		static void exec_GET_VARIABLE_VALUE_LOCAL(const RuntimeOpcodeContext context)
 		{
 			const uint32 variableId = context.getParameter<uint32>();
-			*context.mControlFlow->mValueStackPtr = context.readLocalVariable<int64>(variableId);
+			const int64 value = context.readLocalVariable<int64>(variableId);
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: GET_VAR LOCAL id=" << variableId << " val=" << value);
+			}
+			*context.mControlFlow->mValueStackPtr = value;
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -139,14 +150,24 @@ namespace lemon
 		{
 			const uint32 variableId = context.getParameter<uint32>();
 			const GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
-			*context.mControlFlow->mValueStackPtr = variable.getValue();
+			const int64 value = variable.getValue();
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: GET_VAR USER id=" << variableId << " val=" << value);
+			}
+			*context.mControlFlow->mValueStackPtr = value;
 			++context.mControlFlow->mValueStackPtr;
 		}
 
 		template<typename T>
 		static void exec_GET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
-			*context.mControlFlow->mValueStackPtr = *context.getParameter<T*>();
+			const int64 value = (int64)(*context.getParameter<T*>());
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: GET_VAR EXTERNAL val=" << value);
+			}
+			*context.mControlFlow->mValueStackPtr = value;
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -154,6 +175,10 @@ namespace lemon
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
 			const uint32 variableId = context.getParameter<uint32>();
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: SET_VAR LOCAL id=" << variableId << " val=" << value);
+			}
 			context.writeLocalVariable<int64>(variableId, value);
 		}
 
@@ -161,6 +186,10 @@ namespace lemon
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
 			const uint32 variableId = context.getParameter<uint32>();
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: SET_VAR USER id=" << variableId << " val=" << value);
+			}
 			GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
 			variable.setValue(value);
 		}
@@ -169,6 +198,10 @@ namespace lemon
 		static void exec_SET_VARIABLE_VALUE_EXTERNAL(const RuntimeOpcodeContext context)
 		{
 			const int64 value = *(context.mControlFlow->mValueStackPtr-1);
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: SET_VAR EXTERNAL val=" << value);
+			}
 			*context.getParameter<T*>() = (T)value;
 		}
 
@@ -176,14 +209,24 @@ namespace lemon
 		static void exec_READ_MEMORY(const RuntimeOpcodeContext context)
 		{
 			const uint64 address = *(context.mControlFlow->mValueStackPtr-1);
-			*(context.mControlFlow->mValueStackPtr-1) = OpcodeExecUtils::readMemory<T>(*context.mControlFlow, address);
+			const T value = OpcodeExecUtils::readMemory<T>(*context.mControlFlow, address);
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: READ_MEMORY addr=" << address << " val=" << (int64)value);
+			}
+			*(context.mControlFlow->mValueStackPtr-1) = (int64)value;
 		}
 
 		template<typename T>
 		static void exec_READ_MEMORY_NOCONSUME(const RuntimeOpcodeContext context)
 		{
 			const uint64 address = *(context.mControlFlow->mValueStackPtr-1);
-			*context.mControlFlow->mValueStackPtr = OpcodeExecUtils::readMemory<T>(*context.mControlFlow, address);
+			const T value = OpcodeExecUtils::readMemory<T>(*context.mControlFlow, address);
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: READ_MEMORY_NC addr=" << address << " val=" << (int64)value);
+			}
+			*context.mControlFlow->mValueStackPtr = (int64)value;
 			++context.mControlFlow->mValueStackPtr;
 		}
 
@@ -192,7 +235,12 @@ namespace lemon
 		{
 			--context.mControlFlow->mValueStackPtr;
 			const uint64 address = *context.mControlFlow->mValueStackPtr;
-			OpcodeExecUtils::writeMemory<T>(*context.mControlFlow, address, (T)(*(context.mControlFlow->mValueStackPtr-1)));
+			const T value = (T)(*(context.mControlFlow->mValueStackPtr-1));
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: WRITE_MEMORY addr=" << address << " val=" << (int64)value);
+			}
+			OpcodeExecUtils::writeMemory<T>(*context.mControlFlow, address, value);
 		}
 
 		template<typename T>
@@ -201,8 +249,12 @@ namespace lemon
 			--context.mControlFlow->mValueStackPtr;
 			const uint64 address = *(context.mControlFlow->mValueStackPtr - 1);
 			const T value = (T)(*context.mControlFlow->mValueStackPtr);
+			if (context.mControlFlow->getRuntime().mMiscLogCounter++ % 200 == 0)
+			{
+				RMX_LOG_INFO("Runtime: WRITE_MEMORY_EX addr=" << address << " val=" << (int64)value);
+			}
 			OpcodeExecUtils::writeMemory<T>(*context.mControlFlow, address, value);
-			*(context.mControlFlow->mValueStackPtr - 1) = value;	// Replace top-of-stack (still the address) with the value
+			*(context.mControlFlow->mValueStackPtr - 1) = (int64)value;	// Replace top-of-stack (still the address) with the value
 		}
 
 		template<typename S, typename T>
@@ -359,7 +411,18 @@ namespace lemon
 		static void exec_INLINE_NATIVE_CALL(const RuntimeOpcodeContext context)
 		{
 			const NativeFunction& func = *context.mOpcode->getParameter<const NativeFunction*>();
-			func.execute(NativeFunction::Context(*context.mControlFlow));
+			const bool doLog = (context.mControlFlow->getRuntime().mNativeCallLogCounter++ % 100 == 0);
+			if (doLog)
+			{
+				const std::string name(func.getName().getString().data(), func.getName().getString().size());
+				RMX_LOG_INFO("Runtime: -> calling INLINE NATIVE '" << name << "'");
+				func.execute(NativeFunction::Context(*context.mControlFlow));
+				RMX_LOG_INFO("Runtime: <- returned from INLINE NATIVE '" << name << "'");
+			}
+			else
+			{
+				func.execute(NativeFunction::Context(*context.mControlFlow));
+			}
 		}
 
 		static void exec_NOT_HANDLED(const RuntimeOpcodeContext context)
