@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -23,14 +23,11 @@
 #include "oxygen/application/modding/ModManager.h"
 #include "oxygen/helper/DrawerHelper.h"
 #include "oxygen/helper/FileHelper.h"
-#include "oxygen/platform/PlatformFunctions.h"
 
 
 namespace
 {
-#if !defined(PLATFORM_PS3)
 	static constexpr int BACK = 0xffff;
-#endif
 
 	void moveFloatTowards(float& value, float target, float maxStep)
 	{
@@ -43,13 +40,6 @@ namespace
 		}
 	}
 }
-
-
-#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MAC)
-	#define DIRECTORY_STRING "folder"
-#else
-	#define DIRECTORY_STRING "directory"
-#endif
 
 
 ModsMenu::ModsMenu(MenuBackground& menuBackground) :
@@ -89,7 +79,7 @@ void ModsMenu::onFadeIn()
 	mState = State::APPEAR;
 	mFadeInDelay = 0.2f;
 
-	mMenuBackground->showPreview(false);
+	mMenuBackground->showPreview(false, false);
 	mMenuBackground->startTransition(MenuBackground::Target::ALTER);
 
 	AudioOut::instance().setMenuMusic(0x2f);
@@ -111,22 +101,6 @@ void ModsMenu::initialize()
 	std::vector<Mod*> allMods = modManager.getAllMods();
 	std::sort(allMods.begin(), allMods.end(), [](const Mod* a, const Mod* b) { return (a->mDisplayName < b->mDisplayName); } );
 	const std::vector<Mod*>& activeMods = modManager.getActiveMods();
-
-#if 0
-	// Check mod dependencies
-	for (Mod* mod : allMods)
-	{
-		for (const Mod::OtherMod& otherMod : mod->mOtherMods)
-		{
-			const uint64 idHash = rmx::getMurmur2_64(otherMod.mModID);
-			Mod* foundMod = modManager.findModByIDHash(idHash);
-			if (nullptr == foundMod && otherMod.mIsRequired)
-			{
-				// TODO: Add an error "Requires mod XYZ"
-			}
-		}
-	}
-#endif
 
 	// Rebuild list of mods
 	if (anyChange || (mModEntries.empty() && !allMods.empty()))
@@ -192,7 +166,6 @@ void ModsMenu::initialize()
 				Bitmap* sourceLarge = !icon64px.empty() ? &icon64px : !icon16px.empty() ? &icon16px : nullptr;
 				if (nullptr != sourceLarge)
 				{
-					EngineMain::instance().getDrawer().createTexture(res.mLargeIcon);
 					res.mLargeIcon.accessBitmap().rescale(*sourceLarge, 64, 64);
 					res.mLargeIcon.bitmapUpdated();
 				}
@@ -200,11 +173,9 @@ void ModsMenu::initialize()
 				Bitmap* sourceSmall = !icon16px.empty() ? &icon16px : !icon64px.empty() ? &icon64px : nullptr;
 				if (nullptr != sourceSmall)
 				{
-					EngineMain::instance().getDrawer().createTexture(res.mSmallIcon);
 					res.mSmallIcon.accessBitmap().rescale(*sourceSmall, 16, 16);
 					res.mSmallIcon.bitmapUpdated();
 
-					EngineMain::instance().getDrawer().createTexture(res.mSmallIconGray);
 					{
 						Bitmap& bitmap = res.mSmallIconGray.accessBitmap();
 						bitmap = res.mSmallIcon.accessBitmap();
@@ -249,6 +220,12 @@ void ModsMenu::initialize()
 			entries.clear();
 			entries.reserve(allMods.size() - activeMods.size());
 
+		#if 0
+			// Filter
+			entries.addEntry<InputFieldMenuEntry>().initEntry(Vec2i(200, 15), L"", L"Filter mods...");
+			entries.mSelectedEntryIndex = 1;
+		#endif
+
 			// Add inactive mods (in no special order)
 			for (size_t index = 0; index < mModEntries.size(); ++index)
 			{
@@ -264,13 +241,7 @@ void ModsMenu::initialize()
 	}
 	else
 	{
-		GameMenuEntries& entries = mTabs[0].mMenuEntries;
-	#if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_WEB) && !defined(PLATFORM_IOS)
-		entries.addEntry("Open mods " DIRECTORY_STRING, 0xfff0);
-	#endif
-		entries.addEntry("Open Manual in web browser", 0xfff1);
-		entries.addEntry("Back", 0xffff);
-
+		mModsStartPage.initialize();
 		mActiveTab = 0;
 	}
 
@@ -305,226 +276,220 @@ void ModsMenu::update(float timeElapsed)
 	mActiveTabAnimated += clamp((float)mActiveTab - mActiveTabAnimated, -timeElapsed * 6.0f, timeElapsed * 6.0f);
 	bool preventScrolling = false;
 
-	GameMenuEntries& menuEntries = mTabs[mActiveTab].mMenuEntries;
-
 	// Don't react to input during transitions
 	if (mState == State::SHOW)
 	{
 		const InputManager::ControllerScheme& keys = InputManager::instance().getController(0);
-		enum class ButtonEffect
-		{
-			NONE,
-			ACCEPT,
-			SWITCH_TAB,
-			TOGGLE_INFO,
-			BACK
-		};
-		ButtonEffect buttonEffect;
+
 		if (mHasAnyMods)
 		{
-			buttonEffect = (keys.Right.justPressed() && mActiveTab == 0) ? ButtonEffect::SWITCH_TAB :
-						   (keys.Left.justPressed() && mActiveTab == 1) ? ButtonEffect::SWITCH_TAB :
-						   (keys.Y.justPressed()) ? ButtonEffect::TOGGLE_INFO :
-						   (keys.Start.justPressed() || keys.Back.justPressed() || keys.B.justPressed()) ? ButtonEffect::BACK : ButtonEffect::NONE;
-		}
-		else
-		{
-			buttonEffect = (keys.Start.justPressed() || keys.A.justPressed()) ? ButtonEffect::ACCEPT :
-						   (keys.Back.justPressed() || keys.B.justPressed()) ? ButtonEffect::BACK : ButtonEffect::NONE;
-		}
+			GameMenuEntries& menuEntries = mTabs[mActiveTab].mMenuEntries;
 
-		// Update menu entries
-		const int previousSelectedEntryIndex = menuEntries.mSelectedEntryIndex;
-		GameMenuEntries::UpdateResult result = GameMenuEntries::UpdateResult::NONE;
-
-		if (keys.X.isPressed() && (keys.Up.justPressedOrRepeat() || keys.Down.justPressedOrRepeat()))
-		{
-			// Quick navigation while holding X (can be combined with mod movement)
-			const int entryChange = menuEntries.getEntryChangeByInput();
-			if (entryChange != 0)
+			bool processInput = true;
+			if (menuEntries.hasSelected() && menuEntries.selected().is<InputFieldMenuEntry>())
 			{
-				static constexpr int NUM_QUICK_NAV_STEPS = 3;
-				for (int k = 0; k < NUM_QUICK_NAV_STEPS; ++k)
-				{
-					if (!menuEntries.changeSelectedIndex(entryChange, false))
-						break;
-				}
-				result = GameMenuEntries::UpdateResult::ENTRY_CHANGED;
+				processInput = keys.Up.justPressed() || keys.Down.justPressed();
 			}
-		}
-		else
-		{
-			result = menuEntries.update();
-		}
 
-		if (result != GameMenuEntries::UpdateResult::NONE)
-		{
-			bool playSound = true;
-			if (result == GameMenuEntries::UpdateResult::ENTRY_CHANGED)
+			if (processInput)
 			{
-				if (keys.A.isPressed())
+				enum class ButtonEffect
 				{
-					const int diff = menuEntries.mSelectedEntryIndex - previousSelectedEntryIndex;
-					if (diff < 0 && keys.Up.isPressed())
+					NONE,
+					SWITCH_TAB,
+					TOGGLE_INFO,
+					BACK
+				};
+				const ButtonEffect buttonEffect = (keys.Right.justPressed() && mActiveTab == 0) ? ButtonEffect::SWITCH_TAB :
+												  (keys.Left.justPressed() && mActiveTab == 1) ? ButtonEffect::SWITCH_TAB :
+												  (keys.Y.justPressed()) ? ButtonEffect::TOGGLE_INFO :
+												  (keys.Start.justPressed() || keys.Back.justPressed() || keys.B.justPressed()) ? ButtonEffect::BACK : ButtonEffect::NONE;
+
+				// Update menu entries
+				const int previousSelectedEntryIndex = menuEntries.mSelectedEntryIndex;
+				GameMenuEntries::UpdateResult result = GameMenuEntries::UpdateResult::NONE;
+
+				if (keys.X.isPressed() && (keys.Up.justPressedOrRepeat() || keys.Down.justPressedOrRepeat()))
+				{
+					// Quick navigation while holding X (can be combined with mod movement)
+					const int entryChange = menuEntries.getEntryChangeByInput();
+					if (entryChange != 0)
 					{
-						const int indexA = previousSelectedEntryIndex;
-						const int indexB = menuEntries.mSelectedEntryIndex;
-
-						// Exchange entry with previous one, effectively moving that one
-						for (int i = indexA; i > indexB; --i)
-							menuEntries.swapEntries(i, i - 1);
-
-						if (mActiveTab == 0)
+						const constexpr int NUM_QUICK_NAV_STEPS = 3;
+						for (int k = 0; k < NUM_QUICK_NAV_STEPS; ++k)
 						{
-							for (int i = indexA; i >= indexB; --i)
-								refreshDependencies(static_cast<ModMenuEntry&>(menuEntries[i]), i);
+							if (!menuEntries.changeSelectedIndex(entryChange, false))
+								break;
 						}
-
-						// For animation
-						for (int i = indexA; i > indexB; --i)
-							menuEntries[i].mAnimation.mOffset.y = -1.0f;
-						menuEntries[indexB].mAnimation.mOffset.y = -(float)diff;
+						result = GameMenuEntries::UpdateResult::ENTRY_CHANGED;
 					}
-					else if (diff > 0 && keys.Down.isPressed())
-					{
-						const int indexA = previousSelectedEntryIndex;
-						const int indexB = menuEntries.mSelectedEntryIndex;
-
-						// Exchange entry with previous one, effectively moving that one
-						for (int i = indexA; i < indexB; ++i)
-							menuEntries.swapEntries(i, i + 1);
-
-						if (mActiveTab == 0)
-						{
-							for (int i = indexA; i <= indexB; ++i)
-								refreshDependencies(static_cast<ModMenuEntry&>(menuEntries[i]), i);
-						}
-
-						// For animation
-						for (int i = indexA; i < indexB; ++i)
-							menuEntries[i].mAnimation.mOffset.y = 1.0f;
-						menuEntries[indexB].mAnimation.mOffset.y = -(float)diff;
-					}
-					else
-					{
-						// Reset change
-						menuEntries.mSelectedEntryIndex = previousSelectedEntryIndex;
-						playSound = false;
-					}
-				}
-			}
-
-			if (playSound)
-			{
-				playMenuSound(0x5b);
-			}
-		}
-
-		switch (buttonEffect)
-		{
-			case ButtonEffect::ACCEPT:
-			{
-				if (menuEntries.hasSelected())
-				{
-					switch (menuEntries.selected().mData)
-					{
-						case 0xfff0:
-							PlatformFunctions::openDirectoryExternal(Configuration::instance().mAppDataPath + L"mods/");
-							break;
-
-						case 0xfff1:
-							PlatformFunctions::openURLExternal("https://sonic3air.org/Manual.pdf");
-							break;
-
-						case 0xffff:
-							goBack();
-							break;
-					}
-				}
-				break;
-			}
-
-			case ButtonEffect::SWITCH_TAB:
-			{
-				if (keys.A.isPressed())
-				{
-					// Make entry active or inactive
-					//  -> Note that mActiveTab is still the old tab here
-					if (menuEntries.empty())
-						break;
-
-					const bool makeActive = (mActiveTab != 0);
-					Tab& newTab = mTabs[1 - mActiveTab];
-
-					GameMenuEntry& entry = menuEntries.selected();
-					ModEntry& modEntry = mModEntries[entry.mData];
-
-					if (makeActive && modEntry.mMod->mState == Mod::State::FAILED)
-					{
-						playMenuSound(0xb2);
-						break;
-					}
-
-					modEntry.mMakeActive = makeActive;
-
-					newTab.mMenuEntries.insertByReference(entry, newTab.mMenuEntries.mSelectedEntryIndex);
-					menuEntries.erase(menuEntries.mSelectedEntryIndex);
-
-					if (!makeActive)
-					{
-						clearDependencies(static_cast<ModMenuEntry&>(entry));
-					}
-
-					// For animation
-					entry.mAnimation.mOffset.x = makeActive ? 1.0f : -1.0f;
-					for (size_t k = newTab.mMenuEntries.mSelectedEntryIndex + 1; k < newTab.mMenuEntries.size(); ++k)
-						newTab.mMenuEntries[k].mAnimation.mOffset.y = -1.0f;
-					for (size_t k = menuEntries.mSelectedEntryIndex; k < menuEntries.size(); ++k)
-						menuEntries[k].mAnimation.mOffset.y = 1.0f;
-
-					refreshAllDependencies();
-				}
-
-				playMenuSound(0x5b);
-
-				mActiveTab = 1 - mActiveTab;
-				preventScrolling = true;
-				refreshControlsDisplay();
-				break;
-			}
-
-			case ButtonEffect::TOGGLE_INFO:
-			{
-				mInfoOverlay.mShouldBeVisible = !mInfoOverlay.mShouldBeVisible;
-				break;
-			}
-
-			case ButtonEffect::BACK:
-			{
-				if (mInfoOverlay.mShouldBeVisible)
-				{
-					mInfoOverlay.mShouldBeVisible = false;
 				}
 				else
 				{
-					goBack();
+					result = menuEntries.update();
 				}
-				break;
+
+				if (result != GameMenuEntries::UpdateResult::NONE)
+				{
+					bool playSound = true;
+					if (result == GameMenuEntries::UpdateResult::ENTRY_CHANGED)
+					{
+						if (keys.A.isPressed())
+						{
+							int diff = menuEntries.mSelectedEntryIndex - previousSelectedEntryIndex;
+							if (!menuEntries.hasSelected() || !menuEntries.selected().is<ModMenuEntry>() || !menuEntries.isValidIndex(previousSelectedEntryIndex) || !menuEntries[previousSelectedEntryIndex].is<ModMenuEntry>())
+								diff = 0;
+
+							if (diff < 0 && keys.Up.isPressed())
+							{
+								const int indexA = previousSelectedEntryIndex;
+								const int indexB = menuEntries.mSelectedEntryIndex;
+
+								// Exchange entry with previous one, effectively moving that one
+								for (int i = indexA; i > indexB; --i)
+									menuEntries.swapEntries(i, i - 1);
+
+								if (mActiveTab == 0)
+								{
+									for (int i = indexA; i >= indexB; --i)
+										refreshDependencies(menuEntries[i].as<ModMenuEntry>(), i);
+								}
+
+								// For animation
+								for (int i = indexA; i > indexB; --i)
+									menuEntries[i].mAnimation.mOffset.y = -1.0f;
+								menuEntries[indexB].mAnimation.mOffset.y = -(float)diff;
+							}
+							else if (diff > 0 && keys.Down.isPressed())
+							{
+								const int indexA = previousSelectedEntryIndex;
+								const int indexB = menuEntries.mSelectedEntryIndex;
+
+								// Exchange entry with previous one, effectively moving that one
+								for (int i = indexA; i < indexB; ++i)
+									menuEntries.swapEntries(i, i + 1);
+
+								if (mActiveTab == 0)
+								{
+									for (int i = indexA; i <= indexB; ++i)
+										refreshDependencies(menuEntries[i].as<ModMenuEntry>(), i);
+								}
+
+								// For animation
+								for (int i = indexA; i < indexB; ++i)
+									menuEntries[i].mAnimation.mOffset.y = 1.0f;
+								menuEntries[indexB].mAnimation.mOffset.y = -(float)diff;
+							}
+							else
+							{
+								// Reset change
+								menuEntries.mSelectedEntryIndex = previousSelectedEntryIndex;
+								playSound = false;
+							}
+						}
+					}
+
+					if (playSound)
+					{
+						playMenuSound(0x5b);
+					}
+				}
+
+				switch (buttonEffect)
+				{
+					case ButtonEffect::SWITCH_TAB:
+					{
+						if (keys.A.isPressed())
+						{
+							// Make entry active or inactive
+							//  -> Note that mActiveTab is still the old tab here
+							if (menuEntries.empty())
+								break;
+
+							const bool makeActive = (mActiveTab != 0);
+							Tab& newTab = mTabs[1 - mActiveTab];
+
+							GameMenuEntry& entry = menuEntries.selected();
+							ModEntry& modEntry = mModEntries[entry.mData];
+
+							if (makeActive && modEntry.mMod->mState == Mod::State::FAILED)
+							{
+								playMenuSound(0xb2);
+								break;
+							}
+
+							modEntry.mMakeActive = makeActive;
+
+							if (newTab.mMenuEntries.mSelectedEntryIndex >= (int)newTab.mMenuEntries.size())
+								newTab.mMenuEntries.mSelectedEntryIndex = std::max<int>(1, (int)newTab.mMenuEntries.size()) - 1;
+							newTab.mMenuEntries.insertByReference(entry, newTab.mMenuEntries.mSelectedEntryIndex);
+							menuEntries.erase(menuEntries.mSelectedEntryIndex);
+
+							if (!makeActive)
+							{
+								clearDependencies(entry.as<ModMenuEntry>());
+							}
+
+							// For animation
+							entry.mAnimation.mOffset.x = makeActive ? 1.0f : -1.0f;
+							for (size_t k = newTab.mMenuEntries.mSelectedEntryIndex + 1; k < newTab.mMenuEntries.size(); ++k)
+								newTab.mMenuEntries[k].mAnimation.mOffset.y = -1.0f;
+							for (size_t k = menuEntries.mSelectedEntryIndex; k < menuEntries.size(); ++k)
+								menuEntries[k].mAnimation.mOffset.y = 1.0f;
+
+							refreshAllDependencies();
+						}
+
+						playMenuSound(0x5b);
+
+						mActiveTab = 1 - mActiveTab;
+						preventScrolling = true;
+						refreshControlsDisplay();
+						break;
+					}
+
+					case ButtonEffect::TOGGLE_INFO:
+					{
+						mInfoOverlay.mShouldBeVisible = !mInfoOverlay.mShouldBeVisible;
+						break;
+					}
+
+					case ButtonEffect::BACK:
+					{
+						if (mInfoOverlay.mShouldBeVisible)
+						{
+							mInfoOverlay.mShouldBeVisible = false;
+						}
+						else
+						{
+							goBack();
+						}
+						break;
+					}
+
+					default:
+						break;
+				}
+
+				const bool inMovementMode = (keys.A.isPressed() && !mTabs[mActiveTab].mMenuEntries.empty());
+				if (mInMovementMode != inMovementMode)
+				{
+					mInMovementMode = inMovementMode;
+					refreshControlsDisplay();
+				}
+				else if (keys.X.hasChanged())
+				{
+					refreshControlsDisplay();
+				}
 			}
-
-			default:
-				break;
 		}
-
-		const bool inMovementMode = (keys.A.isPressed() && !mTabs[mActiveTab].mMenuEntries.empty());
-		if (mInMovementMode != inMovementMode)
+		else
 		{
-			mInMovementMode = inMovementMode;
-			refreshControlsDisplay();
-		}
-		else if (keys.X.hasChanged())
-		{
-			refreshControlsDisplay();
+			const bool result = mModsStartPage.update(timeElapsed);
+			if (!result)
+			{
+				goBack();
+			}
 		}
 	}
 
@@ -588,8 +553,7 @@ void ModsMenu::update(float timeElapsed)
 		}
 		else
 		{
-			mVisibility = saturate(mVisibility + timeElapsed * 3.0f);
-			if (mVisibility >= 1.0f)
+			if (updateFadeIn(timeElapsed * 3.0f))
 			{
 				mState = State::SHOW;
 			}
@@ -607,14 +571,13 @@ void ModsMenu::update(float timeElapsed)
 		else if (mApplyingChangesFrameCounter == 0)
 		{
 			playMenuSound(0xad);
-			GameApp::instance().onExitMods();
+			mMenuBackground->openMainMenu();
 			mState = State::FADE_TO_MENU;
 		}
 	}
 	else if (mState > State::APPLYING_CHANGES)
 	{
-		mVisibility = saturate(mVisibility - timeElapsed * 3.0f);
-		if (mVisibility <= 0.0f)
+		if (updateFadeOut(timeElapsed * 3.0f))
 		{
 			mState = State::INACTIVE;
 		}
@@ -626,41 +589,17 @@ void ModsMenu::render()
 	GuiBase::render();
 
 	Drawer& drawer = EngineMain::instance().getDrawer();
+
+	if (!mHasAnyMods)
+	{
+		mModsStartPage.render(drawer, mVisibility);
+		return;
+	}
+
 	ModsMenuRenderContext renderContext;
 	renderContext.mDrawer = &drawer;
 
 	const int globalOffsetX = -roundToInt(saturate(1.0f - mVisibility) * 300.0f);
-
-	if (!mHasAnyMods)
-	{
-		Recti rect(globalOffsetX + 32, 16, 300, 18);
-		drawer.printText(global::mSonicFontB, rect, "No mods installed!", 1, Color(0.6f, 0.8f, 1.0f, mVisibility));
-		rect.y += 22;
-
-		Color color(0.8f, 0.9f, 1.0f, mVisibility);
-		drawer.printText(global::mOxyfontSmall, rect, "Have a look at the game manual PDF for instructions", 1, color);
-		rect.y += 14;
-		drawer.printText(global::mOxyfontSmall, rect, "on how to install mods.", 1, color);
-		rect.y += 18;
-		drawer.printText(global::mOxyfontSmall, rect, "Note that you will have to restart Sonic 3 A.I.R.", 1, color);
-		rect.y += 14;
-		drawer.printText(global::mOxyfontSmall, rect, "to make it scan for new mods.", 1, color);
-		rect.y += 32;
-		rect.x += 16;
-
-		const GameMenuEntries& menuEntries = mTabs[0].mMenuEntries;
-		for (size_t index = 0; index < menuEntries.size(); ++index)
-		{
-			const auto& entry = menuEntries[index];
-			const bool isSelected = ((int)index == menuEntries.mSelectedEntryIndex);
-			color = isSelected ? Color::YELLOW : Color::WHITE;
-			color.a *= mVisibility;
-
-			drawer.printText(global::mOxyfontRegular, rect, entry.mText, 1, color);
-			rect.y += 22;
-		}
-		return;
-	}
 
 	int infoOverlayPosition = 224;
 	if (mInfoOverlay.mVisibility > 0.0f)
@@ -727,23 +666,24 @@ void ModsMenu::render()
 			const bool isSelected = ((int)index == menuEntries.mSelectedEntryIndex && tabIndex == mActiveTab);
 			renderContext.mIsSelected = isSelected;
 
-			if (entry.getMenuEntryType() == ModMenuEntry::MENU_ENTRY_TYPE)
+			const float lineOffset = (mState < State::SHOW) ? (224.0f - (float)rect.y - startY) : 0.0f;
+
+			Recti visualRect = rect;
+			visualRect.x -= roundToInt(saturate(1.0f - mVisibility - lineOffset / 500.0f) * 300.0f);
+			visualRect.x += roundToInt(entry.mAnimation.mOffset.x * 200.0f);
+			visualRect.y += roundToInt(entry.mAnimation.mOffset.y * rect.height);
+
+			renderContext.mVisualRect = visualRect;
+			renderContext.mCurrentPosition.set(visualRect.x, rect.y);
+
+			if (entry.is<ModMenuEntry>())
 			{
 				const ModEntry* modEntry = (entry.mData < 0xfff0) ? &mModEntries[entry.mData] : nullptr;
 
 				Color color = (tabIndex == mActiveTab) ? (isSelected ? (mInMovementMode ? Color(0.25f, 0.75f, 1.0f) : Color::YELLOW) : Color::WHITE) : Color(0.7f, 0.7f, 0.7f);
 				color.a *= alpha;
 
-				const float lineOffset = (mState < State::SHOW) ? (224.0f - (float)rect.y - startY) : 0.0f;
-
-				Recti visualRect = rect;
-				visualRect.x -= roundToInt(saturate(1.0f - mVisibility - lineOffset / 500.0f) * 300.0f);
-				visualRect.x += roundToInt(entry.mAnimation.mOffset.x * 200.0f);
-				visualRect.y += roundToInt(entry.mAnimation.mOffset.y * rect.height);
-
-				renderContext.mVisualRect = visualRect;
 				renderContext.mBaseColor = color;
-				renderContext.mIsSelected = isSelected;
 				renderContext.mIsActiveModsTab = (tabIndex == 0);
 				renderContext.mInMovementMode = mInMovementMode;
 				renderContext.mNumModsInTab = menuEntries.size();
@@ -764,21 +704,20 @@ void ModsMenu::render()
 					drawer.drawRect(Recti(visualRect.x + 20, visualRect.y - 6, 100, 1), Color(0.25f, 0.75f, 1.0f));
 					drawer.drawRect(Recti(visualRect.x + 21, visualRect.y - 5, 100, 1), Color(0.2f, 0.2f, 0.2f, 0.9f));
 				}
-
-				const int currentAbsoluteY1 = (index == 0) ? 0 : (rect.y - startY);
-				rect.y += rect.height;
-
-				if (isSelected)
-				{
-					const int currentAbsoluteY2 = rect.y - startY;
-					tab.mScrolling.setCurrentSelection(currentAbsoluteY1 - 20, currentAbsoluteY2 + 25);
-				}
 			}
 			else
 			{
-				renderContext.mCurrentPosition.set(rect.x, rect.y);
 				entry.performRenderEntry(renderContext);
 				rect.y = renderContext.mCurrentPosition.y;
+			}
+
+			const int currentAbsoluteY1 = (index == 0) ? 0 : (rect.y - startY);
+			rect.y += rect.height;
+
+			if (isSelected)
+			{
+				const int currentAbsoluteY2 = rect.y - startY;
+				tab.mScrolling.setCurrentSelection(currentAbsoluteY1 - 20, currentAbsoluteY2 + 25);
 			}
 		}
 
@@ -888,9 +827,9 @@ void ModsMenu::refreshAllDependencies()
 	for (size_t i = 0; i < mTabs[0].mMenuEntries.size(); ++i)
 	{
 		GameMenuEntry& gameMenuEntry = *mTabs[0].mMenuEntries.getEntries()[i];
-		if (gameMenuEntry.getMenuEntryType() == ModMenuEntry::MENU_ENTRY_TYPE)
+		if (gameMenuEntry.is<ModMenuEntry>())
 		{
-			refreshDependencies(static_cast<ModMenuEntry&>(gameMenuEntry), i);
+			refreshDependencies(gameMenuEntry.as<ModMenuEntry>(), i);
 		}
 	}
 }
@@ -909,9 +848,7 @@ void ModsMenu::refreshDependencies(ModMenuEntry& modMenuEntry, size_t modIndex)
 	for (const Mod::OtherModInfo& otherModInfo : modMenuEntry.getMod().mOtherModInfos)
 	{
 		const Mod* otherMod = modManager.findModByIDHash(otherModInfo.mModIDHash);
-	#if !defined(PLATFORM_PS3)
 		ModEntry* foundOtherMod = nullptr;
-	#endif
 		size_t foundIndex = ~0;
 		if (nullptr != otherMod)
 		{
@@ -919,10 +856,9 @@ void ModsMenu::refreshDependencies(ModMenuEntry& modMenuEntry, size_t modIndex)
 			for (size_t i = 0; i < mTabs[0].mMenuEntries.size(); ++i)
 			{
 				GameMenuEntry& gameMenuEntry = *mTabs[0].mMenuEntries.getEntries()[i];
-				if (gameMenuEntry.getMenuEntryType() == ModMenuEntry::MENU_ENTRY_TYPE)
+				if (gameMenuEntry.is<ModMenuEntry>())
 				{
-					ModMenuEntry& otherModMenuEntry = static_cast<ModMenuEntry&>(gameMenuEntry);
-					if (&otherModMenuEntry.getMod() == otherMod)
+					if (&gameMenuEntry.as<ModMenuEntry>().getMod() == otherMod)
 					{
 						foundIndex = i;
 						break;
@@ -934,14 +870,24 @@ void ModsMenu::refreshDependencies(ModMenuEntry& modMenuEntry, size_t modIndex)
 		const bool otherShouldBeHigherPrio = (otherModInfo.mRelativePriority > 0);
 		if (foundIndex != ~0)
 		{
-			// Check relative priority
-			const bool otherIsHigherPrio = (foundIndex < modIndex);
-			if (otherIsHigherPrio != otherShouldBeHigherPrio)
+			if (otherModInfo.mIsConflict)
 			{
-				// Show warning
+				// Show error
 				ModMenuEntry::Remark& remark = vectorAdd(modMenuEntry.mRemarks);
-				remark.mIsError = otherModInfo.mIsRequired;
-				remark.mText = std::string("This mod needs to be placed ") + (otherShouldBeHigherPrio ? "below" : "above") + " \"" + otherMod->mDisplayName + "\"";
+				remark.mIsError = true;
+				remark.mText = std::string("This mod does not work together with \"") + otherMod->mDisplayName + "\", please deactivate one of both";
+			}
+			else
+			{
+				// Check relative priority
+				const bool otherIsHigherPrio = (foundIndex < modIndex);
+				if (otherIsHigherPrio != otherShouldBeHigherPrio)
+				{
+					// Show warning
+					ModMenuEntry::Remark& remark = vectorAdd(modMenuEntry.mRemarks);
+					remark.mIsError = otherModInfo.mIsRequired;
+					remark.mText = std::string("This mod needs to be placed ") + (otherShouldBeHigherPrio ? "below" : "above") + " \"" + otherMod->mDisplayName + "\"";
+				}
 			}
 		}
 		else
@@ -1018,7 +964,7 @@ bool ModsMenu::applyModChanges(bool dryRun)
 	for (int index = (int)menuEntries.size()-1; index >= 0; --index)
 	{
 		const GameMenuEntry& entry = *menuEntries[index];
-		if (entry.getMenuEntryType() == ModMenuEntry::MENU_ENTRY_TYPE)
+		if (entry.is<ModMenuEntry>())
 		{
 			const ModEntry& modEntry = mModEntries[entry.mData];
 			if (modEntry.mMakeActive)
@@ -1051,20 +997,17 @@ void ModsMenu::goBack()
 	else
 	{
 		playMenuSound(0xad);
-		GameApp::instance().onExitMods();
+		mMenuBackground->openMainMenu();
 		mState = State::FADE_TO_MENU;
 	}
 }
 
 GameMenuEntry* ModsMenu::getSelectedGameMenuEntry()
 {
-	for (size_t tabIndex = 0; tabIndex <= 1; ++tabIndex)
+	GameMenuEntries& menuEntries = mTabs[mActiveTab].mMenuEntries;
+	if (menuEntries.mSelectedEntryIndex >= 0 && menuEntries.mSelectedEntryIndex < (int)menuEntries.size())
 	{
-		GameMenuEntries& menuEntries = mTabs[tabIndex].mMenuEntries;
-		if (menuEntries.mSelectedEntryIndex >= 0 && menuEntries.mSelectedEntryIndex < (int)menuEntries.size())
-		{
-			return &menuEntries[menuEntries.mSelectedEntryIndex];
-		}
+		return &menuEntries[menuEntries.mSelectedEntryIndex];
 	}
 	return nullptr;
 }

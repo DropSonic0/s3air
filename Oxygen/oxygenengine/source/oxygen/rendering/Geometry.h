@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -51,7 +51,7 @@ public:
 	PlaneGeometry(const Recti& activeRect, int planeIndex, bool priorityFlag, uint8 scrollOffsets, uint16 renderQueue);
 
 public:
-	int mPlaneIndex = 0;
+	int mPlaneIndex = 0;			// Plane index: 0 = plane B, 1 = plane A, 2 = plane W
 	bool mPriorityFlag = false;
 	Recti mActiveRect;
 	uint8 mScrollOffsets = 0;
@@ -82,7 +82,7 @@ public:
 class TexturedRectGeometry : public Geometry
 {
 public:
-	inline TexturedRectGeometry(const Recti& rect, const DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor) : Geometry(Type::TEXTURED_RECT), mRect(rect), mDrawerTexture(const_cast<DrawerTexture&>(drawerTexture)), mTintColor(tintColor), mAddedColor(addedColor) {}
+	inline TexturedRectGeometry(const Recti& rect, DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor) : Geometry(Type::TEXTURED_RECT), mRect(rect), mDrawerTexture(drawerTexture), mTintColor(tintColor), mAddedColor(addedColor) {}
 
 public:
 	Recti mRect;
@@ -130,7 +130,7 @@ public:
 		return mRectGeometryBuffer.createObject(rect, color);
 	}
 
-	TexturedRectGeometry& createTexturedRectGeometry(const Recti& rect, const DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor)
+	TexturedRectGeometry& createTexturedRectGeometry(const Recti& rect, DrawerTexture& drawerTexture, const Color& tintColor, const Color& addedColor)
 	{
 		return mTexturedRectGeometryBuffer.createObject(rect, drawerTexture, tintColor, addedColor);
 	}

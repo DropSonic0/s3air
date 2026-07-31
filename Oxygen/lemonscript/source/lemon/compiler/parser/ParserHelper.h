@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,9 +13,7 @@
 #include "lemon/compiler/Utility.h"
 #include "lemon/utility/AnyBaseValue.h"
 
-#if !defined(PLATFORM_PS3)
 #include <optional>
-#endif
 
 
 namespace lemon
@@ -91,7 +89,6 @@ namespace lemon
 	private:
 		struct Lookup
 		{
-#if !defined(PLATFORM_PS3)
 			constexpr Lookup() :
 				mIsLetter(),
 				mIsDigitOrLetter(),
@@ -109,9 +106,6 @@ namespace lemon
 					mIsIdentifierCharacter[i] = isDigit || isLetter || (ch == '_') || (ch == '.');
 				}
 			}
-#else
-			Lookup();
-#endif
 
 			bool mIsLetter[0x100];
 			bool mIsDigitOrLetter[0x100];
@@ -121,7 +115,21 @@ namespace lemon
 
 		struct DigitLookup
 		{
-			DigitLookup(bool hexadecimal);
+			DigitLookup(bool hexadecimal)
+			{
+				for (int i = 0; i < 55; ++i)
+				{
+					const char ch = '0' + (char)i;
+					if (ch >= '0' && ch <= '9')
+						mValues[i] = (uint8)(ch - '0');
+					else if (hexadecimal && ch >= 'A' && ch <= 'F')
+						mValues[i] = (uint8)(ch - 'A') + 10;
+					else if (hexadecimal && ch >= 'a' && ch <= 'f')
+						mValues[i] = (uint8)(ch - 'a') + 10;
+					else
+						mValues[i] = 0x80;	// Uppermost bit encodes an invalid value
+				}
+			}
 
 			inline uint8 getValueByCharacter(char ch) const  { return (ch >= '0' && ch <= 'f') ? mValues[ch - '0'] : 0x80; }
 
@@ -150,9 +158,9 @@ namespace lemon
 		};
 
 	private:
-		static const Lookup mLookup;
-		static const DigitLookup mDigitLookupHex;
-		static const DigitLookup mDigitLookupDec;
+		inline static const Lookup mLookup;
+		inline static const DigitLookup mDigitLookupHex = DigitLookup(true);
+		inline static const DigitLookup mDigitLookupDec = DigitLookup(false);
 		static OperatorLookup mOperatorLookup;
 	};
 

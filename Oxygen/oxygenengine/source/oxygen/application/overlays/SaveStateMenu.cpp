@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -21,11 +21,7 @@
 SaveStateMenu::SaveStateMenu()
 {
 	mFont.setSize(18.0f);
-#if defined(PLATFORM_PS3)
-	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(2, 2), 0.5f, 0.5f)));
-#else
 	mFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(2, 2), 0.5f));
-#endif
 }
 
 SaveStateMenu::~SaveStateMenu()
@@ -37,11 +33,6 @@ void SaveStateMenu::init(bool forLoading)
 	mSaveStateDirectory[0] = Configuration::instance().mSaveStatesDir;
 	mSaveStateDirectory[1] = Configuration::instance().mSaveStatesDirLocal;
 
-#if defined(PLATFORM_PS3)
-	printf("PS3 SaveStateMenu::init - Dir[0]: %s, Dir[1]: %s\n", WString(mSaveStateDirectory[0]).toStdString().c_str(), WString(mSaveStateDirectory[1]).toStdString().c_str());
-	fflush(stdout);
-#endif
-
 	mForLoading = forLoading;
 	mHadFirstUpdate = false;
 	mEntries.clear();
@@ -51,21 +42,10 @@ void SaveStateMenu::init(bool forLoading)
 	for (int type = 1; type >= 0; --type)
 	{
 		FileCrawler fc;
-		WString mask = mSaveStateDirectory[type] + L"/*.state";
-		fc.addFiles(mask);
-
-#if defined(PLATFORM_PS3)
-		printf("PS3 SaveStateMenu::init - Searching %s, found %u files\n", mask.toStdString().c_str(), (uint32)fc.size());
-		fflush(stdout);
-#endif
-
+		fc.addFiles(mSaveStateDirectory[type] + L"/*.state");
 		for (size_t i = 0; i < fc.size(); ++i)
 		{
 			std::wstring name = fc[i]->mFilename;
-#if defined(PLATFORM_PS3)
-			printf("PS3 SaveStateMenu::init - Found file: %s\n", WString(name).toStdString().c_str());
-			fflush(stdout);
-#endif
 			name.erase(name.length() - 6);		// Remove ".state"
 			addEntry(name, (Entry::Type)type, addPadding ? 12 : 0);
 			addPadding = false;
@@ -129,7 +109,7 @@ void SaveStateMenu::deinitialize()
 
 void SaveStateMenu::keyboard(const rmx::KeyboardEvent& ev)
 {
-	if (ev.state)
+	if (ev.state && !FTX::System->wasEventConsumed())
 	{
 		switch (ev.key)
 		{
@@ -137,13 +117,13 @@ void SaveStateMenu::keyboard(const rmx::KeyboardEvent& ev)
 			{
 				onAccept(true, true);
 				InputManager::instance().updateInput(0.0f);		// This clears the changed state of "Enter"
-				ControlsIn::instance().setAllIgnores();	// Just to make sure any current key pressed (especially "Enter") won't have an effect in the simulation
+				ControlsIn::instance().setAllIgnores();			// Just to make sure any current key pressed (especially "Enter") won't have an effect in the simulation
 				break;
 			}
 
 			case SDLK_ESCAPE:
 			{
-				((Application*)mParent)->childClosed(*this);
+				static_cast<Application*>(getParent())->childClosed(*this);
 				break;
 			}
 
@@ -187,7 +167,7 @@ void SaveStateMenu::textinput(const rmx::TextInputEvent& ev)
 	if (mEditing && mHighlightedIndex < mEntries.size())
 	{
 		Entry& entry = mEntries[mHighlightedIndex];
-		entry.mName += *ev.text;
+		entry.mName += ev.text;
 	}
 }
 
@@ -210,7 +190,11 @@ void SaveStateMenu::update(float timeElapsed)
 		changeHighlightedIndex(+1);
 	}
 
-	if (!mEditing)
+	if (mEditing)
+	{
+		Application::instance().requestActiveTextInput();
+	}
+	else
 	{
 		if (controller.A.justPressed())
 		{
@@ -218,7 +202,7 @@ void SaveStateMenu::update(float timeElapsed)
 		}
 		else if (controller.B.justPressed() || controller.Back.justPressed())
 		{
-			((Application*)mParent)->childClosed(*this);
+			static_cast<Application*>(getParent())->childClosed(*this);
 		}
 	}
 }
@@ -229,7 +213,7 @@ void SaveStateMenu::render()
 
 	drawer.drawRect(FTX::screenRect(), Color::fromABGR32(0xe0000000));
 
-	Rectf rect((float)(FTX::screenWidth() / 2 - 280), 30, 0, 0);
+	Rectf rect((float)(FTX::screenWidth() / 2 - 280), roundToFloat(30.0f - mScrollOffset), 0, 0);
 	drawer.printText(mFont, rect, mForLoading ? "LOAD STATE" : "SAVE STATE");
 	rect.addPos(16, 40);
 
@@ -279,6 +263,11 @@ void SaveStateMenu::render()
 		drawer.drawRect(rct, mPreview);
 	}
 
+	const float scrollMin = mScrollOffset + (float)(highlightedPositionY - FTX::screenHeight() * 3 / 4);
+	const float scrollMax = scrollMin + (float)(FTX::screenHeight() / 2);
+	const float scrollOffsetTarget = std::max(clamp(mScrollOffset, scrollMin, scrollMax), 0.0f);
+	mScrollOffset += (scrollOffsetTarget - mScrollOffset) * FTX::getTimeDifference() * 20.0f;
+
 	drawer.performRendering();
 }
 
@@ -316,10 +305,6 @@ void SaveStateMenu::setHighlightedIndex(uint32 highlightedIndex)
 			Bitmap bmp;
 			if (bmp.load(mSaveStateDirectory[(size_t)entry.mType] + L"/" + entry.mName + L".state.bmp"))
 			{
-				if (!mPreview.isValid())
-				{
-					EngineMain::instance().getDrawer().createTexture(mPreview);
-				}
 				mPreview.accessBitmap() = bmp;
 				mPreview.bitmapUpdated();
 				mHasPreview = true;
@@ -348,17 +333,9 @@ void SaveStateMenu::onAccept(bool loadingAllowed, bool savingAllowed)
 			EngineMain::getDelegate().onPreSaveStateLoad();
 
 			const Entry& entry = mEntries[mHighlightedIndex];
-#if defined(PLATFORM_PS3)
-			printf("PS3 SaveStateMenu::onAccept(load) - Highlighted: %s, Type: %d\n", WString(entry.mName).toStdString().c_str(), (int)entry.mType);
-			fflush(stdout);
-#endif
 			if (entry.mType <= Entry::Type::SAVESTATE_LOCAL)
 			{
 				const WString filename = WString(mSaveStateDirectory[(size_t)entry.mType]) + entry.mName + L".state";
-#if defined(PLATFORM_PS3)
-				printf("PS3 SaveStateMenu::onAccept(load) - filename: %s\n", filename.toStdString().c_str());
-				fflush(stdout);
-#endif
 				simulation.loadState(*filename);
 			}
 			else if (entry.mType == Entry::Type::RESET)
@@ -372,21 +349,13 @@ void SaveStateMenu::onAccept(bool loadingAllowed, bool savingAllowed)
 		if (savingAllowed && mHighlightedIndex < mEntries.size())
 		{
 			const Entry& entry = mEntries[mHighlightedIndex];
-#if defined(PLATFORM_PS3)
-			printf("PS3 SaveStateMenu::onAccept(save) - Highlighted: %s, Type: %d\n", WString(entry.mName).toStdString().c_str(), (int)entry.mType);
-			fflush(stdout);
-#endif
 			if (entry.mType != Entry::Type::RESET && !entry.mName.empty())
 			{
 				const WString filename = WString(mSaveStateDirectory[1]) + entry.mName + L".state";
-#if defined(PLATFORM_PS3)
-				printf("PS3 SaveStateMenu::onAccept(save) - filename: %s\n", filename.toStdString().c_str());
-				fflush(stdout);
-#endif
 				simulation.saveState(*filename);
 			}
 		}
 	}
 
-	((Application*)mParent)->childClosed(*this);
+	static_cast<Application*>(getParent())->childClosed(*this);
 }

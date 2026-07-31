@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,7 +14,7 @@
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/LemonScriptProgram.h"
 
-#include <lemon/program/Function.h>
+#include <lemon/program/function/Function.h>
 
 
 namespace
@@ -42,24 +42,24 @@ namespace
 	std::vector<Zone> getZonesByGame(int game)		// game 0 = Sonic 3 & Knuckles; game 1 = Sonic 3 alone
 	{
 		std::vector<Zone> zones;
-		zones.push_back(Zone("01_AIZ", 0x0000, 0x0001));
-		zones.push_back(Zone("02_HCZ", 0x0100, 0x0101));
-		zones.push_back(Zone("03_MGZ", 0x0200, 0x0201));
-		zones.push_back(Zone("04_CNZ", 0x0300, 0x0301));
-		zones.push_back(Zone("05_ICZ", 0x0500, 0x0501));
-		zones.push_back(Zone("06_LBZ", 0x0600, 0x0601));
+		zones.emplace_back("01_AIZ", 0x0000, 0x0001);
+		zones.emplace_back("02_HCZ", 0x0100, 0x0101);
+		zones.emplace_back("03_MGZ", 0x0200, 0x0201);
+		zones.emplace_back("04_CNZ", 0x0300, 0x0301);
+		zones.emplace_back("05_ICZ", 0x0500, 0x0501);
+		zones.emplace_back("06_LBZ", 0x0600, 0x0601);
 
 		const bool isGameSK = (game == 0);
 		if (isGameSK)
 		{
-			zones.push_back(Zone("07_MHZ", 0x0700, 0x0701));
-			zones.push_back(Zone("08_FBZ", 0x0400, 0x0401));
-			zones.push_back(Zone("09_SOZ", 0x0800, 0x0801));
-			zones.push_back(Zone("10_LRZ", 0x0900, 0x0901, 0x1600));
-			zones.push_back(Zone("11_HPZ", 0x1601));
-			zones.push_back(Zone("12_SSZ", 0x0a00, 0x0a01));
-			zones.push_back(Zone("13_DEZ", 0x0b00, 0x0b01, 0x0c01));
-			zones.push_back(Zone("14_DDZ", 0x0c00));
+			zones.emplace_back("07_MHZ", 0x0700, 0x0701);
+			zones.emplace_back("08_FBZ", 0x0400, 0x0401);
+			zones.emplace_back("09_SOZ", 0x0800, 0x0801);
+			zones.emplace_back("10_LRZ", 0x0900, 0x0901, 0x1600);
+			zones.emplace_back("11_HPZ", 0x1601);
+			zones.emplace_back("12_SSZ", 0x0a00, 0x0a01);
+			zones.emplace_back("13_DEZ", 0x0b00, 0x0b01, 0x0c01);
+			zones.emplace_back("14_DDZ", 0x0c00);
 		}
 		return zones;
 	}
@@ -140,13 +140,13 @@ namespace
 		{
 			if (ia >= arrayA.size())
 			{
-				interleavedArray.push_back(arrayB[ib]);
+				interleavedArray.emplace_back(arrayB[ib]);
 				++ib;
 				continue;
 			}
 			if (ib >= arrayB.size())
 			{
-				interleavedArray.push_back(arrayA[ia]);
+				interleavedArray.emplace_back(arrayA[ia]);
 				++ia;
 				continue;
 			}
@@ -157,13 +157,13 @@ namespace
 										 (a.mPosition.y != b.mPosition.y) ? ((a.mPosition.y < b.mPosition.y) ? -1 : 1) : 0;
 			if (comparisonResult < 0)
 			{
-				interleavedArray.push_back(a);
+				interleavedArray.emplace_back(a);
 				++ia;
 				continue;
 			}
 			if (comparisonResult > 0)
 			{
-				interleavedArray.push_back(b);
+				interleavedArray.emplace_back(b);
 				++ib;
 				continue;
 			}
@@ -171,13 +171,13 @@ namespace
 			if (a.mFlags == b.mFlags && a.mType == b.mType && a.mSubtype == b.mSubtype)
 			{
 				// Both are equal
-				interleavedArray.push_back(a);
+				interleavedArray.emplace_back(a);
 				interleavedArray.back().mGames = 2;		// Part of both games
 			}
 			else
 			{
-				interleavedArray.push_back(a);
-				interleavedArray.push_back(b);
+				interleavedArray.emplace_back(a);
+				interleavedArray.emplace_back(b);
 			}
 			++ia;
 			++ib;
@@ -392,10 +392,9 @@ void ResourceScriptGenerator::generateLevelObjectTableScript(CodeExec& codeExec)
 				const LemonScriptProgram::Hook* hook = codeExec.getLemonScriptProgram().checkForAddressHook(objectAddress);
 				if (nullptr != hook && hook->mFunction)
 				{
-					std::string filename;
-					uint32 lineNumber;
-					codeExec.getLemonScriptProgram().resolveLocation(*hook->mFunction, 0, filename, lineNumber);
-					output << " -- " << filename;
+					LemonScriptProgram::ResolvedLocation location;
+					codeExec.getLemonScriptProgram().resolveLocation(location, *hook->mFunction, 0);
+					output << " -- " << location.mScriptFilename;
 				}
 				output << "\r\n";
 			}

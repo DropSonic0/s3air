@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -26,11 +26,7 @@ void DebugLogView::initialize()
 {
 	// Debug output font
 	mFont.setSize(15.0f);
-#if defined(PLATFORM_PS3)
-	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f, 1.0f)));
-#else
 	mFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
-#endif
 }
 
 void DebugLogView::deinitialize()

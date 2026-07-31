@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -12,7 +12,6 @@
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/drawing/DrawerTexture.h"
-#include "oxygen/rendering/utils/PaletteBitmap.h"
 
 
 // Other platforms than Windows with Visual C++ need to the zlib library dependency into their build separately
@@ -20,12 +19,14 @@
 	#pragma comment(lib, "minizip.lib")
 #endif
 
-#if !defined(PLATFORM_PS3)
 #include "unzip.h"
+
+#ifdef PLATFORM_VITA
+	#include <cstring>
+	#include <cstdio>
+	#include <cstdlib>
 #endif
 
-
-#if !defined(PLATFORM_PS3)
 
 namespace
 {
@@ -92,10 +93,8 @@ namespace
 	}
 }
 
-#endif
 
-
-bool FileHelper::loadPaletteBitmap(PaletteBitmap& bitmap, const std::wstring& filename, bool showError)
+bool FileHelper::loadPaletteBitmap(PaletteBitmap& bitmap, const std::wstring& filename, std::vector<uint32>* outPalette, bool showError)
 {
 	std::vector<uint8> content;
 	if (!FTX::FileSystem->readFile(filename, content))
@@ -104,7 +103,7 @@ bool FileHelper::loadPaletteBitmap(PaletteBitmap& bitmap, const std::wstring& fi
 		return false;
 	}
 
-	if (!bitmap.loadBMP(content))
+	if (!bitmap.loadBMP(content, outPalette))
 	{
 		RMX_CHECK(!showError, "Failed to load image file '" << *WString(filename).toString() << "': Format not supported", );
 		return false;
@@ -142,11 +141,6 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 
 	bool FileHelper::loadTexture(DrawerTexture& texture, const std::wstring& filename, bool showError)
 	{
-		if (!texture.isValid())
-		{
-			EngineMain::instance().getDrawer().createTexture(texture);
-		}
-
 		Bitmap& bitmap = texture.accessBitmap();
 		if (!loadBitmap(bitmap, filename, showError))
 			return false;
@@ -160,26 +154,45 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 	bool FileHelper::loadShader(Shader& shader, const std::wstring& filename, const std::string& techname, const std::string& additionalDefines)
 	{
 		std::vector<uint8> content;
+	#ifndef PLATFORM_VITA
 		if (!FTX::FileSystem->readFile(filename, content))
+		{
+			RMX_ERROR("Shader file not found: '" << WString(filename).toStdString() << "'", );
 			return false;
+		}
+	#else
+		std::string filename_str = WString(filename).toStdString();
+		char realp[512] = {0};
+		size_t sz;
+		sprintf(realp, "ux0:data/sonic3air/%s", filename_str.c_str());
+		FILE* f = fopen(realp, "rb");
+		fseek(f, 0, SEEK_END);
+		sz = ftell(f);
+		fseek(f, 0, SEEK_SET);
+
+		uint8* buffer = (uint8*)malloc(sz);
+		fread(buffer, 1, sz, f);
+		fclose(f);
+
+		content.assign(buffer, buffer + sz);
+		free(buffer);
+	#endif
 
 		if (shader.load(content, techname, additionalDefines))
 		{
 			RMX_LOG_INFO("Loaded shader '" << WString(filename).toStdString() << "'");
-			return true;
 		}
 		else
 		{
 			RMX_ERROR("Shader loading failed for '" << WString(filename).toStdString() << "':\n" << shader.getCompileLog().toStdString(), );
-			return false;
 		}
+		return true;
 	}
 
 #endif
 
 bool FileHelper::extractZipFile(const std::wstring& zipFilename, const std::wstring& outputBasePath)
 {
-#if !defined(PLATFORM_PS3)
 	unzFile zipFile = unzOpen64(*WString(zipFilename).toString());
 	unz_global_info64 globalInfo;
 	int result = unzGetGlobalInfo64(zipFile, &globalInfo);
@@ -206,7 +219,4 @@ bool FileHelper::extractZipFile(const std::wstring& zipFilename, const std::wstr
 		}
 	}
 	return true;
-#else
-	return false;
-#endif
 }

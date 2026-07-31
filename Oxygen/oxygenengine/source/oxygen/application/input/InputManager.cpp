@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,6 +11,7 @@
 #include "oxygen/application/modding/ModManager.h"
 #include "oxygen/application/overlays/TouchControlsOverlay.h"
 #include "oxygen/application/Configuration.h"
+#include "oxygen/menu/imgui/ImGuiIntegration.h"
 #include "oxygen/helper/Logging.h"
 #include "oxygen/rendering/utils/RenderUtils.h"
 #include "oxygen/simulation/LogDisplay.h"
@@ -42,12 +43,6 @@ namespace
 		static std::vector<uint64> blacklistedHashes;
 		if (blacklistedHashes.empty())
 		{
-#if defined(PLATFORM_PS3)
-			blacklistedHashes.push_back(rmx::getMurmur2_64("virtual-search"));
-			blacklistedHashes.push_back(rmx::getMurmur2_64("IPControl_UPnP_RemoteService"));
-			blacklistedHashes.push_back(rmx::getMurmur2_64("shield-ask-remote"));
-			blacklistedHashes.push_back(rmx::getMurmur2_64("uinput-fpc"));
-#else
 			const std::vector<std::string> blacklist =
 			{
 				"virtual-search", "IPControl_UPnP_RemoteService", "shield-ask-remote",	// Dummy controllers that Nvidia Shield seems to create
@@ -57,7 +52,6 @@ namespace
 			{
 				blacklistedHashes.push_back(rmx::getMurmur2_64(str));
 			}
-#endif
 		}
 
 		const uint64 nameHash = rmx::getMurmur2_64(controllerOrJoystickName);
@@ -125,36 +119,35 @@ namespace
 		using Button = InputConfig::DeviceDefinition::Button;
 		std::vector<SDL_GameControllerButtonBind> bindings[InputConfig::DeviceDefinition::NUM_BUTTONS];
 
-		bindings[(size_t)Button::UP]   .push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTY));
-		bindings[(size_t)Button::UP]   .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_UP));
-		bindings[(size_t)Button::DOWN] .push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTY));
-		bindings[(size_t)Button::DOWN] .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_DOWN));
-		bindings[(size_t)Button::LEFT] .push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTX));
-		bindings[(size_t)Button::LEFT] .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_LEFT));
-		bindings[(size_t)Button::RIGHT].push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTX));
-		bindings[(size_t)Button::RIGHT].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_RIGHT));
+		bindings[(size_t)Button::UP]   .emplace_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTY));
+		bindings[(size_t)Button::UP]   .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_UP));
+		bindings[(size_t)Button::DOWN] .emplace_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTY));
+		bindings[(size_t)Button::DOWN] .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_DOWN));
+		bindings[(size_t)Button::LEFT] .emplace_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTX));
+		bindings[(size_t)Button::LEFT] .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_LEFT));
+		bindings[(size_t)Button::RIGHT].emplace_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTX));
+		bindings[(size_t)Button::RIGHT].emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_RIGHT));
 
-		bindings[(size_t)Button::A]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_A));
-		bindings[(size_t)Button::B]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_B));
-		bindings[(size_t)Button::X]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_X));
-		bindings[(size_t)Button::Y]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_Y));
-		bindings[(size_t)Button::START].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_START));
-		bindings[(size_t)Button::START].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_GUIDE));
-		bindings[(size_t)Button::BACK] .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_BACK));
-		bindings[(size_t)Button::L]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
-		bindings[(size_t)Button::R]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
+		bindings[(size_t)Button::A]    .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_A));
+		bindings[(size_t)Button::B]    .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_B));
+		bindings[(size_t)Button::X]    .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_X));
+		bindings[(size_t)Button::Y]    .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_Y));
+		bindings[(size_t)Button::START].emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_START));
+		bindings[(size_t)Button::START].emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_GUIDE));
+		bindings[(size_t)Button::BACK] .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_BACK));
+		bindings[(size_t)Button::L]    .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+		bindings[(size_t)Button::R]    .emplace_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
 
 		device.mControlMappings.resize(InputConfig::DeviceDefinition::NUM_BUTTONS);
 		for (size_t controlIndex = 0; controlIndex < device.mControlMappings.size(); ++controlIndex)
 		{
 			std::vector<InputConfig::Assignment>& assignments = device.mControlMappings[controlIndex].mAssignments;
-			for (size_t i = 0; i < bindings[controlIndex].size(); ++i)
+			for (const SDL_GameControllerButtonBind& binding : bindings[controlIndex])
 			{
-				const SDL_GameControllerButtonBind& binding = bindings[controlIndex][i];
 				InputConfig::Assignment assignment;
-				if (getControlAssignmentBySDLBinding(assignment, binding, (int)(controlIndex % 2)))
+				if (getControlAssignmentBySDLBinding(assignment, binding, controlIndex % 2))
 				{
-					assignments.push_back(assignment);
+					assignments.emplace_back(assignment);
 				}
 			}
 		}
@@ -170,8 +163,8 @@ namespace
 			InputConfig::Assignment assignmentR;
 			getControlAssignmentBySDLBinding(assignmentL, SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER), 0);
 			getControlAssignmentBySDLBinding(assignmentR, SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER), 0);
-			inputDeviceDefinition.mMappings[(size_t)InputConfig::DeviceDefinition::Button::L].mAssignments.push_back(assignmentL);
-			inputDeviceDefinition.mMappings[(size_t)InputConfig::DeviceDefinition::Button::R].mAssignments.push_back(assignmentR);
+			inputDeviceDefinition.mMappings[(size_t)InputConfig::DeviceDefinition::Button::L].mAssignments.emplace_back(assignmentL);
+			inputDeviceDefinition.mMappings[(size_t)InputConfig::DeviceDefinition::Button::R].mAssignments.emplace_back(assignmentR);
 		}
 	}
 
@@ -193,7 +186,7 @@ namespace
 		}
 		joystickName.lowerCase();
 		const uint64 nameHashes[2] = { rmx::getMurmur2_64(joystickName), controllerName.empty() ? 0 : rmx::getMurmur2_64(controllerName) };
-		static const uint64 WILDCARD_HASH = rmx::getMurmur2_64(String("*"));
+		constexpr uint64 WILDCARD_HASH = rmx::constMurmur2_64("*");
 
 		for (size_t k = 0; k < definitions.size(); ++k)
 		{
@@ -286,6 +279,8 @@ const char* InputManager::RealDevice::getName() const
 
 
 
+const std::string InputManager::KEYBOARD_DEVICE_NAMES[NUM_PLAYERS] = { "Keyboard1", "Keyboard2", "Keyboard3", "Keyboard4" };
+
 InputManager::InputManager()
 {
 	mKeyboards.reserve(NUM_PLAYERS);
@@ -339,7 +334,7 @@ void InputManager::updateInput(float timeElapsed)
 
 	// Update touches
 	mActiveTouches.clear();
-	if (mTouchInputEnabled)
+	if (mTouchInputEnabled && !FTX::System->wasEventConsumed())
 	{
 		const int touchDevices = SDL_GetNumTouchDevices();
 		for (int k = 0; k < touchDevices; ++k)
@@ -357,7 +352,7 @@ void InputManager::updateInput(float timeElapsed)
 		}
 
 		// Also consider left mouse click
-		if (FTX::mouseState(rmx::MouseButton_Left))
+		if (FTX::mouseState(rmx::MouseButton::Left))
 		{
 			vectorAdd(mActiveTouches).mPosition = Vec2f(FTX::mousePos()) / Vec2f(FTX::screenSize());
 		}
@@ -403,7 +398,7 @@ void InputManager::updateInput(float timeElapsed)
 					if (control->mRepeatTimeout <= 0.0f)
 					{
 						control->mRepeat = true;
-						control->mRepeatTimeout = std::max(control->mRepeatTimeout + 0.125f, 0.05f);
+						control->mRepeatTimeout = std::max(control->mRepeatTimeout + 0.1f, 0.04f);
 					}
 				}
 				mAnythingPressed = true;
@@ -507,7 +502,7 @@ void InputManager::getPressedGamepadInputs(std::vector<InputConfig::Assignment>&
 	{
 		if (SDL_JoystickGetButton(device.mSDLJoystick, k) != 0)
 		{
-			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, k));
+			outInputs.emplace_back(InputConfig::Assignment::Type::BUTTON, k);
 		}
 	}
 
@@ -516,11 +511,11 @@ void InputManager::getPressedGamepadInputs(std::vector<InputConfig::Assignment>&
 		const int16 value = SDL_JoystickGetAxis(device.mSDLJoystick, k);
 		if (value < -0x6000)
 		{
-			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, k*2));
+			outInputs.emplace_back(InputConfig::Assignment::Type::AXIS, k*2);
 		}
 		else if (value > 0x6000)
 		{
-			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, k*2+1));
+			outInputs.emplace_back(InputConfig::Assignment::Type::AXIS, k*2+1);
 		}
 	}
 
@@ -533,7 +528,7 @@ void InputManager::getPressedGamepadInputs(std::vector<InputConfig::Assignment>&
 			{
 				if (value & bit)
 				{
-					outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::POV, k * 0x100 + bit));
+					outInputs.emplace_back(InputConfig::Assignment::Type::POV, k * 0x100 + bit);
 					break;
 				}
 			}
@@ -558,7 +553,7 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 	if (mKeyboards.empty())
 	{
 		// First-time setup for keyboards
-		//  -> Though only one physical keyboard is supported, these are two "real devices", to allow for two players using one keyboard together
+		//  -> Though only one physical keyboard is supported, these are several "real devices", to allow for multiple players using one keyboard together
 		for (size_t i = 0; i < NUM_PLAYERS; ++i)
 		{
 			RealDevice& device = vectorAdd(mKeyboards);
@@ -567,8 +562,7 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 			device.mSDLGameController = nullptr;
 
 			using Button = InputConfig::DeviceDefinition::Button;
-			static_assert(NUM_PLAYERS == 2, "NUM_PLAYERS must be 2");
-			const std::string key = (i == 0) ? "Keyboard1" : "Keyboard2";
+			const std::string& key = KEYBOARD_DEVICE_NAMES[i];
 			InputConfig::DeviceDefinition* inputDeviceDefinition = getInputDeviceDefinitionByIdentifier(key);
 			if (nullptr == inputDeviceDefinition)
 			{
@@ -749,10 +743,11 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 void InputManager::updatePlayerGamepadAssignments()
 {
 	// Try to map real devices to players
-	std::vector<RealDevice*> devicesByPlayer[2];
+	RMX_ASSERT(mKeyboards.size() == NUM_PLAYERS, "Wrong number of keyboards");
+	std::vector<RealDevice*> devicesByPlayer[NUM_PLAYERS];
 	for (size_t i = 0; i < mKeyboards.size(); ++i)
 	{
-		devicesByPlayer[i % 2].push_back(&mKeyboards[i]);
+		devicesByPlayer[i].push_back(&mKeyboards[i]);
 		mKeyboards[i].mAssignedPlayer = (int)i;
 	}
 
@@ -760,7 +755,7 @@ void InputManager::updatePlayerGamepadAssignments()
 	{
 		gamepad.mAssignedPlayer = Configuration::instance().mAutoAssignGamepadPlayerIndex;
 	}
-	for (int playerIndex = 1; playerIndex >= 0; --playerIndex)	// Reverse order to make sure player 1 overwrites player 2
+	for (int playerIndex = NUM_PLAYERS - 1; playerIndex >= 0; --playerIndex)	// Reverse order to make sure player 1 overwrites player 2
 	{
 		RealDevice* gamepad = findGamepadBySDLJoystickInstanceId(mPlayers[playerIndex].mPreferredGamepad.mSDLJoystickInstanceId);
 		if (nullptr != gamepad)
@@ -815,13 +810,13 @@ const InputManager::RealDevice* InputManager::getGamepadByJoystickInstanceId(int
 
 int32 InputManager::getPreferredGamepadByJoystickInstanceId(int playerIndex) const
 {
-	RMX_ASSERT(playerIndex >= 0 && playerIndex < 2, "Invalid player index " << playerIndex);
+	RMX_ASSERT(playerIndex >= 0 && playerIndex < NUM_PLAYERS, "Invalid player index " << playerIndex);
 	return mPlayers[playerIndex].mPreferredGamepad.mSDLJoystickInstanceId;
 }
 
 void InputManager::setPreferredGamepad(int playerIndex, const RealDevice* gamepad)
 {
-	RMX_ASSERT(playerIndex >= 0 && playerIndex < 2, "Invalid player index " << playerIndex);
+	RMX_ASSERT(playerIndex >= 0 && playerIndex < NUM_PLAYERS, "Invalid player index " << playerIndex);
 	PreferredGamepad& preferredGamepad = mPlayers[playerIndex].mPreferredGamepad;
 	if (nullptr != gamepad)
 	{
@@ -840,9 +835,16 @@ InputConfig::DeviceDefinition* InputManager::getDeviceDefinition(const RealDevic
 {
 	if (device.mType == InputConfig::DeviceType::KEYBOARD)
 	{
-		static_assert(NUM_PLAYERS == 2, "NUM_PLAYERS must be 2");
-		const int keyboardIndex = (&device == &mKeyboards[1]) ? 1 : 0;
-		const std::string key = (keyboardIndex == 0) ? "Keyboard1" : "Keyboard2";
+		size_t keyboardIndex = 0;
+		for (size_t k = 1; k < NUM_PLAYERS; ++k)
+		{
+			if (&device == &mKeyboards[k])
+			{
+				keyboardIndex = k;
+				break;
+			}
+		}
+		const std::string& key = KEYBOARD_DEVICE_NAMES[keyboardIndex];
 		return getInputDeviceDefinitionByIdentifier(key);
 	}
 	else
@@ -930,7 +932,7 @@ void InputManager::setControllerLEDsForPlayer(int playerIndex, const Color& colo
 {
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 	// TODO: Remove some of these exclusions where possible
-	#if !defined(PLATFORM_WEB) && !defined(PLATFORM_SWITCH) && !(defined(PLATFORM_WINDOWS) && defined(__GNUC__))
+	#if !defined(PLATFORM_WEB) && !defined(PLATFORM_SWITCH) && !defined(PLATFORM_VITA) && !(defined(PLATFORM_WINDOWS) && defined(__GNUC__))
 		for (size_t i = 0; i < mGamepads.size(); ++i)
 		{
 			if (mGamepads[i].mAssignedPlayer == playerIndex && nullptr != mGamepads[i].mSDLGameController)
@@ -944,7 +946,7 @@ void InputManager::setControllerLEDsForPlayer(int playerIndex, const Color& colo
 
 void InputManager::handleActiveModsChanged()
 {
-	static const uint64 FEATURE_NAME_HASH = rmx::getMurmur2_64("Controls_LR");
+	constexpr uint64 FEATURE_NAME_HASH = rmx::constMurmur2_64("Controls_LR");
 	mUsingControlsLR = ModManager::instance().anyActiveModUsesFeature(FEATURE_NAME_HASH);
 
 	if (TouchControlsOverlay::hasInstance())
@@ -968,11 +970,7 @@ InputConfig::DeviceDefinition* InputManager::getInputDeviceDefinitionByIdentifie
 	Configuration& config = Configuration::instance();
 	for (size_t k = 0; k < config.mInputDeviceDefinitions.size(); ++k)
 	{
-#if defined(PLATFORM_PS3)
-		if (config.mInputDeviceDefinitions[k].mIdentifier == std::string(identifier.data(), identifier.length()))
-#else
 		if (config.mInputDeviceDefinitions[k].mIdentifier == identifier)
-#endif
 		{
 			return &config.mInputDeviceDefinitions[k];
 		}
@@ -1008,7 +1006,10 @@ bool InputManager::isPressed(const ControlInput& input)
 			{
 				// Ignore key presses while Alt is down
 				if (!FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
-					return true;
+				{
+					if (!ImGuiIntegration::instance().isCapturingKeyboard())
+						return true;
+				}
 			}
 			break;
 		}

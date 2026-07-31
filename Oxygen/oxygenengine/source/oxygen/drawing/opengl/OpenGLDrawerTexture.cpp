@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -20,7 +20,6 @@ void OpenGLDrawerTexture::updateFromBitmap(const Bitmap& bitmap)
 	// Need to update these, as "loadBitmap" changed the OpenGL texture parameters
 	mSamplingMode = SamplingMode::POINT;
 	mWrapMode = TextureWrapMode::CLAMP;
-
 }
 
 void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)
@@ -33,10 +32,6 @@ void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)
 		mFrameBuffer.attachTexture(GL_COLOR_ATTACHMENT0, mTexture.getHandle(), GL_TEXTURE_2D);
 		mFrameBuffer.finishCreation();
 		mFrameBuffer.unbind();
-
-#if defined(PLATFORM_PS3)
-		RMX_LOG_INFO("OpenGLDrawerTexture::setupAsRenderTarget - created FB " << mFrameBuffer.getHandle() << " for texture " << mTexture.getHandle() << " (" << size.x << "x" << size.y << ")");
-#endif
 	}
 }
 
@@ -44,7 +39,7 @@ void OpenGLDrawerTexture::writeContentToBitmap(Bitmap& outBitmap)
 {
 	outBitmap.create(mTexture.getSize().x, mTexture.getSize().y);
 
-#if !defined(RMX_USE_GLES2) && !defined(PLATFORM_PS3)
+#if !defined(RMX_USE_GLES2)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mTexture.getHandle());
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, outBitmap.getData());

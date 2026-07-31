@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -22,12 +22,9 @@ protected:
 	void performAudioMix(const MixerParameters& parameters) override;
 
 private:
-	enum
-	{
-		MAX_NUM_CHANNELS = 2,
-		OUTPUT_BUFFER_SIZE = 1024,
-		ACCUMULATION_BUFFER_SIZE = 128
-	};
+	static inline const constexpr size_t MAX_NUM_CHANNELS = 2;
+	static inline const constexpr size_t OUTPUT_BUFFER_SIZE = 1024;
+	static inline const constexpr size_t ACCUMULATION_BUFFER_SIZE = 128;
 
 	int mUnderwaterEffect = 0;
 	float mVolumeMultiplier = 1.0f;

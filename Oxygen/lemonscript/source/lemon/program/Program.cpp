@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -55,12 +55,24 @@ namespace lemon
 		{
 			RMX_ASSERT(mFunctions.size() == function->getID(), "Mismatch between expected (" << mFunctions.size() << ") and actual function ID (" << function->getID() << ")");
 			mFunctions.push_back(function);
-			if (function->getType() == Function::Type::SCRIPT)
-				mScriptFunctions.push_back(static_cast<ScriptFunction*>(function));
+			if (function->isA<ScriptFunction>())
+			{
+				mScriptFunctions.push_back(&function->as<ScriptFunction>());
+			}
 
 			mFunctionsByName[function->getName().getHash()].push_back(function);
 			std::vector<Function*>& funcs = mFunctionsBySignature[function->getNameAndSignatureHash()];
 			funcs.insert(funcs.begin(), function);		// Insert as first
+		}
+
+		// Callable function addresses
+		for (const auto& [address, nameHash] : module.mCallableFunctions)
+		{
+			const Function* function = getFunctionBySignature(nameHash + Function::getVoidSignatureHash());
+			if (nullptr != function)
+				mCallableFunctionsByAddress[address] = function;
+			else
+				RMX_ERROR("Could not resolve callable function by name hash " << rmx::hexString(nameHash, 16), );
 		}
 
 		// Global variables
@@ -131,6 +143,12 @@ namespace lemon
 	{
 		const auto it = mFunctionsByName.find(nameHash);
 		return (it == mFunctionsByName.end()) ? EMPTY_FUNCTIONS : it->second;
+	}
+
+	const Function* Program::resolveCallableFunctionAddress(uint32 address) const
+	{
+		const auto it = mCallableFunctionsByAddress.find(address);
+		return (it == mCallableFunctionsByAddress.end()) ? nullptr : it->second;
 	}
 
 	Variable& Program::getGlobalVariableByID(uint32 id) const

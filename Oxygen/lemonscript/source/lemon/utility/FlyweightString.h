@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "lemon/Common.h"
+#include <rmxbase.h>
 
 
 namespace lemon
@@ -29,7 +29,7 @@ namespace lemon
 
 		public:
 			rmx::OneTimeAllocPool mAllocPool;
-			LEMON_UNORDERED_MAP<uint64, Entry*> mEntryMap;
+			std::unordered_map<uint64, Entry*> mEntryMap;
 		};
 	}
 
@@ -66,8 +66,8 @@ namespace lemon
 	private:
 		detail::FlyweightStringManager::Entry* mEntry = nullptr;
 
-		static detail::FlyweightStringManager mManager;
-		static std::string_view EMPTY_STRING_VIEW;
+		inline static detail::FlyweightStringManager mManager;
+		inline static std::string_view EMPTY_STRING_VIEW;
 	};
 
 

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,9 +9,11 @@
 #pragma once
 
 #include <rmxbase.h>
-#if !defined(PLATFORM_PS3)
 #include <atomic>
 #include <thread>
+
+#ifdef PLATFORM_WEB
+struct emscripten_fetch_t;
 #endif
 
 
@@ -49,19 +51,14 @@ private:
 
 private:
 	std::string mURL;
-#if !defined(PLATFORM_PS3)
 	std::thread* mThread = nullptr;
-#else
-	void* mThread = nullptr;
-#endif
 	State mState = State::NONE;
 	std::wstring mOutputFilename;
 	FileHandle mOutputFile;
-#if !defined(PLATFORM_PS3)
 	std::atomic<uint64> mBytesDownloaded = 0;
 	std::atomic<bool> mThreadRunning = false;
-#else
-	uint64 mBytesDownloaded = 0;
-	bool mThreadRunning = false;
+
+#ifdef PLATFORM_WEB
+	emscripten_fetch_t* mFetch = nullptr;
 #endif
 };

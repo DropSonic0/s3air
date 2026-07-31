@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -15,7 +15,8 @@
 #include "oxygen/drawing/DrawCommand.h"
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/helper/Logging.h"
-#include "oxygen/resources/SpriteCache.h"
+#include "oxygen/resources/PaletteCollection.h"
+#include "oxygen/resources/SpriteCollection.h"
 
 
 namespace softwaredrawer
@@ -90,7 +91,7 @@ namespace softwaredrawer
 
 	void mirrorBitmapX(Bitmap& destBitmap, int& destReservedSize, const Bitmap& sourceBitmap)
 	{
-		destBitmap.createReusingMemory(sourceBitmap.getWidth(), sourceBitmap.getHeight(), destReservedSize);
+		destBitmap.createReusingMemory(sourceBitmap.getSize(), destReservedSize);
 		for (int y = 0; y < sourceBitmap.getHeight(); ++y)
 		{
 			const uint32* src = sourceBitmap.getPixelPointer(sourceBitmap.getWidth() - 1, y);
@@ -189,7 +190,7 @@ namespace softwaredrawer
 			else
 			{
 				mOutputWrapper = BitmapViewMutable<uint32>(mCurrentRenderTarget->accessBitmap());
-				mScissorRect.set(0, 0, mCurrentRenderTarget->getWidth(), mCurrentRenderTarget->getHeight());
+				mScissorRect.set(Vec2i(), mCurrentRenderTarget->getSize());
 			}
 		}
 
@@ -229,33 +230,23 @@ namespace softwaredrawer
 		{
 			// Copy over data and swap red and blue channels
 			//  -> Note that input and output may be identical, or must not overlap otherwise
-			
-#if defined(PLATFORM_PS3)
-			// PS3/BE uses RGBA32 (RRGGBBAA in memory)
-			// Swapping Red and Blue means: (R<<24)|(G<<16)|(B<<8)|A -> (B<<24)|(G<<16)|(R<<8)|A
-			const uint32 redMask   = 0xff000000;
-			const uint32 greenMask = 0x00ff0000;
-			const uint32 blueMask  = 0x0000ff00;
-			const uint32 alphaMask = 0x000000ff;
-			const int shift = 16;
-#else
-			// Others/LE uses ABGR32 (AABBGGRR in memory)
-			// Swapping Red and Blue means: (A<<24)|(B<<16)|(G<<8)|R -> (A<<24)|(R<<16)|(G<<8)|B
-			const uint32 redMask   = 0x000000ff;
-			const uint32 greenMask = 0x0000ff00;
-			const uint32 blueMask  = 0x00ff0000;
-			const uint32 alphaMask = 0xff000000;
-			const int shift = 16;
-#endif
-
-			for (int k = 0; k < numPixels; ++k)
+			int k = 0;
+			if constexpr (sizeof(void*) == 8)
+			{
+			#if !defined(PLATFORM_VITA)
+				// On 64-bit architectures: Process 2 pixels at once
+				for (; k < numPixels; k += 2)
+				{
+					const uint64 colors = *(uint64*)&src[k];
+					*(uint64*)&dst[k] = ((colors & 0x00ff000000ff0000ull) >> 16) | (colors & 0xff00ff00ff00ff00ull) | ((colors & 0x000000ff000000ffull) << 16);
+				}
+			#endif
+			}
+			// Process single pixels
+			for (; k < numPixels; ++k)
 			{
 				const uint32 color = src[k];
-#if defined(PLATFORM_PS3)
-				dst[k] = ((color & redMask) >> shift) | (color & greenMask) | ((color & blueMask) << shift) | (color & alphaMask);
-#else
-				dst[k] = ((color & redMask) << shift) | (color & greenMask) | ((color & blueMask) >> shift) | (color & alphaMask);
-#endif
+				dst[k] = ((color & 0x00ff0000) >> 16) | (color & 0xff00ff00) | ((color & 0x000000ff) << 16);
 			}
 		}
 
@@ -318,8 +309,8 @@ namespace softwaredrawer
 
 				BitmapViewMutable<uint32> inputWrapper(*inputBitmap);
 
-				const Vec2f orginalUVStart = uv0;
-				const Vec2f orginalUVRange = uv1 - uv0;
+				const Vec2f originalUVStart = uv0;
+				const Vec2f originalUVRange = uv1 - uv0;
 				Recti inputRect;
 				bool useUVs = false;
 				{
@@ -328,8 +319,8 @@ namespace softwaredrawer
 					{
 						const Vec2f relativeStart = Vec2f(targetRect.getPos() - uncroppedRect.getPos()) / Vec2f(uncroppedRect.getSize());
 						const Vec2f relativeEnd   = Vec2f(targetRect.getPos() - uncroppedRect.getPos() + targetRect.getSize()) / Vec2f(uncroppedRect.getSize());
-						uv0 = orginalUVStart + relativeStart * orginalUVRange;
-						uv1 = orginalUVStart + relativeEnd * orginalUVRange;
+						uv0 = originalUVStart + relativeStart * originalUVRange;
+						uv1 = originalUVStart + relativeEnd * originalUVRange;
 					}
 
 					useUVs = (uv0.x < 0.0f || uv0.x > uv1.x || uv1.x > 1.0f || uv0.y < 0.0f || uv0.y > uv1.y || uv1.y > 1.0f);
@@ -367,8 +358,8 @@ namespace softwaredrawer
 				{
 					// Get the part from the input that will get drawn
 					//  -> Calculated here again, as we need to use the original UVs in this case
-					const Vec2f inputStart = orginalUVStart * Vec2f(inputWrapper.getSize());
-					const Vec2f inputEnd = (orginalUVStart + orginalUVRange) * Vec2f(inputWrapper.getSize());
+					const Vec2f inputStart = originalUVStart * Vec2f(inputWrapper.getSize());
+					const Vec2f inputEnd = (originalUVStart + originalUVRange) * Vec2f(inputWrapper.getSize());
 					inputRect.x = roundToInt(inputStart.x);
 					inputRect.y = roundToInt(inputStart.y);
 					inputRect.width = roundToInt(inputEnd.x) - inputRect.x;
@@ -390,6 +381,20 @@ namespace softwaredrawer
 				const BitmapViewMutable<uint32> outputView(getOutputWrapper(), targetRect);
 				mBlitter.blitColor(outputView, color, useAlphaBlending() ? BlendMode::ALPHA : BlendMode::OPAQUE);
 			}
+		}
+
+		void drawIndexed(Vec2i position, PaletteBitmap& inputBitmap, const PaletteBase& palette, Color color)
+		{
+			const Blitter::OutputWrapper outputWrapper(getOutputWrapper(), getScissorRect());
+			const Blitter::IndexedSpriteWrapper inputWrapper(inputBitmap.getData(), inputBitmap.getSize(), Vec2i());
+			const Blitter::PaletteWrapper paletteWrapper(palette.getRawColors(), palette.getSize());
+
+			Blitter::Options blitterOptions;
+			blitterOptions.mBlendMode = useAlphaBlending() ? BlendMode::ALPHA : BlendMode::OPAQUE;
+			blitterOptions.mTintColor = (color != Color::WHITE) ? &color : nullptr;
+			blitterOptions.mSwapRedBlueChannels = needSwapRedBlueChannels();
+
+			mBlitter.blitIndexed(outputWrapper, inputWrapper, paletteWrapper, position, blitterOptions);
 		}
 
 		void printText(Font& font, const StringReader& text, const Recti& rect, const DrawerPrintOptions& printOptions)
@@ -520,34 +525,52 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 			case DrawCommand::Type::SPRITE:
 			{
 				SpriteDrawCommand& sc = drawCommand->as<SpriteDrawCommand>();
-				const SpriteCache::CacheItem* item = SpriteCache::instance().getSprite(sc.mSpriteKey);
+				const SpriteCollection::Item* item = SpriteCollection::instance().getSprite(sc.mSpriteKey);
 				if (nullptr == item)
 					break;
-				if (!item->mUsesComponentSprite)
-					break;
 
-				ComponentSprite& sprite = *static_cast<ComponentSprite*>(item->mSprite);
-				Vec2i offset = sprite.mOffset;
-				Vec2i size = sprite.getBitmap().getSize();
-				if (sc.mScale.x != 1.0f || sc.mScale.y != 1.0f)
+				const PaletteBase* palette = nullptr;
+				if (!item->mUsesComponentSprite)
 				{
-					offset.x = roundToInt((float)offset.x * sc.mScale.x);
-					offset.y = roundToInt((float)offset.y * sc.mScale.y);
-					size.x = roundToInt((float)size.x * sc.mScale.x);
-					size.y = roundToInt((float)size.y * sc.mScale.y);
+					palette = PaletteCollection::instance().getPalette(sc.mPaletteKey, 0);
+					if (nullptr == palette)
+						break;
 				}
-				const Recti targetRect(sc.mPosition + offset, size);
+
+				SpriteBase& sprite = *item->mSprite;
+				Vec2i offset = sprite.mOffset;
 
 				// TODO: No support for bilinear sampling here...
 
-				mInternal.drawRect(targetRect, &sprite.accessBitmap(), sc.mTintColor);
+				if (item->mUsesComponentSprite)
+				{
+					Vec2i size = sprite.getSize();
+					if (sc.mScale.x != 1.0f || sc.mScale.y != 1.0f)
+					{
+						offset.x = roundToInt((float)offset.x * sc.mScale.x);
+						offset.y = roundToInt((float)offset.y * sc.mScale.y);
+						size.x = roundToInt((float)size.x * sc.mScale.x);
+						size.y = roundToInt((float)size.y * sc.mScale.y);
+					}
+					const Recti targetRect(sc.mPosition + offset, size);
+
+					ComponentSprite& componentSprite = static_cast<ComponentSprite&>(sprite);
+					mInternal.drawRect(targetRect, &componentSprite.accessBitmap(), sc.mTintColor);
+				}
+				else
+				{
+					// TODO: Support scaling here as well
+
+					PaletteSprite& paletteSprite = static_cast<PaletteSprite&>(sprite);
+					mInternal.drawIndexed(sc.mPosition + offset, paletteSprite.accessBitmap(), *palette, sc.mTintColor);
+				}
 				break;
 			}
 
 			case DrawCommand::Type::SPRITE_RECT:
 			{
 				SpriteRectDrawCommand& sc = drawCommand->as<SpriteRectDrawCommand>();
-				const SpriteCache::CacheItem* item = SpriteCache::instance().getSprite(sc.mSpriteKey);
+				const SpriteCollection::Item* item = SpriteCollection::instance().getSprite(sc.mSpriteKey);
 				if (nullptr == item)
 					break;
 				if (!item->mUsesComponentSprite)
@@ -575,7 +598,7 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 					// Note that this does not support red-blue channel swap
 
 					SoftwareRasterizer rasterizer(outputView, options);
-					SoftwareRasterizer::Vertex_P2_T2 triangle[3];
+					SoftwareRasterizer::Vertex triangle[3];
 
 					const int numTriangles = (int)dc.mTriangles.size() / 3;
 					for (int i = 0; i < numTriangles; ++i)
@@ -586,7 +609,7 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 							triangle[k].mPosition = input[k].mPosition;
 							triangle[k].mUV = input[k].mTexcoords;
 						}
-						rasterizer.drawTriangle(triangle, inputBitmap);
+						rasterizer.drawTriangle(triangle, inputBitmap, false);
 					}
 				}
 				break;
@@ -601,7 +624,7 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 				options.mBlendMode = mInternal.useAlphaBlending() ? BlendMode::ALPHA : BlendMode::OPAQUE;
 
 				SoftwareRasterizer rasterizer(outputView, options);
-				SoftwareRasterizer::Vertex_P2_C4 triangle[3];
+				SoftwareRasterizer::Vertex triangle[3];
 				const bool swapRedBlue = mInternal.needSwapRedBlueChannels();
 
 				const int numTriangles = (int)dc.mTriangles.size() / 3;
@@ -663,7 +686,7 @@ void SoftwareDrawer::performRendering(const DrawCollection& drawCollection)
 				PushScissorDrawCommand& dc = drawCommand->as<PushScissorDrawCommand>();
 
 				mInternal.mScissorRect.intersect(dc.mRect);
-				mInternal.mScissorStack.push_back(mInternal.mScissorRect);
+				mInternal.mScissorStack.emplace_back(mInternal.mScissorRect);
 				break;
 			}
 
@@ -693,58 +716,15 @@ void SoftwareDrawer::presentScreen()
 		return;
 
 	mInternal.unlockScreenSurface();
-
-#if defined(PLATFORM_PS3)
-	// On PS3, we need to upload the software rendered surface to a texture and display it via fixed-function PSGL
-	static GLuint screenTexture = 0;
-	if (screenTexture == 0)
-	{
-		glGenTextures(1, &screenTexture);
-		glBindTexture(GL_TEXTURE_2D, screenTexture);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	}
-
-	glBindTexture(GL_TEXTURE_2D, screenTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mInternal.mScreenSurface->pixels);
-
-	glDisable(GL_CULL_FACE);
-	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_BLEND);
-	glEnable(GL_TEXTURE_2D);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrthof(0, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, -1, 1);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-
-	const float vertices[] = {
-		0.0f, 0.0f,
-		(float)mInternal.mScreenSurface->w, 0.0f,
-		0.0f, (float)mInternal.mScreenSurface->h,
-		(float)mInternal.mScreenSurface->w, (float)mInternal.mScreenSurface->h
-	};
-	const float texcoords[] = {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f
-	};
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, vertices);
-	glTexCoordPointer(2, GL_FLOAT, 0, texcoords);
-
-	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	psglSwap();
-#else
 	SDL_UpdateWindowSurface(mInternal.mOutputWindow);
-#endif
+}
+
+const BitmapViewMutable<uint32>& SoftwareDrawer::getRenderTarget() const
+{
+	return mInternal.getOutputWrapper();
+}
+
+bool SoftwareDrawer::needSwapRedBlueChannels() const
+{
+	return mInternal.needSwapRedBlueChannels();
 }

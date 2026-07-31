@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,9 +10,7 @@
 
 #include <rmxbase.h>
 #include <functional>
-#if !defined(PLATFORM_PS3)
 #include <optional>
-#endif
 
 
 class CustomDebugSidePanelCategory;
@@ -62,13 +60,7 @@ public:
 	virtual void update(float timeElapsed) override;
 	virtual void render() override;
 
-#if defined(PLATFORM_PS3)
-	typedef void (*CategoryCallback)(DebugSidePanelCategory&, Builder&, uint64);
-#else
-	typedef std::function<void(DebugSidePanelCategory&, Builder&, uint64)> CategoryCallback;
-#endif
-
-	DebugSidePanelCategory& createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const CategoryCallback& callback);
+	inline const std::vector<CustomDebugSidePanelCategory*>& getCustomCategories() const  { return mCustomCategories; }
 
 	bool setupCustomCategory(std::string_view header, char shortCharacter);
 	bool addOption(std::string_view text, bool defaultValue);
@@ -83,7 +75,8 @@ private:
 private:
 	Font mSmallFont;
 
-	std::vector<DebugSidePanelCategory*> mCategories;
+	std::vector<DebugSidePanelCategory*> mCategories;			// All categories, including the custom ones
+	std::vector<CustomDebugSidePanelCategory*> mCustomCategories;
 	size_t mActiveCategoryIndex = 0;
 
 	CustomDebugSidePanelCategory* mSetupCustomCategory = nullptr;

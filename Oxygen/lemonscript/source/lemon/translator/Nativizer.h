@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,11 +9,7 @@
 #pragma once
 
 #include "lemon/runtime/RuntimeOpcode.h"
-#if !defined(PLATFORM_PS3)
 #include <unordered_map>
-#else
-#include <map>
-#endif
 
 
 namespace lemon
@@ -28,8 +24,8 @@ namespace lemon
 	class Nativizer
 	{
 	public:
-		static constexpr size_t MIN_OPCODES = 2;
-		static constexpr size_t MAX_OPCODES = 32;
+		static const constexpr size_t MIN_OPCODES = 2;
+		static const constexpr size_t MAX_OPCODES = 32;
 
 		struct OpcodeSubtypeInfo
 		{
@@ -53,10 +49,10 @@ namespace lemon
 				enum class Semantics
 				{
 					INTEGER,
+					LOCAL_VARIABLE,
 					GLOBAL_VARIABLE,
 					EXTERNAL_VARIABLE,
-					FIXED_MEMORY_ADDRESS,
-					UNDEFINED = 0xff
+					FIXED_MEMORY_ADDRESS
 				};
 
 				uint16 mOffset = 0;
@@ -84,11 +80,7 @@ namespace lemon
 			void loadFunctions(const CompactFunctionEntry* entries, size_t numEntries);
 			void loadParameterInfo(const uint8* data, size_t count);
 
-#if !defined(PLATFORM_PS3)
 			std::unordered_map<uint64, LookupEntry> mEntries;
-#else
-			std::map<uint64, LookupEntry> mEntries;
-#endif
 			std::vector<LookupEntry::ParameterInfo> mParameterData;
 		};
 

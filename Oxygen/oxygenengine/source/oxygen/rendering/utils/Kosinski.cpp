@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,7 +9,6 @@
 #include "oxygen/pch.h"
 #include "oxygen/rendering/utils/Kosinski.h"
 #include "oxygen/simulation/EmulatorInterface.h"
-#include "Endian/S3AIREndian.hpp"
 
 
 namespace
@@ -31,7 +30,7 @@ namespace
 
 		uint16 nextWord()
 		{
-			const uint16 result = rmx::readMemoryUnalignedLE<uint16>(emulatorInterface.getMemoryPointer(address, false, 2));
+			const uint16 result = swapBytes16(emulatorInterface.readMemory16(address));
 			address += 2;
 			return result;
 		}

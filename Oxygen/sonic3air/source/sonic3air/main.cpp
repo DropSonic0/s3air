@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,35 +8,38 @@
 
 #include "sonic3air/pch.h"
 #include "sonic3air/EngineDelegate.h"
-#include "sonic3air/helper/ArgumentsReader.h"
+#include "sonic3air/GameArgumentsReader.h"
 #include "sonic3air/helper/PackageBuilder.h"
+#include "sonic3air/platform/PlatformSpecifics.h"
 
 #include "oxygen/platform/PlatformFunctions.h"
 
-#if defined(PLATFORM_PS3)
-#include <sys/process.h>
-SYS_PROCESS_PARAM(1001, 1024 * 1024)
-#endif
 
-
-// HJW: I know it's sloppy to put this here... it'll get moved afterwards
+// [Added for Switch platform] HJW: I know it's sloppy to put this here... it'll get moved afterwards
 // Building with my env (msys2,gcc) requires this stub for some reason
-#if !defined(PLATFORM_PS3)
 #ifndef pathconf
-#include <errno.h>
 long pathconf(const char* path, int name)
 {
 	errno = ENOSYS;
 	return -1;
 }
 #endif
-#endif
 
 #if defined(PLATFORM_WINDOWS) & !defined(__GNUC__)
 extern "C"
 {
+	// Tell graphics drivers to prefer the dedicated GPU, if there's integrated graphics as well
 	_declspec(dllexport) uint32 NvOptimusEnablement = 1;
 	_declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+#endif
+
+#if defined(PLATFORM_VITA)
+extern "C"
+{
+	// Any value higher than 324 MB will make the game either boot without sound or just crash the PSVITA due to lack of physical RAM
+	int _newlib_heap_size_user = 324 * 1024 * 1024;
+	unsigned int sceUserMainThreadStackSize = 4 * 1024 * 1024;
 }
 #endif
 
@@ -44,24 +47,15 @@ extern "C"
 int main(int argc, char** argv)
 {
 	EngineMain::earlySetup();
+	PlatformSpecifics::platformStartup();
 
+	GameArgumentsReader arguments;
+
+#if defined(PLATFORM_VITA)
+	argc = 0;
+#else
 	// Read command line arguments
-	ArgumentsReader arguments;
 	arguments.read(argc, argv);
-
-#if defined(PLATFORM_PS3)
-	// Startup logging as early as possible to catch issues
-	// We try to derive the path from the executable call path
-	std::wstring logPath = L"/dev_hdd0/game/SONIC3AIR/USRDIR/log.txt";
-	const size_t slashPos = arguments.mExecutableCallPath.find_last_of(L'/');
-	if (slashPos != std::wstring::npos)
-	{
-		logPath = arguments.mExecutableCallPath.substr(0, slashPos + 1) + L"log.txt";
-	}
-
-	oxygen::Logging::startup(logPath);
-	RMX_LOG_INFO("--- EARLY LOGGING START ---");
-#endif
 
 	// For certain arguments, just try to forward them to an already running instance of S3AIR
 	if (!arguments.mUrl.empty())
@@ -72,15 +66,16 @@ int main(int argc, char** argv)
 
 	// Make sure we're in the correct working directory
 	PlatformFunctions::changeWorkingDirectory(arguments.mExecutableCallPath);
+#endif
 
 #if defined(PLATFORM_WINDOWS)
-	// Check if the user has an old version of "audioremaster.bin", and remove it if that the case
+	// Check if the user has an old version of "audioremaster.bin", and remove it if that's the case
 	//  -> As the newer installations don't include that file, it is most likely an out-dated one, and could cause problems (at least an assert) down the line
 	if (FTX::FileSystem->exists(L"data/audioremaster.bin"))
 		FTX::FileSystem->removeFile(L"data/audioremaster.bin");
 #endif
 
-#if !defined(PLATFORM_ANDROID)
+#if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_VITA)
 	if (arguments.mPack)
 	{
 		PackageBuilder::performPacking();
@@ -89,13 +84,14 @@ int main(int argc, char** argv)
 	}
 #endif
 
-#if !defined(PLATFORM_PS3)
+	// Randomization is quite important for server communication
+	randomize();
+
 	try
-#endif
 	{
 		// Create engine delegate and engine main instance
 		EngineDelegate myDelegate;
-		EngineMain myMain(myDelegate);
+		EngineMain myMain(myDelegate, arguments);
 
 		// Evaluate some more arguments
 		Configuration& config = Configuration::instance();
@@ -112,14 +108,12 @@ int main(int argc, char** argv)
 		}
 
 		// Now run the game
-		myMain.execute(argc, argv);
+		myMain.execute();
 	}
-#if !defined(PLATFORM_PS3)
 	catch (const std::exception& e)
 	{
 		RMX_ERROR("Caught unhandled exception in main loop: " << e.what(), );
 	}
-#endif
 
 	return 0;
 }

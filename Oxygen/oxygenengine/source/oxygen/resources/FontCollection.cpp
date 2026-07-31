@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -51,7 +51,7 @@ namespace
 
 	bool isOperator(lemon::ParserToken& token, lemon::Operator op)
 	{
-		return (token.getType() == lemon::OperatorParserToken::TYPE && static_cast<lemon::OperatorParserToken&>(token).mOperator == op);
+		return (token.isA<lemon::OperatorParserToken>() && token.as<lemon::OperatorParserToken>().mOperator == op);
 	}
 
 	void splitIntoParameters(lemon::ParserTokenList& tokenList, std::vector<std::pair<size_t, size_t>>& outTokensRangePerParameter)
@@ -64,14 +64,14 @@ namespace
 			{
 				if (startIndex < index)
 				{
-					outTokensRangePerParameter.push_back(std::make_pair(startIndex, index - startIndex));
+					outTokensRangePerParameter.emplace_back(startIndex, index - startIndex);
 				}
 				startIndex = index + 1;
 			}
 		}
 		if (startIndex < tokenList.size())
 		{
-			outTokensRangePerParameter.push_back(std::make_pair(startIndex, tokenList.size() - startIndex));
+			outTokensRangePerParameter.emplace_back(startIndex, tokenList.size() - startIndex);
 		}
 	}
 
@@ -82,41 +82,38 @@ namespace
 
 		outParameters.reserve(tokensRangePerParameter.size());
 
-		for (size_t i = 0; i < tokensRangePerParameter.size(); ++i)
+		for (const auto [startIndex, length] : tokensRangePerParameter)
 		{
-			const size_t startIndex = tokensRangePerParameter[i].first;
-			const size_t length = tokensRangePerParameter[i].second;
-
-			if (tokenList[startIndex].getType() != lemon::IdentifierParserToken::TYPE)
+			if (!tokenList[startIndex].isA<lemon::IdentifierParserToken>())
 				continue;
 
 			FontKeyParameter& param = vectorAdd(outParameters);
-			param.mIdentifier = static_cast<lemon::IdentifierParserToken*>(&tokenList[startIndex]);
+			param.mIdentifier = &tokenList[startIndex].as<lemon::IdentifierParserToken>();
 
 			if (length == 1)
 				continue;
 
 			const bool hasArgumentsInParentheses = (length >= 3 && isOperator(tokenList[startIndex + 1], lemon::Operator::PARENTHESIS_LEFT) && isOperator(tokenList[startIndex + length - 1], lemon::Operator::PARENTHESIS_RIGHT));
-			RMX_CHECK(hasArgumentsInParentheses, "Syntax error in font key '" << std::string(fontKey.data(), fontKey.length()) << "'", break);
+			RMX_CHECK(hasArgumentsInParentheses, "Syntax error in font key '" << fontKey << "'", break);
 
 			const size_t firstIndex = startIndex + 2;
 			const size_t lastIndex = startIndex + length - 2;
 			for (size_t index = firstIndex; index <= lastIndex; ++index)
 			{
 				// Expecting a number constant here
-				RMX_CHECK(tokenList[index].getType() == lemon::ConstantParserToken::TYPE, "Syntax error in font key '" << std::string(fontKey.data(), fontKey.length()) << "'", break);
-				param.mArguments.push_back(static_cast<lemon::ConstantParserToken*>(&tokenList[index]));
+				RMX_CHECK(tokenList[index].isA<lemon::ConstantParserToken>(), "Syntax error in font key '" << fontKey << "'", break);
+				param.mArguments.push_back(&tokenList[index].as<lemon::ConstantParserToken>());
 				++index;
 
 				// And then either a comma, or the end
-				RMX_CHECK(index > lastIndex || isOperator(tokenList[index], lemon::Operator::COMMA_SEPARATOR), "Syntax error in font key '" << std::string(fontKey.data(), fontKey.length()) << "'", break);
+				RMX_CHECK(index > lastIndex || isOperator(tokenList[index], lemon::Operator::COMMA_SEPARATOR), "Syntax error in font key '" << fontKey << "'", break);
 			}
 		}
 	}
 
 	void parseFontKey(std::string_view fontKey, std::string_view& outBaseFontKey, std::vector<std::shared_ptr<FontProcessor>>& outFontProcessors)
 	{
-		const size_t colonPosition = fontKey.find(":");
+		const size_t colonPosition = fontKey.find(':');
 		if (colonPosition == std::string_view::npos)
 		{
 			outBaseFontKey = fontKey;
@@ -135,56 +132,48 @@ namespace
 		collectFontkeyParameters(tokenList, fontKey, parameters);
 
 		// Build font processors from parameters
-		for (size_t i = 0; i < parameters.size(); ++i)
+		for (const FontKeyParameter& param : parameters)
 		{
-			const FontKeyParameter& param = parameters[i];
 			if (param.mIdentifier->mName == "shadow")
 			{
 				const Vec2i shadowOffset(param.getIntArgument<int8>(0, 1), param.getIntArgument<int8>(1, 1));
 				const float shadowBlur = param.getFloatArgument(2, 0.0f);
 				const float shadowAlpha = param.getFloatArgument(3, 1.0f);
-#if defined(PLATFORM_PS3)
-				outFontProcessors.push_back(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(shadowOffset, shadowBlur, shadowAlpha)));
-#else
-				outFontProcessors.push_back(std::make_shared<ShadowFontProcessor>(shadowOffset, shadowBlur, shadowAlpha));
-#endif
+				outFontProcessors.emplace_back(std::make_shared<ShadowFontProcessor>(shadowOffset, shadowBlur, shadowAlpha));
 			}
 			else if (param.mIdentifier->mName == "outline")
 			{
 				const Color outlineColor = Color::fromRGBA32(param.getIntArgument<uint32>(0, 0x000000ff));
 				const int range = param.getIntArgument<int8>(1, 1);
 				const bool rectangularOutline = (param.getIntArgument<bool>(2, false) != 0);
-#if defined(PLATFORM_PS3)
-				outFontProcessors.push_back(std::shared_ptr<OutlineFontProcessor>(new OutlineFontProcessor(outlineColor, range, rectangularOutline)));
-#else
-				outFontProcessors.push_back(std::make_shared<OutlineFontProcessor>(outlineColor, range, rectangularOutline));
-#endif
+				outFontProcessors.emplace_back(std::make_shared<OutlineFontProcessor>(outlineColor, range, rectangularOutline));
 			}
 			else if (param.mIdentifier->mName == "gradient")
 			{
-#if defined(PLATFORM_PS3)
-				outFontProcessors.push_back(std::shared_ptr<GradientFontProcessor>(new GradientFontProcessor()));
-#else
-				outFontProcessors.push_back(std::make_shared<GradientFontProcessor>());
-#endif
+				outFontProcessors.emplace_back(std::make_shared<GradientFontProcessor>());
 			}
 		}
 	}
 }
 
 
+FontCollection::~FontCollection()
+{
+	clear();
+}
+
 Font* FontCollection::getFontByKey(uint64 keyHash)
 {
 	// Try to find in map
-	Font** font = mapFind(mFontsByKeyHash, keyHash);
-	return (nullptr != font) ? *font : nullptr;
+	return mapFindOrDefault(mFontsByKeyHash, keyHash, nullptr);
 }
 
 Font* FontCollection::createFontByKey(std::string_view key)
 {
 	// First check if the font exists already
+	const uint64 keyHash = rmx::getMurmur2_64(key);
 	{
-		Font* font = getFontByKey(rmx::getMurmur2_64(key));
+		Font* font = getFontByKey(keyHash);
 		if (nullptr != font)
 			return font;
 	}
@@ -200,12 +189,13 @@ Font* FontCollection::createFontByKey(std::string_view key)
 		return nullptr;
 
 	Font& font = mFontPool.createObject();
-	for (size_t i = 0; i < fontProcessors.size(); ++i)
+	for (std::shared_ptr<FontProcessor>& fontProcessor : fontProcessors)
 	{
-		font.addFontProcessor(fontProcessors[i]);
+		font.addFontProcessor(fontProcessor);
 	}
 
 	registerManagedFontInternal(font, *collectedFont);
+	mFontsByKeyHash[keyHash] = &font;
 	return &font;
 }
 
@@ -217,27 +207,55 @@ bool FontCollection::registerManagedFont(Font& font, std::string_view key)
 		return false;
 
 	registerManagedFontInternal(font, *collectedFont);
+
+	// Add to list of managed fonts as well
+	ManagedFont& managedFont = vectorAdd(mAllManagedFonts);
+	managedFont.mFont = &font;
+	managedFont.mKey = key;
 	return true;
+}
+
+void FontCollection::clear()
+{
+	for (auto& [key, collectedFont] : mCollectedFonts)
+	{
+		for (Font* font : collectedFont.mManagedFonts)
+		{
+			font->injectFontSource(nullptr);
+		}
+		delete collectedFont.mFontSource;
+	}
+
+	mCollectedFonts.clear();
+	mFontsByKeyHash.clear();
+	mFontPool.clear();
 }
 
 void FontCollection::reloadAll()
 {
 	// Load main game fonts
-	mCollectedFonts.clear();
-	mFontsByKeyHash.clear();
-	mFontPool.clear();
-
+	clear();
 	loadDefinitionsFromPath(L"data/font/", nullptr);
 
+	// Load mod fonts
 	collectFromMods();
+
+	// Re-register managed fonts
+	{
+		std::vector<ManagedFont> managedFonts;
+		managedFonts.swap(mAllManagedFonts);
+		for (const ManagedFont& managedFont : managedFonts)
+		{
+			registerManagedFont(*managedFont.mFont, managedFont.mKey);
+		}
+	}
 }
 
 void FontCollection::collectFromMods()
 {
 	// Remove all definitions previously collected from mods, but not the main game ones
-	for (std::unordered_map<uint64, CollectedFont>::iterator it = mCollectedFonts.begin(); it != mCollectedFonts.end(); ++it)
+	for (auto& [key, collectedFont] : mCollectedFonts)
 	{
-		CollectedFont& collectedFont = it->second;
 		for (int index = (int)collectedFont.mDefinitions.size()-1; index >= 0; --index)
 		{
 			if (nullptr != collectedFont.mDefinitions[index].mMod)
@@ -259,10 +277,8 @@ void FontCollection::collectFromMods()
 	}
 
 	// Scan for font definitions in mods
-	const std::vector<Mod*>& activeMods = ModManager::instance().getActiveMods();
-	for (size_t i = 0; i < activeMods.size(); ++i)
+	for (const Mod* mod : ModManager::instance().getActiveMods())
 	{
-		const Mod* mod = activeMods[i];
 		loadDefinitionsFromPath(mod->mFullPath + L"font/", mod);
 	}
 
@@ -277,9 +293,9 @@ void FontCollection::registerManagedFontInternal(Font& font, CollectedFont& coll
 
 	// Update the font source in all font instances (note that it might also be a null pointer)
 	// TODO: Is this even needed for all managed fonts, or not just the one we're adding...?
-	for (size_t i = 0; i < collectedFont.mManagedFonts.size(); ++i)
+	for (Font* managedFont : collectedFont.mManagedFonts)
 	{
-		collectedFont.mManagedFonts[i]->injectFontSource(collectedFont.mFontSource);
+		managedFont->injectFontSource(collectedFont.mFontSource);
 	}
 }
 
@@ -290,11 +306,10 @@ void FontCollection::loadDefinitionsFromPath(std::wstring_view path, const Mod* 
 
 	std::vector<rmx::FileIO::FileEntry> fileEntries;
 	fileEntries.reserve(8);
-	FTX::FileSystem->listFilesByMask(std::wstring(path.data(), path.length()) + L"*.json", false, fileEntries);
+	FTX::FileSystem->listFilesByMask(std::wstring(path) + L"*.json", false, fileEntries);
 
-	for (size_t i = 0; i < fileEntries.size(); ++i)
+	for (const rmx::FileIO::FileEntry& fileEntry : fileEntries)
 	{
-		const rmx::FileIO::FileEntry& fileEntry = fileEntries[i];
 		const std::wstring pureFilename = fileEntry.mFilename.substr(0, fileEntry.mFilename.length() - 5);	// Remove ".json"
 		const std::string keyString = WString(pureFilename).toStdString();
 		const uint64 keyHash = rmx::getMurmur2_64(keyString);
@@ -320,10 +335,8 @@ void FontCollection::loadDefinitionsFromPath(std::wstring_view path, const Mod* 
 void FontCollection::updateLoadedFonts()
 {
 	std::vector<uint64> keysToRemove;
-	for (std::unordered_map<uint64, CollectedFont>::iterator it = mCollectedFonts.begin(); it != mCollectedFonts.end(); ++it)
+	for (auto& [key, collectedFont] : mCollectedFonts)
 	{
-		uint64 key = it->first;
-		CollectedFont& collectedFont = it->second;
 		if (collectedFont.mDefinitions.empty() && collectedFont.mManagedFonts.size() <= 1)
 		{
 			// Font is unused and can be removed
@@ -343,19 +356,21 @@ void FontCollection::updateLoadedFonts()
 		for (int index = (int)collectedFont.mDefinitions.size() - 1; index >= 0; --index)
 		{
 			const Definition& definition = collectedFont.mDefinitions[index];
-			collectedFont.mFontSource = new FontSourceBitmap(WString(definition.mDefinitionFile).toString());
+			collectedFont.mFontSource = new FontSourceBitmap(definition.mDefinitionFile);
 			if (collectedFont.mFontSource->isValid())
 			{
 				collectedFont.mLoadedDefinitionIndex = index;
 				break;
 			}
+
 			// If loading failed, try the next definition
+			SAFE_DELETE(collectedFont.mFontSource);
 		}
 
 		// Update the font source in all font instances (note that it might also be a null pointer)
-		for (size_t i = 0; i < collectedFont.mManagedFonts.size(); ++i)
+		for (Font* font : collectedFont.mManagedFonts)
 		{
-			collectedFont.mManagedFonts[i]->injectFontSource(collectedFont.mFontSource);
+			font->injectFontSource(collectedFont.mFontSource);
 		}
 
 		// If loading failed for all definitions, remove the collected font instance
@@ -365,9 +380,10 @@ void FontCollection::updateLoadedFonts()
 		}
 	}
 
-	for (size_t i = 0; i < keysToRemove.size(); ++i)
+	for (uint64 key : keysToRemove)
 	{
-		mCollectedFonts.erase(keysToRemove[i]);
+		mCollectedFonts.erase(key);
+		mFontsByKeyHash.erase(key);
 	}
 
 	// Invalidate cached printed texts

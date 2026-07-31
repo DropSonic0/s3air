@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,14 +11,12 @@
 #include "oxygen/helper/HighResolutionTimer.h"
 #include "oxygen/helper/Logging.h"
 
-#if !defined(PLATFORM_PS3)
 #include <thread>
-#endif
 
 #ifdef PLATFORM_WINDOWS
 	#include <CleanWindowsInclude.h>
 	#include <shlobj.h>		// For "SHGetKnownFolderPath"
-#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS)
+#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
 	#include <stdlib.h>
 	#include <unistd.h>
 	#include <sys/types.h>
@@ -154,7 +152,6 @@ namespace
 	}
 #endif
 
-#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
 	WString lookForROMFileInSearchPaths(const std::vector<WString>& searchPaths, const WString& localPath)
 	{
 		for (const WString& searchPath : searchPaths)
@@ -171,7 +168,6 @@ namespace
 		}
 		return WString();
 	}
-#endif
 }
 
 
@@ -210,9 +206,7 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 					{
 						HighResolutionTimer yieldTimer;
 						yieldTimer.start();
-					#if !defined(PLATFORM_PS3)
 						std::this_thread::yield();
-					#endif
 						lastYieldTimeMs = yieldTimer.getSecondsSinceStart();
 					}
 				}
@@ -225,18 +219,12 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		if (sleepTimeLeft >= 1.0)
 		{
 			// Sleep the thread if above granularity
-		#if !defined(PLATFORM_PS3)
 			std::this_thread::sleep_for(std::chrono::milliseconds((int)sleepTimeLeft));
-		#else
-			SDL_Delay((unsigned int)sleepTimeLeft);
-		#endif
 		}
 		else
 		{
 			// Yield the thread if below granularity
-		#if !defined(PLATFORM_PS3)
 			std::this_thread::yield();
-		#endif
 		}
 	}
 }
@@ -306,7 +294,7 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 				++pos;
 
 			// Get part as string
-			parts.push_back(std::wstring(path.substr(start, pos-start)));
+			parts.emplace_back(path.substr(start, pos-start));
 		}
 
 		for (size_t index = 0; index < parts.size(); ++index)
@@ -339,9 +327,6 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 		const std::wstring path = std::wstring(executableCallPath.substr(0, slashPos + 1));
 		rmx::FileSystem::setCurrentDirectory(path);
 	}
-#elif defined(PLATFORM_PS3)
-	// chdir and getcwd are not always available on PS3 toolchains
-	// (The rmx::FileSystem already has a hardcoded mount point for USRDIR instead)
 #endif
 }
 
@@ -376,6 +361,7 @@ std::wstring PlatformFunctions::getAppDataPath()
 	{
 		std::wstring result(path);
 		CoTaskMemFree(path);
+		FTX::FileSystem->normalizePath(result, false);	// Do not add a slash at the end
 		return result;
 	}
 #elif defined(PLATFORM_LINUX)
@@ -440,7 +426,7 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 {
 #ifdef PLATFORM_WINDOWS
 
-	MessageBoxA(nullptr, text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
+	MessageBoxA((HWND)FTX::Video->getNativeWindowHandle(), text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
 
 #else
 
@@ -450,7 +436,7 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 #endif
 }
 
-PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity_t severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
+PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
 {
 #ifdef PLATFORM_WINDOWS
 
@@ -461,14 +447,14 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 		case DialogButtons::OK_CANCEL:	type |= MB_OKCANCEL;	break;
 		default:						type |= MB_YESNOCANCEL;	break;
 	}
-	switch ((int)severity)
+	switch (severity)
 	{
 		case rmx::ErrorSeverity::ERROR:		type |= MB_ICONEXCLAMATION;	break;
 		case rmx::ErrorSeverity::WARNING:	type |= MB_ICONWARNING;		break;
 		default:							type |= MB_ICONINFORMATION;	break;
 	}
 
-	const int result = MessageBoxA(nullptr, text.c_str(), caption.c_str(), type);
+	const int result = MessageBoxA((HWND)FTX::Video->getNativeWindowHandle(), text.c_str(), caption.c_str(), type);
 	switch (result)
 	{
 		case IDOK:		return DialogResult::OK;
@@ -506,9 +492,9 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 						   (dialogButtons == DialogButtons::OK_CANCEL) ? SDL_arraysize(buttons_OkCancel) : SDL_arraysize(buttons_YesNoCancel);
 
 	uint32 flags = 0;
-	if (severity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::ERROR)
+	if (severity == rmx::ErrorSeverity::ERROR)
 		flags |= SDL_MESSAGEBOX_ERROR;
-	else if (severity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::WARNING)
+	else if (severity == rmx::ErrorSeverity::WARNING)
 		flags |= SDL_MESSAGEBOX_WARNING;
 	else
 		flags |= SDL_MESSAGEBOX_INFORMATION;
@@ -597,6 +583,18 @@ void PlatformFunctions::openURLExternal(const std::string& url)
 #endif
 }
 
+bool PlatformFunctions::openApplicationExternal(const std::wstring& path, const std::wstring& arguments, const std::wstring& directory)
+{
+#if defined(PLATFORM_WINDOWS)
+	return ::ShellExecuteW(nullptr, L"open", path.c_str(), arguments.c_str(), directory.c_str(), SW_SHOW);
+#elif defined(PLATFORM_LINUX)
+	return system(rmx::convertToUTF8(path + L" " + arguments).c_str());
+#else
+	// Not implemented for other platforms
+	return false;
+#endif
+}
+
 bool PlatformFunctions::isDebuggerPresent()
 {
 #ifdef PLATFORM_WINDOWS
@@ -608,61 +606,30 @@ bool PlatformFunctions::isDebuggerPresent()
 
 bool PlatformFunctions::hasClipboardSupport()
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MAC) || defined(PLATFORM_LINUX)
 	return true;
 #else
 	return false;
 #endif
 }
 
-bool PlatformFunctions::copyToClipboard(std::wstring_view string)
+bool PlatformFunctions::copyToClipboard(const std::string& string)
 {
-#ifdef PLATFORM_WINDOWS
-	if (OpenClipboard(nullptr))
-	{
-		const std::string str = WString(string).toStdString();
-		HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE, str.length() + 1);
-		if (nullptr != handle)
-		{
-			LPTSTR lockedText = (LPTSTR)GlobalLock(handle);
-			if (nullptr != lockedText)
-			{
-				memcpy(lockedText, (LPCTSTR)str.c_str(), str.length() + 1);
-				GlobalUnlock(handle);
-
-				EmptyClipboard();
-				SetClipboardData(CF_TEXT, handle);
-				CloseClipboard();
-				return true;
-			}
-		}
-	}
-#endif
-	return false;
+	return (SDL_SetClipboardText(string.c_str()) == 0);
 }
 
-
-bool PlatformFunctions::pasteFromClipboard(WString& outString)
+bool PlatformFunctions::copyToClipboard(std::wstring_view string)
 {
-#ifdef PLATFORM_WINDOWS
-	bool result = false;
-	if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(nullptr))
-	{
-		HGLOBAL handle = GetClipboardData(CF_TEXT);
-		if (nullptr != handle)
-		{
-			char* text = static_cast<char*>(GlobalLock(handle));
-			if (nullptr != text)
-			{
-				outString = WString(text);
-				GlobalUnlock(handle);
-				result = true;
-			}
-		}
-		CloseClipboard();
-	}
-	return result;
-#else
-	return false;
-#endif
+	return (SDL_SetClipboardText(rmx::convertToUTF8(string).c_str()) == 0);
+}
+
+bool PlatformFunctions::pasteFromClipboard(std::wstring& outString)
+{
+	if (!SDL_HasClipboardText())
+		return false;
+
+	char* utf8String = SDL_GetClipboardText();
+	outString = rmx::convertFromUTF8(utf8String);
+	SDL_free(utf8String);
+	return !outString.empty();
 }

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -106,17 +106,11 @@ namespace lemon
 						{
 							if (rmx::startsWith(rest, "define ") && rest.length() >= 8)
 							{
-								if (blockStack.shouldConsiderContent())
-								{
-									processDefinition(rest.substr(7), parser);
-								}
+								processDefinition(rest.substr(7), parser);
 							}
 							else if (rmx::startsWith(rest, "error ") && rest.length() >= 7)
 							{
-								if (blockStack.shouldConsiderContent())
-								{
-									CHECK_ERROR(false, rest.substr(6), mLineNumber);
-								}
+								CHECK_ERROR(false, rest.substr(6), mLineNumber);
 							}
 							else
 							{
@@ -167,7 +161,7 @@ namespace lemon
 						else
 						{
 							// Block comment exceeds this line
-								line = line.substr(0, blockCommentStart);
+							line.remove_suffix(line.length() - blockCommentStart);
 							break;
 						}
 					}
@@ -221,12 +215,12 @@ namespace lemon
 			// Is this something that can be handled with only making changes of the string_view's range?
 			if (offset == 0)
 			{
-					line = line.substr(count);
+				line.remove_prefix(count);
 				return;
 			}
 			else if (offset + count >= line.length())
 			{
-					line = line.substr(0, offset);
+				line.remove_suffix(line.length() - offset);
 				return;
 			}
 
@@ -234,7 +228,7 @@ namespace lemon
 			modifiedLine = &mModifiedLines.createObject();
 		}
 
-			modifiedLine->assign(line.data(), line.size());
+		*modifiedLine = line;
 		modifiedLine->erase(offset, count);
 		line = std::string_view(*modifiedLine);
 	}
@@ -358,12 +352,12 @@ namespace lemon
 	{
 		switch (token.getType())
 		{
-			case Token::Type::CONSTANT:
+			case ConstantToken::TYPE:
 			{
 				return token.as<ConstantToken>().mValue.get<int64>();
 			}
 
-			case Token::Type::PARENTHESIS:
+			case ParenthesisToken::TYPE:
 			{
 				const ParenthesisToken& pt = token.as<ParenthesisToken>();
 				CHECK_ERROR(pt.mParenthesisType == ParenthesisType::PARENTHESIS, "Brackets are not allowed in preprocessor condition", mLineNumber);
@@ -372,7 +366,7 @@ namespace lemon
 				return evaluateConstantToken(pt.mContent[0].as<StatementToken>());
 			}
 
-			case Token::Type::BINARY_OPERATION:
+			case BinaryOperationToken::TYPE:
 			{
 				const BinaryOperationToken& bot = token.as<BinaryOperationToken>();
 				switch (bot.mOperator)
@@ -392,7 +386,7 @@ namespace lemon
 				break;
 			}
 
-			case Token::Type::UNARY_OPERATION:
+			case UnaryOperationToken::TYPE:
 			{
 				const UnaryOperationToken& uot = token.as<UnaryOperationToken>();
 				switch (uot.mOperator)

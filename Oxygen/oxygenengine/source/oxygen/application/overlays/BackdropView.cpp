@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -28,7 +28,7 @@ namespace
 		if (b1.x >= a2.x || b2.x <= a1.x || b1.y >= a2.y || b2.y <= a1.y)
 		{
 			// There's no intersection at all, output full A
-			outRects.push_back(rectA);
+			outRects.emplace_back(rectA);
 			return;
 		}
 
@@ -45,22 +45,22 @@ namespace
 		if (left > 0)
 		{
 			// Output the difference rect on the left (with full height of A)
-			outRects.push_back(Recti(a1.x, a1.y, left, rectA.height));
+			outRects.emplace_back(a1.x, a1.y, left, rectA.height);
 		}
 		if (right > 0)
 		{
 			// Output the difference rect on the right (with full height of A)
-			outRects.push_back(Recti(b2.x, a1.y, right, rectA.height));
+			outRects.emplace_back(b2.x, a1.y, right, rectA.height);
 		}
 		if (top > 0)
 		{
 			// Output the difference rect on the top (with only the width of B)
-			outRects.push_back(Recti(b1.x, a1.y, rectB.width, top));
+			outRects.emplace_back(b1.x, a1.y, rectB.width, top);
 		}
 		if (bottom > 0)
 		{
 			// Output the difference rect on the bottom (with only the width of B)
-			outRects.push_back(Recti(b1.x, b2.y, rectB.width, bottom));
+			outRects.emplace_back(b1.x, b2.y, rectB.width, bottom);
 		}
 	}
 }

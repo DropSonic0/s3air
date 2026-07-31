@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -20,7 +20,7 @@ struct SoundEmulation::Internal
 	soundemulation::YM2612  mYM2612;
 };
 
-static constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
+static const constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
 
 
 SoundEmulation::SoundEmulation() :
@@ -31,6 +31,7 @@ SoundEmulation::SoundEmulation() :
 SoundEmulation::~SoundEmulation()
 {
 	delete &mInternal;
+	shutdown();
 }
 
 bool SoundEmulation::init(int samplerate, double framerate)

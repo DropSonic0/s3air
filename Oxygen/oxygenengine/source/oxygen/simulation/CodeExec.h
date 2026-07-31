@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -43,7 +43,7 @@ public:
 		READ_FROM_ASM
 	};
 
-	static constexpr size_t CALL_FRAMES_LIMIT = 0x1000;
+	static const constexpr size_t CALL_FRAMES_LIMIT = 0x1000;
 
 	struct CallFrame
 	{
@@ -86,15 +86,11 @@ public:
 		lemon::Runtime::FunctionCallParameters mParams;
 		uint64 mReturnValueStorage = 0;
 
-		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(dataType, storageValue)); }
+		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.emplace_back(dataType, storageValue); }
 	};
 
 public:
-#if defined(PLATFORM_PS3)
-	static CodeExec* getActiveInstance();
-#else
 	static inline CodeExec* getActiveInstance() { return mActiveInstance; }
-#endif
 
 public:
 	CodeExec();
@@ -141,7 +137,7 @@ private:
 
 	bool tryCallAddressHook(uint32 address);
 	bool tryCallAddressHookDev(uint32 address);
-	bool tryCallUpdateHook(bool postUpdate);
+	bool tryCallUpdateHook(bool postUpdate, CallFrameTracking* callFrameTracking);
 
 	void applyCallFramesToAdd();
 
@@ -174,9 +170,5 @@ private:
 	std::vector<uint32> mUnknownAddressesInOrder;
 
 private:
-#if defined(PLATFORM_PS3)
-	static CodeExec* mActiveInstance;
-#else
 	static inline CodeExec* mActiveInstance = nullptr;
-#endif
 };

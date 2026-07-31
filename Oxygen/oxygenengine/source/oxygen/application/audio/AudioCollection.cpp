@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -20,7 +20,7 @@ namespace
 
 	int compareSourceRegistrationPackages(AudioCollection::Package a, AudioCollection::Package b, bool preferOriginalSoundtrack)
 	{
-		static_assert((int)AudioCollection::Package::_NUM == 4, "Unexpected number of packages");
+		static_assert((int)AudioCollection::Package::_NUM == 4);
 		const int prioritiesA[4] = { 0, 1, 2, 3 };		// Preferring remastered over original, but modded will always be first
 		const int prioritiesB[4] = { 0, 2, 1, 3 };		// Preferring original over remastered, but modded will always be first
 		const int* priorities = preferOriginalSoundtrack ? prioritiesB : prioritiesA;
@@ -75,6 +75,7 @@ void AudioCollection::clear()
 	mAudioDefinitions.clear();
 	for (size_t i = 0; i < (size_t)Package::_NUM; ++i)
 		mNumSourcesByPackageType[i] = 0;
+	++mChangeCounter;
 }
 
 void AudioCollection::clearPackage(Package package)
@@ -101,6 +102,7 @@ void AudioCollection::clearPackage(Package package)
 		}
 	}
 	mNumSourcesByPackageType[(size_t)package] = 0;
+	++mChangeCounter;
 }
 
 bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstring& filename, Package package)
@@ -111,7 +113,7 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 
 	for (auto iterator = jsonRoot.begin(); iterator != jsonRoot.end(); ++iterator)
 	{
-		String keyString = iterator.key().asString().c_str();
+		String keyString = iterator.key().asString();
 		keyString.lowerCase();
 
 		// Numeric key is either a string hash, or the value in case of keys like "2C"
@@ -142,8 +144,8 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 
 		for (auto it = iterator->begin(); it != iterator->end(); ++it)
 		{
-			const std::string key = it.key().asString().c_str();
-			const std::string value = it->asString().c_str();
+			const std::string key = it.key().asString();
+			const std::string value = it->asString();
 
 			if (key == "Name")
 			{
@@ -272,15 +274,14 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 		}
 	}
 
+	++mChangeCounter;
 	return true;
 }
 
 void AudioCollection::determineActiveSourceRegistrations(bool preferOriginalSoundtrack)
 {
-	for (auto it = mAudioDefinitions.begin(); it != mAudioDefinitions.end(); ++it)
+	for (auto& [key, audioDefinition] : mAudioDefinitions)
 	{
-		AudioDefinition& audioDefinition = it->second;
-
 		// Search for the right one considering settings
 		SourceRegistration* bestSourceReg = nullptr;
 		for (SourceRegistration& soundReg : audioDefinition.mSources)
@@ -292,6 +293,7 @@ void AudioCollection::determineActiveSourceRegistrations(bool preferOriginalSoun
 		}
 		audioDefinition.mActiveSource = bestSourceReg;
 	}
+	++mChangeCounter;
 }
 
 const AudioCollection::AudioDefinition* AudioCollection::getAudioDefinition(uint64 keyId) const

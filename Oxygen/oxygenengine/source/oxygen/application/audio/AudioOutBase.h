@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -50,8 +50,6 @@ public:
 	virtual void shutdown();
 	virtual void reset() = 0;
 	virtual void resetGame() = 0;
-
-	virtual void update(float secondsPassed) = 0;
 	virtual void realtimeUpdate(float secondsPassed);
 
 	AudioCollection& getAudioCollection()  { return mAudioCollection; }
@@ -68,7 +66,7 @@ public:
 
 	bool playAudioBase(uint64 sfxId, uint8 contextId);
 	void playOverride(uint64 sfxId, uint8 contextId, uint8 channelId, uint8 overriddenChannelId);
-	void stopChannel(uint8 channelId);
+
 	void fadeInChannel(uint8 channelId, float length);
 	void fadeOutChannel(uint8 channelId, float length);
 
@@ -77,6 +75,7 @@ public:
 
 	void handleGameLoaded();
 	void handleActiveModsChanged();
+	void reloadAudioCollection();
 
 protected:
 	virtual void determineActiveSourceRegistrations();
@@ -85,5 +84,8 @@ protected:
 	AudioCollection mAudioCollection;
 	AudioPlayer mAudioPlayer;
 	bool mLoadedRemasteredSoundtrack = false;
+
 	float mGlobalVolume = 1.0f;
+	float mMusicVolume = 1.0f;
+	float mSoundVolume = 1.0f;
 };

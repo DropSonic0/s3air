@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,7 +10,9 @@
 
 #include "oxygen/helper/Transform2D.h"
 #include "oxygen/rendering/parts/SpacesManager.h"
-#include "oxygen/resources/SpriteCache.h"
+#include "oxygen/resources/SpriteCollection.h"
+
+class PaletteBase;
 
 
 struct RenderItem
@@ -26,7 +28,8 @@ public:
 		COMPONENT_SPRITE,
 		SPRITE_MASK,
 		RECTANGLE,
-		TEXT
+		TEXT,
+		VIEWPORT
 	};
 
 	enum class LifetimeContext : uint8
@@ -36,14 +39,13 @@ public:
 		CUSTOM_2 = 2,		// Custom usage by scripts
 		OUTSIDE_FRAME = 3,	// Debug output rendered outside of frame simulation
 	};
-	static const uint8 NUM_CONTEXTS = 4;
-	
+	static const uint8 NUM_LIFETIME_CONTEXTS = 4;
+
 public:
 	inline Type getType() const   { return mRenderItemType; }
 	inline bool isSprite() const  { return (mRenderItemType >= Type::VDP_SPRITE && mRenderItemType <= Type::COMPONENT_SPRITE); }
 
 	virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion);
-	virtual ~RenderItem() {}
 
 public:
 	Vec2i mPosition;
@@ -66,17 +68,16 @@ namespace renderitems
 	struct SpriteInfo : public RenderItem
 	{
 	public:
-		virtual ~SpriteInfo() {}
-		bool   mPriorityFlag = false;
-		Color  mTintColor = Color::WHITE;
-		Color  mAddedColor = Color::TRANSPARENT;
+		bool  mPriorityFlag = false;
+		Color mTintColor = Color::WHITE;
+		Color mAddedColor = Color::TRANSPARENT;
 		BlendMode mBlendMode = BlendMode::ALPHA;
-		Space  mLogicalSpace = Space::SCREEN;		// The coordinate system used for frame interpolation, can be different from the coordinates space
+		Space mLogicalSpace = Space::SCREEN;		// The coordinate system used for frame interpolation, can be different from the coordinates space
 
-													// Frame interpolation
-		bool   mHasLastPosition = false;
-		Vec2i  mLastPositionChange;
-		Vec2i  mInterpolatedPosition;
+		// Frame interpolation
+		bool  mHasLastPosition = false;
+		Vec2i mLastPositionChange;
+		Vec2i mInterpolatedPosition;
 
 	protected:
 		inline SpriteInfo(Type type) : RenderItem(type) {}
@@ -86,7 +87,6 @@ namespace renderitems
 	struct VdpSpriteInfo : public SpriteInfo
 	{
 		inline VdpSpriteInfo() : SpriteInfo(Type::VDP_SPRITE) {}
-		virtual ~VdpSpriteInfo() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		Vec2i  mSize;				// In columns / rows of 8 pixels
@@ -96,11 +96,10 @@ namespace renderitems
 	struct CustomSpriteInfoBase : public SpriteInfo
 	{
 		inline CustomSpriteInfoBase(Type type) : SpriteInfo(type) {}
-		virtual ~CustomSpriteInfoBase() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		uint64 mKey = 0;
-		const SpriteCache::CacheItem* mCacheItem = nullptr;
+		const SpriteCollection::Item* mCacheItem = nullptr;
 		Vec2i mSize;
 		Vec2i mPivotOffset;
 		Transform2D mTransformation;
@@ -110,22 +109,21 @@ namespace renderitems
 	struct PaletteSpriteInfo : public CustomSpriteInfoBase
 	{
 		inline PaletteSpriteInfo() : CustomSpriteInfoBase(Type::PALETTE_SPRITE) {}
-		virtual ~PaletteSpriteInfo() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
+		const PaletteBase* mPrimaryPalette = nullptr;
+		const PaletteBase* mSecondaryPalette = nullptr;
 		uint16 mAtex = 0;
 	};
 
 	struct ComponentSpriteInfo : public CustomSpriteInfoBase
 	{
 		inline ComponentSpriteInfo() : CustomSpriteInfoBase(Type::COMPONENT_SPRITE) {}
-		virtual ~ComponentSpriteInfo() {}
 	};
 
 	struct SpriteMaskInfo : public SpriteInfo
 	{
 		inline SpriteMaskInfo() : SpriteInfo(Type::SPRITE_MASK) {}
-		virtual ~SpriteMaskInfo() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		Vec2i mSize;
@@ -135,7 +133,6 @@ namespace renderitems
 	struct Rectangle : public RenderItem
 	{
 		inline Rectangle() : RenderItem(Type::RECTANGLE) {}
-		virtual ~Rectangle() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		Vec2i mSize;
@@ -145,7 +142,6 @@ namespace renderitems
 	struct Text : public RenderItem
 	{
 		inline Text() : RenderItem(Type::TEXT) {}
-		virtual ~Text() {}
 		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
 
 		std::string mFontKeyString;
@@ -155,6 +151,14 @@ namespace renderitems
 		Color mColor;
 		int mAlignment = 1;
 		int mSpacing = 0;
+	};
+
+	struct Viewport : public RenderItem
+	{
+		inline Viewport() : RenderItem(Type::VIEWPORT) {}
+		virtual void serialize(VectorBinarySerializer& serializer, uint8 formatVersion) override;
+
+		Vec2i mSize;
 	};
 
 }
@@ -171,4 +175,5 @@ struct PoolOfRenderItems
 	ObjectPool<renderitems::SpriteMaskInfo>		 mSpriteMasks;
 	ObjectPool<renderitems::Rectangle>			 mRectangles;
 	ObjectPool<renderitems::Text>				 mTexts;
+	ObjectPool<renderitems::Viewport>			 mViewports;
 };

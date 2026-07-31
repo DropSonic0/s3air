@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,9 +14,9 @@
 #include "oxygen/simulation/LemonScriptRuntime.h"
 #include "oxygen/simulation/Simulation.h"
 #include "oxygen/application/Application.h"
-#include "oxygen/rendering/parts/PaletteManager.h"
+#include "oxygen/rendering/parts/palette/PaletteManager.h"
 
-#include <lemon/program/Function.h>
+#include <lemon/program/function/Function.h>
 #include <lemon/runtime/RuntimeFunction.h>
 
 
@@ -30,19 +30,10 @@ const std::string& DebugTracking::Location::toString(CodeExec& codeExec) const
 		}
 		else
 		{
-			std::string scriptFilename;
-			uint32 lineNumber;
-			if (mProgramCounter.has_value())
-			{
-				codeExec.getLemonScriptProgram().resolveLocation(*mFunction, (uint32)*mProgramCounter, scriptFilename, lineNumber);
-				mLineNumber = lineNumber;
-			}
-			else
-			{
-				codeExec.getLemonScriptProgram().resolveLocation(*mFunction, 0, scriptFilename, lineNumber);
-			}
-			const std::string_view functionName = mFunction->getName().getString();
-			mResolvedString.assign(functionName.data(), functionName.length());
+			LemonScriptProgram::ResolvedLocation location;
+			codeExec.getLemonScriptProgram().resolveLocation(location, *mFunction, mProgramCounter.has_value() ? (uint32)*mProgramCounter : 0);
+			mLineNumber = location.mLineNumber;
+			mResolvedString = mFunction->getName().getString();
 		}
 	}
 	return mResolvedString;
@@ -78,12 +69,11 @@ void DebugTracking::clear()
 void DebugTracking::onBeginFrame()
 {
 	// Reset script logging
-	for (ScriptLogEntryMap::iterator it = mScriptLogEntries.begin(); it != mScriptLogEntries.end(); ++it)
+	for (auto& [key, entry] : mScriptLogEntries)
 	{
-		ScriptLogEntry& entry = it->second;
-		for (size_t i = 0; i < entry.mEntries.size(); ++i)
+		for (ScriptLogSingleEntry& singleEntry : entry.mEntries)
 		{
-			entry.mEntries[i].mCallFrameIndex = -1;
+			singleEntry.mCallFrameIndex = -1;
 		}
 	}
 
@@ -121,14 +111,14 @@ void DebugTracking::clearScriptLogValue(const std::string& key)
 DebugTracking::ScriptLogSingleEntry& DebugTracking::updateScriptLogValue(std::string_view key, std::string_view value)
 {
 	const uint32 frameNumber = Application::instance().getSimulation().getFrameNumber();
-	ScriptLogEntry& entry = mScriptLogEntries[std::string(key.data(), key.length())];
+	ScriptLogEntry& entry = mScriptLogEntries[std::string(key)];
 	if (frameNumber != entry.mLastUpdate)
 	{
 		entry.mEntries.clear();
 		entry.mLastUpdate = frameNumber;
 	}
 	ScriptLogSingleEntry& singleEntry = vectorAdd(entry.mEntries);
-	singleEntry.mValue.assign(value.data(), value.length());
+	singleEntry.mValue = value;
 	return singleEntry;
 }
 
@@ -139,7 +129,7 @@ void DebugTracking::clearColorLogEntries()
 
 void DebugTracking::addColorLogEntry(const ColorLogEntry& entry)
 {
-	mColorLogEntries.push_back(entry);
+	mColorLogEntries.emplace_back(entry);
 }
 
 void DebugTracking::addColorLogEntry(std::string_view name, uint32 startAddress, uint8 numColors)
@@ -147,7 +137,7 @@ void DebugTracking::addColorLogEntry(std::string_view name, uint32 startAddress,
 	EmulatorInterface& emulatorInterface = mCodeExec.getEmulatorInterface();
 
 	DebugTracking::ColorLogEntry entry;
-	entry.mName.assign(name.data(), name.length());
+	entry.mName = name;
 	entry.mColors.reserve(numColors);
 	for (uint8 i = 0; i < numColors; ++i)
 	{
@@ -156,17 +146,37 @@ void DebugTracking::addColorLogEntry(std::string_view name, uint32 startAddress,
 	}
 	addColorLogEntry(entry);
 
-	Application::instance().getSimulation().stopSingleStepContinue();
+	Application::instance().getSimulation().sendBreakSignal(Simulation::BreakCondition::DEBUG_LOG);
+}
+
+bool DebugTracking::hasWatch(uint32 address, uint16 bytes) const
+{
+	return (getExistingWatchIndex(address, bytes) >= 0);
+}
+
+int DebugTracking::getExistingWatchIndex(uint32 address, uint16 bytes) const
+{
+	address &= 0x00ffffff;
+
+	int index = -1;
+	for (int i = 0; i < (int)mWatches.size(); ++i)
+	{
+		if (mWatches[i]->mAddress == address && mWatches[i]->mBytes == bytes)
+		{
+			return i;
+		}
+	}
+	return -1;
 }
 
 void DebugTracking::updateWatches()
 {
 	if (!mWatchHitsThisUpdate.empty())
 	{
-		for (size_t i = 0; i < mWatchHitsThisUpdate.size(); ++i)
+		for (auto& pair : mWatchHitsThisUpdate)
 		{
-			Watch& watch = *mWatchHitsThisUpdate[i].first;
-			Watch::Hit& hit = *mWatchHitsThisUpdate[i].second;
+			Watch& watch = *pair.first;
+			Watch::Hit& hit = *pair.second;
 			hit.mWrittenValue = (watch.mBytes <= 4) ? getCurrentWatchValue(watch.mAddress, watch.mBytes) : getCurrentWatchValue(hit.mAddress, hit.mBytes);
 		}
 		mWatchHitsThisUpdate.clear();
@@ -184,7 +194,7 @@ void DebugTracking::clearWatches(bool clearPersistent)
 		{
 			if (watch->mPersistent)
 			{
-				reAddWatches.push_back(std::make_pair(watch->mAddress, watch->mBytes));
+				reAddWatches.emplace_back(watch->mAddress, watch->mBytes);
 			}
 		}
 	}
@@ -194,22 +204,19 @@ void DebugTracking::clearWatches(bool clearPersistent)
 	mWatches.clear();
 	mEmulatorInterface.getWatches().clear();
 
-	for (size_t i = 0; i < reAddWatches.size(); ++i)
+	for (const auto& pair : reAddWatches)
 	{
-		addWatch(reAddWatches[i].first, reAddWatches[i].second, true);
+		addWatch(pair.first, pair.second, true);
 	}
 }
 
-void DebugTracking::addWatch(uint32 address, uint16 bytes, bool persistent)
+void DebugTracking::addWatch(uint32 address, uint16 bytes, bool persistent, std::string_view name)
 {
 	address &= 0x00ffffff;
 
 	// Check if already exists
-	for (const Watch* watch : mWatches)
-	{
-		if (watch->mAddress == address && watch->mBytes == bytes)
-			return;
-	}
+	if (hasWatch(address, bytes))
+		return;
 
 	// Add a new watch in EmulatorInterface
 	EmulatorInterface::Watch& internalWatch = vectorAdd(mEmulatorInterface.getWatches());
@@ -218,6 +225,7 @@ void DebugTracking::addWatch(uint32 address, uint16 bytes, bool persistent)
 
 	// Add a new watch here
 	Watch& watch = mWatchPool.rentObject();
+	watch.mName = name;
 	watch.mAddress = address;
 	watch.mBytes = bytes;
 	watch.mPersistent = persistent;
@@ -232,15 +240,7 @@ void DebugTracking::removeWatch(uint32 address, uint16 bytes)
 	address &= 0x00ffffff;
 
 	// Try to find the watch
-	int index = -1;
-	for (int i = 0; i < (int)mWatches.size(); ++i)
-	{
-		if (mWatches[i]->mAddress == address && mWatches[i]->mBytes == bytes)
-		{
-			index = i;
-			break;
-		}
-	}
+	const int index = getExistingWatchIndex(address, bytes);
 	if (index == -1)
 		return;
 
@@ -260,10 +260,10 @@ void DebugTracking::getCallStackFromCallFrameIndex(std::vector<Location>& outCal
 	while (callFrameIndex >= 0 && callFrameIndex < (int)callFrames.size())
 	{
 		const CodeExec::CallFrame& callFrame = callFrames[callFrameIndex];
-		if (nullptr != callFrame.mFunction && callFrame.mFunction->getType() == lemon::Function::Type::SCRIPT)
+		if (nullptr != callFrame.mFunction && callFrame.mFunction->isA<lemon::ScriptFunction>())
 		{
 			Location& location = vectorAdd(outCallStack);
-			location.mFunction = static_cast<const lemon::ScriptFunction*>(callFrame.mFunction);
+			location.mFunction = &callFrame.mFunction->as<lemon::ScriptFunction>();
 
 			// TODO: Move this inside of a helper function, maybe inside LemonScriptRuntime?
 			lemon::RuntimeFunction* runtimeFunction = mCodeExec.getLemonScriptRuntime().getInternalLemonRuntime().getRuntimeFunction(*location.mFunction);
@@ -328,10 +328,10 @@ void DebugTracking::onScriptLog(std::string_view key, std::string_view value)
 	scriptLogSingleEntry.mCallFrameIndex = getCurrentCallFrameIndex();
 
 	size_t pc;
-	mLemonScriptRuntime.getLastStepLocation(scriptLogSingleEntry.mLocation.mFunction, pc);
+	mLemonScriptRuntime.getCurrentExecutionLocation(scriptLogSingleEntry.mLocation.mFunction, pc);
 	scriptLogSingleEntry.mLocation.mProgramCounter = pc;
 
-	Application::instance().getSimulation().stopSingleStepContinue();
+	Application::instance().getSimulation().sendBreakSignal(Simulation::BreakCondition::DEBUG_LOG);
 }
 
 void DebugTracking::onWatchTriggered(size_t watchIndex, uint32 address, uint16 bytes)
@@ -341,7 +341,7 @@ void DebugTracking::onWatchTriggered(size_t watchIndex, uint32 address, uint16 b
 
 	Location location;
 	size_t pc;
-	mLemonScriptRuntime.getLastStepLocation(location.mFunction, pc);
+	mLemonScriptRuntime.getCurrentExecutionLocation(location.mFunction, pc);
 	location.mProgramCounter = pc;
 
 	Watch& watch = *mWatches[watchIndex];
@@ -355,12 +355,12 @@ void DebugTracking::onWatchTriggered(size_t watchIndex, uint32 address, uint16 b
 		hit.mCallFrameIndex = getCurrentCallFrameIndex();
 		watch.mHits.push_back(&hit);
 
-		mWatchHitsThisUpdate.push_back(std::make_pair(&watch, &hit));
+		mWatchHitsThisUpdate.emplace_back(&watch, &hit);
 		mLemonScriptRuntime.getInternalLemonRuntime().triggerStopSignal();
 	}
 	watch.mLastHitLocation = location;
 
-	Application::instance().getSimulation().stopSingleStepContinue();
+	Application::instance().getSimulation().sendBreakSignal(Simulation::BreakCondition::WATCH_HIT);
 }
 
 void DebugTracking::onVRAMWrite(uint16 address, uint16 bytes)
@@ -371,7 +371,7 @@ void DebugTracking::onVRAMWrite(uint16 address, uint16 bytes)
 
 	Location location;
 	size_t pc;
-	mLemonScriptRuntime.getLastStepLocation(location.mFunction, pc);
+	mLemonScriptRuntime.getCurrentExecutionLocation(location.mFunction, pc);
 	location.mProgramCounter = pc;
 
 	// Check if this can be merged with the VRAM write just before

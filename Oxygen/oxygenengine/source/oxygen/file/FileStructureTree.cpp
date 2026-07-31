@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -35,7 +35,7 @@ uint64 FileStructureTree::getLowercaseStringHash(const std::wstring& string)
 FileStructureTree::FileStructureTree()
 {
 	// Create the root node
-	mNodes.push_back(Node());
+	mNodes.emplace_back();
 }
 
 void FileStructureTree::clear()
@@ -236,7 +236,7 @@ bool FileStructureTree::listDirectories(std::vector<std::wstring>& outDirectorie
 		outDirectories.reserve(outDirectories.size() + mTempBuffer.size());
 		for (size_t k = 0; k < mTempBuffer.size(); ++k)
 		{
-			outDirectories.push_back(mTempBuffer[k]->mName);
+			outDirectories.emplace_back(mTempBuffer[k]->mName);
 		}
 	}
 	return true;

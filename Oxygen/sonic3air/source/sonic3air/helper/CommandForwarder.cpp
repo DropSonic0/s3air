@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -124,11 +124,7 @@ void CommandForwarder::handleReceivedCommand(std::string_view command)
 		{
 			const std::string_view url = withoutPrefix.substr(4);
 			// TODO...
-		#if defined(PLATFORM_PS3)
-			RMX_ERROR("Received URL: " << std::string(url.data(), url.length()) << "\n(But it's not yet processed in any way", );
-		#else
 			RMX_ERROR("Received URL: " << url << "\n(But it's not yet processed in any way", );
-		#endif
 		}
 	}
 }

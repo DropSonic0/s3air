@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -46,7 +46,7 @@ namespace lemon
 			size_t add(size_t opcodeIndex, size_t size, ParameterInfo::Semantics semantics, BaseType dataType = BaseType::INT_CONST)
 			{
 				const size_t offset = mTotalSize;
-				mParameters.push_back(ParameterInfo(opcodeIndex, size, semantics, dataType));
+				mParameters.emplace_back(opcodeIndex, size, semantics, dataType);
 				mParameters.back().mOffset = offset;
 				mTotalSize += size;
 				return offset;
@@ -94,10 +94,10 @@ namespace lemon
 			Node* mSource = nullptr;
 			size_t mOpcodeIndex = 0;
 
-			void outputParameter(String& line, int64 value, BaseType dataType = BaseType::INT_CONST, bool isPointer = false) const;
-			void outputDestNode(String& line, const Node& node, bool& closeParenthesis) const;
-			void outputSourceNode(String& line, const Node& node) const;
-			void outputLine(String& line) const;
+			void outputParameter(std::string& line, int64 value, BaseType dataType = BaseType::INT_CONST, bool isPointer = false) const;
+			void outputDestNode(std::string& line, const Node& node, bool& closeParenthesis) const;
+			void outputSourceNode(std::string& line, const Node& node) const;
+			void outputLine(std::string& line) const;
 		};
 
 	public:

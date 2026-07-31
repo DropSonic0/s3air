@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,6 +11,7 @@
 #include "sonic3air/ConfigurationImpl.h"
 #include "sonic3air/audio/AudioOut.h"
 #include "sonic3air/menu/GameApp.h"
+#include "sonic3air/menu/MenuBackground.h"
 #include "sonic3air/menu/SharedResources.h"
 #include "sonic3air/version.inc"
 #if 0
@@ -43,11 +44,7 @@ const EngineDelegateInterface::AppMetaData& EngineDelegate::getAppMetaData()
 		mAppMetaData.mWindowsIconResource = 101;
 		mAppMetaData.mBuildVersionString = BUILD_STRING;
 		mAppMetaData.mBuildVersionNumber = BUILD_NUMBER;
-	#if defined(PLATFORM_PS3)
-		mAppMetaData.mAppDataFolder = L"SONIC3AIR";
-	#else
 		mAppMetaData.mAppDataFolder = L"Sonic3AIR";
-	#endif
 	}
 	return mAppMetaData;
 }
@@ -73,37 +70,13 @@ bool EngineDelegate::onEnginePreStartup()
 	#if (defined(PLATFORM_MAC) || defined(PLATFORM_IOS)) && defined(ENDUSER)
 		Configuration& config = Configuration::instance();
 		const bool check = FTX::FileSystem->exists(config.mGameDataPath + L"/gamedata.bin");
-	#elif defined(PLATFORM_PS3)
-		RMX_LOG_INFO("Checking for game data...");
-		const std::wstring appDataPath = Configuration::instance().mAppDataPath;
-		RMX_LOG_INFO("App data path: " << WString(appDataPath).toStdString());
-
-		const std::wstring path1 = L"data/content.json";
-		const std::wstring path2 = L"data/gamedata.bin";
-		const std::wstring path3 = appDataPath + L"data/content.json";
-		const std::wstring path4 = appDataPath + L"data/gamedata.bin";
-
-		const bool check1 = FTX::FileSystem->exists(path1);
-		const bool check2 = FTX::FileSystem->exists(path2);
-		const bool check3 = FTX::FileSystem->exists(path3);
-		const bool check4 = FTX::FileSystem->exists(path4);
-
-		RMX_LOG_INFO("Check 1 (" << WString(path1).toStdString() << "): " << (check1 ? "FOUND" : "NOT FOUND"));
-		RMX_LOG_INFO("Check 2 (" << WString(path2).toStdString() << "): " << (check2 ? "FOUND" : "NOT FOUND"));
-		RMX_LOG_INFO("Check 3 (" << WString(path3).toStdString() << "): " << (check3 ? "FOUND" : "NOT FOUND"));
-		RMX_LOG_INFO("Check 4 (" << WString(path4).toStdString() << "): " << (check4 ? "FOUND" : "NOT FOUND"));
-
-		const bool check = (check1 || check2 || check3 || check4);
-		RMX_LOG_INFO("Final check result: " << (check ? "SUCCESS" : "FAILED"));
 	#else
-		const bool check = (FTX::FileSystem->exists(L"data/content.json") || FTX::FileSystem->exists(L"data/gamedata.bin"));
+		const bool check = (FTX::FileSystem->exists(L"data/metadata.json") || FTX::FileSystem->exists(L"data/gamedata.bin"));
 	#endif
 		if (!check)
 		{
-		#if defined(PLATFORM_WINDOWS)
+		#ifdef PLATFORM_WINDOWS
 			RMX_ERROR("Seems like you launched the Sonic3AIR.exe from inside the downloaded ZIP file.\n\nMake sure to first extract the ZIP somewhere like on your desktop, then start the Sonic3AIR.exe in the extracted folder.", );
-		#elif defined(PLATFORM_PS3)
-			RMX_ERROR("Could not find the game data in the 'data' folder.\n\nMake sure that all required files (including 'gamedata.bin' and the 'data' folder itself) are correctly placed in your game's USRDIR.", );
 		#else
 			RMX_ERROR("Seems like you launched the Sonic3AIR executable from inside the downloaded ZIP file.\n\nMake sure to first extract the ZIP somewhere like on your desktop, then start the Sonic3AIR executable in the extracted folder.", );
 		#endif
@@ -114,19 +87,22 @@ bool EngineDelegate::onEnginePreStartup()
 	return true;
 }
 
+bool EngineDelegate::isDedicatedApplication()
+{
+	return true;
+}
+
 bool EngineDelegate::setupCustomGameProfile()
 {
 	GameProfile& gameProfile = GameProfile::instance();
 
 	if (FTX::FileSystem->exists(L"./oxygenproject.json"))
 	{
-		RMX_LOG_INFO("Loading game profile from 'oxygenproject.json'");
 		// Load from the oxygenproject.json file
 		gameProfile.loadOxygenProjectFromFile(L"./oxygenproject.json");
 	}
 	else
 	{
-		RMX_LOG_INFO("Setting up default game profile for Sonic 3 A.I.R.");
 		// Setup game profile data -- this is done so that no oxygenproject.json is needed for the end-user version of S3AIR
 		ConfigurationImpl::fillDefaultGameProfile(gameProfile);
 
@@ -134,10 +110,10 @@ bool EngineDelegate::setupCustomGameProfile()
 		gameProfile.mAsmStackRange.second = 0xfffffe00;
 
 		gameProfile.mDataPackages.clear();
-		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"enginedata.bin",    true));
-		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"gamedata.bin",      true));
-		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"audiodata.bin",     true));
-		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"audioremaster.bin", false));	// Optional package
+		gameProfile.mDataPackages.emplace_back(L"enginedata.bin",    true);
+		gameProfile.mDataPackages.emplace_back(L"gamedata.bin",      true);
+		gameProfile.mDataPackages.emplace_back(L"audiodata.bin",     true);
+		gameProfile.mDataPackages.emplace_back(L"audioremaster.bin", false);	// Optional package
 	}
 
 	// Return true, so the engine won't load the oxygenprofile.json by itself
@@ -233,6 +209,36 @@ bool EngineDelegate::useDeveloperFeatures()
 void EngineDelegate::onActiveModsChanged()
 {
 	mGame.onActiveModsChanged();
+}
+
+void EngineDelegate::onStartNetplayGame(bool isHost)
+{
+	mGame.startIntoDataSelect();
+	GameApp::instance().onStartGame();
+	GameApp::instance().getMenuBackground().setGameStartedMenu();
+
+	// Switch to using the alternative game settings
+	if (!isHost)
+		mConfiguration.mActiveGameSettings = &mConfiguration.mAlternativeGameSettings;
+}
+
+void EngineDelegate::onStopNetplayGame(bool isHost)
+{
+	mConfiguration.mActiveGameSettings = &mConfiguration.mLocalGameSettings;
+}
+
+void EngineDelegate::serializeGameSettings(VectorBinarySerializer& serializer)
+{
+	if (serializer.isReading())
+	{
+		// Always read into alternative game settings
+		mConfiguration.mAlternativeGameSettings.serialize(serializer);
+	}
+	else
+	{
+		// Save whatever is the current game settings
+		mConfiguration.mActiveGameSettings->serialize(serializer);
+	}
 }
 
 void EngineDelegate::onGameRecordingHeaderLoaded(const std::string& buildString, const std::vector<uint8>& buffer)
