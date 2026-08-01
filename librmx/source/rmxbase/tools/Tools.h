@@ -50,7 +50,11 @@ namespace rmx
 	uint64 getMurmur2_64(std::wstring_view str);
 
 	// Compile-time constant Murmur2 64-bit hash for a string
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	constexpr uint64 constMurmur2_64(const char* data)
+#else
+	inline uint64 constMurmur2_64(const char* data)
+#endif
 	{
 		// Code is based on https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
 		//  -> Namely "MurmurHash64A", i.e. the version optimized for 64-bit architectures

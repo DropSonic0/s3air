@@ -8,6 +8,10 @@
 
 #include "rmxbase.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+std::vector<rmx::LoggerBase*> rmx::Logging::mLoggers;
+#endif
+
 #if defined(PLATFORM_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
 	#include "CleanWindowsInclude.h"

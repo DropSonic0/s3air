@@ -6,6 +6,9 @@
 #ifndef JSON_READER_H_INCLUDED
 #define JSON_READER_H_INCLUDED
 
+#include <stddef.h>
+#include <cstddef>
+
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json_features.h"
 #include "value.h"

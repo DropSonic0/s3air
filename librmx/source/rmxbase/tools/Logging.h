@@ -68,7 +68,11 @@ namespace rmx
 		static void log(LogLevel logLevel, const std::string& string);
 
 	private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static inline std::vector<LoggerBase*> mLoggers;
+#else
+		static std::vector<LoggerBase*> mLoggers;
+#endif
 	};
 
 }

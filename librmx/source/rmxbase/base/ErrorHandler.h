@@ -100,9 +100,17 @@ namespace rmx
 		static void setIgnoreAssertsWithHash(uint64 hash, bool ignore);
 
 	public:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static inline LoggerInterface* mLogger = nullptr;
 		static inline MessageBoxInterface* mMessageBoxImplementation = nullptr;
 		static inline std::function<uint64()> mNativeWindowHandleProvider;
 		static inline bool mShowAssertMessageBox = true;
+#else
+		static LoggerInterface* mLogger;
+		static MessageBoxInterface* mMessageBoxImplementation;
+		typedef uint64 (*NativeWindowHandleProviderFn)();
+		static NativeWindowHandleProviderFn mNativeWindowHandleProvider;
+		static bool mShowAssertMessageBox;
+#endif
 	};
 }

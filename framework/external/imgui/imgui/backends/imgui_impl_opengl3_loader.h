@@ -632,11 +632,11 @@ GL3W_API extern union ImGL3WProcs imgl3wProcs;
 #endif
 
 #ifdef IMGL3W_IMPL
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdlib.h>
 
 #define GL3W_ARRAY_SIZE(x)  (sizeof(x) / sizeof((x)[0]))
 
@@ -688,6 +688,10 @@ static GL3WglProc get_proc(const char *proc)
     *(void **)(&res) = dlsym(libgl, proc);
     return res;
 }
+#elif defined(__CELLOS_LV2__)
+static int open_libgl(void) { return GL3W_OK; }
+static void close_libgl(void) {}
+static GL3WglProc get_proc(const char *proc) { return NULL; }
 #else
 #include <dlfcn.h>
 

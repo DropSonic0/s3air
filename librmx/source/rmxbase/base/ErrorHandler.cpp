@@ -7,6 +7,13 @@
 */
 
 #include "rmxbase.h"
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	rmx::ErrorHandling::LoggerInterface* rmx::ErrorHandler::mLogger = nullptr;
+	rmx::ErrorHandling::MessageBoxInterface* rmx::ErrorHandler::mMessageBoxImplementation = nullptr;
+	uint64 (*rmx::ErrorHandler::mNativeWindowHandleProvider)() = nullptr;
+	bool rmx::ErrorHandler::mShowAssertMessageBox = true;
+#endif
 #include <locale>
 
 #ifdef PLATFORM_WINDOWS

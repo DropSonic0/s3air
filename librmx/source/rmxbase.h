@@ -14,7 +14,11 @@
 // General includes
 #include <cmath>
 #include <float.h>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <memory.h>
+#else
+#include <memory>
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -25,10 +29,49 @@
 #include <stack>
 #include <list>
 #include <set>
-#include <unordered_set>
 #include <map>
-#include <unordered_map>
 #include <algorithm>
+
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#include <unordered_set>
+#include <unordered_map>
+#else
+#include <limits>
+#include <climits>
+
+namespace std {
+    template<typename K, typename V, typename H=void, typename E=void, typename A=void>
+    class unordered_map : public std::map<K, V> {
+    };
+
+    template<typename T, typename H=void, typename E=void, typename A=void>
+    class unordered_set : public std::set<T> {
+    };
+
+    template<typename CHAR>
+    class basic_string_view : public std::basic_string<CHAR> {
+    public:
+        basic_string_view() {}
+        basic_string_view(const CHAR* s) : std::basic_string<CHAR>(s) {}
+        basic_string_view(const CHAR* s, size_t n) : std::basic_string<CHAR>(s, n) {}
+        basic_string_view(const std::basic_string<CHAR>& s) : std::basic_string<CHAR>(s) {}
+    };
+    typedef basic_string_view<char> string_view;
+    typedef basic_string_view<wchar_t> wstring_view;
+
+    struct error_code {
+        int value() const { return 0; }
+        operator bool() const { return false; }
+    };
+}
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+using std::sqrt;
+using std::floor;
+using std::ceil;
+using std::abs;
+#endif
+#endif
 
 // Libraries
 #include "rmxbase/_jsoncpp/json/json.h"	// Uses its own namespace "Json"

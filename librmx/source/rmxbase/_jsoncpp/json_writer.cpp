@@ -180,9 +180,12 @@ String valueToString(bool value) { return value ? "true" : "false"; }
 static bool doesAnyCharRequireEscaping(char const* s, size_t n) {
   assert(s || !n);
 
-  return std::any_of(s, s + n, [](unsigned char c) {
-    return c == '\\' || c == '"' || c < 0x20 || c > 0x7F;
-  });
+  for (size_t i = 0; i < n; ++i) {
+    unsigned char c = static_cast<unsigned char>(s[i]);
+    if (c == '\\' || c == '"' || c < 0x20 || c > 0x7F)
+      return true;
+  }
+  return false;
 }
 
 static unsigned int utf8ToCodepoint(const char*& s, const char* e) {
@@ -1203,16 +1206,19 @@ StreamWriter* StreamWriterBuilder::newStreamWriter() const {
 }
 
 bool StreamWriterBuilder::validate(Json::Value* invalid) const {
-  static const auto& valid_keys = *new std::set<String>{
-      "indentation",
-      "commentStyle",
-      "enableYAMLCompatibility",
-      "dropNullPlaceholders",
-      "useSpecialFloats",
-      "emitUTF8",
-      "precision",
-      "precisionType",
-  };
+  static std::set<String>* valid_keys_ptr = nullptr;
+  if (!valid_keys_ptr) {
+      valid_keys_ptr = new std::set<String>();
+      valid_keys_ptr->insert("indentation");
+      valid_keys_ptr->insert("commentStyle");
+      valid_keys_ptr->insert("enableYAMLCompatibility");
+      valid_keys_ptr->insert("dropNullPlaceholders");
+      valid_keys_ptr->insert("useSpecialFloats");
+      valid_keys_ptr->insert("emitUTF8");
+      valid_keys_ptr->insert("precision");
+      valid_keys_ptr->insert("precisionType");
+  }
+  static const std::set<String>& valid_keys = *valid_keys_ptr;
   for (auto si = settings_.begin(); si != settings_.end(); ++si) {
     auto key = si.name();
     if (valid_keys.count(key))

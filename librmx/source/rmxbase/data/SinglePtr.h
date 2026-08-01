@@ -13,8 +13,13 @@
 template<class CLASS> class SinglePtr
 {
 private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	static inline CLASS* mPointer = nullptr;
 	static inline int mRefCounter = 0;
+#else
+	static CLASS* mPointer;
+	static int mRefCounter;
+#endif
 	bool mIsWeak;
 
 public:
@@ -57,3 +62,9 @@ template<class CLASS> class WeakSinglePtr : public SinglePtr<CLASS>
 public:
 	WeakSinglePtr() : SinglePtr<CLASS>(true) {}
 };
+
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+template<class CLASS> CLASS* SinglePtr<CLASS>::mPointer = nullptr;
+template<class CLASS> int SinglePtr<CLASS>::mRefCounter = 0;
+#endif

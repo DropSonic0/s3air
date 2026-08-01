@@ -110,6 +110,11 @@ float nrandom()
 	}
 }
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+inline double round(double x) { return std::floor(x + 0.5); }
+inline float round(float x) { return std::floor(x + 0.5f); }
+#endif
+
 template<> inline signed char roundForInt(float value)		{ return (signed char)round(value); }
 template<> inline unsigned char roundForInt(float value)	{ return (unsigned char)round(value); }
 template<> inline signed short roundForInt(float value)		{ return (signed short)round(value); }

@@ -4,6 +4,8 @@
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
 
+#include <stddef.h>
+#include <cstddef>
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json_tool.h"
 #include "json/assertions.h"
@@ -78,7 +80,11 @@ Features Features::strictMode() {
 // ////////////////////////////////
 
 bool Reader::containsNewLine(Reader::Location begin, Reader::Location end) {
-  return std::any_of(begin, end, [](char b) { return b == '\n' || b == '\r'; });
+  for (const char* p = begin; p != end; ++p) {
+    if (*p == '\n' || *p == '\r')
+      return true;
+  }
+  return false;
 }
 
 // Class Reader
@@ -995,7 +1001,11 @@ private:
 
 bool OurReader::containsNewLine(OurReader::Location begin,
                                 OurReader::Location end) {
-  return std::any_of(begin, end, [](char b) { return b == '\n' || b == '\r'; });
+  for (const char* p = begin; p != end; ++p) {
+    if (*p == '\n' || *p == '\r')
+      return true;
+  }
+  return false;
 }
 
 OurReader::OurReader(OurFeatures const& features) : features_(features) {}
@@ -1901,20 +1911,23 @@ CharReader* CharReaderBuilder::newCharReader() const {
 }
 
 bool CharReaderBuilder::validate(Json::Value* invalid) const {
-  static const auto& valid_keys = *new std::set<String>{
-      "collectComments",
-      "allowComments",
-      "allowTrailingCommas",
-      "strictRoot",
-      "allowDroppedNullPlaceholders",
-      "allowNumericKeys",
-      "allowSingleQuotes",
-      "stackLimit",
-      "failIfExtra",
-      "rejectDupKeys",
-      "allowSpecialFloats",
-      "skipBom",
-  };
+  static std::set<String>* valid_keys_ptr = nullptr;
+  if (!valid_keys_ptr) {
+      valid_keys_ptr = new std::set<String>();
+      valid_keys_ptr->insert("collectComments");
+      valid_keys_ptr->insert("allowComments");
+      valid_keys_ptr->insert("allowTrailingCommas");
+      valid_keys_ptr->insert("strictRoot");
+      valid_keys_ptr->insert("allowDroppedNullPlaceholders");
+      valid_keys_ptr->insert("allowNumericKeys");
+      valid_keys_ptr->insert("allowSingleQuotes");
+      valid_keys_ptr->insert("stackLimit");
+      valid_keys_ptr->insert("failIfExtra");
+      valid_keys_ptr->insert("rejectDupKeys");
+      valid_keys_ptr->insert("allowSpecialFloats");
+      valid_keys_ptr->insert("skipBom");
+  }
+  static const std::set<String>& valid_keys = *valid_keys_ptr;
   for (auto si = settings_.begin(); si != settings_.end(); ++si) {
     auto key = si.name();
     if (valid_keys.count(key))

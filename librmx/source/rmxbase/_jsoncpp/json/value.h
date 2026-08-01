@@ -24,6 +24,10 @@
 // Support for '= delete' with template declarations was a late addition
 // to the c++11 standard and is rejected by clang 3.8 and Apple clang 8.2
 // even though these declare themselves to be c++11 compilers.
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#define JSONCPP_TEMPLATE_DELETE
+#endif
+
 #if !defined(JSONCPP_TEMPLATE_DELETE)
 #if defined(__clang__) && defined(__apple_build_version__)
 #if __apple_build_version__ <= 8000042
@@ -39,7 +43,53 @@
 #endif
 #endif
 
+#include <stddef.h>
+#include <cstddef>
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+namespace std {
+    template<typename T>
+    class unique_ptr {
+        T* ptr;
+    public:
+        unique_ptr() : ptr(NULL) {}
+        explicit unique_ptr(T* p) : ptr(p) {}
+        ~unique_ptr() { delete ptr; }
+        unique_ptr(const unique_ptr& other) {
+            unique_ptr& non_const_other = const_cast<unique_ptr&>(other);
+            ptr = non_const_other.ptr;
+            non_const_other.ptr = NULL;
+        }
+        unique_ptr& operator=(const unique_ptr& other) {
+            if (this != &other) {
+                unique_ptr& non_const_other = const_cast<unique_ptr&>(other);
+                delete ptr;
+                ptr = non_const_other.ptr;
+                non_const_other.ptr = NULL;
+            }
+            return *this;
+        }
+        T& operator*() const { return *ptr; }
+        T* operator->() const { return ptr; }
+        T* get() const { return ptr; }
+        operator bool() const { return ptr != NULL; }
+        void reset(T* p = NULL) {
+            if (ptr != p) {
+                delete ptr;
+                ptr = p;
+            }
+        }
+        T* release() {
+            T* tmp = ptr;
+            ptr = NULL;
+            return tmp;
+        }
+    };
+}
+#endif
+
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <array>
+#endif
 #include <exception>
 #include <map>
 #include <memory>
@@ -643,7 +693,11 @@ private:
     void set(CommentPlacement slot, String comment);
 
   private:
-    using Array = std::array<String, numberOfCommentPlacement>;
+    struct Array {
+        String elems[numberOfCommentPlacement];
+        String& operator[](size_t i) { return elems[i]; }
+        const String& operator[](size_t i) const { return elems[i]; }
+    };
     std::unique_ptr<Array> ptr_;
   };
   Comments comments_;

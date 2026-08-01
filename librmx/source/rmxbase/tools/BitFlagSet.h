@@ -11,7 +11,7 @@
 #include "rmxbase/base/Types.h"
 
 
-namespace rmx::detail
+namespace rmx { namespace detail
 {
 	template<int BYTES> struct TypeBySize
 	{
@@ -33,7 +33,7 @@ namespace rmx::detail
 	{
 		typedef uint64 Type;
 	};
-}
+}}
 
 
 template<typename ENUM>

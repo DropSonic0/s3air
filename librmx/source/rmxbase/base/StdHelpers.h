@@ -10,7 +10,9 @@
 
 #include <vector>
 #include <map>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <unordered_map>
+#endif
 
 
 // Check if an std::vector, std::list, etc. contains a certain element

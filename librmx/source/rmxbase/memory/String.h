@@ -162,10 +162,12 @@ public:
 	bool readUnicode(const uint8* data, size_t datasize, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
 	void writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding encoding = UnicodeEncoding::AUTO, bool addBOM = true) const;
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	bool loadFile(std::string_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
 	bool loadFile(std::wstring_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
 	bool saveFile(std::string_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;
 	bool saveFile(std::wstring_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;
+#endif
 
 	CLASS& operator=(const CLASS& str)			{ copy(str); return (CLASS&)*this; }
 	CLASS& operator=(const CHAR* str)			{ copy(str); return (CLASS&)*this; }
@@ -242,7 +244,9 @@ public:
 	std::string toStdString() const;
 	std::wstring toStdWString() const;
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	operator const std::string_view() const  { return std::string_view(mData, mLength); }
+#endif
 };
 
 
@@ -262,7 +266,9 @@ public:
 	explicit WString(const String& str) : BASE(str.toWString()) {}
 	explicit WString(const char* str) : WString(String(str)) {}
 	explicit WString(const std::basic_string<char, std::char_traits<char>, std::allocator<char>>& str) : WString(String(str)) {}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	explicit WString(const std::basic_string_view<char>& str) : WString(String(str)) {}
+#endif
 	WString(int ignoreMe, const wchar_t* format, ...);
 
 	void formatString(const wchar_t* format, ...);
@@ -274,7 +280,9 @@ public:
 	std::string toStdString() const;
 	std::wstring toStdWString() const;
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	operator const std::wstring_view() const  { return std::wstring_view(mData, mLength); }
+#endif
 
 	void fromUTF8(const char* str, size_t length);
 	void fromUTF8(const String& str);

@@ -6,13 +6,33 @@
 #ifndef JSON_CONFIG_H_INCLUDED
 #define JSON_CONFIG_H_INCLUDED
 #include <cstddef>
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#include <stdint.h>
+namespace std {
+    template<typename T>
+    T& move(T& x) { return x; }
+    template<typename T>
+    const T& move(const T& x) { return x; }
+}
+#else
 #include <cstdint>
+#endif
 #include <istream>
 #include <memory>
 #include <ostream>
 #include <sstream>
 #include <string>
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+namespace std {
+    template<bool B, class T, class F>
+    struct conditional { typedef T type; };
+
+    template<class T, class F>
+    struct conditional<false, T, F> { typedef F type; };
+}
+#else
 #include <type_traits>
+#endif
 
 // If non-zero, the library uses exceptions to report bad input instead of C
 // assertion macros. The default is to use exceptions.

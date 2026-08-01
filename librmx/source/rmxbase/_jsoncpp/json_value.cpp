@@ -8,6 +8,8 @@
 #include "json/value.h"
 #include "json/writer.h"
 #endif // if !defined(JSON_IS_AMALGAMATION)
+#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -813,8 +815,12 @@ bool Value::asBool() const {
     return value_.uint_ != 0;
   case realValue: {
     // According to JavaScript language zero or NaN is regarded as false
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+    return value_.real_ != 0.0 && value_.real_ == value_.real_;
+#else
     const auto value_classification = std::fpclassify(value_.real_);
     return value_classification != FP_ZERO && value_classification != FP_NAN;
+#endif
   }
   default:
     break;
@@ -1131,7 +1137,11 @@ Value& Value::append(Value&& value) {
   if (type() == nullValue) {
     *this = Value(arrayValue);
   }
+  #if defined(__CELLOS_LV2__) || defined(__SNC__)
+  return this->value_.map_->insert(std::make_pair(size(), value)).first->second;
+#else
   return this->value_.map_->emplace(size(), std::move(value)).first->second;
+#endif
 }
 
 bool Value::insert(ArrayIndex index, const Value& newValue) {
@@ -1248,7 +1258,11 @@ Value::Members Value::getMemberNames() const {
 
 static bool IsIntegral(double d) {
   double integral_part;
+  #if defined(__CELLOS_LV2__) || defined(__SNC__)
+  return std::modf(d, &integral_part) == 0.0;
+#else
   return modf(d, &integral_part) == 0.0;
+#endif
 }
 
 bool Value::isNull() const { return type() == nullValue; }
