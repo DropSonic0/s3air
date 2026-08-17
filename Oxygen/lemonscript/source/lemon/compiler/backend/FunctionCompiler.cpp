@@ -45,23 +45,23 @@ namespace lemon
 	{
 	public:
 		OpcodeBuilder(FunctionCompiler& functionCompiler) :
-			mFunctionCompiler(functionCompiler)
+			mFunctionCompiler(&functionCompiler)
 		{}
 
 		void beginIf()
 		{
-			mIfJumpOpcodeIndex = mFunctionCompiler.mOpcodes.size();
-			mFunctionCompiler.addOpcode(Opcode::Type::JUMP_CONDITIONAL);	// Target position must be set afterwards when if block is complete
+			mIfJumpOpcodeIndex = mFunctionCompiler->mOpcodes.size();
+			mFunctionCompiler->addOpcode(Opcode::Type::JUMP_CONDITIONAL);	// Target position must be set afterwards when if block is complete
 		}
 
 		void beginElse()
 		{
 			// Conditional jump to the end of the else-part
-			mElseJumpOpcodeIndex = mFunctionCompiler.mOpcodes.size();
-			mFunctionCompiler.addOpcode(Opcode::Type::JUMP);				// Target position must be set afterwards when else block is complete
+			mElseJumpOpcodeIndex = mFunctionCompiler->mOpcodes.size();
+			mFunctionCompiler->addOpcode(Opcode::Type::JUMP);				// Target position must be set afterwards when else block is complete
 
 			// Correct target position of if-jump
-			mFunctionCompiler.mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler.mOpcodes.size();
+			mFunctionCompiler->mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler->mOpcodes.size();
 		}
 
 		void endIf()
@@ -70,16 +70,16 @@ namespace lemon
 			const bool hadElsePart = (mElseJumpOpcodeIndex != 0);
 			if (hadElsePart)
 			{
-				mFunctionCompiler.mOpcodes[mElseJumpOpcodeIndex].mParameter = mFunctionCompiler.mOpcodes.size();
+				mFunctionCompiler->mOpcodes[mElseJumpOpcodeIndex].mParameter = mFunctionCompiler->mOpcodes.size();
 			}
 			else
 			{
-				mFunctionCompiler.mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler.mOpcodes.size();
+				mFunctionCompiler->mOpcodes[mIfJumpOpcodeIndex].mParameter = mFunctionCompiler->mOpcodes.size();
 			}
 		}
 
 	private:
-		FunctionCompiler& mFunctionCompiler;
+		FunctionCompiler* mFunctionCompiler;
 		size_t mIfJumpOpcodeIndex = 0;
 		size_t mElseJumpOpcodeIndex = 0;
 	};
@@ -130,8 +130,9 @@ namespace lemon
 		buildOpcodesFromNodes(blockNode, context);
 
 		// Process all jumps to labels
-		for (const auto& [key, collectedLabel] : mCollectedLabels)
+		for (auto it = mCollectedLabels.begin(); it != mCollectedLabels.end(); ++it)
 		{
+			const auto& collectedLabel = it->second;
 			for (size_t jumpLocation : collectedLabel.mJumpLocations)
 			{
 				RMX_ASSERT(mOpcodes[jumpLocation].mType == Opcode::Type::JUMP, "Expected JUMP opcode");
@@ -408,7 +409,12 @@ namespace lemon
 					// First evaluate the condition
 					compileTokenTreeToOpcodes(*isn.mConditionToken);
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 					OpcodeBuilder& builder = openOpcodeBuilders.emplace_back(*this);
+#else
+					openOpcodeBuilders.push_back(OpcodeBuilder(*this));
+					OpcodeBuilder& builder = openOpcodeBuilders.back();
+#endif
 					builder.beginIf();
 					{
 						// Compile if-block content

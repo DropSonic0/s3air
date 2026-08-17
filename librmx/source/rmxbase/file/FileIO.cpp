@@ -9,6 +9,34 @@
 #include "rmxbase.h"
 #include <fstream>
 
+#if defined(PLATFORM_PS3)
+	#include <dirent.h>
+	#include <sys/stat.h>
+#endif
+
+#ifndef S_ISDIR
+	#ifdef S_IFDIR
+		#ifdef S_IFMT
+			#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+		#else
+			#define S_ISDIR(m) (((m) & 0xF000) == S_IFDIR)
+		#endif
+	#else
+		#define S_ISDIR(m) (((m) & 0170000) == 0040000)
+	#endif
+#endif
+
+#if defined(PLATFORM_PS3)
+extern "C" int stat(const char* path, struct stat* buf);
+
+static inline int rmx_stat(const char* path, struct stat* buf)
+{
+	return stat(path, buf);
+}
+#else
+	#define rmx_stat stat
+#endif
+
 #ifdef PLATFORM_WINDOWS
 	#include <filesystem>
 	namespace std_filesystem = std::filesystem;
@@ -41,6 +69,10 @@
 
 namespace rmx
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	std::error_code FileIO::mLastErrorCode;
+#endif
+
 	namespace
 	{
 		bool createDir(const WString& path, bool recursive)
@@ -162,7 +194,7 @@ namespace rmx
 					continue;
 
 				struct stat fileinfo;
-				if (stat((basePathUTF8 + name).c_str(), &fileinfo) != 0)
+				if (rmx_stat((basePathUTF8 + name).c_str(), &fileinfo) != 0)
 					continue;
 
 				if (S_ISDIR(fileinfo.st_mode))
@@ -170,7 +202,7 @@ namespace rmx
 					// Directory
 					if (recursive || nullptr != outSubDirectories)
 					{
-						subDirectories.emplace_back(*String(name).toWString());
+						subDirectories.push_back(*String(name).toWString());
 					}
 				}
 				else

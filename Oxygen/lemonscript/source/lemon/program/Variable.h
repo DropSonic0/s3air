@@ -14,6 +14,89 @@
 
 #include <functional>
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#ifndef _STD_FUNCTION_DEFINED_PS3_
+#define _STD_FUNCTION_DEFINED_PS3_
+namespace std {
+    // minimal C++11 std::function fallback for arity 0 and 1
+    template<typename T>
+    class function;
+
+    template<typename R, typename Arg1>
+    class function<R(Arg1)> {
+    public:
+        struct Invoker {
+            virtual ~Invoker() {}
+            virtual R invoke(Arg1) = 0;
+            virtual Invoker* clone() const = 0;
+        };
+
+        template<typename F>
+        struct FunctorInvoker : public Invoker {
+            F mFunc;
+            FunctorInvoker(const F& f) : mFunc(f) {}
+            virtual R invoke(Arg1 a1) { return mFunc(a1); }
+            virtual Invoker* clone() const { return new FunctorInvoker(mFunc); }
+        };
+
+        function() : mInvoker(nullptr) {}
+        template<typename F>
+        function(const F& f) : mInvoker(new FunctorInvoker<F>(f)) {}
+        function(const function& other) : mInvoker(other.mInvoker ? other.mInvoker->clone() : nullptr) {}
+        ~function() { delete mInvoker; }
+        function& operator=(const function& other) {
+            if (this != &other) {
+                delete mInvoker;
+                mInvoker = other.mInvoker ? other.mInvoker->clone() : nullptr;
+            }
+            return *this;
+        }
+        R operator()(Arg1 a1) const { return mInvoker->invoke(a1); }
+        operator bool() const { return mInvoker != nullptr; }
+
+    private:
+        Invoker* mInvoker;
+    };
+
+    template<typename R>
+    class function<R()> {
+    public:
+        struct Invoker {
+            virtual ~Invoker() {}
+            virtual R invoke() = 0;
+            virtual Invoker* clone() const = 0;
+        };
+
+        template<typename F>
+        struct FunctorInvoker : public Invoker {
+            F mFunc;
+            FunctorInvoker(const F& f) : mFunc(f) {}
+            virtual R invoke() { return mFunc(); }
+            virtual Invoker* clone() const { return new FunctorInvoker(mFunc); }
+        };
+
+        function() : mInvoker(nullptr) {}
+        template<typename F>
+        function(const F& f) : mInvoker(new FunctorInvoker<F>(f)) {}
+        function(const function& other) : mInvoker(other.mInvoker ? other.mInvoker->clone() : nullptr) {}
+        ~function() { delete mInvoker; }
+        function& operator=(const function& other) {
+            if (this != &other) {
+                delete mInvoker;
+                mInvoker = other.mInvoker ? other.mInvoker->clone() : nullptr;
+            }
+            return *this;
+        }
+        R operator()() const { return mInvoker->invoke(); }
+        operator bool() const { return mInvoker != nullptr; }
+
+    private:
+        Invoker* mInvoker;
+    };
+}
+#endif
+#endif
+
 
 namespace lemon
 {

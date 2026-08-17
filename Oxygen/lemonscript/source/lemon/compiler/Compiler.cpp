@@ -17,6 +17,10 @@
 
 namespace lemon
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	Compiler* Compiler::mActiveInstance = nullptr;
+#endif
+
 	namespace
 	{
 		int checkIncludeLine(std::string_view str)
@@ -139,8 +143,8 @@ namespace lemon
 			basePath.add('/');
 			filename.makeSubString(pos + 1, -1);
 		}
-		mScriptBasePath = basePath;
-		mModule.mScriptBasePath = basePath;
+		mScriptBasePath = *basePath;
+		mModule.mScriptBasePath = *basePath;
 
 		mScriptFiles.clear();
 		mScriptFiles.reserve(0x200);
@@ -163,7 +167,9 @@ namespace lemon
 
 	bool Compiler::compileLines(const std::vector<std::string_view>& lines)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		try
+#endif
 		{
 			BlockNode rootNode;
 			std::vector<FunctionNode*> functionNodes;
@@ -184,6 +190,7 @@ namespace lemon
 			// Success
 			return true;
 		}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		catch (const CompilerException& e)
 		{
 			const auto& translated = mLineNumberTranslation.translateLineNumber(e.mError.mLineNumber);
@@ -195,6 +202,7 @@ namespace lemon
 		}
 
 		return false;
+#endif
 	}
 
 	bool Compiler::loadScriptInternal(const std::wstring& localPath, const std::wstring& filename, std::vector<std::string_view>& outLines, std::unordered_set<uint64>& includedPathHashes)
@@ -237,17 +245,20 @@ namespace lemon
 				const int start = pos;
 				size_t length;
 				pos = scriptFile.mContent.getLine(length, start);
-				fileLines.emplace_back(&scriptFile.mContent[start], length);
+				fileLines.push_back(std::string_view(&scriptFile.mContent[start], length));
 			}
 		}
 
 		// Your turn, preprocessor
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		try
+#endif
 		{
 			mPreprocessor.mPreprocessorDefinitions = &mGlobalsLookup.mPreprocessorDefinitions;
 			mPreprocessor.processLines(fileLines);
 			mModule.registerNewPreprocessorDefinitions(mGlobalsLookup.mPreprocessorDefinitions);
 		}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		catch (const CompilerException& e)
 		{
 			ErrorMessage& error = vectorAdd(mErrors);
@@ -256,6 +267,7 @@ namespace lemon
 			error.mError = e.mError;
 			return false;
 		}
+#endif
 
 		// Build output
 		for (uint32 fileLineIndex = 0; fileLineIndex < (uint32)fileLines.size(); ++fileLineIndex)
@@ -307,7 +319,11 @@ namespace lemon
 			}
 			else
 			{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 				outLines.emplace_back(std::move(fileLines[fileLineIndex]));
+#else
+				outLines.push_back(fileLines[fileLineIndex]);
+#endif
 			}
 		}
 

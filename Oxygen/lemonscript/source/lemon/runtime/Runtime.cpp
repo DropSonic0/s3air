@@ -283,7 +283,11 @@ namespace lemon
 	{
 		if (mSelectedControlFlow->mLocalVariablesSize + runtimeFunction.mFunction->mLocalVariablesByID.size() > ControlFlow::VAR_STACK_LIMIT)
 		{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			throw std::runtime_error("Reached var stack limit, possibly due to recursive function calls");
+#else
+			RMX_ERROR("Reached var stack limit, possibly due to recursive function calls", return);
+#endif
 		}
 
 		// Push new state to call stack
@@ -530,7 +534,7 @@ namespace lemon
 
 					case Opcode::Type::JUMP:
 					{
-						state.mProgramCounter = reinterpret_cast<const uint8*>(context.mOpcode->getParameter<uint64>());
+						state.mProgramCounter = reinterpret_cast<const uint8*>(static_cast<uintptr_t>(context.mOpcode->getParameter<uint64>()));
 
 						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
 						//  -> This is needed to prevent endless loops
@@ -551,7 +555,7 @@ namespace lemon
 						if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
 						{
 							--mSelectedControlFlow->mValueStackPtr;
-							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>(context.mOpcode->getParameter<uint64>());
+							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>(static_cast<uintptr_t>(context.mOpcode->getParameter<uint64>()));
 						}
 						else
 						{
@@ -650,7 +654,11 @@ namespace lemon
 					}
 
 					default:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 						throw std::runtime_error("Unhandled opcode");
+#else
+						RMX_ERROR("Unhandled opcode", break);
+#endif
 				}
 			}
 		}
@@ -960,3 +968,11 @@ namespace lemon
 	}
 
 }
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+namespace lemon
+{
+	ControlFlow* Runtime::mActiveControlFlow = nullptr;
+	const Environment* Runtime::mActiveEnvironment = nullptr;
+}
+#endif

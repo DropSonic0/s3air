@@ -33,7 +33,7 @@ namespace lemon
 			case BaseType::FLOAT:		runtimeOpcode.mExecFunc = &_function_<float>;	break; \
 			case BaseType::DOUBLE:		runtimeOpcode.mExecFunc = &_function_<double>;	break; \
 			default: \
-				throw std::runtime_error("Invalid opcode data type"); \
+				RMX_ERROR("Invalid opcode data type", ); \
 		} \
 	}
 
@@ -51,7 +51,7 @@ namespace lemon
 			case BaseType::UINT_64:		runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			case BaseType::INT_CONST:	runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			default: \
-				throw std::runtime_error("Invalid opcode data type"); \
+				RMX_ERROR("Invalid opcode data type", ); \
 		} \
 	}
 

@@ -13,6 +13,24 @@
 
 namespace lemon
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	genericmanager::detail::ElementClassImpl<Token, KeywordToken, KeywordToken::TYPE> KeywordToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, VarTypeToken, VarTypeToken::TYPE> VarTypeToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, OperatorToken, OperatorToken::TYPE> OperatorToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, LabelToken, LabelToken::TYPE> LabelToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, ConstantToken, ConstantToken::TYPE> ConstantToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, IdentifierToken, IdentifierToken::TYPE> IdentifierToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, ParenthesisToken, ParenthesisToken::TYPE> ParenthesisToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, CommaSeparatedListToken, CommaSeparatedListToken::TYPE> CommaSeparatedListToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, UnaryOperationToken, UnaryOperationToken::TYPE> UnaryOperationToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, BinaryOperationToken, BinaryOperationToken::TYPE> BinaryOperationToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, VariableToken, VariableToken::TYPE> VariableToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, FunctionToken, FunctionToken::TYPE> FunctionToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, BracketAccessToken, BracketAccessToken::TYPE> BracketAccessToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, MemoryAccessToken, MemoryAccessToken::TYPE> MemoryAccessToken::CLASS;
+	genericmanager::detail::ElementClassImpl<Token, ValueCastToken, ValueCastToken::TYPE> ValueCastToken::CLASS;
+#endif
+
 
 	struct TokenSerializationIDTranslator
 	{
@@ -22,7 +40,7 @@ namespace lemon
 		void initialize()
 		{
 			#define ADD_ENTRIES(_serializationID_, _type_) \
-				static_assert(_serializationID_ <= LAST_ENTRY); \
+				static_assert(_serializationID_ <= LAST_ENTRY, "ID too large"); \
 				mFactoryBySerializationID[_serializationID_] = &_type_::CLASS.getFactory(); \
 				mSerializationIDByTokenType[_type_::TYPE] = _serializationID_;
 

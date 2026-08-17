@@ -89,7 +89,16 @@ namespace lemon
 				case BaseCastType::DOUBLE_TO_FLOAT: return BaseType::DOUBLE;
 
 				default:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 					throw std::runtime_error("Unrecognized cast type");
+#else
+					RMX_ERROR("Unrecognized cast type", return BaseType::UINT_64);
+#endif
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+					throw std::runtime_error("Unrecognized cast type");
+#else
+					RMX_ERROR("Unrecognized cast type", return BaseType::UINT_64);
+#endif
 			}
 			return BaseType::UINT_64;
 		}
@@ -170,7 +179,11 @@ namespace lemon
 				case BaseCastType::DOUBLE_TO_FLOAT: return BaseType::FLOAT;
 
 				default:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 					throw std::runtime_error("Unrecognized cast type");
+#else
+					RMX_ERROR("Unrecognized cast type", return BaseType::UINT_64);
+#endif
 			}
 			return BaseType::UINT_64;
 		}

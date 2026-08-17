@@ -120,10 +120,17 @@ namespace lemon
 		uint8* accessVariableGeneric(uint32 variableId);
 
 	private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		inline static const size_t VALUE_STACK_MAX_SIZE    = 0x100;
 		inline static const size_t VALUE_STACK_FIRST_INDEX = 4;			// Leave 4 elements so that removing too many elements from the stack doesn't break everything immediately
 		inline static const size_t VALUE_STACK_LAST_INDEX  = VALUE_STACK_MAX_SIZE - 8;
 		inline static const size_t VAR_STACK_LIMIT         = 0x4000;
+#else
+		static const size_t VALUE_STACK_MAX_SIZE    = 0x100;
+		static const size_t VALUE_STACK_FIRST_INDEX = 4;			// Leave 4 elements so that removing too many elements from the stack doesn't break everything immediately
+		static const size_t VALUE_STACK_LAST_INDEX  = 248; // VALUE_STACK_MAX_SIZE - 8
+		static const size_t VAR_STACK_LIMIT         = 0x4000;
+#endif
 
 		Runtime& mRuntime;
 		const Program* mProgram = nullptr;

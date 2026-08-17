@@ -51,7 +51,7 @@ namespace rmx
 	public:
 		ThreadBase();
 		ThreadBase(const std::string& name);
-		~ThreadBase();
+		virtual ~ThreadBase();
 
 		void startThread();
 		void signalStopThread(bool join = false);

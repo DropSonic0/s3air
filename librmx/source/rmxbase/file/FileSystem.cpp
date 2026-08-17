@@ -242,7 +242,7 @@ namespace rmx
 					}
 					if (endPos < mountPoint.mMountPoint.size())
 					{
-						outEntries.emplace_back(mountPoint.mMountPoint, startPos, endPos - startPos);
+						outEntries.push_back(std::wstring(mountPoint.mMountPoint, startPos, endPos - startPos));
 					}
 				}
 			}

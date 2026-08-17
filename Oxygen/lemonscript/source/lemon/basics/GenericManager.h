@@ -81,6 +81,7 @@ namespace genericmanager
 		friend class Manager<ELEMENT>;
 
 		public:
+			virtual ~ElementFactoryBase() {}
 			virtual ELEMENT& create() = 0;
 			virtual void shrinkPool() {}
 
@@ -170,11 +171,20 @@ namespace genericmanager
 			}
 
 		private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			static inline ElementClassCollection<ELEMENT>* mInstance = nullptr;
+#else
+			static ElementClassCollection<ELEMENT>* mInstance;
+#endif
 
 			std::vector<ElementClassBase<ELEMENT>*> mClassList;
 			std::unordered_map<Type, ElementClassBase<ELEMENT>*> mClassMap;
 		};
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		template<class ELEMENT>
+		ElementClassCollection<ELEMENT>* ElementClassCollection<ELEMENT>::mInstance = nullptr;
+#endif
 	}
 
 
@@ -603,6 +613,7 @@ namespace genericmanager
 }
 
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #define DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(_element_, _base_, _class_, _type_) \
 public: \
 	static inline const uint32 TYPE = _type_; \
@@ -610,3 +621,12 @@ public: \
 	inline _class_() : _base_(TYPE) {} \
 protected: \
 	inline explicit _class_(uint32 TYPE) : _base_(TYPE) {}	// For sub-classes that want to inherit from this
+#else
+#define DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(_element_, _base_, _class_, _type_) \
+public: \
+	static const uint32 TYPE = _type_; \
+	static genericmanager::detail::ElementClassImpl<_element_, _class_, _type_> CLASS; \
+	inline _class_() : _base_(TYPE) {} \
+protected: \
+	inline explicit _class_(uint32 TYPE) : _base_(TYPE) {}	// For sub-classes that want to inherit from this
+#endif

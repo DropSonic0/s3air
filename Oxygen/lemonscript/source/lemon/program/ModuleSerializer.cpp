@@ -18,7 +18,7 @@ namespace lemon
 {
 	namespace
 	{
-		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO;
+		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO = SourceFileInfo();
 
 		static const BaseType DEFAULT_OPCODE_BASETYPES[(size_t)Opcode::Type::_NUM_TYPES] =
 		{
@@ -111,7 +111,7 @@ namespace lemon
 		//  - 0x15 = Script feature level of module
 		//  - 0x16 = Data type differentiation between arrays and custom types
 
-		static_assert((size_t)Opcode::Type::_NUM_TYPES == 37);	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
+		static_assert((size_t)Opcode::Type::_NUM_TYPES == 37, "DEFAULT_OPCODE_BASETYPES needs to get updated");
 
 		// Signature and version number
 		const uint32 SIGNATURE = *(uint32*)"LMD|";	// "Lemonscript Module"
@@ -221,7 +221,9 @@ namespace lemon
 			if (serializer.isReading())
 			{
 				const size_t count = (size_t)serializer.read<uint16>();
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 				module.mCallableFunctions.reserve(count);
+#endif
 				for (size_t i = 0; i < count; ++i)
 				{
 					const uint32 address = serializer.read<uint32>();
@@ -232,10 +234,10 @@ namespace lemon
 			else
 			{
 				serializer.writeAs<uint16>(module.mCallableFunctions.size());
-				for (const auto& [address, nameHash] : module.mCallableFunctions)
+				for (const auto& pair : module.mCallableFunctions)
 				{
-					serializer.write(address);
-					serializer.write(nameHash);
+					serializer.write(pair.first);
+					serializer.write(pair.second);
 				}
 			}
 		}
@@ -610,7 +612,7 @@ namespace lemon
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
-							scriptFunc.mPragmas.emplace_back(serializer.read<std::string>());
+							scriptFunc.mPragmas.push_back(serializer.read<std::string>());
 						}
 					}
 				}
@@ -674,7 +676,7 @@ namespace lemon
 					serializer.writeAs<uint32>(scriptFunc.mOpcodes.size());
 					for (const Opcode& opcode : scriptFunc.mOpcodes)
 					{
-						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64);
+						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64, "Opcode type count must be <= 64");
 
 						const uint8 parameterBits = (opcode.mParameter == 0)  ? 0 :
 							(opcode.mParameter == 1)  ? 1 :

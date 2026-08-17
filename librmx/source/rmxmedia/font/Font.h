@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <memory>
+
 class FontProcessor;
 class FontSource;
 

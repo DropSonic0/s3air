@@ -23,6 +23,7 @@ namespace
 		}
 	}
 
+#ifndef USE_UTF8_PATHS
 	const wchar_t* getModeStringW(uint32 flags)
 	{
 		switch (flags & 0x0f)
@@ -34,6 +35,7 @@ namespace
 			default:					return L"";
 		}
 	}
+#endif
 }
 
 
@@ -146,6 +148,8 @@ void FileHandle::seek(int64 position)
 		return;
 #ifdef _MSC_VER
 	_fseeki64(mFile, position, SEEK_SET);
+#elif defined(__CELLOS_LV2__) || defined(__SNC__)
+	fseek(mFile, (long)position, SEEK_SET);
 #else
 	fseek(mFile, position, SEEK_SET);
 #endif

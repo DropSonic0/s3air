@@ -23,8 +23,9 @@ namespace rmx
 		RMX_ASSERT(mAudioLocks == 0, "Pending audio locks");
 
 		// Delete all audio mixers (including the root mixer)
-		for (const auto& [key, audioMixer] : mAudioMixers)
+		for (const auto& pair : mAudioMixers)
 		{
+			auto audioMixer = pair.second;
 			delete audioMixer;
 		}
 	}
@@ -98,8 +99,9 @@ namespace rmx
 		if (!mInstances.empty())
 		{
 			lockAudio();
-			for (const auto& [key, audioMixer] : mAudioMixers)
+			for (const auto& pair : mAudioMixers)
 			{
+				auto audioMixer = pair.second;
 				audioMixer->clearAudioInstances();
 			}
 			unlockAudio();
@@ -171,7 +173,7 @@ namespace rmx
 
 					if (!found)
 					{
-						audioBufferPurgePositions.emplace_back(audioBuffer, instance.mPosition);
+						audioBufferPurgePositions.push_back(std::make_pair(audioBuffer, instance.mPosition));
 					}
 				}
 			}
@@ -436,8 +438,10 @@ namespace rmx
 		mPlayedSamples += (uint32)outputSamples;
 
 		// Remove instance that are done playing
-		for (auto& [key, audioInstance] : mInstances)
+		for (auto& pair : mInstances)
 		{
+			auto key = pair.first;
+			auto& audioInstance = pair.second;
 			if (audioInstance.mPlaybackDone)
 			{
 				// Add to remove IDs list, but only once please

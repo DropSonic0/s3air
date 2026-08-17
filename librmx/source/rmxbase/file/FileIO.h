@@ -25,7 +25,11 @@ namespace rmx
 			size_t mSize = 0;
 		};
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		static std::error_code mLastErrorCode;
+#else
 		static inline std::error_code mLastErrorCode;
+#endif
 
 	public:
 		static bool exists(std::wstring_view path);

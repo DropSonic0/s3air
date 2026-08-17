@@ -21,6 +21,9 @@
 #endif
 
 // General includes
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
 #include <vorbis/codec.h>
 #include <rmxmedia.h>
 

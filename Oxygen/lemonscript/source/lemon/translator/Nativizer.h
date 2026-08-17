@@ -9,7 +9,9 @@
 #pragma once
 
 #include "lemon/runtime/RuntimeOpcode.h"
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <unordered_map>
+#endif
 
 
 namespace lemon

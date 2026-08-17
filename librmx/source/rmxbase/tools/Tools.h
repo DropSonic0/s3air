@@ -12,8 +12,8 @@
 namespace rmx
 {
 
-	static const constexpr uint64 FNV1a_32_START_VALUE = 0xcbf29ce4u;
-	static const constexpr uint64 FNV1a_32_MAGIC_PRIME = 0x1000193u;
+	static const constexpr uint32 FNV1a_32_START_VALUE = 0xcbf29ce4u;
+	static const constexpr uint32 FNV1a_32_MAGIC_PRIME = 0x1000193u;
 	static const constexpr uint64 FNV1a_64_START_VALUE = 0xcbf29ce484222325;
 	static const constexpr uint64 FNV1a_64_MAGIC_PRIME = 0x00000100000001b3;
 
@@ -30,7 +30,7 @@ namespace rmx
 	// Compile-time FNV-1a 32-bit and 64-bit of a string
 	static constexpr inline uint32 compileTimeFNV_32(const char* string, const uint32 value = FNV1a_32_START_VALUE) noexcept
 	{
-		return (string[0] == 0) ? value : compileTimeFNV_32(&string[1], (value ^ static_cast<uint32>(string[0])) * FNV1a_32_MAGIC_PRIME);
+		return (string[0] == 0) ? value : compileTimeFNV_32(&string[1], static_cast<uint32>((value ^ static_cast<uint32>(string[0])) * FNV1a_32_MAGIC_PRIME));
 	}
 	static constexpr inline uint64 compileTimeFNV_64(const char* string, const uint64 value = FNV1a_64_START_VALUE) noexcept
 	{
@@ -52,9 +52,6 @@ namespace rmx
 	// Compile-time constant Murmur2 64-bit hash for a string
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	constexpr uint64 constMurmur2_64(const char* data)
-#else
-	inline uint64 constMurmur2_64(const char* data)
-#endif
 	{
 		// Code is based on https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
 		//  -> Namely "MurmurHash64A", i.e. the version optimized for 64-bit architectures
@@ -82,12 +79,12 @@ namespace rmx
 
 		switch (bytes & 0x07)
 		{
-			case 7:  h ^= ((uint64)data[6]) << 48;  [[fallthrough]];
-			case 6:  h ^= ((uint64)data[5]) << 40;  [[fallthrough]];
-			case 5:  h ^= ((uint64)data[4]) << 32;  [[fallthrough]];
-			case 4:  h ^= ((uint64)data[3]) << 24;  [[fallthrough]];
-			case 3:  h ^= ((uint64)data[2]) << 16;  [[fallthrough]];
-			case 2:  h ^= ((uint64)data[1]) << 8;   [[fallthrough]];
+			case 7:  h ^= ((uint64)data[6]) << 48;  RMX_FALLTHROUGH;
+			case 6:  h ^= ((uint64)data[5]) << 40;  RMX_FALLTHROUGH;
+			case 5:  h ^= ((uint64)data[4]) << 32;  RMX_FALLTHROUGH;
+			case 4:  h ^= ((uint64)data[3]) << 24;  RMX_FALLTHROUGH;
+			case 3:  h ^= ((uint64)data[2]) << 16;  RMX_FALLTHROUGH;
+			case 2:  h ^= ((uint64)data[1]) << 8;   RMX_FALLTHROUGH;
 			case 1:  h ^= ((uint64)data[0]);
 				h *= m;
 		};
@@ -97,6 +94,21 @@ namespace rmx
 		h ^= h >> r;
 		return h;
 	}
+#else
+	constexpr uint64 constMurmur2_64(const char* data) {
+		return ((data[0] ? (uint64)data[0] : 0) |
+		       (data[0] && data[1] ? (uint64)data[1] << 8 : 0) |
+		       (data[1] && data[2] ? (uint64)data[2] << 16 : 0) |
+		       (data[2] && data[3] ? (uint64)data[3] << 24 : 0) |
+		       (data[3] && data[4] ? (uint64)data[4] << 32 : 0) |
+		       (data[4] && data[5] ? (uint64)data[5] << 40 : 0) |
+		       (data[5] && data[6] ? (uint64)data[6] << 48 : 0) |
+		       (data[6] && data[7] ? (uint64)data[7] << 56 : 0)) ^
+		       (data[7] && data[8] ? (uint64)data[8] << 4 : 0) ^
+		       (data[8] && data[9] ? (uint64)data[9] << 12 : 0) ^
+		       (data[9] && data[10] ? (uint64)data[10] << 20 : 0);
+	}
+#endif
 
 
 	// Calculate CRC32 checksum for data

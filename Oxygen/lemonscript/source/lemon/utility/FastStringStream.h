@@ -11,9 +11,11 @@
 #include <rmxbase.h>
 
 
-namespace lemon::detail
+namespace lemon
 {
-	class FastStringStream
+	namespace detail
+	{
+		class FastStringStream
 	{
 	public:
 		void clear()
@@ -124,4 +126,5 @@ namespace lemon::detail
 		char mBuffer[0x100] = { 0 };
 		int mLength = 0;
 	};
+}
 }

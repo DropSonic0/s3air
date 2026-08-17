@@ -1,3 +1,5 @@
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(__ppu__) && !defined(__PPU__)
+
 /*
 ** The OpenGL Extension Wrangler Library
 ** Copyright (C) 2008-2017, Nigel Stewart <nigels[]users sourceforge net>
@@ -28581,3 +28583,5 @@ GLboolean eglewIsSupported (const char* name)
 }
 
 #endif /* _WIN32 */
+
+#endif

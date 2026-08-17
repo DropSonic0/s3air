@@ -13,6 +13,8 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
+#include <memory>
+
 namespace rmx
 {
 	class Painter
@@ -62,7 +64,7 @@ namespace rmx
 		typedef std::vector<Recti> RectStack;
 		RectStack mScissorStack;
 
-		std::map<Font*, OpenGLFontOutput> mFontOutputMap;
+		std::map<Font*, std::shared_ptr<OpenGLFontOutput>> mFontOutputMap;
 	};
 }
 

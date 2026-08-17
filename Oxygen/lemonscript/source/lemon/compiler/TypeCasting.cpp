@@ -18,6 +18,7 @@ namespace lemon
 
 	const std::vector<TypeCasting::BinaryOperatorSignature>& TypeCasting::getBinarySignaturesForOperator(Operator op)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const std::vector<BinaryOperatorSignature> signaturesAssignment =
 		{
 			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
@@ -33,7 +34,25 @@ namespace lemon
 			BinaryOperatorSignature(&PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING),
 			BinaryOperatorSignature(&PredefinedDataTypes::ANY,	   &PredefinedDataTypes::ANY,	  &PredefinedDataTypes::ANY)
 		};
+#else
+		static const BinaryOperatorSignature arrayAssignment[] = {
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::FLOAT),
+			BinaryOperatorSignature(&PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE),
+			BinaryOperatorSignature(&PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING),
+			BinaryOperatorSignature(&PredefinedDataTypes::ANY,	   &PredefinedDataTypes::ANY,	  &PredefinedDataTypes::ANY)
+		};
+		static const std::vector<BinaryOperatorSignature> signaturesAssignment(arrayAssignment, arrayAssignment + sizeof(arrayAssignment)/sizeof(arrayAssignment[0]));
+#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const std::vector<BinaryOperatorSignature> signaturesAssignmentInt =
 		{
 			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
@@ -45,7 +64,21 @@ namespace lemon
 			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
 			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8)
 		};
+#else
+		static const BinaryOperatorSignature arrayAssignmentInt[] = {
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8)
+		};
+		static const std::vector<BinaryOperatorSignature> signaturesAssignmentInt(arrayAssignmentInt, arrayAssignmentInt + sizeof(arrayAssignmentInt)/sizeof(arrayAssignmentInt[0]));
+#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const std::vector<BinaryOperatorSignature> signaturesSymmetric =
 		{
 			// TODO: This is oversimplified, there are cases like multiply and left-shift (and probably also add / subtract) that require different handling
@@ -61,7 +94,24 @@ namespace lemon
 			BinaryOperatorSignature(&PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE),
 			BinaryOperatorSignature(&PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING)		// TODO: Strings need their own binary operations (and only few of them make actual sense...)
 		};
+#else
+		static const BinaryOperatorSignature arraySymmetric[] = {
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::FLOAT),
+			BinaryOperatorSignature(&PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE),
+			BinaryOperatorSignature(&PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING)
+		};
+		static const std::vector<BinaryOperatorSignature> signaturesSymmetric(arraySymmetric, arraySymmetric + sizeof(arraySymmetric)/sizeof(arraySymmetric[0]));
+#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const std::vector<BinaryOperatorSignature> signaturesSymmetricInt =
 		{
 			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
@@ -73,7 +123,21 @@ namespace lemon
 			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
 			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8)
 		};
+#else
+		static const BinaryOperatorSignature arraySymmetricInt[] = {
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8)
+		};
+		static const std::vector<BinaryOperatorSignature> signaturesSymmetricInt(arraySymmetricInt, arraySymmetricInt + sizeof(arraySymmetricInt)/sizeof(arraySymmetricInt[0]));
+#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const std::vector<BinaryOperatorSignature> signaturesComparison =
 		{
 			// Result types are always bool
@@ -89,7 +153,24 @@ namespace lemon
 			BinaryOperatorSignature(&PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::BOOL),
 			BinaryOperatorSignature(&PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING,  &PredefinedDataTypes::BOOL)		// TODO: Strings need their own comparison operations
 		};
+#else
+		static const BinaryOperatorSignature arrayComparison[] = {
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64, &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32,  &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32, &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16,  &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16, &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::BOOL),
+			BinaryOperatorSignature(&PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING,  &PredefinedDataTypes::BOOL)
+		};
+		static const std::vector<BinaryOperatorSignature> signaturesComparison(arrayComparison, arrayComparison + sizeof(arrayComparison)/sizeof(arrayComparison[0]));
+#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const std::vector<BinaryOperatorSignature> signaturesTrinary =
 		{
 			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
@@ -104,6 +185,22 @@ namespace lemon
 			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE),
 			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING)
 		};
+#else
+		static const BinaryOperatorSignature arrayTrinary[] = {
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::INT_64,  &PredefinedDataTypes::INT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::UINT_64, &PredefinedDataTypes::UINT_64),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::INT_32,  &PredefinedDataTypes::INT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::UINT_32, &PredefinedDataTypes::UINT_32),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::INT_16,  &PredefinedDataTypes::INT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::UINT_16, &PredefinedDataTypes::UINT_16),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::INT_8,   &PredefinedDataTypes::INT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::UINT_8,  &PredefinedDataTypes::UINT_8),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::FLOAT,   &PredefinedDataTypes::FLOAT),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::DOUBLE,  &PredefinedDataTypes::DOUBLE),
+			BinaryOperatorSignature(&PredefinedDataTypes::BOOL, &PredefinedDataTypes::STRING,  &PredefinedDataTypes::STRING)
+		};
+		static const std::vector<BinaryOperatorSignature> signaturesTrinary(arrayTrinary, arrayTrinary + sizeof(arrayTrinary)/sizeof(arrayTrinary[0]));
+#endif
 
 		switch (OperatorHelper::getOperatorType(op))
 		{
@@ -352,7 +449,11 @@ namespace lemon
 				case BaseCastType::DOUBLE_TO_FLOAT:   outTargetValue.cast<double, float>();  break;
 
 				default:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 					throw std::runtime_error("Unrecognized cast type");
+#else
+					RMX_ERROR("Unrecognized cast type", );
+#endif
 			}
 		}
 		return castHandling;

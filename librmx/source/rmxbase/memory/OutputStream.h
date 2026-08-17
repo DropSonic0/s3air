@@ -21,6 +21,7 @@ namespace StreamIO
 class API_EXPORT OutputStream
 {
 public:
+	virtual ~OutputStream() {}
 	virtual void setPosition(int pos) = 0;
 	virtual int  getPosition() const = 0;
 	virtual void rewind()  { setPosition(0); }
@@ -65,7 +66,7 @@ class API_EXPORT MemOutputStream : public OutputStream
 {
 public:
 	MemOutputStream(int size);
-	~MemOutputStream();
+	virtual ~MemOutputStream() override;
 
 	inline void setPosition(int pos) override	{ mCursor = mBuffer + pos; assert(mCursor <= mBufferEnd); }
 	inline int getPosition() const override		{ return (int)(mCursor - mBuffer); }
@@ -89,7 +90,7 @@ class API_EXPORT DynOutputStream : public OutputStream
 {
 public:
 	DynOutputStream();
-	~DynOutputStream();
+	virtual ~DynOutputStream() override;
 
 	void clear();
 

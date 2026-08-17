@@ -32,7 +32,11 @@ namespace lemon
 		};
 
 	public:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static inline Compiler* getActiveInstance()  { return mActiveInstance; }
+#else
+		static Compiler* getActiveInstance()  { return mActiveInstance; }
+#endif
 
 	public:
 		Compiler(Module& module, GlobalsLookup& globalsLookup, const CompileOptions& compileOptions);
@@ -54,7 +58,11 @@ namespace lemon
 		void writeOpcodesAsText(const std::wstring_view outputFilename);
 
 	private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static inline Compiler* mActiveInstance = nullptr;
+#else
+		static Compiler* mActiveInstance;
+#endif
 
 	private:
 		Module& mModule;

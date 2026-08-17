@@ -159,7 +159,7 @@ void Framebuffer::createRenderbuffer(GLenum attachment, GLenum internalformat)
 	if (nullptr == renderbuffer)
 	{
 		renderbuffer = new Renderbuffer();
-		mRenderbuffers.emplace(attachment, renderbuffer);
+		mRenderbuffers.insert(std::make_pair(attachment, renderbuffer));
 	}
 	renderbuffer->create(internalformat, mWidth, mHeight);
 	bind();

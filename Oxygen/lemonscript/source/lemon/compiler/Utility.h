@@ -20,6 +20,7 @@
 #endif
 
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #define CHECK_ERROR_NOLINE(expression, errorMessage) \
 { \
 	if (!(expression)) \
@@ -49,6 +50,37 @@
 	stream << errorMessage; \
 	throw CompilerException(stream.str(), errorCode, data1, data2); \
 }
+#else
+#define CHECK_ERROR_NOLINE(expression, errorMessage) \
+{ \
+	if (!(expression)) \
+	{ \
+		LEMON_DEBUG_BREAK(errorMessage); \
+		std::ostringstream stream; \
+		stream << errorMessage; \
+		RMX_ERROR(stream.str(), ); \
+	} \
+}
+
+#define CHECK_ERROR(expression, errorMessage, lineNumber) \
+{ \
+	if (!(expression)) \
+	{ \
+		LEMON_DEBUG_BREAK(errorMessage); \
+		std::ostringstream stream; \
+		stream << errorMessage; \
+		RMX_ERROR(stream.str(), ); \
+	} \
+}
+
+#define REPORT_ERROR_CODE(errorCode, data1, data2, errorMessage) \
+{ \
+	LEMON_DEBUG_BREAK(errorMessage); \
+	std::ostringstream stream; \
+	stream << errorMessage; \
+	RMX_ERROR(stream.str(), ); \
+}
+#endif
 
 #define ADD_WARNING(warningType, warningMessage, lineNumber) \
 { \

@@ -176,12 +176,13 @@ namespace rmx
 	OpenGLFontOutput& Painter::getOpenGLFontOutput(Font& font)
 	{
 		// Get or create OpenGLFontOutput instance
-		OpenGLFontOutput* fontOutput = mapFind(mFontOutputMap, &font);
-		if (nullptr != fontOutput)
-			return *fontOutput;
+		std::shared_ptr<OpenGLFontOutput>* fontOutputPtr = mapFind(mFontOutputMap, &font);
+		if (nullptr != fontOutputPtr)
+			return **fontOutputPtr;
 
-		const auto pair = mFontOutputMap.emplace(&font, font);
-		return pair.first->second;
+		std::shared_ptr<OpenGLFontOutput> fontOutput(new OpenGLFontOutput(font));
+		const auto pair = mFontOutputMap.insert(std::make_pair(&font, fontOutput));
+		return *pair.first->second;
 	}
 
 	void Painter::resetScissor()

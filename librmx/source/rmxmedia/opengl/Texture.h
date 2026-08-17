@@ -21,7 +21,24 @@ public:
 	Texture();
 	Texture(const Bitmap& bitmap);
 	Texture(const String& filename);
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	Texture(const Texture& other) = delete;
+	Texture& operator=(const Texture& other) = delete;
+#else
+	Texture(const Texture& other) : mHandle(other.mHandle), mType(other.mType), mFormat(other.mFormat), mWidth(other.mWidth), mHeight(other.mHeight), mFilterLinear(other.mFilterLinear), mHasMipmaps(other.mHasMipmaps) {}
+	Texture& operator=(const Texture& other) {
+		if (this != &other) {
+			mHandle = other.mHandle;
+			mType = other.mType;
+			mFormat = other.mFormat;
+			mWidth = other.mWidth;
+			mHeight = other.mHeight;
+			mFilterLinear = other.mFilterLinear;
+			mHasMipmaps = other.mHasMipmaps;
+		}
+		return *this;
+	}
+#endif
 	Texture(Texture&& other);
 	~Texture();
 

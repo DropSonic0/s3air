@@ -29,6 +29,8 @@ public:
 public:
 	SpriteAtlasBase();
 	~SpriteAtlasBase();
+	SpriteAtlasBase(const SpriteAtlasBase&) = delete;
+	SpriteAtlasBase& operator=(const SpriteAtlasBase&) = delete;
 
 	void clear();
 	bool add(uint32 key, const Vec2i& size);
@@ -61,7 +63,28 @@ protected:
 
 		inline Node() {}
 		inline Node(const Recti& rct) : mRect(rct) {}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		inline Node(const Node& other) = delete;
+		inline Node& operator=(const Node& other) = delete;
+#else
+		inline Node(const Node& other) : mRect(other.mRect), mUsed(other.mUsed)
+		{
+			mChildNode[0] = other.mChildNode[0] ? new Node(*other.mChildNode[0]) : nullptr;
+			mChildNode[1] = other.mChildNode[1] ? new Node(*other.mChildNode[1]) : nullptr;
+		}
+		inline Node& operator=(const Node& other)
+		{
+			if (this != &other)
+			{
+				clear();
+				mRect = other.mRect;
+				mUsed = other.mUsed;
+				mChildNode[0] = other.mChildNode[0] ? new Node(*other.mChildNode[0]) : nullptr;
+				mChildNode[1] = other.mChildNode[1] ? new Node(*other.mChildNode[1]) : nullptr;
+			}
+			return *this;
+		}
+#endif
 		inline Node(Node&& other) noexcept : mChildNode{other.mChildNode[0], other.mChildNode[1]}, mRect(other.mRect), mUsed(other.mUsed) { other.mChildNode[0] = nullptr; other.mChildNode[1] = nullptr; }
 		inline ~Node()  { clear(); }
 
@@ -101,6 +124,8 @@ public:
 public:
 	SpriteAtlas();
 	~SpriteAtlas();
+	SpriteAtlas(const SpriteAtlas&) = delete;
+	SpriteAtlas& operator=(const SpriteAtlas&) = delete;
 
 	void clear();
 	int add(const Bitmap& bmp);

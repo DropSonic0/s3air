@@ -26,7 +26,7 @@ const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 		return nullptr;
 
 	// Add to map
-	it = mGlyphMap.emplace(unicode, info).first;
+	it = mGlyphMap.insert(std::make_pair(unicode, info)).first;
 	return &it->second;
 }
 
@@ -36,14 +36,14 @@ const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 
 #include "StdFontData.inc"
 
-namespace rmx::stdfont
+namespace rmx { namespace stdfont
 {
 	static const constexpr float SIZE = 16;
 	static const constexpr int WIDTH = 12;
 	static const constexpr int HEIGHT = 20;
 	static const constexpr int ASCENDER = 15;
 	static const constexpr int LINEHEIGHT = 25;
-}
+}}
 
 FontSourceStd::FontSourceStd(float size)
 {

@@ -34,7 +34,11 @@ bool containsByPredicate(const T& container, PRED predicate)
 template<typename T>
 T& vectorAdd(std::vector<T>& vec)
 {
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	vec.emplace_back();
+#else
+	vec.push_back(T());
+#endif
 	return vec.back();
 }
 

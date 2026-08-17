@@ -25,6 +25,8 @@ namespace lemon
 	class API_EXPORT MemoryAccessHandler
 	{
 	public:
+		virtual ~MemoryAccessHandler() {}
+
 		struct SpecializationResult
 		{
 			enum class Result : uint8
@@ -69,6 +71,8 @@ namespace lemon
 	class API_EXPORT RuntimeDetailHandler
 	{
 	public:
+		virtual ~RuntimeDetailHandler() {}
+
 		virtual void preExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow)  {}
 		virtual void postExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow) {}
 	};
@@ -97,6 +101,8 @@ namespace lemon
 
 		struct ExecuteConnector : public ExecuteResult
 		{
+			virtual ~ExecuteConnector() {}
+
 			virtual bool handleCall(const Function* func, uint64 callTarget) = 0;
 			virtual bool handleReturn() = 0;
 			virtual bool handleExternalCall(uint64 address) = 0;
@@ -185,8 +191,13 @@ namespace lemon
 		void setupGlobalVariables();
 
 	private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		inline static ControlFlow* mActiveControlFlow = nullptr;
 		inline static const Environment* mActiveEnvironment = nullptr;
+#else
+		static ControlFlow* mActiveControlFlow;
+		static const Environment* mActiveEnvironment;
+#endif
 
 	private:
 		const Program* mProgram = nullptr;

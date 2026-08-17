@@ -110,8 +110,10 @@ namespace lemon
 
 			mProgramCounterByOpcodeIndex.resize(numOpcodes, 0xffffffff);
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			try
 			{
+#endif
 				// Let the opcode providers create runtime opcodes
 				//  -> They may choose to merge more than one opcode into a runtime opcode, where that's feasible
 				for (size_t i = 0; i < numOpcodes; )
@@ -126,12 +128,14 @@ namespace lemon
 					}
 					i += numOpcodesConsumed;
 				}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			}
 			catch (const std::exception& e)
 			{
 				RMX_ERROR("Build of lemonscript runtime function \"" << mFunction->getName() << "\" failed due to error: " << e.what(), );
 				return false;
 			}
+#endif
 
 			// Copy the runtime opcodes over into the actual opcode buffer for this function
 			mRuntimeOpcodeBuffer.copyFrom(tempBuffer, runtime.mRuntimeOpcodesPool);
@@ -191,7 +195,7 @@ namespace lemon
 					// Take a shortcut by skipping the jump opcode and directly pointing to its target as next opcode
 					//  -> But only do that for jumps forward, otherwise it's possible that script execution can get stuck in an infinite loop
 					//  -> That's because counted steps are only checked in actually executed jumps, but not in those that we optimize away here
-					RuntimeOpcode* targetPointer = reinterpret_cast<RuntimeOpcode*>(runtimeOpcode.mNext->getParameter<uint64>());
+					RuntimeOpcode* targetPointer = reinterpret_cast<RuntimeOpcode*>(static_cast<uintptr_t>(runtimeOpcode.mNext->getParameter<uint64>()));
 					RuntimeOpcode* ownPointer = &runtimeOpcode;
 					if (targetPointer <= ownPointer)
 						break;

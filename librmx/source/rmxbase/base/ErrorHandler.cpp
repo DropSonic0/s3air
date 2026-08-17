@@ -9,12 +9,14 @@
 #include "rmxbase.h"
 
 #if defined(__CELLOS_LV2__) || defined(__SNC__)
-	rmx::ErrorHandling::LoggerInterface* rmx::ErrorHandler::mLogger = nullptr;
-	rmx::ErrorHandling::MessageBoxInterface* rmx::ErrorHandler::mMessageBoxImplementation = nullptr;
-	uint64 (*rmx::ErrorHandler::mNativeWindowHandleProvider)() = nullptr;
-	bool rmx::ErrorHandler::mShowAssertMessageBox = true;
+	rmx::ErrorHandling::LoggerInterface* rmx::ErrorHandling::mLogger = nullptr;
+	rmx::ErrorHandling::MessageBoxInterface* rmx::ErrorHandling::mMessageBoxImplementation = nullptr;
+	rmx::ErrorHandling::NativeWindowHandleProviderFn rmx::ErrorHandling::mNativeWindowHandleProvider = nullptr;
+	bool rmx::ErrorHandling::mShowAssertMessageBox = true;
 #endif
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <locale>
+#endif
 
 #ifdef PLATFORM_WINDOWS
 	#define WIN32_LEAN_AND_MEAN

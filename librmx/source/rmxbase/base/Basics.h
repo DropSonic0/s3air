@@ -102,6 +102,13 @@ FORCE_INLINE double roundToDouble(double value)	{ return std::floor(value + 0.5)
 // Round for integer, identity for floats
 template<typename T> static T roundForInt(float value)  { return (T)value; }
 
+template<> inline signed char roundForInt(float value)		{ return (signed char)std::floor(value + 0.5f); }
+template<> inline unsigned char roundForInt(float value)	{ return (unsigned char)std::floor(value + 0.5f); }
+template<> inline signed short roundForInt(float value)		{ return (signed short)std::floor(value + 0.5f); }
+template<> inline unsigned short roundForInt(float value)	{ return (unsigned short)std::floor(value + 0.5f); }
+template<> inline signed int roundForInt(float value)		{ return (signed int)std::floor(value + 0.5f); }
+template<> inline unsigned int roundForInt(float value)		{ return (unsigned int)std::floor(value + 0.5f); }
+
 
 namespace rmx
 {

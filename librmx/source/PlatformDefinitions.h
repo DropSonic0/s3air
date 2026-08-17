@@ -82,3 +82,12 @@
 	#define FORCE_INLINE inline
 	#define RESTRICT
 #endif
+
+// Fallthrough attribute helper
+#if defined(__SNC__) || defined(__CELLOS_LV2__)
+	#define RMX_FALLTHROUGH
+#elif defined(__clang__) || defined(__GNUC__) || defined(_MSC_VER)
+	#define RMX_FALLTHROUGH [[fallthrough]]
+#else
+	#define RMX_FALLTHROUGH
+#endif

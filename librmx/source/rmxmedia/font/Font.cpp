@@ -100,7 +100,7 @@ void Font::clearFontProcessors()
 
 void Font::addFontProcessor(const std::shared_ptr<FontProcessor>& processor)
 {
-	mKey.mProcessors.emplace_back(processor);
+	mKey.mProcessors.push_back(processor);
 	mCharacterMap.clear();
 	++mChangeCounter;
 }
@@ -198,7 +198,7 @@ void Font::wordWrapText(std::vector<std::wstring>& output, int maxLineWidth, con
 
 		void pushAsLineInto(std::vector<std::wstring>& output)
 		{
-			output.emplace_back();
+			output.push_back(std::wstring());
 			mText.swap(output.back());
 			clear();
 		}

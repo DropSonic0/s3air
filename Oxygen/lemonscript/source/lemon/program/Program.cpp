@@ -66,8 +66,10 @@ namespace lemon
 		}
 
 		// Callable function addresses
-		for (const auto& [address, nameHash] : module.mCallableFunctions)
+		for (const auto& pair : module.mCallableFunctions)
 		{
+			const uint32 address = pair.first;
+			const uint64 nameHash = pair.second;
 			const Function* function = getFunctionBySignature(nameHash + Function::getVoidSignatureHash());
 			if (nullptr != function)
 				mCallableFunctionsByAddress[address] = function;

@@ -1250,7 +1250,7 @@ TEMPLATE void STRING::writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding e
 
 	if (encoding == UnicodeEncoding::AUTO)
 	{
-		if constexpr (sizeof(CHAR) == 1)
+		if (sizeof(CHAR) == 1)
 			encoding = UnicodeEncoding::ASCII;
 		else
 			encoding = UnicodeEncoding::UTF8;
@@ -1395,6 +1395,55 @@ TEMPLATE void STRING::writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding e
 	}
 }
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+TEMPLATE bool STRING::loadFile(const std::string& filename, UnicodeEncoding encoding)
+{
+	// Load contents of a text file into this string
+	clear();
+	std::vector<uint8> buffer;
+	if (!FTX::FileSystem->readFile(filename, buffer))
+		return false;
+
+	if (buffer.empty())
+	{
+		clear();
+		return true;
+	}
+	return readUnicode(&buffer[0], buffer.size(), encoding);
+}
+
+TEMPLATE bool STRING::loadFile(const std::wstring& filename, UnicodeEncoding encoding)
+{
+	// Load contents of a text file into this string
+	clear();
+	std::vector<uint8> buffer;
+	if (!FTX::FileSystem->readFile(filename, buffer))
+		return false;
+
+	if (buffer.empty())
+	{
+		clear();
+		return true;
+	}
+	return readUnicode(&buffer[0], buffer.size(), encoding);
+}
+
+TEMPLATE bool STRING::saveFile(const std::string& filename, UnicodeEncoding encoding) const
+{
+	// Save contents of string into a text file
+	std::vector<uint8> buffer;
+	writeUnicode(buffer, encoding, true);
+	return FTX::FileSystem->saveFile(filename, buffer);
+}
+
+TEMPLATE bool STRING::saveFile(const std::wstring& filename, UnicodeEncoding encoding) const
+{
+	// Save contents of string into a text file
+	std::vector<uint8> buffer;
+	writeUnicode(buffer, encoding, true);
+	return FTX::FileSystem->saveFile(filename, buffer);
+}
+#else
 TEMPLATE bool STRING::loadFile(std::string_view filename, UnicodeEncoding encoding)
 {
 	// Load contents of a text file into this string
@@ -1442,6 +1491,7 @@ TEMPLATE bool STRING::saveFile(std::wstring_view filename, UnicodeEncoding encod
 	writeUnicode(buffer, encoding, true);
 	return FTX::FileSystem->saveFile(filename, buffer);
 }
+#endif
 
 
 #undef TEMPLATE

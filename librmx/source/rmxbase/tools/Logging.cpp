@@ -21,7 +21,9 @@ std::vector<rmx::LoggerBase*> rmx::Logging::mLoggers;
 	#include <psp2/kernel/clib.h>
 #endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <chrono>
+#endif
 #include <ctime>
 #include <iomanip>
 #include <sstream>
@@ -158,7 +160,7 @@ namespace rmx
 
 	void Logging::addLogger(LoggerBase& logger)
 	{
-		mLoggers.emplace_back(&logger);
+		mLoggers.push_back(&logger);
 	}
 
 	void Logging::log(LogLevel logLevel, const std::string& string)

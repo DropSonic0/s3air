@@ -10,6 +10,10 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	Shader::ShaderSourcePostProcessCallbackFn Shader::mShaderSourcePostProcessCallback = nullptr;
+	Shader::ShaderApplyBlendModeCallbackFn Shader::mShaderApplyBlendModeCallback = nullptr;
+#endif
 
 /* ----- Shader -------------------------------------------------------------------------------------------------- */
 
@@ -240,9 +244,9 @@ bool Shader::linkProgram(const std::map<int, String>* vertexAttribMap)
 	// Bind vertex atrributes (must be done just before linking)
 	if (nullptr != vertexAttribMap)
 	{
-		for (const auto& [index, attributeName] : *vertexAttribMap)
+		for (std::map<int, String>::const_iterator it = vertexAttribMap->begin(); it != vertexAttribMap->end(); ++it)
 		{
-			glBindAttribLocation(mProgram, index, *attributeName);
+			glBindAttribLocation(mProgram, it->first, *(it->second));
 		}
 	}
 

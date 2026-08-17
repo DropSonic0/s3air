@@ -11,7 +11,35 @@
 #include "rmxbase/base/Basics.h"
 
 #include <vector>
+#include <string>
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+namespace std {
+    template<typename CHAR>
+    class basic_string_view : public std::basic_string<CHAR> {
+    public:
+        basic_string_view() {}
+        basic_string_view(const CHAR* s) : std::basic_string<CHAR>(s) {}
+        basic_string_view(const CHAR* s, size_t n) : std::basic_string<CHAR>(s, n) {}
+        basic_string_view(const std::basic_string<CHAR>& s) : std::basic_string<CHAR>(s) {}
+        CHAR back() const { return this->empty() ? CHAR(0) : (*this)[this->length() - 1]; }
+        void remove_prefix(size_t n) {
+            if (n < this->length())
+                this->assign(this->data() + n, this->length() - n);
+            else
+                this->clear();
+        }
+        void remove_suffix(size_t n) {
+            if (n < this->length())
+                this->assign(this->data(), this->length() - n);
+            else
+                this->clear();
+        }
+    };
+    typedef basic_string_view<char> string_view;
+    typedef basic_string_view<wchar_t> wstring_view;
+}
+#endif
 
 template<typename CHAR, typename CLASS> class StringTemplate;
 
@@ -162,7 +190,12 @@ public:
 	bool readUnicode(const uint8* data, size_t datasize, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
 	void writeUnicode(std::vector<uint8>& buffer, UnicodeEncoding encoding = UnicodeEncoding::AUTO, bool addBOM = true) const;
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	bool loadFile(const std::string& filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
+	bool loadFile(const std::wstring& filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
+	bool saveFile(const std::string& filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;
+	bool saveFile(const std::wstring& filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;
+#else
 	bool loadFile(std::string_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
 	bool loadFile(std::wstring_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO);
 	bool saveFile(std::string_view filename, UnicodeEncoding encoding = UnicodeEncoding::AUTO) const;

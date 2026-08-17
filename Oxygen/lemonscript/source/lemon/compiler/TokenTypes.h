@@ -28,11 +28,19 @@ namespace lemon
 	};
 
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	#define DEFINE_LEMON_TOKEN_TYPE(_class_) \
 		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, Token, _class_, assignType(#_class_, false))
 
 	#define DEFINE_LEMON_STATEMENT_TOKEN_TYPE(_class_) \
 		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, StatementToken, _class_, assignType(#_class_, true))
+#else
+	#define DEFINE_LEMON_TOKEN_TYPE(_class_) \
+		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, Token, _class_, (uint32)(__LINE__))
+
+	#define DEFINE_LEMON_STATEMENT_TOKEN_TYPE(_class_) \
+		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, StatementToken, _class_, (uint32)(__LINE__) + 0x10000000)
+#endif
 
 
 	class KeywordToken : public Token

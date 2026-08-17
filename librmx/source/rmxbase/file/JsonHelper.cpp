@@ -18,7 +18,8 @@ namespace
 		vectorwrapbuf(std::vector<CharT> &vec)
 		{
 			// This is needed here
-			this->setg(vec.data(), vec.data(), vec.data() + vec.size());
+			CharT* p = vec.empty() ? nullptr : &vec[0];
+			this->setg(p, p, p + vec.size());
 		}
 	};
 }
@@ -58,7 +59,7 @@ namespace rmx
 
 		std::vector<uint8> content;
 		content.resize(size);
-		stream.read((char*)content.data(), size);
+		stream.read(content.empty() ? nullptr : (char*)&content[0], size);
 
 		return loadFromMemory(content);
 	}

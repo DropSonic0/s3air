@@ -89,7 +89,9 @@ namespace lemon
 
 	FlyweightString ArrayDataType::buildArrayDataTypeName(const DataTypeDefinition& elementType, size_t arraySize)
 	{
-		const std::string str = std::string(elementType.getName().getString()) + '[' + std::to_string(arraySize) + ']';
+		char buffer[32];
+		sprintf(buffer, "%u", (unsigned int)arraySize);
+		const std::string str = std::string(elementType.getName().getString()) + '[' + buffer + ']';
 		return FlyweightString(str);
 	}
 

@@ -39,7 +39,59 @@
 #include <limits>
 #include <climits>
 
+#ifndef UINT32_MAX
+#define UINT32_MAX 0xffffffffu
+#endif
+
 namespace std {
+    template<typename T>
+    class shared_ptr {
+    public:
+        shared_ptr() : mPtr(nullptr), mRefCount(nullptr) {}
+        explicit shared_ptr(T* p) : mPtr(p), mRefCount(p ? new int(1) : nullptr) {}
+        
+        shared_ptr(const shared_ptr& other) : mPtr(other.mPtr), mRefCount(other.mRefCount) {
+            if (mRefCount) {
+                ++(*mRefCount);
+            }
+        }
+        
+        ~shared_ptr() {
+            release();
+        }
+        
+        shared_ptr& operator=(const shared_ptr& other) {
+            if (this != &other) {
+                release();
+                mPtr = other.mPtr;
+                mRefCount = other.mRefCount;
+                if (mRefCount) {
+                    ++(*mRefCount);
+                }
+            }
+            return *this;
+        }
+        
+        T* get() const { return mPtr; }
+        T& operator*() const { return *mPtr; }
+        T* operator->() const { return mPtr; }
+        operator bool() const { return mPtr != nullptr; }
+        
+    private:
+        void release() {
+            if (mRefCount) {
+                --(*mRefCount);
+                if (*mRefCount == 0) {
+                    delete mPtr;
+                    delete mRefCount;
+                }
+            }
+        }
+        
+        T* mPtr;
+        int* mRefCount;
+    };
+
     template<typename K, typename V, typename H=void, typename E=void, typename A=void>
     class unordered_map : public std::map<K, V> {
     };
@@ -48,20 +100,11 @@ namespace std {
     class unordered_set : public std::set<T> {
     };
 
-    template<typename CHAR>
-    class basic_string_view : public std::basic_string<CHAR> {
-    public:
-        basic_string_view() {}
-        basic_string_view(const CHAR* s) : std::basic_string<CHAR>(s) {}
-        basic_string_view(const CHAR* s, size_t n) : std::basic_string<CHAR>(s, n) {}
-        basic_string_view(const std::basic_string<CHAR>& s) : std::basic_string<CHAR>(s) {}
-    };
-    typedef basic_string_view<char> string_view;
-    typedef basic_string_view<wchar_t> wstring_view;
 
     struct error_code {
         int value() const { return 0; }
         operator bool() const { return false; }
+        void clear() {}
     };
 }
 
@@ -70,6 +113,11 @@ using std::sqrt;
 using std::floor;
 using std::ceil;
 using std::abs;
+using std::exp;
+using std::expf;
+using std::cos;
+using std::sin;
+using std::pow;
 #endif
 #endif
 

@@ -122,6 +122,7 @@ namespace rmx
 	{
 	public:
 		JobWorkerThread(JobManager& jobManager, int index);
+		virtual ~JobWorkerThread() {}
 		void threadFunc();
 
 	public:

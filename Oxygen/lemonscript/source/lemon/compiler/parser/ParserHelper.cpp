@@ -15,6 +15,12 @@ namespace lemon
 
 	ParserHelper::OperatorLookup ParserHelper::mOperatorLookup;
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	const ParserHelper::Lookup ParserHelper::mLookup;
+	const ParserHelper::DigitLookup ParserHelper::mDigitLookupHex = ParserHelper::DigitLookup(true);
+	const ParserHelper::DigitLookup ParserHelper::mDigitLookupDec = ParserHelper::DigitLookup(false);
+#endif
+
 	bool ParserHelper::OperatorLookup::isOperatorCharacter(char character)
 	{
 		if (!mInitialized)
@@ -78,12 +84,16 @@ namespace lemon
 
 	void ParserHelper::OperatorLookup::initialize()
 	{
-		static_assert(sizeof(AnyBaseValue) == 8);	// This just needs to be placed anywhere, why not here
+		static_assert(sizeof(AnyBaseValue) == 8, "AnyBaseValue size must be 8");	// This just needs to be placed anywhere, why not here
 
 		if (mInitialized)
 			return;
 
-		const std::vector<std::pair<std::string_view, Operator>> operatorStrings =
+		struct OperatorPair {
+			std::string_view first;
+			Operator second;
+		};
+		const OperatorPair operatorStrings[] =
 		{
 			{ "=",   Operator::ASSIGN },
 			{ "+=",  Operator::ASSIGN_PLUS },
@@ -427,7 +437,7 @@ namespace lemon
 				if (errorCheck & 0x80)
 					return result;
 
-				doubleNumber += (double)fractionalPart * std::pow(0.1, fractionalString.length());
+				doubleNumber += (double)fractionalPart * std::pow(0.1, (double)fractionalString.length());
 			}
 
 			if (!exponentString.empty())
@@ -450,7 +460,7 @@ namespace lemon
 				if (errorCheck & 0x80)
 					return result;
 
-				doubleNumber *= std::pow(10.0, negativeExponent ? -exponentPart : exponentPart);
+				doubleNumber *= std::pow(10.0, (double)(negativeExponent ? -exponentPart : exponentPart));
 			}
 
 			if (isFloat)

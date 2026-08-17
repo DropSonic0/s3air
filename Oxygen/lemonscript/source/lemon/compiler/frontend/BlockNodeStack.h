@@ -20,7 +20,13 @@ namespace lemon
 	{
 	public:
 		BlockNodeStack() = default;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		explicit BlockNodeStack(BlockNode& node) : mStack{&node} {}
+#else
+		explicit BlockNodeStack(BlockNode& node) {
+			mStack.push_back(&node);
+		}
+#endif
 
 		template<typename T>
 		T& appendNode(uint32 lineNumber)

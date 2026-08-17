@@ -26,6 +26,7 @@ namespace lemon
 	class API_EXPORT RuntimeOpcodeProvider
 	{
 	public:
+		virtual ~RuntimeOpcodeProvider() {}
 		virtual bool buildRuntimeOpcode(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime, const ScriptFunction& function) = 0;
 	};
 

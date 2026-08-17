@@ -69,6 +69,7 @@ namespace rmx
 		class LoggerInterface
 		{
 		public:
+			virtual ~LoggerInterface() {}
 			virtual void logMessage(ErrorSeverity errorSeverity, const std::string& message) = 0;
 		};
 
@@ -89,6 +90,7 @@ namespace rmx
 			};
 
 		public:
+			virtual ~MessageBoxInterface() {}
 			virtual Result showMessageBox(DialogType dialogType, ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line) = 0;
 		};
 
