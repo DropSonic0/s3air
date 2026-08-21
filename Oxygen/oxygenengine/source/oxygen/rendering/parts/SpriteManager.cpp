@@ -450,7 +450,11 @@ void SpriteManager::processSpriteHandles()
 		sprite.mPriorityFlag = data.mPriorityFlag;
 		sprite.mTintColor = data.mTintColor;
 		sprite.mAddedColor = data.mAddedColor;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		sprite.mUseGlobalComponentTint = data.mUseGlobalComponentTint.has_value() ? *data.mUseGlobalComponentTint : sprite.mCacheItem->mUsesComponentSprite;
+#else
+		sprite.mUseGlobalComponentTint = (data.mUseGlobalComponentTint >= 0) ? (data.mUseGlobalComponentTint != 0) : sprite.mCacheItem->mUsesComponentSprite;
+#endif
 		sprite.mBlendMode = data.mBlendMode;
 		sprite.mCoordinatesSpace = data.mCoordinatesSpace;
 		sprite.mUseUpscaledSprite = data.mUseUpscaledSprite;

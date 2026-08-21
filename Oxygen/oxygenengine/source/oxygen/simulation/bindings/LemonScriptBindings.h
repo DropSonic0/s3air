@@ -24,5 +24,9 @@ public:
 	void setDebugNotificationInterface(DebugNotificationInterface* debugNotificationInterface);
 
 public:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	static inline DebugNotificationInterface* mDebugNotificationInterface = nullptr;
+#else
+	static DebugNotificationInterface* mDebugNotificationInterface;
+#endif
 };

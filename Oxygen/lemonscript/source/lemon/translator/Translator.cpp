@@ -186,7 +186,9 @@ namespace lemon
 
 				default:
 				{
-					writer.writeLine("<unknown_node_" + std::to_string((int)node.getType()) + ">");
+					char buf[32];
+					sprintf(buf, "%d", (int)node.getType());
+					writer.writeLine("<unknown_node_" + std::string(buf) + ">");
 					break;
 				}
 			}

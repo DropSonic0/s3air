@@ -27,7 +27,7 @@ namespace lemon
 				while (pos < input.length() && (input[pos] != ' ' && input[pos] != '\t'))
 					++pos;
 
-				mEntries.push_back(PragmaEntry());
+				mEntries.push_back(Entry());
 
 				// Split part string into argument and value
 				const std::string_view part = input.substr(startPos, pos - startPos);

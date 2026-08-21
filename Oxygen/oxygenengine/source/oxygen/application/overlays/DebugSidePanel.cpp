@@ -70,6 +70,7 @@ void DebugSidePanel::Builder::addSpacing(int lineSpacing)
 	textLine.mLineSpacing = lineSpacing;
 }
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 void DebugSidePanel::Builder::addCallStack(DebugTracking& debugTracking, int callFrameIndex, std::optional<size_t> firstProgramCounter)
 {
 	std::vector<DebugTracking::Location> callStack;
@@ -87,6 +88,25 @@ void DebugSidePanel::Builder::addCallStack(DebugTracking& debugTracking, int cal
 		}
 	}
 }
+#else
+void DebugSidePanel::Builder::addCallStack(DebugTracking& debugTracking, int callFrameIndex, size_t firstProgramCounter)
+{
+	std::vector<DebugTracking::Location> callStack;
+	debugTracking.getCallStackFromCallFrameIndex(callStack, callFrameIndex, firstProgramCounter);
+	for (const DebugTracking::Location& loc : callStack)
+	{
+		const std::string& functionName = loc.toString(debugTracking.getCodeExec());
+		if (loc.mLineNumber >= 0)
+		{
+			addLine(*String(0, "%s, line %d", functionName.c_str(), loc.mLineNumber), Color::fromABGR32(0xffc0c0c0), 32);
+		}
+		else
+		{
+			addLine(functionName, Color::fromABGR32(0xffc0c0c0), 32);
+		}
+	}
+}
+#endif
 
 
 DebugSidePanel::DebugSidePanel()

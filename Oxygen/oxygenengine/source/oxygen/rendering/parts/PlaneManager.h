@@ -91,7 +91,7 @@ private:
 	uint16 mNameTableBaseW = 0x8000;
 
 	Vec2i mPlayfieldSize;		// In patterns (8x8 pixels)
-	uint16 mPlanePatternsBuffer[4][0x1000] = { 0 };		// Enough space to support 128 x 32 patterns (though usually only 0x800 is needed, for 64 x 32 patterns)
+	uint16 mPlanePatternsBuffer[4][0x1000] = {{ 0 }};		// Enough space to support 128 x 32 patterns (though usually only 0x800 is needed, for 64 x 32 patterns)
 
 	bool mIsPlaneWRightOfSplitX = false;	// If true, plane W is right of plane A, otherwise it's left of plane A
 	bool mIsPlaneWBelowSplitY = false;		// If true, plane W is below plane A, otherwise it's above plane A

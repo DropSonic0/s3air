@@ -46,7 +46,7 @@ namespace lemon
 			size_t add(size_t opcodeIndex, size_t size, ParameterInfo::Semantics semantics, BaseType dataType = BaseType::INT_CONST)
 			{
 				const size_t offset = mTotalSize;
-				mParameters.emplace_back(opcodeIndex, size, semantics, dataType);
+				mParameters.push_back(ParameterInfo(opcodeIndex, size, semantics, dataType));
 				mParameters.back().mOffset = offset;
 				mTotalSize += size;
 				return offset;

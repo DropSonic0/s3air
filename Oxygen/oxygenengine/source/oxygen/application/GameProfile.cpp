@@ -144,7 +144,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 					{
 						const String address = value.getSubString(0, pos);
 						const String byteValue = value.getSubString(pos + 1, -1);
-						romInfo.mOverwrites.emplace_back((uint32)rmx::parseInteger(address), (uint8)rmx::parseInteger(byteValue));
+						romInfo.mOverwrites.push_back(std::make_pair((uint32)rmx::parseInteger(address), (uint8)rmx::parseInteger(byteValue)));
 					}
 				}
 
@@ -154,7 +154,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 					AddressRange range;
 					if (parseAddressRange(range, blankRegionsString))
 					{
-						romInfo.mBlankRegions.emplace_back(range);
+						romInfo.mBlankRegions.push_back(range);
 					}
 					else
 					{
@@ -238,7 +238,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 							AddressRange range;
 							if (parseAddressRange(range, it2.asCString()))
 							{
-								stackLookup.mAsmStack.emplace_back(range);
+								stackLookup.mAsmStack.push_back(range);
 							}
 							else
 							{
@@ -254,7 +254,7 @@ bool GameProfile::loadOxygenProjectFromJson(const Json::Value& jsonRoot)
 							if (pos >= 0)
 							{
 								entry.mFunctionName = *content.getSubString(0, pos);
-								if (entry.mFunctionName.back() == ' ')
+								if (!entry.mFunctionName.empty() && entry.mFunctionName[entry.mFunctionName.length() - 1] == ' ')
 									entry.mFunctionName.erase(pos-1);
 								entry.mLabelName = *content.getSubString(pos, -1);
 							}

@@ -29,6 +29,8 @@ namespace lemon
 class EngineDelegateInterface
 {
 public:
+	virtual ~EngineDelegateInterface() {}
+
 	struct AppMetaData
 	{
 		std::string  mTitle;

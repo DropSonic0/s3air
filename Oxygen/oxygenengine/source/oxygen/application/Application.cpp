@@ -120,7 +120,7 @@ void Application::initialize()
 
 	// Font
 	mLogDisplayFont.setSize(15.0f);
-	mLogDisplayFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+	mLogDisplayFont.addFontProcessor(std::shared_ptr<FontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f)));
 
 	RMX_LOG_INFO("Application initialization complete");
 }
@@ -460,7 +460,9 @@ void Application::keyboard(const rmx::KeyboardEvent& ev)
 						height = 224;
 
 						videoOut.setScreenSize(width, height);
-						LogDisplay::instance().setLogDisplay("Changed render resolution to " + std::to_string(width) + " x " + std::to_string(height) + " pixels");
+						char buf[64];
+						sprintf(buf, "%d x %d", (int)width, (int)height);
+						LogDisplay::instance().setLogDisplay(std::string("Changed render resolution to ") + buf + " pixels");
 					}
 					break;
 				}

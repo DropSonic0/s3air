@@ -28,17 +28,28 @@ public:
 	static bool resolveToIP(const std::string& hostName, std::string& outIP, bool useIPv6);
 
 public:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	static inline rmx::ErrorHandling::LoggerInterface* mLogger = nullptr;
 
 private:
 	static inline bool mIsInitialized = false;
+#else
+	static rmx::ErrorHandling::LoggerInterface* mLogger;
+
+private:
+	static bool mIsInitialized;
+#endif
 };
 
 
 struct SocketAddress
 {
 public:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	static inline bool mPreventIPLogging = false;
+#else
+	static bool mPreventIPLogging;
+#endif
 
 public:
 	inline SocketAddress() :
@@ -59,7 +70,13 @@ public:
 
 	inline const std::string& getIP() const	 { assureIpPort();  return mIP; }
 	inline uint16 getPort() const			 { assureIpPort();  return mPort; }
-	inline std::string toString() const		 { assureIpPort();  return mIP + ':' + std::to_string(mPort); }
+	inline std::string toString() const
+	{
+		assureIpPort();
+		char buf[32];
+		sprintf(buf, "%d", (int)mPort);
+		return mIP + ':' + buf;
+	}
 	std::string toLoggedString() const;
 
 	inline bool isValid() const  { return (mHasSockAddr || mHasIpPort); }

@@ -20,7 +20,7 @@ namespace
 
 	int compareSourceRegistrationPackages(AudioCollection::Package a, AudioCollection::Package b, bool preferOriginalSoundtrack)
 	{
-		static_assert((int)AudioCollection::Package::_NUM == 4);
+		static_assert((int)AudioCollection::Package::_NUM == 4, "Invalid package count");
 		const int prioritiesA[4] = { 0, 1, 2, 3 };		// Preferring remastered over original, but modded will always be first
 		const int prioritiesB[4] = { 0, 2, 1, 3 };		// Preferring original over remastered, but modded will always be first
 		const int* priorities = preferOriginalSoundtrack ? prioritiesB : prioritiesA;
@@ -280,12 +280,14 @@ bool AudioCollection::loadFromJson(const std::wstring& basepath, const std::wstr
 
 void AudioCollection::determineActiveSourceRegistrations(bool preferOriginalSoundtrack)
 {
-	for (auto& [key, audioDefinition] : mAudioDefinitions)
+	for (auto it = mAudioDefinitions.begin(); it != mAudioDefinitions.end(); ++it)
 	{
+		AudioDefinition& audioDefinition = it->second;
 		// Search for the right one considering settings
 		SourceRegistration* bestSourceReg = nullptr;
-		for (SourceRegistration& soundReg : audioDefinition.mSources)
+		for (size_t k = 0; k < audioDefinition.mSources.size(); ++k)
 		{
+			SourceRegistration& soundReg = audioDefinition.mSources[k];
 			if (shouldPreferSoundRegistration(soundReg, bestSourceReg, preferOriginalSoundtrack))
 			{
 				bestSourceReg = &soundReg;

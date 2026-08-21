@@ -241,7 +241,13 @@ void GameView::keyboard(const rmx::KeyboardEvent& ev)
 					{
 						int& effect = Configuration::instance().mBackgroundBlur;
 						effect = (effect + 1) % 5;
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+						char buf[64];
+						sprintf(buf, "Background Blur: %d%%", effect * 25);
+						setLogDisplay(buf);
+#else
 						setLogDisplay("Background Blur: " + std::to_string(effect * 25) + "%");
+#endif
 						break;
 					}
 
@@ -840,7 +846,11 @@ void GameView::setStillImageMode(StillImageMode mode, float timeout)
 
 void GameView::addScreenHighlightRect(const Recti& rect, const Color& color)
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	mScreenHighlightRects.push_back(std::make_pair(rect, color));
+#else
 	mScreenHighlightRects.emplace_back(rect, color);
+#endif
 }
 
 void GameView::setLogDisplay(const String& string, float time)

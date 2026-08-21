@@ -9,8 +9,10 @@
 #pragma once
 
 #include <rmxbase.h>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <atomic>
 #include <thread>
+#endif
 
 #ifdef PLATFORM_WEB
 struct emscripten_fetch_t;
@@ -51,12 +53,21 @@ private:
 
 private:
 	std::string mURL;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	std::thread* mThread = nullptr;
+#else
+	void* mThread = nullptr;
+#endif
 	State mState = State::NONE;
 	std::wstring mOutputFilename;
 	FileHandle mOutputFile;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	std::atomic<uint64> mBytesDownloaded = 0;
 	std::atomic<bool> mThreadRunning = false;
+#else
+	uint64 mBytesDownloaded = 0;
+	bool mThreadRunning = false;
+#endif
 
 #ifdef PLATFORM_WEB
 	emscripten_fetch_t* mFetch = nullptr;

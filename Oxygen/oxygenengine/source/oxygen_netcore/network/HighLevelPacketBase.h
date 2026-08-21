@@ -22,6 +22,8 @@ namespace highlevel
 	friend struct PacketTypeRegistration;
 
 	public:
+		virtual ~PacketBase() {}
+
 		bool serializePacket(VectorBinarySerializer& serializer, uint8 protocolVersion)
 		{
 			serializeContent(serializer, protocolVersion);
@@ -40,6 +42,11 @@ namespace highlevel
 
 	struct PacketTypeRegistration
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+	private:
+		static inline std::unique_ptr<std::unordered_map<uint32, std::string>> mPacketTypeRegistry;
+
+	public:
 		inline PacketTypeRegistration(uint32 packetType, const std::string& packetName)
 		{
 			if (nullptr == mPacketTypeRegistry.get())
@@ -47,14 +54,18 @@ namespace highlevel
 			RMX_ASSERT(mPacketTypeRegistry->count(packetType) == 0, "Multiple definitions of packet type '" << packetName << "'");
 			(*mPacketTypeRegistry)[packetType] = packetName;
 		}
-
-	private:
-		static inline std::unique_ptr<std::unordered_map<uint32, std::string>> mPacketTypeRegistry;
+#else
+	public:
+		inline PacketTypeRegistration(uint32 packetType, const std::string& packetName)
+		{
+		}
+#endif
 	};
 
 }
 
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #define HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE(_name_) \
 	public: \
 		static inline const std::string PACKET_NAME = _name_; \
@@ -63,3 +74,10 @@ namespace highlevel
 	private: \
 		static inline highlevel::PacketTypeRegistration mPacketTypeRegistration { PACKET_TYPE, PACKET_NAME }; \
 	public:
+#else
+#define HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE(_name_) \
+	public: \
+		static const uint32 PACKET_TYPE = rmx::compileTimeFNV_32(_name_); \
+		virtual uint32 getPacketType() const override  { return PACKET_TYPE; } \
+	public:
+#endif

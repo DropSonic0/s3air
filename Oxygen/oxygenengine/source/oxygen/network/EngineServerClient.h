@@ -20,6 +20,7 @@ class EngineServerClient : public ConnectionListenerInterface, public SingleInst
 public:
 	struct Listener
 	{
+		virtual ~Listener() {}
 		virtual void onShutdown() {}
 		virtual bool onReceivedPacket(ReceivedPacketEvaluation& evaluation) = 0;
 	};

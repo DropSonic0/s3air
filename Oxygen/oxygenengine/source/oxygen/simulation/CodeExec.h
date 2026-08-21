@@ -86,11 +86,15 @@ public:
 		lemon::Runtime::FunctionCallParameters mParams;
 		uint64 mReturnValueStorage = 0;
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(dataType, storageValue)); }
+#else
 		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.emplace_back(dataType, storageValue); }
+#endif
 	};
 
 public:
-	static inline CodeExec* getActiveInstance() { return mActiveInstance; }
+	static CodeExec* getActiveInstance() { return mActiveInstance; }
 
 public:
 	CodeExec();
@@ -170,5 +174,9 @@ private:
 	std::vector<uint32> mUnknownAddressesInOrder;
 
 private:
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	static CodeExec* mActiveInstance;
+#else
 	static inline CodeExec* mActiveInstance = nullptr;
+#endif
 };

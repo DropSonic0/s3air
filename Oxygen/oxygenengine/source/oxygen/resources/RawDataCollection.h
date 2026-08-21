@@ -9,7 +9,9 @@
 #pragma once
 
 #include <rmxbase.h>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <optional>
+#endif
 
 
 class RawDataCollection : public SingleInstance<RawDataCollection>
@@ -18,7 +20,11 @@ public:
 	struct RawData
 	{
 		std::vector<uint8> mContent;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		std::optional<uint32> mRomInjectAddress;
+#else
+		uint32 mRomInjectAddress = 0xffffffff;
+#endif
 		bool mIsModded = false;
 	};
 

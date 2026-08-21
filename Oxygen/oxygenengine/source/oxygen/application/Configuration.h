@@ -18,6 +18,8 @@ class JsonSerializer;
 class Configuration
 {
 public:
+	virtual ~Configuration() {}
+
 	enum class RenderMethod
 	{
 		UNDEFINED	= 0x00,
@@ -126,6 +128,9 @@ public:
 	};
 
 	static const int NUM_PLAYERS = 4;
+
+private:
+	static Configuration* mSingleInstance;
 
 public:
 	inline static bool hasInstance()		 { return (nullptr != mSingleInstance); }
@@ -248,6 +253,5 @@ protected:
 	Json::Value mSettingsJsons[3];	// Uses SettingsType as key
 
 private:
-	static inline Configuration* mSingleInstance;
 	bool mSettingsReadOnly = false;
 };

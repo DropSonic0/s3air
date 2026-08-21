@@ -9,7 +9,9 @@
 #pragma once
 
 #include "oxygen/rendering/parts/RenderItem.h"
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <optional>
+#endif
 
 
 class PatternManager;
@@ -30,7 +32,11 @@ public:
 		bool   mPriorityFlag = false;
 		Color  mTintColor = Color::WHITE;
 		Color  mAddedColor = Color::TRANSPARENT;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		std::optional<bool> mUseGlobalComponentTint;
+#else
+		int8 mUseGlobalComponentTint = -1;
+#endif
 		BlendMode mBlendMode = BlendMode::ALPHA;
 		Space  mCoordinatesSpace = Space::SCREEN;	// The coordinate system that "mPosition" is referring to
 		Transform2D mTransformation;

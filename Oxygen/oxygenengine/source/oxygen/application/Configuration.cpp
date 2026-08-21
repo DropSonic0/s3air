@@ -15,6 +15,8 @@
 #include <lemon/translator/SourceCodeWriter.h>
 
 
+Configuration* Configuration::mSingleInstance = nullptr;
+
 namespace
 {
 	void readInputDevices(const Json::Value& rootJson, std::vector<InputConfig::DeviceDefinition>& inputDeviceDefinitions)
@@ -185,6 +187,7 @@ namespace
 					const uint64 keyHash = rmx::getMurmur2_64(key);
 
 					uint32 value = 0;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 					try
 					{
 						value = it2->asUInt();
@@ -194,6 +197,9 @@ namespace
 						RMX_ERROR("Failed to read '" << key << "' setting for mod '" << modName << "' with error: " << e.what(), );
 						continue;
 					}
+#else
+					value = it2->asUInt();
+#endif
 
 					Configuration::Mod::Setting& setting = mod.mSettings[keyHash];
 					setting.mIdentifier = key;

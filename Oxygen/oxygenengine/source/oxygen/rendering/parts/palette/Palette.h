@@ -14,6 +14,8 @@
 class PaletteBase
 {
 public:
+	virtual ~PaletteBase() {}
+
 	enum class Properties
 	{
 		READ_ONLY	= 1 << 0,	// Palette can't be written to

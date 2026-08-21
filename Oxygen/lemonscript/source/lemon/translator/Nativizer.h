@@ -54,7 +54,8 @@ namespace lemon
 					LOCAL_VARIABLE,
 					GLOBAL_VARIABLE,
 					EXTERNAL_VARIABLE,
-					FIXED_MEMORY_ADDRESS
+					FIXED_MEMORY_ADDRESS,
+					TERMINATOR = 0xff
 				};
 
 				uint16 mOffset = 0;

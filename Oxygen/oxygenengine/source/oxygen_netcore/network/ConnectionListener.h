@@ -90,6 +90,8 @@ struct ReceivedRequestEvaluation
 
 struct ConnectionListenerInterface
 {
+	virtual ~ConnectionListenerInterface() {}
+
 	virtual NetConnection* createNetConnection(ConnectionManager& connectionManager, const SocketAddress& senderAddress) = 0;
 	virtual void destroyNetConnection(NetConnection& connection) = 0;
 

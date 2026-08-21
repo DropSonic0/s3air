@@ -47,10 +47,19 @@ namespace std {
     template<typename T>
     class shared_ptr {
     public:
+        template<typename U> friend class shared_ptr;
+
         shared_ptr() : mPtr(nullptr), mRefCount(nullptr) {}
         explicit shared_ptr(T* p) : mPtr(p), mRefCount(p ? new int(1) : nullptr) {}
         
         shared_ptr(const shared_ptr& other) : mPtr(other.mPtr), mRefCount(other.mRefCount) {
+            if (mRefCount) {
+                ++(*mRefCount);
+            }
+        }
+
+        template<typename U>
+        shared_ptr(const shared_ptr<U>& other) : mPtr(other.mPtr), mRefCount(other.mRefCount) {
             if (mRefCount) {
                 ++(*mRefCount);
             }

@@ -269,6 +269,10 @@ size_t CodeExec::CallFrameTracking::processCallFramesRecursive(size_t index)
 
 
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+CodeExec* CodeExec::mActiveInstance = nullptr;
+#endif
+
 CodeExec::CodeExec() :
 	mLemonScriptProgram(*new LemonScriptProgram()),
 	mEmulatorInterface(EngineMain::getDelegate().useDeveloperFeatures() ? *new EmulatorInterfaceDev() : *new EmulatorInterface()),

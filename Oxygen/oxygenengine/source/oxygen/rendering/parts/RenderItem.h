@@ -18,6 +18,8 @@ class PaletteBase;
 struct RenderItem
 {
 public:
+	virtual ~RenderItem() {}
+
 	using Space = SpacesManager::Space;
 
 	enum class Type

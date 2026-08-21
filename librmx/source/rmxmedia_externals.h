@@ -91,11 +91,47 @@
 
 #elif defined(PLATFORM_PS3)
 	// PS3 does not use standard SDL or OpenGL/GLES2 headers from here
+	#ifndef SDL_VERSION_ATLEAST
+		#define SDL_VERSION_ATLEAST(X, Y, Z) 0
+	#endif
 	typedef struct SDL_mutex SDL_mutex;
 	typedef struct SDL_Thread SDL_Thread;
 	typedef struct SDL_cond SDL_cond;
 	typedef struct SDL_Window SDL_Window;
+	typedef struct _SDL_Joystick SDL_Joystick;
+	typedef struct _SDL_GameController SDL_GameController;
+	typedef int64_t SDL_TouchID;
+	typedef int64_t SDL_FingerID;
+
+	typedef struct SDL_Finger {
+		SDL_FingerID id;
+		float x;
+		float y;
+		float pressure;
+	} SDL_Finger;
+
+	typedef enum {
+		SDL_CONTROLLER_BINDTYPE_NONE = 0,
+		SDL_CONTROLLER_BINDTYPE_BUTTON = 1,
+		SDL_CONTROLLER_BINDTYPE_AXIS = 2,
+		SDL_CONTROLLER_BINDTYPE_HAT = 3
+	} SDL_GameControllerBindType;
+
+	typedef struct SDL_GameControllerButtonBind {
+		SDL_GameControllerBindType bindType;
+		union {
+			int button;
+			int axis;
+			struct {
+				int hat;
+				int hat_mask;
+			} hat;
+		} value;
+	} SDL_GameControllerButtonBind;
+
 	typedef int SDL_AudioDeviceID;
+	typedef void* SDL_GLContext;
+	typedef int32_t SDL_Keycode;
 	
 	struct SDL_AudioSpec {
 		int freq;
@@ -115,8 +151,12 @@
 	struct SDL_KeyboardEvent {
 		int type;
 		int repeat;
+		unsigned char state;
 		SDL_Keysym keysym;
 	};
+
+	#define SDL_PRESSED 1
+	#define SDL_RELEASED 0
 	
 	struct SDL_TextInputEvent {
 		char text[32];
@@ -137,7 +177,20 @@
 		int event;
 		int data1;
 		int data2;
+		unsigned int windowID;
 	} SDL_WindowEvent;
+
+	typedef struct SDL_Rect {
+		int x;
+		int y;
+		int w;
+		int h;
+	} SDL_Rect;
+
+	typedef struct SDL_DisplayMode {
+		int w;
+		int h;
+	} SDL_DisplayMode;
 	
 	typedef struct SDL_MouseMotionEvent {
 		int x;
@@ -185,7 +238,195 @@
 	#define SDL_MOUSEBUTTONUP 9
 	#define SDL_MOUSEWHEEL 10
 	#define SDL_MOUSEMOTION 11
-	
+	#define SDL_WINDOWEVENT_FOCUS_LOST 12
+	#define SDL_APP_WILLENTERBACKGROUND 13
+	#define SDL_JOYDEVICEADDED 14
+	#define SDL_JOYDEVICEREMOVED 15
+
+	#define SDLK_LALT 1001
+	#define SDLK_RALT 1002
+	#define SDLK_RETURN 1003
+	#define SDLK_LSHIFT 1004
+	#define SDLK_RSHIFT 1005
+	#define SDLK_END 1006
+	#define SDLK_F1 1007
+	#define SDLK_F2 1008
+	#define SDLK_F3 1009
+	#define SDLK_F4 1010
+	#define SDLK_F5 1011
+	#define SDLK_F8 1012
+	#define SDLK_PRINTSCREEN 1013
+	#define SDLK_KP_PLUS 1014
+	#define SDLK_KP_MINUS 1015
+	#define SDLK_KP_DIVIDE 1016
+	#define SDLK_KP_MULTIPLY 1017
+	#define SDLK_KP_0 1018
+	#define SDLK_KP_1 1019
+	#define SDLK_KP_2 1020
+	#define SDLK_KP_3 1021
+	#define SDLK_KP_4 1022
+	#define SDLK_KP_5 1023
+	#define SDLK_KP_6 1024
+	#define SDLK_KP_7 1025
+	#define SDLK_KP_8 1035
+	#define SDLK_KP_9 1026
+	#define SDLK_KP_PERIOD 1027
+	#define SDLK_KP_ENTER 1036
+	#define SDLK_LCTRL 1028
+	#define SDLK_RCTRL 1037
+	#define SDLK_F7 1029
+	#define SDLK_F10 1030
+	#define SDLK_F11 1031
+	#define SDLK_CLEAR 1032
+	#define SDLK_BACKQUOTE 1033
+	#define SDLK_TAB 1034
+	#define SDLK_ESCAPE 1038
+	#define SDLK_BACKSPACE 1039
+	#define SDLK_SPACE ' '
+	#define SDLK_EXCLAIM '!'
+	#define SDLK_QUOTEDBL '"'
+	#define SDLK_HASH '#'
+	#define SDLK_PERCENT '%'
+	#define SDLK_DOLLAR '$'
+	#define SDLK_AMPERSAND '&'
+	#define SDLK_QUOTE '\''
+	#define SDLK_LEFTPAREN '('
+	#define SDLK_RIGHTPAREN ')'
+	#define SDLK_ASTERISK '*'
+	#define SDLK_PLUS '+'
+	#define SDLK_COMMA ','
+	#define SDLK_MINUS '-'
+	#define SDLK_PERIOD '.'
+	#define SDLK_SLASH '/'
+	#define SDLK_0 '0'
+	#define SDLK_1 '1'
+	#define SDLK_2 '2'
+	#define SDLK_3 '3'
+	#define SDLK_4 '4'
+	#define SDLK_5 '5'
+	#define SDLK_6 '6'
+	#define SDLK_7 '7'
+	#define SDLK_8 '8'
+	#define SDLK_9 '9'
+	#define SDLK_COLON ':'
+	#define SDLK_SEMICOLON ';'
+	#define SDLK_LESS '<'
+	#define SDLK_EQUALS '='
+	#define SDLK_GREATER '>'
+	#define SDLK_QUESTION '?'
+	#define SDLK_AT '@'
+	#define SDLK_LEFTBRACKET '['
+	#define SDLK_BACKSLASH '\\'
+	#define SDLK_RIGHTBRACKET ']'
+	#define SDLK_CARET '^'
+	#define SDLK_UNDERSCORE '_'
+	#define SDLK_a 'a'
+	#define SDLK_b 'b'
+	#define SDLK_c 'c'
+	#define SDLK_d 'd'
+	#define SDLK_e 'e'
+	#define SDLK_f 'f'
+	#define SDLK_g 'g'
+	#define SDLK_h 'h'
+	#define SDLK_i 'i'
+	#define SDLK_j 'j'
+	#define SDLK_k 'k'
+	#define SDLK_l 'l'
+	#define SDLK_m 'm'
+	#define SDLK_n 'n'
+	#define SDLK_o 'o'
+	#define SDLK_p 'p'
+	#define SDLK_q 'q'
+	#define SDLK_r 'r'
+	#define SDLK_s 's'
+	#define SDLK_t 't'
+	#define SDLK_u 'u'
+	#define SDLK_v 'v'
+	#define SDLK_w 'w'
+	#define SDLK_x 'x'
+	#define SDLK_y 'y'
+	#define SDLK_z 'z'
+	#define SDLK_CAPSLOCK 1040
+	#define SDLK_INSERT 1041
+	#define SDLK_HOME 1042
+	#define SDLK_PAGEUP 1043
+	#define SDLK_DELETE 1044
+	#define SDLK_PAGEDOWN 1045
+	#define SDLK_UP 1046
+	#define SDLK_DOWN 1047
+	#define SDLK_LEFT 1048
+	#define SDLK_RIGHT 1049
+
+	#define KMOD_SHIFT 0x0001
+	static inline int SDL_GetModState() { return 0; }
+
+	#define SDL_INIT_JOYSTICK 0
+
+	#define SDL_CONTROLLER_AXIS_LEFTX 0
+	#define SDL_CONTROLLER_AXIS_LEFTY 1
+
+	#define SDL_CONTROLLER_BUTTON_A 0
+	#define SDL_CONTROLLER_BUTTON_B 1
+	#define SDL_CONTROLLER_BUTTON_X 2
+	#define SDL_CONTROLLER_BUTTON_Y 3
+	#define SDL_CONTROLLER_BUTTON_BACK 4
+	#define SDL_CONTROLLER_BUTTON_GUIDE 5
+	#define SDL_CONTROLLER_BUTTON_START 6
+	#define SDL_CONTROLLER_BUTTON_LEFTSHOULDER 7
+	#define SDL_CONTROLLER_BUTTON_RIGHTSHOULDER 8
+	#define SDL_CONTROLLER_BUTTON_DPAD_UP 9
+	#define SDL_CONTROLLER_BUTTON_DPAD_DOWN 10
+	#define SDL_CONTROLLER_BUTTON_DPAD_LEFT 11
+	#define SDL_CONTROLLER_BUTTON_DPAD_RIGHT 12
+
+	static inline const char* SDL_JoystickName(SDL_Joystick*) { return nullptr; }
+	static inline const char* SDL_GameControllerName(SDL_GameController*) { return nullptr; }
+	static inline SDL_Joystick* SDL_JoystickOpen(int) { return nullptr; }
+	static inline SDL_GameController* SDL_GameControllerOpen(int) { return nullptr; }
+	static inline int SDL_NumJoysticks() { return 0; }
+	static inline int32_t SDL_JoystickInstanceID(SDL_Joystick*) { return -1; }
+	static inline int SDL_JoystickNumButtons(SDL_Joystick*) { return 0; }
+	static inline unsigned char SDL_JoystickGetButton(SDL_Joystick*, int) { return 0; }
+	static inline int SDL_JoystickNumAxes(SDL_Joystick*) { return 0; }
+	static inline int16_t SDL_JoystickGetAxis(SDL_Joystick*, int) { return 0; }
+	static inline int SDL_JoystickNumHats(SDL_Joystick*) { return 0; }
+	static inline unsigned char SDL_JoystickGetHat(SDL_Joystick*, int) { return 0; }
+	static inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForAxis(SDL_GameController*, int) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
+	static inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForButton(SDL_GameController*, int) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
+	static inline int SDL_GetNumTouchDevices() { return 0; }
+	static inline SDL_TouchID SDL_GetTouchDevice(int) { return 0; }
+	static inline int SDL_GetNumTouchFingers(SDL_TouchID) { return 0; }
+	static inline const SDL_Finger* SDL_GetTouchFinger(SDL_TouchID, int) { return nullptr; }
+
+	#define SDL_TRUE 1
+	#define SDL_FALSE 0
+	#define SDL_WINDOW_FULLSCREEN_DESKTOP 0
+	#define SDL_WINDOWPOS_CENTERED 0
+
+	#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "1"
+	#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "2"
+	#define SDL_HINT_RENDER_VSYNC "3"
+
+	#define SDL_GL_CONTEXT_PROFILE_MASK 1
+	#define SDL_GL_CONTEXT_PROFILE_CORE 1
+	#define SDL_GL_CONTEXT_MAJOR_VERSION 2
+	#define SDL_GL_CONTEXT_MINOR_VERSION 3
+
+	static inline int SDL_SetHint(const char*, const char*) { return 0; }
+	static inline void SDL_DisableScreenSaver() {}
+	static inline int SDL_IsTextInputActive() { return 0; }
+	static inline void SDL_StartTextInput() {}
+	static inline void SDL_StopTextInput() {}
+	static inline unsigned int SDL_GetWindowID(SDL_Window*) { return 0; }
+	static inline int SDL_GetWindowDisplayIndex(SDL_Window*) { return 0; }
+	static inline int SDL_SetWindowFullscreen(SDL_Window*, unsigned int) { return 0; }
+	static inline void SDL_SetWindowSize(SDL_Window*, int, int) {}
+	static inline void SDL_SetWindowPosition(SDL_Window*, int, int) {}
+	static inline void SDL_SetWindowResizable(SDL_Window*, unsigned char) {}
+	static inline void SDL_SetWindowBordered(SDL_Window*, unsigned char) {}
+	static inline int SDL_GetDisplayBounds(int, SDL_Rect*) { return -1; }
+	static inline int SDL_GetDesktopDisplayMode(int, SDL_DisplayMode*) { return -1; }
+
 	static inline int SDL_PollEvent(SDL_Event*) { return 0; }
 	static inline unsigned int SDL_GetTicks() { return 0; }
 	static inline void SDL_WarpMouseInWindow(SDL_Window*, int, int) {}

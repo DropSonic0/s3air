@@ -55,7 +55,11 @@ void ModManager::startup()
 			{
 				// Make this mod active
 				mod->mState = Mod::State::ACTIVE;
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+				mActiveMods.push_back(mod);
+#else
 				mActiveMods.emplace_back(mod);
+#endif
 			}
 		}
 	}
@@ -318,7 +322,11 @@ bool ModManager::scanMods()
 			mod->mFullPath = mBasePath + localDirectory + L'/';
 			mod->mLocalDirectoryHash = localDirectoryHash;
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+			mAllMods.push_back(mod);
+#else
 			mAllMods.emplace_back(mod);
+#endif
 			mModsByLocalDirectoryHash[localDirectoryHash] = mod;
 			anyChange = true;
 
@@ -456,9 +464,15 @@ void ModManager::onActiveModsChanged(bool duringStartup)
 	for (Mod* mod : mActiveMods)
 	{
 		// Add under all different names that can refer to the mod
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mUniqueID), mod));
+		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mDirectoryName), mod));
+		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mDisplayName), mod));
+#else
 		mActiveModsByNameHash.emplace(rmx::getMurmur2_64(mod->mUniqueID), mod);
 		mActiveModsByNameHash.emplace(rmx::getMurmur2_64(mod->mDirectoryName), mod);
 		mActiveModsByNameHash.emplace(rmx::getMurmur2_64(mod->mDisplayName), mod);
+#endif
 	}
 
 	if (!duringStartup)		// Not needed during startup, as the engine performs the necessary loading steps anyways afterwards

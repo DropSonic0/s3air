@@ -39,6 +39,9 @@
 
 #include <iomanip>
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+DebugNotificationInterface* LemonScriptBindings::mDebugNotificationInterface = nullptr;
+#endif
 
 namespace
 {
@@ -1458,7 +1461,9 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		// Debug keys
 		for (int i = 0; i < 10; ++i)
 		{
-			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Key" + std::to_string(i), &lemon::PredefinedDataTypes::UINT_8);
+			char buf[16];
+			sprintf(buf, "Key%d", i);
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable(buf, &lemon::PredefinedDataTypes::UINT_8);
 			var.mGetter = std::bind(debugKeyGetter, std::placeholders::_1, i);
 		}
 

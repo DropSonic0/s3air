@@ -10,7 +10,9 @@
 
 #include <rmxbase.h>
 #include <functional>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <optional>
+#endif
 
 
 class CustomDebugSidePanelCategory;
@@ -43,7 +45,11 @@ public:
 		TextLine& addLine(std::string_view text, const Color& color = Color::WHITE, int intend = 0, uint64 key = INVALID_KEY, int lineSpacing = 12);
 		TextLine& addOption(std::string_view text, bool value, const Color& color = Color::WHITE, int intend = 0, uint64 key = INVALID_KEY, int lineSpacing = 12);
 		void addSpacing(int lineSpacing);
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		void addCallStack(DebugTracking& debugTracking, int callFrameIndex, std::optional<size_t> firstProgramCounter);
+#else
+		void addCallStack(DebugTracking& debugTracking, int callFrameIndex, size_t firstProgramCounter = 0);
+#endif
 
 	private:
 		std::vector<TextLine> mTextLines;

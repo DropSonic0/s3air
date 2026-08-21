@@ -462,6 +462,180 @@ namespace lemon
 				return res;
 			}
 		};
+
+		// 4 script args with return, no context
+		template<typename R, typename A1, typename A2, typename A3, typename A4>
+		class FunctionWrapper4 : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(A1, A2, A3, A4);
+		public:
+			explicit FunctionWrapper4(R(*pointer)(A1, A2, A3, A4)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				A4 a4 = popStackGeneric<A4>(context);
+				A3 a3 = popStackGeneric<A3>(context);
+				A2 a2 = popStackGeneric<A2>(context);
+				A1 a1 = popStackGeneric<A1>(context);
+				pushStackGeneric(mPointer(a1, a2, a3, a4), context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				std::vector<const DataTypeDefinition*> res;
+				res.push_back(traits::getDataType<A1>());
+				res.push_back(traits::getDataType<A2>());
+				res.push_back(traits::getDataType<A3>());
+				res.push_back(traits::getDataType<A4>());
+				return res;
+			}
+		};
+
+		// 5 script args with return, no context
+		template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5>
+		class FunctionWrapper5 : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(A1, A2, A3, A4, A5);
+		public:
+			explicit FunctionWrapper5(R(*pointer)(A1, A2, A3, A4, A5)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				A5 a5 = popStackGeneric<A5>(context);
+				A4 a4 = popStackGeneric<A4>(context);
+				A3 a3 = popStackGeneric<A3>(context);
+				A2 a2 = popStackGeneric<A2>(context);
+				A1 a1 = popStackGeneric<A1>(context);
+				pushStackGeneric(mPointer(a1, a2, a3, a4, a5), context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				std::vector<const DataTypeDefinition*> res;
+				res.push_back(traits::getDataType<A1>());
+				res.push_back(traits::getDataType<A2>());
+				res.push_back(traits::getDataType<A3>());
+				res.push_back(traits::getDataType<A4>());
+				res.push_back(traits::getDataType<A5>());
+				return res;
+			}
+		};
+
+		// 6 script args with return, no context
+		template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+		class FunctionWrapper6 : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(A1, A2, A3, A4, A5, A6);
+		public:
+			explicit FunctionWrapper6(R(*pointer)(A1, A2, A3, A4, A5, A6)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				A6 a6 = popStackGeneric<A6>(context);
+				A5 a5 = popStackGeneric<A5>(context);
+				A4 a4 = popStackGeneric<A4>(context);
+				A3 a3 = popStackGeneric<A3>(context);
+				A2 a2 = popStackGeneric<A2>(context);
+				A1 a1 = popStackGeneric<A1>(context);
+				pushStackGeneric(mPointer(a1, a2, a3, a4, a5, a6), context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				std::vector<const DataTypeDefinition*> res;
+				res.push_back(traits::getDataType<A1>());
+				res.push_back(traits::getDataType<A2>());
+				res.push_back(traits::getDataType<A3>());
+				res.push_back(traits::getDataType<A4>());
+				res.push_back(traits::getDataType<A5>());
+				res.push_back(traits::getDataType<A6>());
+				return res;
+			}
+		};
+
+		// 7 script args with return, no context
+		template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+		class FunctionWrapper7 : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(A1, A2, A3, A4, A5, A6, A7);
+		public:
+			explicit FunctionWrapper7(R(*pointer)(A1, A2, A3, A4, A5, A6, A7)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				A7 a7 = popStackGeneric<A7>(context);
+				A6 a6 = popStackGeneric<A6>(context);
+				A5 a5 = popStackGeneric<A5>(context);
+				A4 a4 = popStackGeneric<A4>(context);
+				A3 a3 = popStackGeneric<A3>(context);
+				A2 a2 = popStackGeneric<A2>(context);
+				A1 a1 = popStackGeneric<A1>(context);
+				pushStackGeneric(mPointer(a1, a2, a3, a4, a5, a6, a7), context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				std::vector<const DataTypeDefinition*> res;
+				res.push_back(traits::getDataType<A1>());
+				res.push_back(traits::getDataType<A2>());
+				res.push_back(traits::getDataType<A3>());
+				res.push_back(traits::getDataType<A4>());
+				res.push_back(traits::getDataType<A5>());
+				res.push_back(traits::getDataType<A6>());
+				res.push_back(traits::getDataType<A7>());
+				return res;
+			}
+		};
+
+		// 8 script args with return, no context
+		template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+		class FunctionWrapper8 : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(A1, A2, A3, A4, A5, A6, A7, A8);
+		public:
+			explicit FunctionWrapper8(R(*pointer)(A1, A2, A3, A4, A5, A6, A7, A8)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				A8 a8 = popStackGeneric<A8>(context);
+				A7 a7 = popStackGeneric<A7>(context);
+				A6 a6 = popStackGeneric<A6>(context);
+				A5 a5 = popStackGeneric<A5>(context);
+				A4 a4 = popStackGeneric<A4>(context);
+				A3 a3 = popStackGeneric<A3>(context);
+				A2 a2 = popStackGeneric<A2>(context);
+				A1 a1 = popStackGeneric<A1>(context);
+				pushStackGeneric(mPointer(a1, a2, a3, a4, a5, a6, a7, a8), context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				std::vector<const DataTypeDefinition*> res;
+				res.push_back(traits::getDataType<A1>());
+				res.push_back(traits::getDataType<A2>());
+				res.push_back(traits::getDataType<A3>());
+				res.push_back(traits::getDataType<A4>());
+				res.push_back(traits::getDataType<A5>());
+				res.push_back(traits::getDataType<A6>());
+				res.push_back(traits::getDataType<A7>());
+				res.push_back(traits::getDataType<A8>());
+				return res;
+			}
+		};
+
+		// 9 script args with return, no context
+		template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
+		class FunctionWrapper9 : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(A1, A2, A3, A4, A5, A6, A7, A8, A9);
+		public:
+			explicit FunctionWrapper9(R(*pointer)(A1, A2, A3, A4, A5, A6, A7, A8, A9)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				A9 a9 = popStackGeneric<A9>(context);
+				A8 a8 = popStackGeneric<A8>(context);
+				A7 a7 = popStackGeneric<A7>(context);
+				A6 a6 = popStackGeneric<A6>(context);
+				A5 a5 = popStackGeneric<A5>(context);
+				A4 a4 = popStackGeneric<A4>(context);
+				A3 a3 = popStackGeneric<A3>(context);
+				A2 a2 = popStackGeneric<A2>(context);
+				A1 a1 = popStackGeneric<A1>(context);
+				pushStackGeneric(mPointer(a1, a2, a3, a4, a5, a6, a7, a8, a9), context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				std::vector<const DataTypeDefinition*> res;
+				res.push_back(traits::getDataType<A1>());
+				res.push_back(traits::getDataType<A2>());
+				res.push_back(traits::getDataType<A3>());
+				res.push_back(traits::getDataType<A4>());
+				res.push_back(traits::getDataType<A5>());
+				res.push_back(traits::getDataType<A6>());
+				res.push_back(traits::getDataType<A7>());
+				res.push_back(traits::getDataType<A8>());
+				res.push_back(traits::getDataType<A9>());
+				return res;
+			}
+		};
 	}
 
 	// 0 script args, no context
@@ -510,6 +684,42 @@ namespace lemon
 	template<typename A1, typename A2, typename A3>
 	static NativeFunction::FunctionWrapper& wrap(void(*pointer)(const NativeFunction::Context*, A1, A2, A3)) {
 		return *new internal::FunctionWrapper3ContextVoid<A1, A2, A3>(pointer);
+	}
+
+	// 4 script args with return, no context
+	template<typename R, typename A1, typename A2, typename A3, typename A4>
+	static NativeFunction::FunctionWrapper& wrap(R(*pointer)(A1, A2, A3, A4)) {
+		return *new internal::FunctionWrapper4<R, A1, A2, A3, A4>(pointer);
+	}
+
+	// 5 script args with return, no context
+	template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5>
+	static NativeFunction::FunctionWrapper& wrap(R(*pointer)(A1, A2, A3, A4, A5)) {
+		return *new internal::FunctionWrapper5<R, A1, A2, A3, A4, A5>(pointer);
+	}
+
+	// 6 script args with return, no context
+	template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+	static NativeFunction::FunctionWrapper& wrap(R(*pointer)(A1, A2, A3, A4, A5, A6)) {
+		return *new internal::FunctionWrapper6<R, A1, A2, A3, A4, A5, A6>(pointer);
+	}
+
+	// 7 script args with return, no context
+	template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+	static NativeFunction::FunctionWrapper& wrap(R(*pointer)(A1, A2, A3, A4, A5, A6, A7)) {
+		return *new internal::FunctionWrapper7<R, A1, A2, A3, A4, A5, A6, A7>(pointer);
+	}
+
+	// 8 script args with return, no context
+	template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+	static NativeFunction::FunctionWrapper& wrap(R(*pointer)(A1, A2, A3, A4, A5, A6, A7, A8)) {
+		return *new internal::FunctionWrapper8<R, A1, A2, A3, A4, A5, A6, A7, A8>(pointer);
+	}
+
+	// 9 script args with return, no context
+	template<typename R, typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8, typename A9>
+	static NativeFunction::FunctionWrapper& wrap(R(*pointer)(A1, A2, A3, A4, A5, A6, A7, A8, A9)) {
+		return *new internal::FunctionWrapper9<R, A1, A2, A3, A4, A5, A6, A7, A8, A9>(pointer);
 	}
 #endif
 

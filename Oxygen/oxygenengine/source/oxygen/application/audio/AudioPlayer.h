@@ -12,7 +12,9 @@
 #include "oxygen/application/audio/AudioSourceManager.h"
 #include "oxygen/application/audio/AudioCollection.h"
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <optional>
+#endif
 
 
 class AudioPlayer

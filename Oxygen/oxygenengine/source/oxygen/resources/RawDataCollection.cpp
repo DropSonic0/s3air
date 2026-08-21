@@ -41,8 +41,13 @@ void RawDataCollection::applyRomInjections(uint8* rom, uint32 romSize) const
 {
 	for (const RawData* rawData : mRomInjections)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		RMX_ASSERT(rawData->mRomInjectAddress.has_value(), "No ROM injection address given for what is stored as a ROM injection");
 		const uint32 address = *rawData->mRomInjectAddress;
+#else
+		RMX_ASSERT(rawData->mRomInjectAddress != 0xffffffff, "No ROM injection address given for what is stored as a ROM injection");
+		const uint32 address = rawData->mRomInjectAddress;
+#endif
 		RMX_CHECK(address < romSize, "ROM injection at invalid address " << rmx::hexString(address, 6), continue);
 
 		const uint32 size = std::min((uint32)rawData->mContent.size(), romSize - address);

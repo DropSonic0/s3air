@@ -102,7 +102,11 @@ namespace network
 	{
 		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE("FileTransferPiecePacket");
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static inline const constexpr size_t MAX_PIECE_SIZE = 0x7f00;	// Limited by the maximum packet size of 0x8000 that our socket classes can send/receive and the overhead of other packet content
+#else
+		static const size_t MAX_PIECE_SIZE = 0x7f00;
+#endif
 
 		uint32 mTransferHandle = 0;
 		uint16 mChunkIndex = 0;

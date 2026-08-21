@@ -15,6 +15,120 @@ namespace
 {
 	struct AssignmentLookup
 	{
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		static const std::vector<std::pair<String, uint32>>& getKeysAndIdentifiers()
+		{
+			static std::vector<std::pair<String, uint32>> list;
+			if (list.empty())
+			{
+				list.push_back(std::make_pair(String("Enter"), (uint32)SDLK_RETURN));
+				list.push_back(std::make_pair(String("Esc"), (uint32)SDLK_ESCAPE));
+				list.push_back(std::make_pair(String("Backspace"), (uint32)SDLK_BACKSPACE));
+				list.push_back(std::make_pair(String("Tab"), (uint32)SDLK_TAB));
+				list.push_back(std::make_pair(String("Space"), (uint32)SDLK_SPACE));
+				list.push_back(std::make_pair(String("Exclaim"), (uint32)SDLK_EXCLAIM));
+				list.push_back(std::make_pair(String("QuoteDbl"), (uint32)SDLK_QUOTEDBL));
+				list.push_back(std::make_pair(String("Hash"), (uint32)SDLK_HASH));
+				list.push_back(std::make_pair(String("Percent"), (uint32)SDLK_PERCENT));
+				list.push_back(std::make_pair(String("Dollar"), (uint32)SDLK_DOLLAR));
+				list.push_back(std::make_pair(String("Ampersand"), (uint32)SDLK_AMPERSAND));
+				list.push_back(std::make_pair(String("Quote"), (uint32)SDLK_QUOTE));
+				list.push_back(std::make_pair(String("LeftParen"), (uint32)SDLK_LEFTPAREN));
+				list.push_back(std::make_pair(String("RightParen"), (uint32)SDLK_RIGHTPAREN));
+				list.push_back(std::make_pair(String("Asterisk"), (uint32)SDLK_ASTERISK));
+				list.push_back(std::make_pair(String("Plus"), (uint32)SDLK_PLUS));
+				list.push_back(std::make_pair(String("Comma"), (uint32)SDLK_COMMA));
+				list.push_back(std::make_pair(String("Minus"), (uint32)SDLK_MINUS));
+				list.push_back(std::make_pair(String("Period"), (uint32)SDLK_PERIOD));
+				list.push_back(std::make_pair(String("Slash"), (uint32)SDLK_SLASH));
+				list.push_back(std::make_pair(String("0"), (uint32)SDLK_0));
+				list.push_back(std::make_pair(String("1"), (uint32)SDLK_1));
+				list.push_back(std::make_pair(String("2"), (uint32)SDLK_2));
+				list.push_back(std::make_pair(String("3"), (uint32)SDLK_3));
+				list.push_back(std::make_pair(String("4"), (uint32)SDLK_4));
+				list.push_back(std::make_pair(String("5"), (uint32)SDLK_5));
+				list.push_back(std::make_pair(String("6"), (uint32)SDLK_6));
+				list.push_back(std::make_pair(String("7"), (uint32)SDLK_7));
+				list.push_back(std::make_pair(String("8"), (uint32)SDLK_8));
+				list.push_back(std::make_pair(String("9"), (uint32)SDLK_9));
+				list.push_back(std::make_pair(String("Colon"), (uint32)SDLK_COLON));
+				list.push_back(std::make_pair(String("Semicolon"), (uint32)SDLK_SEMICOLON));
+				list.push_back(std::make_pair(String("Less"), (uint32)SDLK_LESS));
+				list.push_back(std::make_pair(String("Equals"), (uint32)SDLK_EQUALS));
+				list.push_back(std::make_pair(String("Greater"), (uint32)SDLK_GREATER));
+				list.push_back(std::make_pair(String("Question"), (uint32)SDLK_QUESTION));
+				list.push_back(std::make_pair(String("At"), (uint32)SDLK_AT));
+				list.push_back(std::make_pair(String("LeftBracket"), (uint32)SDLK_LEFTBRACKET));
+				list.push_back(std::make_pair(String("Backslash"), (uint32)SDLK_BACKSLASH));
+				list.push_back(std::make_pair(String("RightBracket"), (uint32)SDLK_RIGHTBRACKET));
+				list.push_back(std::make_pair(String("Caret"), (uint32)SDLK_CARET));
+				list.push_back(std::make_pair(String("Underscore"), (uint32)SDLK_UNDERSCORE));
+				list.push_back(std::make_pair(String("BackQuote"), (uint32)SDLK_BACKQUOTE));
+				list.push_back(std::make_pair(String("A"), (uint32)SDLK_a));
+				list.push_back(std::make_pair(String("B"), (uint32)SDLK_b));
+				list.push_back(std::make_pair(String("C"), (uint32)SDLK_c));
+				list.push_back(std::make_pair(String("D"), (uint32)SDLK_d));
+				list.push_back(std::make_pair(String("E"), (uint32)SDLK_e));
+				list.push_back(std::make_pair(String("F"), (uint32)SDLK_f));
+				list.push_back(std::make_pair(String("G"), (uint32)SDLK_g));
+				list.push_back(std::make_pair(String("H"), (uint32)SDLK_h));
+				list.push_back(std::make_pair(String("I"), (uint32)SDLK_i));
+				list.push_back(std::make_pair(String("J"), (uint32)SDLK_j));
+				list.push_back(std::make_pair(String("K"), (uint32)SDLK_k));
+				list.push_back(std::make_pair(String("L"), (uint32)SDLK_l));
+				list.push_back(std::make_pair(String("M"), (uint32)SDLK_m));
+				list.push_back(std::make_pair(String("N"), (uint32)SDLK_n));
+				list.push_back(std::make_pair(String("O"), (uint32)SDLK_o));
+				list.push_back(std::make_pair(String("P"), (uint32)SDLK_p));
+				list.push_back(std::make_pair(String("Q"), (uint32)SDLK_q));
+				list.push_back(std::make_pair(String("R"), (uint32)SDLK_r));
+				list.push_back(std::make_pair(String("S"), (uint32)SDLK_s));
+				list.push_back(std::make_pair(String("T"), (uint32)SDLK_t));
+				list.push_back(std::make_pair(String("U"), (uint32)SDLK_u));
+				list.push_back(std::make_pair(String("V"), (uint32)SDLK_v));
+				list.push_back(std::make_pair(String("W"), (uint32)SDLK_w));
+				list.push_back(std::make_pair(String("X"), (uint32)SDLK_x));
+				list.push_back(std::make_pair(String("Y"), (uint32)SDLK_y));
+				list.push_back(std::make_pair(String("Z"), (uint32)SDLK_z));
+				list.push_back(std::make_pair(String("CapsLock"), (uint32)SDLK_CAPSLOCK));
+				list.push_back(std::make_pair(String("Insert"), (uint32)SDLK_INSERT));
+				list.push_back(std::make_pair(String("Home"), (uint32)SDLK_HOME));
+				list.push_back(std::make_pair(String("PageUp"), (uint32)SDLK_PAGEUP));
+				list.push_back(std::make_pair(String("Delete"), (uint32)SDLK_DELETE));
+				list.push_back(std::make_pair(String("End"), (uint32)SDLK_END));
+				list.push_back(std::make_pair(String("PageDown"), (uint32)SDLK_PAGEDOWN));
+				list.push_back(std::make_pair(String("Up"), (uint32)SDLK_UP));
+				list.push_back(std::make_pair(String("Down"), (uint32)SDLK_DOWN));
+				list.push_back(std::make_pair(String("Left"), (uint32)SDLK_LEFT));
+				list.push_back(std::make_pair(String("Right"), (uint32)SDLK_RIGHT));
+				list.push_back(std::make_pair(String("NumpadDivide"), (uint32)SDLK_KP_DIVIDE));
+				list.push_back(std::make_pair(String("NumpadMultiply"), (uint32)SDLK_KP_MULTIPLY));
+				list.push_back(std::make_pair(String("NumpadMinus"), (uint32)SDLK_KP_MINUS));
+				list.push_back(std::make_pair(String("NumpadPlus"), (uint32)SDLK_KP_PLUS));
+				list.push_back(std::make_pair(String("NumpadEnter"), (uint32)SDLK_KP_ENTER));
+				list.push_back(std::make_pair(String("Numpad1"), (uint32)SDLK_KP_1));
+				list.push_back(std::make_pair(String("Numpad2"), (uint32)SDLK_KP_2));
+				list.push_back(std::make_pair(String("Numpad3"), (uint32)SDLK_KP_3));
+				list.push_back(std::make_pair(String("Numpad4"), (uint32)SDLK_KP_4));
+				list.push_back(std::make_pair(String("Numpad5"), (uint32)SDLK_KP_5));
+				list.push_back(std::make_pair(String("Numpad6"), (uint32)SDLK_KP_6));
+				list.push_back(std::make_pair(String("Numpad7"), (uint32)SDLK_KP_7));
+				list.push_back(std::make_pair(String("Numpad8"), (uint32)SDLK_KP_8));
+				list.push_back(std::make_pair(String("Numpad9"), (uint32)SDLK_KP_9));
+				list.push_back(std::make_pair(String("Numpad0"), (uint32)SDLK_KP_0));
+				list.push_back(std::make_pair(String("NumpadPeriod"), (uint32)SDLK_KP_PERIOD));
+				list.push_back(std::make_pair(String("LeftShift"), (uint32)SDLK_LSHIFT));
+				list.push_back(std::make_pair(String("RightShift"), (uint32)SDLK_RSHIFT));
+				list.push_back(std::make_pair(String("LeftCtrl"), (uint32)SDLK_LCTRL));
+				list.push_back(std::make_pair(String("RightCtrl"), (uint32)SDLK_RCTRL));
+				list.push_back(std::make_pair(String("LeftAlt"), (uint32)SDLK_LALT));
+				list.push_back(std::make_pair(String("RightAlt"), (uint32)SDLK_RALT));
+			}
+			return list;
+		}
+		static std::map<String, uint32> mKeyByIdentifier;
+		static std::map<uint32, String> mIdentifierByKey;
+#else
 		static inline const std::vector<std::pair<String, uint32>> KEYS_AND_IDENTIFIERS =
 		{
 			// This list uses the same sorting as the SDLK_* definitions
@@ -125,13 +239,18 @@ namespace
 		};
 		static inline std::map<String, uint32> mKeyByIdentifier;	// Uses lowercase strings for better comparability
 		static inline std::map<uint32, String> mIdentifierByKey;
+#endif
 
-		static inline uint32 getKeyByIdentifier(const String& identifier)
+		static uint32 getKeyByIdentifier(const String& identifier)
 		{
 			if (mKeyByIdentifier.empty())
 			{
 				// Lazy initialization
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+				for (const auto& pair : getKeysAndIdentifiers())
+#else
 				for (const auto& pair : KEYS_AND_IDENTIFIERS)
+#endif
 				{
 					String key = pair.first;
 					key.lowerCase();
@@ -149,12 +268,16 @@ namespace
 			}
 		}
 
-		static inline const String& getIdentifierByKey(uint32 key)
+		static const String& getIdentifierByKey(uint32 key)
 		{
 			if (mIdentifierByKey.empty())
 			{
 				// Lazy initialization
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+				for (const auto& pair : getKeysAndIdentifiers())
+#else
 				for (const auto& pair : KEYS_AND_IDENTIFIERS)
+#endif
 				{
 					mIdentifierByKey[pair.second] = pair.first;
 				}
@@ -169,6 +292,42 @@ namespace
 		}
 	};
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	std::map<String, uint32> AssignmentLookup::mKeyByIdentifier;
+	std::map<uint32, String> AssignmentLookup::mIdentifierByKey;
+
+	static const std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>>& getFixedAssignments()
+	{
+		static std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>> list;
+		if (list.empty())
+		{
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::UP, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_UP)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::DOWN, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_DOWN)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::LEFT, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_LEFT)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::RIGHT, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_RIGHT)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::START, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_RETURN)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::BACK, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_ESCAPE)));
+		}
+		return list;
+	}
+
+	static const std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>>& getModifyableAssignments()
+	{
+		static std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>> list;
+		if (list.empty())
+		{
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::A, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_a)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::B, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_s)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::X, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_d)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::X, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_q)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::Y, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_w)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::BACK, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_BACKSPACE)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::L, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_e)));
+			list.push_back(std::make_pair(InputConfig::DeviceDefinition::Button::R, InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, SDLK_r)));
+		}
+		return list;
+	}
+#else
 	static const std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>> DEFAULT_KB1_FIXED_ASSIGNMENTS =
 	{
 		{ InputConfig::DeviceDefinition::Button::UP,	{ InputConfig::Assignment::Type::BUTTON, SDLK_UP     } },
@@ -190,6 +349,7 @@ namespace
 		{ InputConfig::DeviceDefinition::Button::L,		{ InputConfig::Assignment::Type::BUTTON, SDLK_e } },
 		{ InputConfig::DeviceDefinition::Button::R,		{ InputConfig::Assignment::Type::BUTTON, SDLK_r } },
 	};
+#endif
 }
 
 
@@ -308,7 +468,11 @@ void InputConfig::setupDefaultKeyboardMappings(DeviceDefinition& outDeviceDefini
 	if (keyboardIndex == 0)
 	{
 		// Setup fixed and modifiable assignments for keyboard 1
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		for (const auto& pair : getFixedAssignments())
+#else
 		for (const auto& pair : DEFAULT_KB1_FIXED_ASSIGNMENTS)
+#endif
 		{
 			mappings[(size_t)pair.first].mAssignments.push_back(pair.second);
 		}
@@ -316,7 +480,11 @@ void InputConfig::setupDefaultKeyboardMappings(DeviceDefinition& outDeviceDefini
 		{
 			mappings[k].mNumFixedAssignments = mappings[k].mAssignments.size();
 		}
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		for (const auto& pair : getModifyableAssignments())
+#else
 		for (const auto& pair : DEFAULT_KB1_MODIFYABLE_ASSIGNMENTS)
+#endif
 		{
 			mappings[(size_t)pair.first].mAssignments.push_back(pair.second);
 		}

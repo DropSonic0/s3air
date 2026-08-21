@@ -24,6 +24,20 @@ ControlsIn::ControlsIn()
 		auto& map = inputFlagsLookup[controllerIndex];
 		const InputManager::ControllerScheme& controller = InputManager::instance().getController(controllerIndex);
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		map.insert(std::make_pair(&controller.Start,	(uint16)Button::START));
+		map.insert(std::make_pair(&controller.Back,	(uint16)Button::MODE));
+		map.insert(std::make_pair(&controller.Up,		(uint16)Button::UP));
+		map.insert(std::make_pair(&controller.Down,	(uint16)Button::DOWN));
+		map.insert(std::make_pair(&controller.Left,	(uint16)Button::LEFT));
+		map.insert(std::make_pair(&controller.Right,	(uint16)Button::RIGHT));
+		map.insert(std::make_pair(&controller.A,		(uint16)Button::A));
+		map.insert(std::make_pair(&controller.B,	 	(uint16)Button::B));
+		map.insert(std::make_pair(&controller.X,	 	(uint16)Button::C));
+		map.insert(std::make_pair(&controller.Y,	 	(uint16)Button::Y));
+		map.insert(std::make_pair(&controller.L,	 	(uint16)Button::X));
+		map.insert(std::make_pair(&controller.R,	 	(uint16)Button::Z));
+#else
 		map.emplace(&controller.Start,	(uint16)Button::START);
 		map.emplace(&controller.Back,	(uint16)Button::MODE);
 		map.emplace(&controller.Up,		(uint16)Button::UP);
@@ -36,6 +50,7 @@ ControlsIn::ControlsIn()
 		map.emplace(&controller.Y,	 	(uint16)Button::Y);
 		map.emplace(&controller.L,	 	(uint16)Button::X);
 		map.emplace(&controller.R,	 	(uint16)Button::Z);
+#endif
 	}
 }
 

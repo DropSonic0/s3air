@@ -8,7 +8,11 @@
 
 #pragma once
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <chrono>
+#else
+#include <sys/sys_time.h>
+#endif
 
 
 class HighResolutionTimer
@@ -21,10 +25,17 @@ public:
 	double getSecondsSinceStart() const;
 
 protected:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	typedef std::chrono::time_point<std::chrono::high_resolution_clock> TimePoint;
 	typedef std::chrono::duration<double> Duration;
 
 	TimePoint mStart;
+#else
+	typedef uint64 TimePoint;
+	typedef double Duration;
+
+	TimePoint mStart = 0;
+#endif
 	bool mRunning = false;
 };
 

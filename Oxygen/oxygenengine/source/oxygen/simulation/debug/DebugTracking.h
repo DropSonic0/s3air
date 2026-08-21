@@ -9,7 +9,9 @@
 #pragma once
 
 #include "oxygen/simulation/DebuggingInterfaces.h"
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <optional>
+#endif
 
 class LemonScriptRuntime;
 namespace lemon
@@ -26,7 +28,11 @@ public:
 	struct Location
 	{
 		const lemon::ScriptFunction* mFunction = nullptr;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		std::optional<size_t> mProgramCounter;
+#else
+		size_t mProgramCounter = 0;
+#endif
 		mutable std::string mResolvedString;
 		mutable int mLineNumber = -1;
 
@@ -114,7 +120,11 @@ public:
 	// VRAM writes
 	inline const std::vector<VRAMWrite*>& getVRAMWrites() const  { return mVRAMWrites; }
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	void getCallStackFromCallFrameIndex(std::vector<Location>& outCallStack, int callFrameIndex, std::optional<size_t> firstProgramCounter);
+#else
+	void getCallStackFromCallFrameIndex(std::vector<Location>& outCallStack, int callFrameIndex, size_t firstProgramCounter = 0);
+#endif
 
 private:
 	void deleteWatch(Watch& watch);

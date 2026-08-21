@@ -20,6 +20,8 @@ namespace lowlevel
 	struct PacketBase
 	{
 	public:
+		virtual ~PacketBase() {}
+
 		static const constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS { 1, 1 };
 
 	public:

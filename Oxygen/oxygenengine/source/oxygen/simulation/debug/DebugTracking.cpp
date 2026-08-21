@@ -31,7 +31,11 @@ const std::string& DebugTracking::Location::toString(CodeExec& codeExec) const
 		else
 		{
 			LemonScriptProgram::ResolvedLocation location;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			codeExec.getLemonScriptProgram().resolveLocation(location, *mFunction, mProgramCounter.has_value() ? (uint32)*mProgramCounter : 0);
+#else
+		codeExec.getLemonScriptProgram().resolveLocation(location, *mFunction, (uint32)mProgramCounter);
+#endif
 			mLineNumber = location.mLineNumber;
 			mResolvedString = mFunction->getName().getString();
 		}
@@ -129,7 +133,7 @@ void DebugTracking::clearColorLogEntries()
 
 void DebugTracking::addColorLogEntry(const ColorLogEntry& entry)
 {
-	mColorLogEntries.emplace_back(entry);
+	mColorLogEntries.push_back(entry);
 }
 
 void DebugTracking::addColorLogEntry(std::string_view name, uint32 startAddress, uint8 numColors)
@@ -194,7 +198,7 @@ void DebugTracking::clearWatches(bool clearPersistent)
 		{
 			if (watch->mPersistent)
 			{
-				reAddWatches.emplace_back(watch->mAddress, watch->mBytes);
+				reAddWatches.push_back(std::make_pair(watch->mAddress, watch->mBytes));
 			}
 		}
 	}
@@ -252,6 +256,7 @@ void DebugTracking::removeWatch(uint32 address, uint16 bytes)
 	mEmulatorInterface.getWatches().erase(mEmulatorInterface.getWatches().begin() + index);
 }
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 void DebugTracking::getCallStackFromCallFrameIndex(std::vector<Location>& outCallStack, int callFrameIndex, std::optional<size_t> firstProgramCounter)
 {
 	const std::vector<CodeExec::CallFrame>& callFrames = mCodeExec.getCallFrames();
@@ -294,6 +299,47 @@ void DebugTracking::getCallStackFromCallFrameIndex(std::vector<Location>& outCal
 		isFirst = false;
 	}
 }
+#else
+void DebugTracking::getCallStackFromCallFrameIndex(std::vector<Location>& outCallStack, int callFrameIndex, size_t firstProgramCounter)
+{
+	const std::vector<CodeExec::CallFrame>& callFrames = mCodeExec.getCallFrames();
+	const uint8* lastCallingPC = nullptr;
+	bool isFirst = true;
+	while (callFrameIndex >= 0 && callFrameIndex < (int)callFrames.size())
+	{
+		const CodeExec::CallFrame& callFrame = callFrames[callFrameIndex];
+		if (nullptr != callFrame.mFunction && callFrame.mFunction->isA<lemon::ScriptFunction>())
+		{
+			Location& location = vectorAdd(outCallStack);
+			location.mFunction = &callFrame.mFunction->as<lemon::ScriptFunction>();
+
+			lemon::RuntimeFunction* runtimeFunction = mCodeExec.getLemonScriptRuntime().getInternalLemonRuntime().getRuntimeFunction(*location.mFunction);
+			if (nullptr != runtimeFunction)
+			{
+				if (isFirst && firstProgramCounter != 0)
+				{
+					location.mProgramCounter = firstProgramCounter;
+				}
+				else
+				{
+					if (nullptr != lastCallingPC)
+					{
+						const int pc = runtimeFunction->translateFromRuntimeProgramCounterOptional(lastCallingPC);
+						if (pc >= 0)
+						{
+							location.mProgramCounter = (size_t)std::max(pc - 1, 0);
+						}
+					}
+				}
+			}
+		}
+
+		callFrameIndex = callFrame.mParentIndex;
+		lastCallingPC = callFrame.mCallingPC;
+		isFirst = false;
+	}
+}
+#endif
 
 void DebugTracking::deleteWatch(Watch& watch)
 {
@@ -355,7 +401,7 @@ void DebugTracking::onWatchTriggered(size_t watchIndex, uint32 address, uint16 b
 		hit.mCallFrameIndex = getCurrentCallFrameIndex();
 		watch.mHits.push_back(&hit);
 
-		mWatchHitsThisUpdate.emplace_back(&watch, &hit);
+		mWatchHitsThisUpdate.push_back(std::make_pair(&watch, &hit));
 		mLemonScriptRuntime.getInternalLemonRuntime().triggerStopSignal();
 	}
 	watch.mLastHitLocation = location;

@@ -10,6 +10,14 @@
 #include "oxygen/helper/HighResolutionTimer.h"
 
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+static HighResolutionTimer::TimePoint getNowPS3()
+{
+	return (HighResolutionTimer::TimePoint)sys_time_get_system_time();
+}
+#endif
+
+
 void HighResolutionTimer::reset()
 {
 	mRunning = false;
@@ -17,7 +25,11 @@ void HighResolutionTimer::reset()
 
 void HighResolutionTimer::start()
 {
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	mStart = std::chrono::high_resolution_clock::now();
+#else
+	mStart = getNowPS3();
+#endif
 	mRunning = true;
 }
 
@@ -25,8 +37,12 @@ double HighResolutionTimer::getSecondsSinceStart() const
 {
 	if (mRunning)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		const Duration duration = (std::chrono::high_resolution_clock::now() - mStart);
 		return duration.count();
+#else
+		return (double)(getNowPS3() - mStart) / 1000000.0;
+#endif
 	}
 	return 0.0;
 }
@@ -35,7 +51,11 @@ double HighResolutionTimer::getSecondsSinceStart() const
 void AccumulativeTimer::resetTiming()
 {
 	reset();
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	mAccumulatedTime = Duration::zero();
+#else
+	mAccumulatedTime = 0.0;
+#endif
 }
 
 void AccumulativeTimer::resumeTiming()
@@ -50,7 +70,11 @@ void AccumulativeTimer::pauseTiming()
 {
 	if (mRunning)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		mAccumulatedTime += (std::chrono::high_resolution_clock::now() - mStart);
+#else
+		mAccumulatedTime += (double)(getNowPS3() - mStart) / 1000000.0;
+#endif
 		mRunning = false;
 	}
 }
@@ -60,13 +84,22 @@ double AccumulativeTimer::getAccumulatedSeconds() const
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		totalDuration += (std::chrono::high_resolution_clock::now() - mStart);
+#else
+		totalDuration += (double)(getNowPS3() - mStart) / 1000000.0;
+#endif
 	}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	return totalDuration.count();
+#else
+	return totalDuration;
+#endif
 }
 
 double AccumulativeTimer::getAccumulatedSecondsAndRestart()
 {
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	const TimePoint now = std::chrono::high_resolution_clock::now();
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
@@ -78,4 +111,17 @@ double AccumulativeTimer::getAccumulatedSecondsAndRestart()
 	mAccumulatedTime = Duration::zero();
 	mRunning = true;
 	return totalDuration.count();
+#else
+	const TimePoint now = getNowPS3();
+	Duration totalDuration = mAccumulatedTime;
+	if (mRunning)
+	{
+		totalDuration += (double)(now - mStart) / 1000000.0;
+	}
+
+	mStart = now;
+	mAccumulatedTime = 0.0;
+	mRunning = true;
+	return totalDuration;
+#endif
 }

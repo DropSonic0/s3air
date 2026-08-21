@@ -9,6 +9,12 @@
 #include "oxygen_netcore/pch.h"
 #include "oxygen_netcore/network/Sockets.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+rmx::ErrorHandling::LoggerInterface* Sockets::mLogger = nullptr;
+bool Sockets::mIsInitialized = false;
+bool SocketAddress::mPreventIPLogging = false;
+#endif
+
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <winsock2.h>
