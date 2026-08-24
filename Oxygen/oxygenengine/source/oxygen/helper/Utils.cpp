@@ -44,7 +44,7 @@ namespace utils
 					else
 					{
 						// New line needed
-						outLines.emplace_back(line);
+						outLines.push_back(line);
 						line = word;
 					}
 				}
@@ -53,7 +53,7 @@ namespace utils
 			if (text[position] == '\n')
 			{
 				// New line needed
-				outLines.emplace_back(line);
+				outLines.push_back(line);
 				line.clear();
 			}
 
@@ -62,7 +62,7 @@ namespace utils
 
 		if (!line.empty())
 		{
-			outLines.emplace_back(line);
+			outLines.push_back(line);
 		}
 	}
 
@@ -95,7 +95,7 @@ namespace utils
 					else
 					{
 						// New line needed
-						outLines.emplace_back(line);
+						outLines.push_back(line);
 						lineStart = start;
 						line = text.substr(start, position - start);
 					}
@@ -105,7 +105,7 @@ namespace utils
 			if (position < text.length() && text[position] == '\n')
 			{
 				// New line needed
-				outLines.emplace_back(line);
+				outLines.push_back(line);
 				lineStart = position + 1;
 				line = std::string_view();
 			}
@@ -115,7 +115,7 @@ namespace utils
 
 		if (!line.empty())
 		{
-			outLines.emplace_back(line);
+			outLines.push_back(line);
 		}
 	}
 
@@ -139,7 +139,7 @@ namespace utils
 
 			--ellipsisPosition;
 			text[ellipsisPosition] = '.';
-			text.pop_back();
+			text.resize(text.length() - 1);
 		}
 	}
 
@@ -278,7 +278,7 @@ namespace utils
 			if (!fc.loadFile(i, buffer))
 				continue;
 
-			bitmaps.emplace_back();
+			bitmaps.push_back(PaletteBitmap());
 			PaletteBitmap& bitmap = bitmaps.back();
 			if ((bitmaps.size() == 1) ? bitmap.loadBMP(buffer, &palette) : bitmap.loadBMP(buffer))
 			{

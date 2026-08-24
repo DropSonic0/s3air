@@ -25,7 +25,7 @@ private:
 	template<typename T> struct ChangeCounted
 	{
 		T mTexture;
-		uint32 mChangeCounter = -1;
+		uint32 mChangeCounter = 0xffffffff;
 	};
 	std::unordered_map<uint64, ChangeCounted<BufferTexture>> mPaletteSpriteTextures;
 	std::unordered_map<uint64, ChangeCounted<OpenGLTexture>> mComponentSpriteTextures;

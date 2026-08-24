@@ -22,7 +22,7 @@ public:
     template <typename EventHandler>
     Token Connect(EventHandler slot)
     {
-        slots_.emplace_back(Slot{nextToken_, std::move(slot)});
+        slots_.push_back(Slot{nextToken_, std::move(slot)});
         return nextToken_++;
     }
 

@@ -44,6 +44,15 @@
 #endif
 
 namespace std {
+    inline std::string to_string(int val) { char buf[32]; sprintf(buf, "%d", val); return buf; }
+    inline std::string to_string(unsigned int val) { char buf[32]; sprintf(buf, "%u", val); return buf; }
+    inline std::string to_string(long val) { char buf[32]; sprintf(buf, "%ld", val); return buf; }
+    inline std::string to_string(unsigned long val) { char buf[32]; sprintf(buf, "%lu", val); return buf; }
+    inline std::string to_string(long long val) { char buf[64]; sprintf(buf, "%lld", val); return buf; }
+    inline std::string to_string(unsigned long long val) { char buf[64]; sprintf(buf, "%llu", val); return buf; }
+    inline std::string to_string(float val) { char buf[64]; sprintf(buf, "%f", val); return buf; }
+    inline std::string to_string(double val) { char buf[64]; sprintf(buf, "%f", val); return buf; }
+
     template<typename T>
     class shared_ptr {
     public:
@@ -127,6 +136,8 @@ using std::expf;
 using std::cos;
 using std::sin;
 using std::pow;
+using std::log10;
+using std::log10f;
 #endif
 #endif
 

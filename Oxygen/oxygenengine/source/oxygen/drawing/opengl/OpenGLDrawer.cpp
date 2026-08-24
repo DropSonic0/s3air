@@ -130,12 +130,14 @@ namespace opengldrawer
 			gladLoadGL();
 		#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			// Register oxygen-specific callback for shader source code post-processing
 			//  -> Must be done before loading first shaders in "OpenGLDrawerResources::startup" and "Upscaler::startup"
 			Shader::mShaderSourcePostProcessCallback = std::bind(&opengldrawer::performShaderSourcePostProcessing, std::placeholders::_1, std::placeholders::_2);
 
 			// Also register callback for blend mode changes by shaders
 			Shader::mShaderApplyBlendModeCallback = std::bind(&opengldrawer::applyShaderBlendMode, std::placeholders::_1, &mResources);
+#endif
 
 		#ifdef USE_OPENGL_MESSAGE_CALLBACK
 			// Register OpenGL message callback for debugging
@@ -245,12 +247,13 @@ namespace opengldrawer
 		OpenGLFontOutput& getOpenGLFontOutput(Font& font)
 		{
 			// Get or create OpenGLFontOutput instance
-			OpenGLFontOutput* fontOutput = mapFind(mFontOutputMap, &font);
-			if (nullptr != fontOutput)
-				return *fontOutput;
+			std::shared_ptr<OpenGLFontOutput>* fontOutputPtr = mapFind(mFontOutputMap, &font);
+			if (nullptr != fontOutputPtr && *fontOutputPtr)
+				return **fontOutputPtr;
 
-			const auto pair = mFontOutputMap.emplace(&font, font);
-			return pair.first->second;
+			std::shared_ptr<OpenGLFontOutput> fontOutput(new OpenGLFontOutput(font));
+			mFontOutputMap.insert(std::make_pair(&font, fontOutput));
+			return *fontOutput;
 		}
 
 		void drawRect(Recti targetRect, GLuint textureHandle, const Color& color, Vec2f uv0 = Vec2f(0.0f, 0.0f), Vec2f uv1 = Vec2f(1.0f, 1.0f))
@@ -385,7 +388,7 @@ namespace opengldrawer
 		opengl::VertexArrayObject mMeshVAO;			// Always using the same instances with different contents -- TODO: Some kind of caching could be useful
 
 	private:
-		std::unordered_map<Font*, OpenGLFontOutput> mFontOutputMap;
+		std::unordered_map<Font*, std::shared_ptr<OpenGLFontOutput>> mFontOutputMap;
 	};
 }
 
@@ -690,7 +693,7 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 				{
 					scissorRect.intersect(mInternal.mScissorStack.back());
 				}
-				mInternal.mScissorStack.emplace_back(scissorRect);
+				mInternal.mScissorStack.push_back(scissorRect);
 
 				glScissor(scissorRect.x, scissorRect.y, std::max(scissorRect.width, 0), std::max(scissorRect.height, 0));
 				mInternal.mInvalidScissorRegion = scissorRect.empty();

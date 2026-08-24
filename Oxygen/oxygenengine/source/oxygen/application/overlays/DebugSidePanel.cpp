@@ -132,7 +132,7 @@ DebugSidePanel::~DebugSidePanel()
 void DebugSidePanel::initialize()
 {
 	mSmallFont.loadFromFile("data/font/freefont_sampled.json");
-	mSmallFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+	mSmallFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f)));
 }
 
 void DebugSidePanel::deinitialize()
@@ -494,14 +494,14 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					if (nullptr != callFrame.mFunction)
 					{
 						const uint32 key = (callFrame.mAddress != 0xffffffff) ? callFrame.mAddress : (0x80000000 + callFrame.mFunction->getID());
-						functions.emplace(key, callFrame.mFunction);
+						functions.insert(std::make_pair(key, callFrame.mFunction));
 					}
 				}
 
 				std::vector<std::pair<uint32, const lemon::Function*>> sortedFunctions;
 				for (const auto& pair : functions)
 				{
-					sortedFunctions.emplace_back(pair);
+					sortedFunctions.push_back(pair);
 				}
 				std::sort(sortedFunctions.begin(), sortedFunctions.end(),
 					[visualizationSorting](const std::pair<uint32, const lemon::Function*>& a, const std::pair<uint32, const lemon::Function*>& b)
@@ -579,7 +579,7 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 						Color color = Color::WHITE;
 						if (showOpcodesExecuted)
 						{
-							postfix += " <" + std::to_string(callFrame.mSteps) + ">";
+							postfix += *String(0, " <%u>", (uint32)callFrame.mSteps);
 							const float log = log10f((float)clamp((int)callFrame.mSteps, 100, 1000000));
 							color.setFromHSL(Vec3f((0.75f - log / 6.0f) * 360.0f, 1.0f, 0.5f));
 						}
@@ -636,11 +636,10 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					{
 						const auto& hit = *watch->mHits[hitIndex];
 						const uint64 key = ((uint64)watch->mAddress << 32) + hitIndex;
-						Builder::TextLine* textLine;
 						if (watch->mBytes <= 4)
-							textLine = &builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
+							builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 						else
-							textLine = &builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
+							builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 
 						// Just a test
 					#if 0

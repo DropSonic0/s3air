@@ -364,7 +364,7 @@ void OptionsMenu::initialize()
 
 			if (visible)
 			{
-				mSoundTestAudioDefinitions.emplace_back(&audioDefinition);
+				mSoundTestAudioDefinitions.push_back(&audioDefinition);
 			}
 		}
 

@@ -29,11 +29,11 @@ void ApplicationContextMenu::initialize()
 
 	if (mItems.empty())
 	{
-		mItems.emplace_back(Item { "Open saved data " PLATFORM_DIRECTORY_STRING, Item::Function::OPEN_SAVED_DATA_DIRECTORY });
-		mItems.emplace_back(Item { "Open mods " PLATFORM_DIRECTORY_STRING,		Item::Function::OPEN_MODS_DIRECTORY });
+		mItems.push_back(Item { "Open saved data " PLATFORM_DIRECTORY_STRING, Item::Function::OPEN_SAVED_DATA_DIRECTORY });
+		mItems.push_back(Item { "Open mods " PLATFORM_DIRECTORY_STRING,		Item::Function::OPEN_MODS_DIRECTORY });
 	#if 0
 		// TODO: This does not work well on Windows
-		mItems.emplace_back(Item { "Open log file",						Item::Function::OPEN_LOGFILE });
+		mItems.push_back(Item { "Open log file",						Item::Function::OPEN_LOGFILE });
 	#endif
 
 		mBaseInnerRect.set(2, 24, 210, 24);

@@ -64,14 +64,14 @@ namespace
 			{
 				if (startIndex < index)
 				{
-					outTokensRangePerParameter.emplace_back(startIndex, index - startIndex);
+					outTokensRangePerParameter.push_back(std::make_pair(startIndex, index - startIndex));
 				}
 				startIndex = index + 1;
 			}
 		}
 		if (startIndex < tokenList.size())
 		{
-			outTokensRangePerParameter.emplace_back(startIndex, tokenList.size() - startIndex);
+			outTokensRangePerParameter.push_back(std::make_pair(startIndex, tokenList.size() - startIndex));
 		}
 	}
 
@@ -82,8 +82,10 @@ namespace
 
 		outParameters.reserve(tokensRangePerParameter.size());
 
-		for (const auto [startIndex, length] : tokensRangePerParameter)
+		for (const auto& pair : tokensRangePerParameter)
 		{
+			const size_t startIndex = pair.first;
+			const size_t length = pair.second;
 			if (!tokenList[startIndex].isA<lemon::IdentifierParserToken>())
 				continue;
 
@@ -139,18 +141,18 @@ namespace
 				const Vec2i shadowOffset(param.getIntArgument<int8>(0, 1), param.getIntArgument<int8>(1, 1));
 				const float shadowBlur = param.getFloatArgument(2, 0.0f);
 				const float shadowAlpha = param.getFloatArgument(3, 1.0f);
-				outFontProcessors.emplace_back(std::make_shared<ShadowFontProcessor>(shadowOffset, shadowBlur, shadowAlpha));
+				outFontProcessors.push_back(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(shadowOffset, shadowBlur, shadowAlpha)));
 			}
 			else if (param.mIdentifier->mName == "outline")
 			{
 				const Color outlineColor = Color::fromRGBA32(param.getIntArgument<uint32>(0, 0x000000ff));
 				const int range = param.getIntArgument<int8>(1, 1);
 				const bool rectangularOutline = (param.getIntArgument<bool>(2, false) != 0);
-				outFontProcessors.emplace_back(std::make_shared<OutlineFontProcessor>(outlineColor, range, rectangularOutline));
+				outFontProcessors.push_back(std::shared_ptr<OutlineFontProcessor>(new OutlineFontProcessor(outlineColor, range, rectangularOutline)));
 			}
 			else if (param.mIdentifier->mName == "gradient")
 			{
-				outFontProcessors.emplace_back(std::make_shared<GradientFontProcessor>());
+				outFontProcessors.push_back(std::shared_ptr<GradientFontProcessor>(new GradientFontProcessor()));
 			}
 		}
 	}
@@ -217,8 +219,9 @@ bool FontCollection::registerManagedFont(Font& font, std::string_view key)
 
 void FontCollection::clear()
 {
-	for (auto& [key, collectedFont] : mCollectedFonts)
+	for (auto& pair : mCollectedFonts)
 	{
+		CollectedFont& collectedFont = pair.second;
 		for (Font* font : collectedFont.mManagedFonts)
 		{
 			font->injectFontSource(nullptr);
@@ -254,8 +257,9 @@ void FontCollection::reloadAll()
 void FontCollection::collectFromMods()
 {
 	// Remove all definitions previously collected from mods, but not the main game ones
-	for (auto& [key, collectedFont] : mCollectedFonts)
+	for (auto& pair : mCollectedFonts)
 	{
+		CollectedFont& collectedFont = pair.second;
 		for (int index = (int)collectedFont.mDefinitions.size()-1; index >= 0; --index)
 		{
 			if (nullptr != collectedFont.mDefinitions[index].mMod)
@@ -335,8 +339,10 @@ void FontCollection::loadDefinitionsFromPath(std::wstring_view path, const Mod* 
 void FontCollection::updateLoadedFonts()
 {
 	std::vector<uint64> keysToRemove;
-	for (auto& [key, collectedFont] : mCollectedFonts)
+	for (auto& pair : mCollectedFonts)
 	{
+		const uint64 key = pair.first;
+		CollectedFont& collectedFont = pair.second;
 		if (collectedFont.mDefinitions.empty() && collectedFont.mManagedFonts.size() <= 1)
 		{
 			// Font is unused and can be removed

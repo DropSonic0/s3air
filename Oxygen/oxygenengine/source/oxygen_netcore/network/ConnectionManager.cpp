@@ -265,7 +265,7 @@ ReceivedPacket& ConnectionManager::createNewReceivedPacket(const std::vector<uin
 	}
 #endif
 
-	mReceivedPackets.mWorkerQueue.emplace_back(&receivedPacket);
+	mReceivedPackets.mWorkerQueue.push_back(&receivedPacket);
 	return receivedPacket;
 }
 
@@ -414,7 +414,7 @@ bool ConnectionManager::updateReceivePacketsInternal()
 
 			RMX_LOG_INFO("Accepted TCP connection");
 			anyActivity = true;
-			mIncomingTCPConnections.emplace_back();
+			mIncomingTCPConnections.push_back(TCPSocket());
 			mIncomingTCPConnections.back().swapWith(newSocket);
 		}
 	}

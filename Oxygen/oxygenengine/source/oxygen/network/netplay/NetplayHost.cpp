@@ -247,7 +247,7 @@ void NetplayHost::onFrameUpdate(ControlsIn& controlsIn, uint32 frameNumber)
 
 	// Add new frame to the history
 	{
-		mInputHistory.emplace_back();
+		mInputHistory.push_back(InputFrame());
 		InputFrame& newInputFrame = mInputHistory.back();
 
 		// Apply host's local input (local player 1 only)

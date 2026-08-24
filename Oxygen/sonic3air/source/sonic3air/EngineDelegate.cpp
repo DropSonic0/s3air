@@ -110,10 +110,10 @@ bool EngineDelegate::setupCustomGameProfile()
 		gameProfile.mAsmStackRange.second = 0xfffffe00;
 
 		gameProfile.mDataPackages.clear();
-		gameProfile.mDataPackages.emplace_back(L"enginedata.bin",    true);
-		gameProfile.mDataPackages.emplace_back(L"gamedata.bin",      true);
-		gameProfile.mDataPackages.emplace_back(L"audiodata.bin",     true);
-		gameProfile.mDataPackages.emplace_back(L"audioremaster.bin", false);	// Optional package
+		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"enginedata.bin",    true));
+		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"gamedata.bin",      true));
+		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"audiodata.bin",     true));
+		gameProfile.mDataPackages.push_back(GameProfile::DataPackage(L"audioremaster.bin", false));	// Optional package
 	}
 
 	// Return true, so the engine won't load the oxygenprofile.json by itself

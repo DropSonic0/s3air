@@ -187,7 +187,7 @@ CodeExec::CallFrame& CodeExec::CallFrameTracking::pushCallFrame(CallFrame::Type 
 	callFrame.mType = type;
 	callFrame.mParentIndex = parentIndex;
 	callFrame.mDepth = (int)mCallStack.size();
-	mCallStack.emplace_back(mCallFrames.size() - 1);
+	mCallStack.push_back(mCallFrames.size() - 1);
 	return callFrame;
 }
 
@@ -588,7 +588,7 @@ bool CodeExec::executeScriptFunction(const std::string& functionName, bool showE
 
 void CodeExec::setupCallFrame(std::string_view functionName, std::string_view labelName)
 {
-	mCallFramesToAdd.emplace_back(functionName, labelName);
+	mCallFramesToAdd.push_back(std::make_pair(std::string(functionName), std::string(labelName)));
 	mHasCallFramesToAdd = true;
 }
 
@@ -654,7 +654,9 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 	{
 		// Execute next runtime steps
 		size_t stepsExecutedThisCall;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		try
+#endif
 		{
 			const bool success = (nullptr != mActiveCallFrameTracking) ? executeRuntimeStepsDev(stepsExecutedThisCall, abortOnCallStackSize) : executeRuntimeSteps(stepsExecutedThisCall, abortOnCallStackSize);
 			if (!success)
@@ -686,12 +688,14 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 				break;
 			}
 		}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		catch (const std::exception& e)
 		{
 			RMX_ERROR("Caught exception during script execution: " << e.what(), );
 			mExecutionState = ExecutionState::INTERRUPTED;
 			break;
 		}
+#endif
 
 		// Regularly check if we should better interrupt execution
 		stepsCounter += stepsExecutedThisCall;

@@ -319,11 +319,7 @@ namespace lemon
 			}
 			else
 			{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-				outLines.emplace_back(std::move(fileLines[fileLineIndex]));
-#else
 				outLines.push_back(fileLines[fileLineIndex]);
-#endif
 			}
 		}
 

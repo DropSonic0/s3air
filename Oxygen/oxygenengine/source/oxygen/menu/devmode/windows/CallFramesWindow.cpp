@@ -1,4 +1,4 @@
-﻿/*
+/*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
 *	Copyright (C) 2017-2026 by Eukaryot
 *
@@ -51,14 +51,14 @@ void CallFramesWindow::buildContent()
 			if (nullptr != callFrame.mFunction)
 			{
 				const uint32 key = (callFrame.mAddress != 0xffffffff) ? callFrame.mAddress : (0x80000000 + callFrame.mFunction->getID());
-				functions.emplace(key, callFrame.mFunction);
+				functions.insert(std::make_pair(key, callFrame.mFunction));
 			}
 		}
 
 		std::vector<std::pair<uint32, const lemon::Function*>> sortedFunctions;
 		for (const auto& pair : functions)
 		{
-			sortedFunctions.emplace_back(pair);
+			sortedFunctions.push_back(pair);
 		}
 		std::sort(sortedFunctions.begin(), sortedFunctions.end(),
 			[&](const std::pair<uint32, const lemon::Function*>& a, const std::pair<uint32, const lemon::Function*>& b)

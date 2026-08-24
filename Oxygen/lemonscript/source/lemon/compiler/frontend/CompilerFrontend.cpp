@@ -471,11 +471,7 @@ namespace lemon
 			{
 				// Must be a type and identifier as next tokens, then a comma or closing parentheses
 				CHECK_ERROR(offset + 2 < tokens.size(), "Expected function parameter definition", lineNumber);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-				parameters.emplace_back();
-#else
 				parameters.push_back(Function::Parameter());
-#endif
 
 				CHECK_ERROR(tokens[offset].isA<VarTypeToken>(), "Expected type in function parameter definition", lineNumber);
 				parameters.back().mDataType = tokens[offset].as<VarTypeToken>().mDataType;
@@ -947,11 +943,7 @@ namespace lemon
 					else
 					{
 						const AnyBaseValue value = readConstantExpression(tokens, i, endIndex, arrayDataType, lineNumber);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-						values.emplace_back(value);
-#else
 						values.push_back(value);
-#endif
 						--i;		// Undo last increase of i, as the for-loop will increase it once more
 						expectingComma = true;
 					}

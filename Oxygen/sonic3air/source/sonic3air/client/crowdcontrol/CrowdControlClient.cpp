@@ -1,4 +1,4 @@
-﻿/*
+/*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
 *	Copyright (C) 2017-2026 by Eukaryot
 *
@@ -253,10 +253,10 @@ void CrowdControlClient::triggerEffect(const Request& request)
 	// Call signature: "void CrowdControl.triggerEffect(u32 id, string code, s32 quantity, s32 duration, string viewer)"
 	CodeExec::FunctionExecData execData;
 	execData.mParams.mReturnType = &lemon::PredefinedDataTypes::VOID;
-	execData.mParams.mParams.emplace_back(lemon::PredefinedDataTypes::UINT_32, request.mId);
-	execData.mParams.mParams.emplace_back(lemon::PredefinedDataTypes::STRING, runtime.getInternalLemonRuntime().addString(request.mCode));
-	execData.mParams.mParams.emplace_back(lemon::PredefinedDataTypes::INT_32, request.mQuantity);
-	execData.mParams.mParams.emplace_back(lemon::PredefinedDataTypes::INT_32, request.mDuration);
-	execData.mParams.mParams.emplace_back(lemon::PredefinedDataTypes::STRING, runtime.getInternalLemonRuntime().addString(request.mViewer));
+	execData.mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(lemon::PredefinedDataTypes::UINT_32, request.mId));
+	execData.mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(lemon::PredefinedDataTypes::STRING, runtime.getInternalLemonRuntime().addString(request.mCode)));
+	execData.mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(lemon::PredefinedDataTypes::INT_32, request.mQuantity));
+	execData.mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(lemon::PredefinedDataTypes::INT_32, request.mDuration));
+	execData.mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(lemon::PredefinedDataTypes::STRING, runtime.getInternalLemonRuntime().addString(request.mViewer)));
 	codeExec.executeScriptFunction("CrowdControl.triggerEffect", false, &execData);
 }

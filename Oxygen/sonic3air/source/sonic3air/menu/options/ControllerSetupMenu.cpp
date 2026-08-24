@@ -610,7 +610,7 @@ void ControllerSetupMenu::assignButtonBinding(const InputManager::RealDevice& de
 		if (nullptr != mapping)
 			mTemp = *mapping;
 	}
-	mTemp.emplace_back(newAssignment);
+	mTemp.push_back(newAssignment);
 	assignButtonBindings(device, mTemp);
 }
 

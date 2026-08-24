@@ -63,7 +63,7 @@ void Downloader::startDownload()
 	mState = State::RUNNING;
 #ifdef PLATFORM_WEB
 	performDownloadStatic(this);
-#else
+#elif !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	mThread = new std::thread(&Downloader::performDownloadStatic, this);
 #endif
 }
@@ -74,8 +74,10 @@ void Downloader::stopDownload()
 	if (nullptr != mThread)
 	{
 		mThreadRunning = false;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		mThread->join();
 		delete mThread;
+#endif
 		mThread = nullptr;
 	}
 

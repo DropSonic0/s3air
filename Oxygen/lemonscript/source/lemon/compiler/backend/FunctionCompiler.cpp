@@ -409,12 +409,8 @@ namespace lemon
 					// First evaluate the condition
 					compileTokenTreeToOpcodes(*isn.mConditionToken);
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-					OpcodeBuilder& builder = openOpcodeBuilders.emplace_back(*this);
-#else
 					openOpcodeBuilders.push_back(OpcodeBuilder(*this));
 					OpcodeBuilder& builder = openOpcodeBuilders.back();
-#endif
 					builder.beginIf();
 					{
 						// Compile if-block content

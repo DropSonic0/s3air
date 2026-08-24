@@ -226,7 +226,7 @@ void TimeAttackMenu::update(float timeElapsed)
 			mBestTimes.reserve(timeAttackTable->mEntries.size());
 			for (auto& entry : timeAttackTable->mEntries)
 			{
-				mBestTimes.emplace_back(TimeAttackData::getTimeString(entry.mTime, 1));
+				mBestTimes.push_back(TimeAttackData::getTimeString(entry.mTime, 1));
 			}
 		}
 	}

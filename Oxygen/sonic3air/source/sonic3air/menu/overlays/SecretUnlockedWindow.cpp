@@ -142,7 +142,7 @@ void SecretUnlockedWindow::show(EntryType entryType, const std::string& title, c
 	else
 	{
 		// Enqueue entry
-		mEnqueuedEntries.emplace_back(newEntry);
+		mEnqueuedEntries.push_back(newEntry);
 	}
 }
 

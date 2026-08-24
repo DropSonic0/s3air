@@ -93,7 +93,7 @@ void Profiling::nextFrame(int simulationFrameNumber)
 		const double lastTime = region->mTimer.getAccumulatedSecondsAndRestart();	// For root timer (which is usually still running), this will perform a stop and immediate restart
 		while (region->mFrameTimes.size() >= MAX_FRAMES)
 			region->mFrameTimes.pop_front();
-		region->mFrameTimes.emplace_back();
+		region->mFrameTimes.push_back(Region::Frame());
 		Region::Frame& frame = region->mFrameTimes.back();
 		frame.mInclusiveTime = lastTime;
 		frame.mExclusiveTime = lastTime;
@@ -113,7 +113,7 @@ void Profiling::nextFrame(int simulationFrameNumber)
 	const PerFrameData& oldData = mAdditionalData.mFrames.empty() ? dummy : mAdditionalData.mFrames.back();
 	while (mAdditionalData.mFrames.size() >= MAX_FRAMES)
 		mAdditionalData.mFrames.pop_front();
-	mAdditionalData.mFrames.emplace_back();
+	mAdditionalData.mFrames.push_back(PerFrameData());
 	PerFrameData& data = mAdditionalData.mFrames.back();
 	data.mSimulationFrameNumber = simulationFrameNumber;
 	data.mNumSimulationFrames = simulationFrameNumber - oldData.mSimulationFrameNumber;
@@ -162,7 +162,7 @@ void Profiling::listRegionsRecursiveInternal(std::vector<std::pair<Region*, int>
 {
 	for (Region* child : parent.mChildren)
 	{
-		outRegions.emplace_back(child, level);
+		outRegions.push_back(std::make_pair(child, level));
 		listRegionsRecursiveInternal(outRegions, *child, level + 1);
 	}
 }

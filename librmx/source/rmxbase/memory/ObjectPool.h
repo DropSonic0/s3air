@@ -210,6 +210,7 @@ protected:
 		return item.mObject;
 	}
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	template<typename A>
 	T& createObject(A&& a)
 	{
@@ -293,6 +294,61 @@ protected:
 		// Done
 		return item.mObject;
 	}
+#else
+	template<typename A>
+	T& createObject(const A& a)
+	{
+		Item& item = allocItem();
+		new (static_cast<void*>(&item.mObject)) T(a);
+		item.mIsConstructed = true;
+		return item.mObject;
+	}
+
+	template<typename A, typename B>
+	T& createObject(const A& a, const B& b)
+	{
+		Item& item = allocItem();
+		new (static_cast<void*>(&item.mObject)) T(a, b);
+		item.mIsConstructed = true;
+		return item.mObject;
+	}
+
+	template<typename A, typename B, typename C>
+	T& createObject(const A& a, const B& b, const C& c)
+	{
+		Item& item = allocItem();
+		new (static_cast<void*>(&item.mObject)) T(a, b, c);
+		item.mIsConstructed = true;
+		return item.mObject;
+	}
+
+	template<typename A, typename B, typename C, typename D>
+	T& createObject(const A& a, const B& b, const C& c, const D& d)
+	{
+		Item& item = allocItem();
+		new (static_cast<void*>(&item.mObject)) T(a, b, c, d);
+		item.mIsConstructed = true;
+		return item.mObject;
+	}
+
+	template<typename A, typename B, typename C, typename D, typename E>
+	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e)
+	{
+		Item& item = allocItem();
+		new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e);
+		item.mIsConstructed = true;
+		return item.mObject;
+	}
+
+	template<typename A, typename B, typename C, typename D, typename E, typename F>
+	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e, const F& f)
+	{
+		Item& item = allocItem();
+		new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e, f);
+		item.mIsConstructed = true;
+		return item.mObject;
+	}
+#endif
 
 	inline void destroyObject(T& object)
 	{

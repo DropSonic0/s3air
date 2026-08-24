@@ -199,7 +199,7 @@ bool NetplayClient::onReceivedPacket(ReceivedPacketEvaluation& evaluation)
 
 			for (int k = 0; k < (int)numFramesToCopy; ++k)
 			{
-				mReceivedFrames.emplace_back();
+				mReceivedFrames.push_back(ReceivedFrame());
 				ReceivedFrame& newFrame = mReceivedFrames.back();
 				const uint16* input = &packet.mInputs[packet.mNumPlayers * (packet.mNumFrames - numFramesToCopy + k)];
 				for (int playerIndex = 0; playerIndex < std::min<int>(packet.mNumPlayers, MAX_PLAYERS); ++playerIndex)

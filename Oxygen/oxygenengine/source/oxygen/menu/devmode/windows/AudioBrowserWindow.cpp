@@ -1,4 +1,4 @@
-﻿/*
+/*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
 *	Copyright (C) 2017-2026 by Eukaryot
 *
@@ -50,7 +50,7 @@ void AudioBrowserWindow::buildContent()
 		const auto& audioDefinitions = audioCollection.getAudioDefinitions();
 		for (const auto& [key, audioDefinition] : audioDefinitions)
 		{
-			mAudioDefinitions.emplace_back(&audioDefinition);
+			mAudioDefinitions.push_back(&audioDefinition);
 		}
 
 		std::sort(mAudioDefinitions.begin(), mAudioDefinitions.end(),

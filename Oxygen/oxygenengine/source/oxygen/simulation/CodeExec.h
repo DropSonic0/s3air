@@ -86,11 +86,7 @@ public:
 		lemon::Runtime::FunctionCallParameters mParams;
 		uint64 mReturnValueStorage = 0;
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
 		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.push_back(lemon::Runtime::FunctionCallParameters::Parameter(dataType, storageValue)); }
-#else
-		inline void addParam(const lemon::DataTypeDefinition& dataType, uint64 storageValue)  { mParams.mParams.emplace_back(dataType, storageValue); }
-#endif
 	};
 
 public:

@@ -94,7 +94,7 @@ void RawDataCollection::loadRawDataInDirectory(const std::wstring& path, bool is
 			if (!entryJson["RomInject"].isNull())
 			{
 				rawData->mRomInjectAddress = (uint32)rmx::parseInteger(entryJson["RomInject"].asCString());
-				mRomInjections.emplace_back(rawData);
+				mRomInjections.push_back(rawData);
 			}
 		}
 	}

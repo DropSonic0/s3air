@@ -846,11 +846,7 @@ void GameView::setStillImageMode(StillImageMode mode, float timeout)
 
 void GameView::addScreenHighlightRect(const Recti& rect, const Color& color)
 {
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
 	mScreenHighlightRects.push_back(std::make_pair(rect, color));
-#else
-	mScreenHighlightRects.emplace_back(rect, color);
-#endif
 }
 
 void GameView::setLogDisplay(const String& string, float time)

@@ -13,6 +13,8 @@
 #include "oxygen/rendering/opengl/shaders/OpenGLShader.h"
 
 
+OpenGLShader* OpenGLShader::mLastUsedShader = nullptr;
+
 void OpenGLShader::resetLastUsedShader()
 {
 	mLastUsedShader = nullptr;

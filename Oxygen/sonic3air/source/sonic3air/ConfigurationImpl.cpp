@@ -43,7 +43,7 @@ void ConfigurationImpl::fillDefaultGameProfile(GameProfile& gameProfile)
 	gameProfile.mRomInfos[0].mSteamGameName = "Sonic 3 & Knuckles";
 	gameProfile.mRomInfos[0].mSteamRomName = L"Sonic_Knuckles_wSonic3.bin";
 	gameProfile.mRomInfos[0].mOverwrites.clear();
-	gameProfile.mRomInfos[0].mOverwrites.emplace_back(0x2001f0, 0x4a);
+	gameProfile.mRomInfos[0].mOverwrites.push_back(std::make_pair(0x2001f0, 0x4a));
 }
 
 ConfigurationImpl::ConfigurationImpl()

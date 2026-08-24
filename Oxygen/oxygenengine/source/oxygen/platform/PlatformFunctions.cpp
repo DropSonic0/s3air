@@ -11,7 +11,9 @@
 #include "oxygen/helper/HighResolutionTimer.h"
 #include "oxygen/helper/Logging.h"
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <thread>
+#endif
 
 #ifdef PLATFORM_WINDOWS
 	#include <CleanWindowsInclude.h>
@@ -152,6 +154,7 @@ namespace
 	}
 #endif
 
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
 	WString lookForROMFileInSearchPaths(const std::vector<WString>& searchPaths, const WString& localPath)
 	{
 		for (const WString& searchPath : searchPaths)
@@ -168,6 +171,7 @@ namespace
 		}
 		return WString();
 	}
+#endif
 }
 
 
@@ -187,7 +191,9 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		if (timeLeft <= 0.0)
 			break;
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		const double sleepTimeLeft = timeLeft - timerGranularity;
+#endif
 
 		// Don't spin on mobile platforms, accept some imprecision to avoid battery drain
 		#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MACOS) || defined(PLATFORM_LINUX)
@@ -215,6 +221,7 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		}
 		#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		// Is the remaining time rounded down to full milliseconds above the timer granularity?
 		if (sleepTimeLeft >= 1.0)
 		{
@@ -226,6 +233,7 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 			// Yield the thread if below granularity
 			std::this_thread::yield();
 		}
+#endif
 	}
 }
 
@@ -294,7 +302,7 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 				++pos;
 
 			// Get part as string
-			parts.emplace_back(path.substr(start, pos-start));
+			parts.push_back(path.substr(start, pos-start));
 		}
 
 		for (size_t index = 0; index < parts.size(); ++index)

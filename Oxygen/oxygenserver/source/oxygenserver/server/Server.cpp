@@ -66,9 +66,9 @@ void Server::runServer()
 	// Prepare cached data
 	{
 		// Fill in available features
-		mCachedServerFeaturesRequest.mResponse.mFeatures.emplace_back(network::GetServerFeaturesRequest::Response::Feature("app-update-check", 1, 1));
-		mCachedServerFeaturesRequest.mResponse.mFeatures.emplace_back(network::GetServerFeaturesRequest::Response::Feature("channel-broadcasting", 1, 1));
-		mCachedServerFeaturesRequest.mResponse.mFeatures.emplace_back(network::GetServerFeaturesRequest::Response::Feature("query-external-address", 1, 1));
+		mCachedServerFeaturesRequest.mResponse.mFeatures.push_back(network::GetServerFeaturesRequest::Response::Feature("app-update-check", 1, 1));
+		mCachedServerFeaturesRequest.mResponse.mFeatures.push_back(network::GetServerFeaturesRequest::Response::Feature("channel-broadcasting", 1, 1));
+		mCachedServerFeaturesRequest.mResponse.mFeatures.push_back(network::GetServerFeaturesRequest::Response::Feature("query-external-address", 1, 1));
 	}
 
 	// Setup sub-systems

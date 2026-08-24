@@ -53,7 +53,7 @@ namespace
 		constexpr int SAMPLE_INDEX_G = 1;
 		constexpr int SAMPLE_INDEX_B = SWAP_RED_BLUE ? 0 : 2;
 
-		if constexpr (BILINEAR_SAMPLING)
+		if (BILINEAR_SAMPLING)
 		{
 			currentUV.x -= 0.5f / scaleUV.x;
 			currentUV.y -= 0.5f / scaleUV.y;
@@ -64,7 +64,7 @@ namespace
 			const float u = currentUV.x - std::floor(currentUV.x);
 			const float v = currentUV.y - std::floor(currentUV.y);
 
-			if constexpr (BILINEAR_SAMPLING)
+			if (BILINEAR_SAMPLING)
 			{
 				// Bilinear sampling
 				// TODO: There's certainly room for optimizations here
@@ -84,18 +84,18 @@ namespace
 				float g = ((float)sample00[SAMPLE_INDEX_G] * (1.0f - factorX) + (float)sample10[SAMPLE_INDEX_G] * factorX) * (1.0f - factorY) + ((float)sample01[SAMPLE_INDEX_G] * (1.0f - factorX) + (float)sample11[SAMPLE_INDEX_G] * factorX) * factorY;
 				float b = ((float)sample00[SAMPLE_INDEX_B] * (1.0f - factorX) + (float)sample10[SAMPLE_INDEX_B] * factorX) * (1.0f - factorY) + ((float)sample01[SAMPLE_INDEX_B] * (1.0f - factorX) + (float)sample11[SAMPLE_INDEX_B] * factorX) * factorY;
 
-				if constexpr (USE_COLORS)
+				if (USE_COLORS)
 				{
 					r *= currentColor.r;
 					g *= currentColor.g;
 					b *= currentColor.b;
 				}
 
-				if constexpr (ALPHA_BLENDING)
+				if (ALPHA_BLENDING)
 				{
 					float a = ((float)sample00[3] * (1.0f - factorX) + (float)sample10[3] * factorX) * (1.0f - factorY) + ((float)sample01[3] * (1.0f - factorX) + (float)sample11[3] * factorX) * factorY;
 
-					if constexpr (USE_COLORS)
+					if (USE_COLORS)
 					{
 						a *= currentColor.a;
 					}
@@ -121,12 +121,12 @@ namespace
 				const int sampleX = (int)std::floor(u * scaleUV.x);
 				const int sampleY = (int)std::floor(v * scaleUV.y);
 
-				if constexpr (ALPHA_BLENDING)
+				if (ALPHA_BLENDING)
 				{
 					// Alpha blending
 					const uint8* sample = (const uint8*)texture.getPixelPointer(sampleX, sampleY);
 
-					if constexpr (USE_COLORS)
+					if (USE_COLORS)
 					{
 						const float multiplierA = (float)sample[3] / 255.0f * currentColor.a;
 						const float multiplierB = 1.0f - multiplierA;
@@ -152,7 +152,7 @@ namespace
 					// No blending
 					const uint32 texColor = texture.getPixel(sampleX, sampleY);
 
-					if constexpr (USE_COLORS)
+					if (USE_COLORS)
 					{
 						const uint8* sample = (const uint8*)texture.getPixelPointer(sampleX, sampleY);
 
@@ -163,7 +163,7 @@ namespace
 					}
 					else
 					{
-						if constexpr (SWAP_RED_BLUE)
+						if (SWAP_RED_BLUE)
 						{
 							*reinterpret_cast<uint32*>(output) = (texColor & 0x00ff00) | ((texColor & 0xff0000) >> 16) | ((texColor & 0x0000ff) << 16) | 0xff000000;
 						}
@@ -178,7 +178,7 @@ namespace
 			output += 4;
 			currentUV += diffUV;
 
-			if constexpr (USE_COLORS == 2)
+			if (USE_COLORS == 2)
 			{
 				for (int k = 0; k < 4; ++k)
 				{
@@ -232,7 +232,7 @@ namespace
 	{
 		for (int x = 0; x < numPixels; ++x)
 		{
-			if constexpr (ALPHA_BLENDING)
+			if (ALPHA_BLENDING)
 			{
 				const uint32 texColor = currentColor.getABGR32();
 

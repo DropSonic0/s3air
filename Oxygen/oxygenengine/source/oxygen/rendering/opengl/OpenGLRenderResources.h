@@ -53,7 +53,7 @@ private:
 
 	// Planes
 	BufferTexture mPlanePatternsTexture[4];
-	uint16 mPlanePatternsData[4][0x1000] = { 0 };	// Cache of last uploaded data, to be able to make comparisons
+	uint16 mPlanePatternsData[4][0x1000] = {{ 0 }};	// Cache of last uploaded data, to be able to make comparisons
 
 	// Scrolling
 	BufferTexture mHScrollOffsetsTexture[4];	// First two are for the planes, the others are used for certain effects that require an additional set of scroll offsets

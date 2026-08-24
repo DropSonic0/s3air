@@ -31,8 +31,8 @@ void ScrollOffsetsManager::reset()
 
 	for (int index = 0; index < 4; ++index)
 	{
-		mSets[index] = { 0 };
-		mInterpolatedSets[index] = { 0 };
+		memset(&mSets[index], 0, sizeof(mSets[index]));
+		memset(&mInterpolatedSets[index], 0, sizeof(mInterpolatedSets[index]));
 	}
 }
 

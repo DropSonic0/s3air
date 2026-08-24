@@ -150,7 +150,7 @@ bool JsonSerializer::serializeArray(const char* key, std::vector<std::string>& v
 		{
 			if (!jsonArray[k].isString())
 				return false;
-			value.emplace_back(jsonArray[k].asString());
+			value.push_back(jsonArray[k].asString());
 		}
 	}
 	else

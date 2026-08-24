@@ -38,7 +38,7 @@ namespace
 		ConfigBuilder& addOption(std::string_view name, uint32 value)
 		{
 			OptionsConfig::Setting& setting = mOptionsTab.mCategories.back().mSettings.back();
-			setting.mOptions.emplace_back(name, value);
+			setting.mOptions.push_back(OptionsConfig::Setting::Option(name, value));
 			return *this;
 		}
 
@@ -46,7 +46,7 @@ namespace
 		{
 			OptionsConfig::Setting& setting = mOptionsTab.mCategories.back().mSettings.back();
 			for (int value = minValue; value <= maxValue; value += step)
-				setting.mOptions.emplace_back(std::to_string(value) + postfix, value);
+				setting.mOptions.push_back(OptionsConfig::Setting::Option(std::to_string(value) + postfix, value));
 			return *this;
 		}
 

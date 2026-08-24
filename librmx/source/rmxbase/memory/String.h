@@ -277,9 +277,7 @@ public:
 	std::string toStdString() const;
 	std::wstring toStdWString() const;
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	operator const std::string_view() const  { return std::string_view(mData, mLength); }
-#endif
 };
 
 
@@ -313,9 +311,7 @@ public:
 	std::string toStdString() const;
 	std::wstring toStdWString() const;
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	operator const std::wstring_view() const  { return std::wstring_view(mData, mLength); }
-#endif
 
 	void fromUTF8(const char* str, size_t length);
 	void fromUTF8(const String& str);

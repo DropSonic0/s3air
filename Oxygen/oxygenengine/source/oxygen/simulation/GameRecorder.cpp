@@ -374,8 +374,13 @@ bool GameRecorder::serializeRecording(VectorBinarySerializer& serializer, uint32
 						int size = 0;
 						uint8* decoded = Deflate::decode(size, (void*)&frame->mData[0], (uint32)frame->mData.size());
 						frame->mData.resize(size);
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 						frame->mData.shrink_to_fit();
-						memcpy(frame->mData.data(), decoded, size);
+#endif
+						if (size > 0)
+						{
+							memcpy(&frame->mData[0], decoded, size);
+						}
 						delete[] decoded;
 					}
 				}
@@ -388,7 +393,9 @@ bool GameRecorder::serializeRecording(VectorBinarySerializer& serializer, uint32
 					buffer.clear();
 					ZlibDeflate::encode(buffer, &frame->mData[0], frame->mData.size());
 					frame->mData.swap(buffer);
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 					frame->mData.shrink_to_fit();
+#endif
 					frame->mCompressedData = true;
 				}
 

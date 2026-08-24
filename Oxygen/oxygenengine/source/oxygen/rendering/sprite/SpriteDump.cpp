@@ -195,7 +195,7 @@ void SpriteDump::saveSpriteAtlas(std::string_view categoryName)
 			if (FTX::FileSystem->readFile(*filename, buffer))
 			{
 				// Add bitmap
-				bitmaps.emplace_back(PaletteBitmap(), &entry);
+				bitmaps.push_back(std::make_pair(PaletteBitmap(), &entry));
 				PaletteBitmap& bitmap = bitmaps.back().first;
 				if (bitmap.loadBMP(buffer, &palette))
 				{

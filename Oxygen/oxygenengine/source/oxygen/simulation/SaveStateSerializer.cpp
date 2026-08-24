@@ -29,6 +29,8 @@ namespace
 }
 
 
+uint32 SaveStateSerializer::mLastReadPC = 0;
+
 SaveStateSerializer::SaveStateSerializer(Simulation& simulation, RenderParts& renderParts) :
 	mSimulation(simulation),
 	mCodeExec(simulation.getCodeExec()),

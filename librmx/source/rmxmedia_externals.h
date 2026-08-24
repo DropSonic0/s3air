@@ -357,7 +357,12 @@
 	#define SDLK_LEFT 1048
 	#define SDLK_RIGHT 1049
 
-	#define KMOD_SHIFT 0x0001
+	#define KMOD_LSHIFT 0x0001
+	#define KMOD_RSHIFT 0x0002
+	#define KMOD_LCTRL  0x0040
+	#define KMOD_RCTRL  0x0080
+	#define KMOD_CTRL   (KMOD_LCTRL | KMOD_RCTRL)
+	#define KMOD_SHIFT  (KMOD_LSHIFT | KMOD_RSHIFT)
 	static inline int SDL_GetModState() { return 0; }
 
 	#define SDL_INIT_JOYSTICK 0
@@ -398,6 +403,7 @@
 	static inline int SDL_GetNumTouchFingers(SDL_TouchID) { return 0; }
 	static inline const SDL_Finger* SDL_GetTouchFinger(SDL_TouchID, int) { return nullptr; }
 
+	typedef int SDL_bool;
 	#define SDL_TRUE 1
 	#define SDL_FALSE 0
 	#define SDL_WINDOW_FULLSCREEN_DESKTOP 0
@@ -435,6 +441,39 @@
 	static inline int SDL_GetNumAudioDevices(int) { return 0; }
 	static inline const char* SDL_GetAudioDeviceName(int, int) { return nullptr; }
 	static inline const char* SDL_GetError() { return ""; }
+
+	#define SDL_arraysize(array) (sizeof(array) / sizeof((array)[0]))
+
+	#define SDL_MESSAGEBOX_ERROR 0x00000010
+	#define SDL_MESSAGEBOX_WARNING 0x00000020
+	#define SDL_MESSAGEBOX_INFORMATION 0x00000040
+
+	#define SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT 0x00000001
+	#define SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT 0x00000002
+
+	typedef struct SDL_MessageBoxButtonData {
+		uint32_t flags;
+		int buttonid;
+		const char* text;
+	} SDL_MessageBoxButtonData;
+
+	typedef struct SDL_MessageBoxData {
+		uint32_t flags;
+		SDL_Window* window;
+		const char* title;
+		const char* message;
+		int numbuttons;
+		const SDL_MessageBoxButtonData* buttons;
+		void* colorScheme;
+	} SDL_MessageBoxData;
+
+	static inline int SDL_ShowSimpleMessageBox(uint32_t, const char*, const char*, SDL_Window*) { return 0; }
+	static inline int SDL_ShowMessageBox(const SDL_MessageBoxData*, int*) { return 0; }
+
+	static inline int SDL_SetClipboardText(const char*) { return -1; }
+	static inline char* SDL_GetClipboardText() { return nullptr; }
+	static inline SDL_bool SDL_HasClipboardText() { return SDL_FALSE; }
+	static inline void SDL_free(void*) {}
 	static inline void SDL_CloseAudioDevice(int) {}
 	static inline void SDL_PauseAudioDevice(int, int) {}
 	typedef int SDL_AudioStatus;
@@ -469,12 +508,26 @@
 	typedef unsigned char GLboolean;
 	typedef unsigned int GLbitfield;
 	
+	#define GL_TRIANGLES 0x0004
 	#define GL_RGB8 0
 	#define GL_RGBA8 0
 	#define GL_DEPTH_COMPONENT 0
 	#define GL_TEXTURE_2D 0
-	#define GL_TEXTURE0 0
+	#define GL_TEXTURE0 0x84C0
+	#define GL_TEXTURE1 0x84C1
+	#define GL_TEXTURE2 0x84C2
+	#define GL_TEXTURE3 0x84C3
+	#define GL_TEXTURE4 0x84C4
+	#define GL_TEXTURE5 0x84C5
+	#define GL_TEXTURE6 0x84C6
+	#define GL_TEXTURE7 0x84C7
+	#define GL_TEXTURE_BUFFER 0x8C2A
+	#define GL_LUMINANCE 0x1909
+	#define GL_R8UI 0x8232
+	#define GL_R16I 0x8233
+	#define GL_R16UI 0x8234
 	
+	static inline void glTexBuffer(unsigned int, unsigned int, unsigned int) {}
 	static inline void glEnable(unsigned int) {}
 	static inline void glDisable(unsigned int) {}
 	static inline void glViewport(int, int, int, int) {}
@@ -486,12 +539,61 @@
 	#define SDL_WINDOW_RESIZABLE 0
 	#define SDL_WINDOWPOS_CENTERED_DISPLAY(x) 0
 	
+	typedef struct SDL_PixelFormat {
+		uint32_t format;
+	} SDL_PixelFormat;
+
 	typedef struct SDL_Surface {
+		SDL_PixelFormat* format;
 		int w;
 		int h;
 		int pitch;
 		void* pixels;
 	} SDL_Surface;
+
+	#define SDL_PIXELFORMAT_UNKNOWN 0
+	#define SDL_PIXELFORMAT_INDEX1LSB 1
+	#define SDL_PIXELFORMAT_INDEX1MSB 2
+	#define SDL_PIXELFORMAT_INDEX4LSB 3
+	#define SDL_PIXELFORMAT_INDEX4MSB 4
+	#define SDL_PIXELFORMAT_INDEX8 5
+	#define SDL_PIXELFORMAT_RGB332 6
+	#define SDL_PIXELFORMAT_RGB444 7
+	#define SDL_PIXELFORMAT_RGB555 8
+	#define SDL_PIXELFORMAT_BGR555 9
+	#define SDL_PIXELFORMAT_ARGB4444 10
+	#define SDL_PIXELFORMAT_RGBA4444 11
+	#define SDL_PIXELFORMAT_ABGR4444 12
+	#define SDL_PIXELFORMAT_BGRA4444 13
+	#define SDL_PIXELFORMAT_ARGB1555 14
+	#define SDL_PIXELFORMAT_RGBA5551 15
+	#define SDL_PIXELFORMAT_ABGR1555 16
+	#define SDL_PIXELFORMAT_BGRA5551 17
+	#define SDL_PIXELFORMAT_RGB565 18
+	#define SDL_PIXELFORMAT_BGR565 19
+	#define SDL_PIXELFORMAT_RGB24 20
+	#define SDL_PIXELFORMAT_BGR24 21
+	#define SDL_PIXELFORMAT_RGB888 22
+	#define SDL_PIXELFORMAT_RGBX8888 23
+	#define SDL_PIXELFORMAT_BGR888 24
+	#define SDL_PIXELFORMAT_BGRX8888 25
+	#define SDL_PIXELFORMAT_ARGB8888 26
+	#define SDL_PIXELFORMAT_RGBA8888 27
+	#define SDL_PIXELFORMAT_ABGR8888 28
+	#define SDL_PIXELFORMAT_BGRA8888 29
+	#define SDL_PIXELFORMAT_ARGB2101010 30
+	#define SDL_PIXELFORMAT_YV12 31
+	#define SDL_PIXELFORMAT_IYUV 32
+	#define SDL_PIXELFORMAT_YUY2 33
+	#define SDL_PIXELFORMAT_UYVY 34
+	#define SDL_PIXELFORMAT_YVYU 35
+	#define SDL_PIXELFORMAT_NV12 36
+	#define SDL_PIXELFORMAT_NV21 37
+
+	static inline SDL_Surface* SDL_GetWindowSurface(SDL_Window*) { return nullptr; }
+	static inline int SDL_LockSurface(SDL_Surface*) { return 0; }
+	static inline void SDL_UnlockSurface(SDL_Surface*) {}
+	static inline int SDL_UpdateWindowSurface(SDL_Window*) { return 0; }
 	
 	static inline void SDL_DestroyWindow(SDL_Window*) {}
 	static inline SDL_Window* SDL_CreateWindow(const char*, int, int, int, int, unsigned int) { return nullptr; }
@@ -522,7 +624,27 @@
 	#define GL_RGBA 0
 	#define GL_UNSIGNED_BYTE 0
 	
+	#define GL_FUNC_ADD 0x8006
+	#define GL_FUNC_REVERSE_SUBTRACT 0x800B
+	#define GL_DST_COLOR 0x0306
+	#define GL_MIN 0x8007
+	#define GL_MAX 0x8008
+
+	static inline void glBlendEquation(unsigned int) {}
 	static inline void glBlendFunc(unsigned int, unsigned int) {}
+	#define GL_DEPTH_ATTACHMENT 0x8D00
+	#define GL_DEPTH_TEST 0x0B71
+	#define GL_FRAMEBUFFER_BINDING 0x8CA6
+	#define GL_VIEWPORT 0x0BA2
+	#define GL_ALWAYS 0x0207
+	#define GL_GEQUAL 0x0206
+
+	static inline void glClearColor(float, float, float, float) {}
+	static inline void glClearDepth(double) {}
+	static inline void glDepthRange(double, double) {}
+	static inline void glDepthMask(unsigned char) {}
+	static inline void glDepthFunc(unsigned int) {}
+	static inline void glGetIntegerv(unsigned int, int*) {}
 	static inline void glClear(unsigned int) {}
 	static inline void glReadPixels(int, int, int, int, unsigned int, unsigned int, void*) {}
 	
@@ -530,6 +652,7 @@
 	#define GL_RENDERBUFFER 0
 	#define GL_FRAMEBUFFER 0
 	#define GL_FRAMEBUFFER_COMPLETE 0
+	#define GL_COLOR_ATTACHMENT0 0x8CE0
 	
 	// OpenGL Error constants (with unique values to prevent case label collisions)
 	#define GL_NONE 100
@@ -619,6 +742,7 @@
 	static inline void glTexSubImage2D(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*) {}
 	static inline void glCopyTexImage2D(unsigned int, int, unsigned int, int, int, int, int, int) {}
 	static inline void glTexParameteri(unsigned int, unsigned int, int) {}
+	static inline void glGetTexImage(unsigned int, int, unsigned int, unsigned int, void*) {}
 	static inline void glGenerateMipmap(unsigned int) {}
 
 	// VertexArrayObject OpenGL stubs and constants
@@ -638,6 +762,7 @@
 	static inline void glBindVertexArray(unsigned int) {}
 	static inline void glBindBuffer(unsigned int, unsigned int) {}
 	static inline void glBufferData(unsigned int, long, const void*, unsigned int) {}
+	static inline void glBufferSubData(unsigned int, long, long, const void*) {}
 	static inline void glDrawArrays(unsigned int, int, int) {}
 	static inline void glVertexAttribPointer(unsigned int, int, unsigned int, unsigned char, int, const void*) {}
 	static inline void glEnableVertexAttribArray(unsigned int) {}

@@ -216,7 +216,7 @@ struct ZipFileProvDetail
 				if (nullptr != customData)
 				{
 					ZipFileProvider::ContainedFile& containedFile = *(ZipFileProvider::ContainedFile*)customData;
-					outFileEntries.emplace_back(containedFile.mFileEntry);
+					outFileEntries.push_back(containedFile.mFileEntry);
 				}
 			}
 		}

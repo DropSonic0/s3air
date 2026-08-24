@@ -155,7 +155,7 @@ void PlayerRecorder::initRecording(const std::wstring& filename, uint16 zoneAndA
 		const uint32 value = ConfigurationImpl::instance().mActiveGameSettings->getValue(pair.first);
 		if (setting.mSerializationType != SharedDatabase::Setting::SerializationType::NONE && value != setting.mDefaultValue)
 		{
-			mCurrentRecording.mSettings.emplace_back(pair.first, value);
+			mCurrentRecording.mSettings.push_back(std::make_pair(pair.first, value));
 		}
 	}
 }
@@ -304,7 +304,7 @@ void PlayerRecorder::updateRecording(Recording& recording, uint16 frameNumber)
 	{
 		EmulatorInterface& emulatorInterface = *mEmulatorInterface;
 
-		recording.mFrames.emplace_back();
+		recording.mFrames.push_back(Recording::Frame());
 		Frame& frame = recording.mFrames.back();
 
 		// Collect data

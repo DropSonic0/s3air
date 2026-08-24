@@ -26,7 +26,7 @@ public:
 	};
 
 public:
-	static inline uint32 mLastReadPC = 0;		// Only relevant after reading a Gensx emulator save state
+	static uint32 mLastReadPC;		// Only relevant after reading a Gensx emulator save state
 
 public:
 	SaveStateSerializer(Simulation& simulation, RenderParts& renderParts);

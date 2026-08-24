@@ -344,12 +344,12 @@ LemonScriptProgram::LoadingResult LemonScriptProgram::loadAllScriptModules(const
 			if (mInternal.mScriptModule.getScriptBasePath().empty())
 			{
 				// TODO: Make this more generic, and especially less specific for S3AIR
-				const std::vector<std::wstring> candidatePaths = { L"./scripts/", L"./bonus/sonic3air_dev/scripts/" };
-				for (const std::wstring& candidate : candidatePaths)
+				static const wchar_t* candidatePaths[] = { L"./scripts/", L"./bonus/sonic3air_dev/scripts/" };
+				for (size_t i = 0; i < sizeof(candidatePaths) / sizeof(candidatePaths[0]); ++i)
 				{
-					if (FTX::FileSystem->exists(candidate + L"main.lemon"))
+					if (FTX::FileSystem->exists(std::wstring(candidatePaths[i]) + L"main.lemon"))
 					{
-						mInternal.mScriptModule.setScriptBasePath(candidate);
+						mInternal.mScriptModule.setScriptBasePath(candidatePaths[i]);
 						break;
 					}
 				}
@@ -477,16 +477,20 @@ LemonScriptProgram::LoadingResult LemonScriptProgram::loadScriptModule(lemon::Mo
 	//options.mOutputTranslatedSource = L"output.cpp";			// For testing translation
 	lemon::Compiler compiler(module, globalsLookup, options);
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	try
+#endif
 	{
 		const bool compileSuccess = compiler.loadScript(filename);
 		if (compileSuccess || compiler.getErrors().empty())
 			return LoadingResult::SUCCESS;
 	}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	catch (...)
 	{
 		RMX_ERROR("Script compilation failed due to an unhandled exception", );
 	}
+#endif
 
 	for (const lemon::Compiler::ErrorMessage& error : compiler.getErrors())
 	{

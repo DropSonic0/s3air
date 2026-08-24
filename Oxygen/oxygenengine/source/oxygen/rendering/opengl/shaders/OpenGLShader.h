@@ -24,7 +24,7 @@ protected:
 	static int splitRectY(const Recti& inputRect, int splitY, Recti* outputRects);
 
 protected:
-	static inline OpenGLShader* mLastUsedShader = nullptr;
+	static OpenGLShader* mLastUsedShader;
 
 protected:
 	Shader mShader;

@@ -26,7 +26,7 @@ void DebugLogView::initialize()
 {
 	// Debug output font
 	mFont.setSize(15.0f);
-	mFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f)));
 }
 
 void DebugLogView::deinitialize()
