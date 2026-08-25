@@ -60,7 +60,7 @@ namespace lemon
 		void pushStackGeneric(R value, const NativeFunction::Context context)
 		{
 			context.mControlFlow.pushValueStack<R>(value);
-		};
+		}
 
 		template<typename T>
 		T popStackGeneric(const NativeFunction::Context context)
@@ -355,6 +355,9 @@ namespace lemon
 			static void call(R (*p)(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11), A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, const NativeFunction::Context context) {
 				pushStackGeneric(p(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11), context);
 			}
+				static void callCtx(R (*p)(const lemon::NativeFunction::Context*), const NativeFunction::Context context) {
+					pushStackGeneric(p(&context), context);
+				}
 			template<typename A1>
 			static void callCtx(R (*p)(const lemon::NativeFunction::Context*, A1), A1 a1, const NativeFunction::Context context) {
 				pushStackGeneric(p(&context, a1), context);
@@ -414,6 +417,9 @@ namespace lemon
 			static void call(void (*p)(A1, A2, A3, A4, A5, A6, A7, A8, A9, A10, A11), A1 a1, A2 a2, A3 a3, A4 a4, A5 a5, A6 a6, A7 a7, A8 a8, A9 a9, A10 a10, A11 a11, const NativeFunction::Context context) {
 				p(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
 			}
+				static void callCtx(void (*p)(const lemon::NativeFunction::Context*), const NativeFunction::Context context) {
+					p(&context);
+				}
 			template<typename A1>
 			static void callCtx(void (*p)(const lemon::NativeFunction::Context*, A1), A1 a1, const NativeFunction::Context context) {
 				p(&context, a1);
@@ -892,6 +898,21 @@ namespace lemon
 			}
 		};
 
+		// 0 script args + context
+		template<typename R>
+		class FunctionWrapper0Context : public NativeFunction::FunctionWrapper {
+			R(*mPointer)(const lemon::NativeFunction::Context*);
+		public:
+			explicit FunctionWrapper0Context(R(*pointer)(const lemon::NativeFunction::Context*)) : mPointer(pointer) {}
+			void execute(const NativeFunction::Context context) const override {
+				CallWrapper<R>::callCtx(mPointer, context);
+			}
+			virtual const DataTypeDefinition* getReturnType() const override { return traits::getDataType<R>(); }
+			virtual std::vector<const DataTypeDefinition*> getParameterTypes() const override {
+				return std::vector<const DataTypeDefinition*>();
+			}
+		};
+
 		// 1 script arg + context
 		template<typename R, typename A1>
 		class FunctionWrapper1Context : public NativeFunction::FunctionWrapper {
@@ -1229,6 +1250,12 @@ namespace lemon
 	template<typename A1, typename A2, typename A3>
 	static lemon::NativeFunction::FunctionWrapper& wrap(void(*pointer)(A1, A2, A3)) {
 		return *new internal::FunctionWrapper3Void<A1, A2, A3>(pointer);
+	}
+
+	// 0 script args + context
+	template<typename R>
+	static lemon::NativeFunction::FunctionWrapper& wrap(R(*pointer)(const lemon::NativeFunction::Context*)) {
+		return *new internal::FunctionWrapper0Context<R>(pointer);
 	}
 
 	// 1 script arg + context

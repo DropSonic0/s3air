@@ -17,12 +17,14 @@
 
 // [Added for Switch platform] HJW: I know it's sloppy to put this here... it'll get moved afterwards
 // Building with my env (msys2,gcc) requires this stub for some reason
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #ifndef pathconf
 long pathconf(const char* path, int name)
 {
 	errno = ENOSYS;
 	return -1;
 }
+#endif
 #endif
 
 #if defined(PLATFORM_WINDOWS) & !defined(__GNUC__)
@@ -87,7 +89,9 @@ int main(int argc, char** argv)
 	// Randomization is quite important for server communication
 	randomize();
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	try
+#endif
 	{
 		// Create engine delegate and engine main instance
 		EngineDelegate myDelegate;
@@ -110,10 +114,12 @@ int main(int argc, char** argv)
 		// Now run the game
 		myMain.execute();
 	}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	catch (const std::exception& e)
 	{
 		RMX_ERROR("Caught unhandled exception in main loop: " << e.what(), );
 	}
+#endif
 
 	return 0;
 }

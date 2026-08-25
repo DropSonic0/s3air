@@ -19,13 +19,17 @@ std::map<uint32, TimeAttackData::Table> TimeAttackData::mTables;
 
 namespace
 {
-	const std::map<uint8, std::string> REC_PATH_CHAR_NAMES =
+	const char* getRecPathCharName(uint8 category)
 	{
-		{ 0x10, "sonic" },
-		{ 0x11, "sonic_max" },
-		{ 0x20, "tails" },
-		{ 0x30, "knuckles" }
-	};
+		switch (category)
+		{
+			case 0x10: return "sonic";
+			case 0x11: return "sonic_max";
+			case 0x20: return "tails";
+			case 0x30: return "knuckles";
+			default:   return "";
+		}
+	}
 
 	uint32 makeKey(uint16 zoneAndAct, uint8 category)
 	{
@@ -104,7 +108,7 @@ std::wstring TimeAttackData::getSavePath(uint16 zoneAndAct, uint8 category, std:
 		return L"";
 
 	const std::string zoneAndActName = currentZone->mShortName + std::to_string((zoneAndAct & 0x01) + 1);
-	const std::string characterName = REC_PATH_CHAR_NAMES.at(category);
+	const std::string characterName = getRecPathCharName(category);
 
 	if (nullptr != outRecBaseFilename)
 	{

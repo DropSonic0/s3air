@@ -69,8 +69,8 @@ static inline int rmx_stat(const char* path, struct stat* buf)
 
 namespace rmx
 {
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-	std::error_code FileIO::mLastErrorCode;
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__)
+	int FileIO::mLastErrorCode = 0;
 #endif
 
 	namespace
@@ -277,6 +277,8 @@ namespace rmx
 		static FileNameCharacterValidityLookup mFileNameCharacterValidityLookup(false);
 		static FileNameCharacterValidityLookup mFilePathCharacterValidityLookup(true);
 
+		inline void clearErrorCode(std::error_code& ec)  { ec.clear(); }
+		inline void clearErrorCode(int& ec)               { ec = 0; }
 	}
 
 
@@ -315,7 +317,7 @@ namespace rmx
 
 	bool FileIO::getFileSize(std::wstring_view filename, uint64& outSize)
 	{
-		mLastErrorCode.clear();
+		clearErrorCode(mLastErrorCode);
 
 	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
 		const std_filesystem::path fspath(filename.data());
@@ -335,7 +337,7 @@ namespace rmx
 
 	bool FileIO::getFileTime(std::wstring_view filename, time_t& outTime)
 	{
-		mLastErrorCode.clear();
+		clearErrorCode(mLastErrorCode);
 
 	#if defined(USE_STD_FILESYSTEM)
 		const std_filesystem::path fspath(filename.data());
@@ -423,7 +425,7 @@ namespace rmx
 
 	bool FileIO::renameFile(const std::wstring& oldFilename, const std::wstring& newFilename)
 	{
-		mLastErrorCode.clear();
+		clearErrorCode(mLastErrorCode);
 
 	#if defined(USE_STD_FILESYSTEM)
 		const std_filesystem::path fspathOld(oldFilename.data());
@@ -438,7 +440,7 @@ namespace rmx
 
 	bool FileIO::renameDirectory(const std::wstring& oldFilename, const std::wstring& newFilename)
 	{
-		mLastErrorCode.clear();
+		clearErrorCode(mLastErrorCode);
 
 	#if defined(USE_STD_FILESYSTEM)
 		const std_filesystem::path fspathOld(oldFilename.data());
@@ -453,7 +455,7 @@ namespace rmx
 
 	bool FileIO::removeFile(std::wstring_view path)
 	{
-		mLastErrorCode.clear();
+		clearErrorCode(mLastErrorCode);
 
 	#if defined(USE_STD_FILESYSTEM)
 		const std_filesystem::path fspath(path);
@@ -467,7 +469,7 @@ namespace rmx
 
 	bool FileIO::removeDirectory(std::wstring_view path)
 	{
-		mLastErrorCode.clear();
+		clearErrorCode(mLastErrorCode);
 
 	#if defined(USE_STD_FILESYSTEM)
 		const std_filesystem::path fspath(path);

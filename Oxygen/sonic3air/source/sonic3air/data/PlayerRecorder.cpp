@@ -304,7 +304,7 @@ void PlayerRecorder::updateRecording(Recording& recording, uint16 frameNumber)
 	{
 		EmulatorInterface& emulatorInterface = *mEmulatorInterface;
 
-		recording.mFrames.push_back(Recording::Frame());
+		recording.mFrames.push_back(Frame());
 		Frame& frame = recording.mFrames.back();
 
 		// Collect data

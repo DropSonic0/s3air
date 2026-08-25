@@ -24,7 +24,11 @@ namespace rmx
 		FileSystem();
 		~FileSystem();
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__)
+		inline int getLastErrorCode() const  { return mLastErrorCode; }
+#else
 		inline const std::error_code& getLastErrorCode() const  { return mLastErrorCode; }
+#endif
 
 		bool exists(std::wstring_view filename);
 		bool isFile(std::wstring_view path);
@@ -99,7 +103,11 @@ namespace rmx
 		mutable std::wstring mTempPath;		// Only for temporary internal use
 		mutable std::wstring mTempPath2;	// Only for temporary internal use
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__)
+		int mLastErrorCode = 0;
+#else
 		std::error_code mLastErrorCode;
+#endif
 	};
 
 }

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|PS3">
@@ -116,7 +116,7 @@
     <ClCompile Include="..\..\..\..\..\..\framework\external\zlib\zlib\zutil.c" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_reader.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_value.cpp">
-      <OptimizationLevel>None</OptimizationLevel>
+      <OptimizationLevel>Level0</OptimizationLevel>
     </ClCompile>
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_writer.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\base\Basics.cpp" />

@@ -38,7 +38,7 @@ namespace
 		int mOptionId = 0;
 		bool mHideInGame = false;
 		bool mDependsOnSecret = false;
-		SharedDatabase::Secret::Type mSecret = (SharedDatabase::Secret::Type)0xff;
+		SharedDatabase::Secret::Type mSecret = (SharedDatabase::Secret::Type)255;
 
 		inline ConditionalOption(int optionId, bool hideInGame) : mOptionId(optionId), mHideInGame(hideInGame) {}
 		inline ConditionalOption(int optionId, bool hideInGame, SharedDatabase::Secret::Type secret) : mOptionId(optionId), mHideInGame(hideInGame), mDependsOnSecret(true), mSecret(secret) {}
@@ -56,7 +56,7 @@ namespace
 	// Hide certain options depending on:
 	//  - whether the options menu is opened from the pause menu (second parameter)
 	//  - and/or depending on secrets (third parameter)
-	static const std::vector<ConditionalOption> CONDITIONAL_OPTIONS =
+	static const ConditionalOption CONDITIONAL_OPTIONS[] =
 	{
 		ConditionalOption(option::SOUNDTRACK,				 true),
 		ConditionalOption(option::SOUNDTRACK_DOWNLOAD,		 true),
@@ -90,6 +90,11 @@ namespace
 		ConditionalOption(option::REGION,					 true),
 		ConditionalOption(option::GAME_SPEED,				 false, SharedDatabase::Secret::SECRET_GAME_SPEED)
 	};
+
+	static bool compareAudioDefinitions(const AudioCollection::AudioDefinition* a, const AudioCollection::AudioDefinition* b)
+	{
+		return a->mKeyString < b->mKeyString;
+	}
 }
 
 
@@ -254,17 +259,16 @@ OptionsMenu::OptionsMenu(MenuBackground& menuBackground) :
 
 	{
 		// Gather unlockable entries
-		const std::vector<option::Option> unlockables[2] =
+			static const option::Option unlockablesControls[] = { option::DROP_DASH, option::SUPER_PEELOUT };
+			static const option::Option unlockablesTweaks[]   = { option::DEBUG_MODE, option::TITLE_SCREEN, option::GAME_SPEED };
+
+			for (size_t i = 0; i < sizeof(unlockablesControls) / sizeof(unlockablesControls[0]); ++i)
 		{
-			{ option::DROP_DASH, option::SUPER_PEELOUT },						// Controls tab
-			{ option::DEBUG_MODE, option::TITLE_SCREEN, option::GAME_SPEED }	// Tweaks tab
-		};
-		for (int k = 0; k < 2; ++k)
-		{
-			for (option::Option unlockable : unlockables[k])
-			{
-				mUnlockedSecretsEntries[k].push_back(mOptionEntries[unlockable].mGameMenuEntry);
+				mUnlockedSecretsEntries[0].push_back(mOptionEntries[unlockablesControls[i]].mGameMenuEntry);
 			}
+			for (size_t i = 0; i < sizeof(unlockablesTweaks) / sizeof(unlockablesTweaks[0]); ++i)
+		{
+				mUnlockedSecretsEntries[1].push_back(mOptionEntries[unlockablesTweaks[i]].mGameMenuEntry);
 		}
 	}
 }
@@ -340,8 +344,9 @@ void OptionsMenu::initialize()
 		mSoundTestAudioDefinitions.clear();
 		const bool devModeEnabled = Configuration::instance().mDevMode.mEnabled;
 		const auto& audioDefinitions = AudioOut::instance().getAudioCollection().getAudioDefinitions();
-		for (const auto& [key, audioDefinition] : audioDefinitions)
+			for (auto it = audioDefinitions.begin(); it != audioDefinitions.end(); ++it)
 		{
+				const AudioCollection::AudioDefinition& audioDefinition = it->second;
 			bool visible = false;
 			const AudioCollection::AudioDefinition::Visibility visibility = audioDefinition.mSoundTestVisibility;
 			switch (visibility)
@@ -368,8 +373,7 @@ void OptionsMenu::initialize()
 			}
 		}
 
-		std::sort(mSoundTestAudioDefinitions.begin(), mSoundTestAudioDefinitions.end(),
-			[](const AudioCollection::AudioDefinition* a, const AudioCollection::AudioDefinition* b) { return a->mKeyString < b->mKeyString; });
+			std::sort(mSoundTestAudioDefinitions.begin(), mSoundTestAudioDefinitions.end(), compareAudioDefinitions);
 
 		GameMenuEntry& entry = *mOptionEntries[option::SOUND_TEST].mGameMenuEntry;
 		entry.mOptions.clear();
@@ -381,7 +385,7 @@ void OptionsMenu::initialize()
 	}
 
 	// Show or hide 3 and 4 player input settings
-	static_assert(InputManager::NUM_PLAYERS == 4);
+		static_assert(InputManager::NUM_PLAYERS == 4, "NUM_PLAYERS must be 4");
 	for (int playerIndex = 1; playerIndex < InputManager::NUM_PLAYERS; ++playerIndex)
 	{
 		const bool validPlayerIndex = (playerIndex < Configuration::instance().mNumPlayers);
@@ -987,8 +991,9 @@ void OptionsMenu::setupOptionsMenu(bool enteredFromIngame)
 {
 	mEnteredFromIngame = enteredFromIngame;
 
-	for (const ConditionalOption& option : CONDITIONAL_OPTIONS)
+	for (size_t i = 0; i < sizeof(CONDITIONAL_OPTIONS) / sizeof(CONDITIONAL_OPTIONS[0]); ++i)
 	{
+		const ConditionalOption& option = CONDITIONAL_OPTIONS[i];
 		OptionsMenuEntry& optionsMenuEntry = *static_cast<OptionsMenuEntry*>(mOptionEntries[option.mOptionId].mGameMenuEntry);
 		const bool visible = option.shouldBeVisible(enteredFromIngame) && optionsMenuEntry.shouldBeShown();
 		optionsMenuEntry.setVisible(visible);

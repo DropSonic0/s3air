@@ -101,9 +101,9 @@ namespace
 		position.x = -(float)px / 256.0f;
 		position.y =  (float)py / 256.0f;
 		if (isRotating || (rotation & 0x40) == 0)
-			position.x = round(position.x);
+			position.x = roundToFloat(position.x);
 		if (isRotating || (rotation & 0x40) != 0)
-			position.y = round(position.y);
+			position.y = roundToFloat(position.y);
 
 		const float angle = (float)rotation / 128.0f * PI_FLOAT;
 		transform.x =  std::cos(angle);

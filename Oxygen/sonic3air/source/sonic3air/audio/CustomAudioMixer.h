@@ -22,9 +22,15 @@ protected:
 	void performAudioMix(const MixerParameters& parameters) override;
 
 private:
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	static const size_t MAX_NUM_CHANNELS = 2;
+	static const size_t OUTPUT_BUFFER_SIZE = 1024;
+	static const size_t ACCUMULATION_BUFFER_SIZE = 128;
+#else
 	static inline const constexpr size_t MAX_NUM_CHANNELS = 2;
 	static inline const constexpr size_t OUTPUT_BUFFER_SIZE = 1024;
 	static inline const constexpr size_t ACCUMULATION_BUFFER_SIZE = 128;
+#endif
 
 	int mUnderwaterEffect = 0;
 	float mVolumeMultiplier = 1.0f;

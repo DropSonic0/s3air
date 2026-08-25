@@ -95,7 +95,11 @@ private:
 			"coon", "porchmonkey", "gypsy", "jigaboo", "raghead", "shemale", "nazi", "heilhitler"
 		};
 		std::string lowerName = name;
-		std::transform(lowerName.begin(), lowerName.end(), lowerName.begin(), ::tolower);
+		for (size_t i = 0; i < lowerName.length(); ++i)
+		{
+			if (lowerName[i] >= 'A' && lowerName[i] <= 'Z')
+				lowerName[i] += ('a' - 'A');
+		}
 
 		for (const auto& word : badWords)
 		{
@@ -107,26 +111,24 @@ private:
 
 	static char replaceDiacriticChar(char32_t ch)
 	{
-		static const std::unordered_map<char32_t, char> replacements =
+		switch (ch)
 		{
 			// Lowercase
-			{ U'á', 'a' }, { U'à', 'a' }, { U'ä', 'a' }, { U'â', 'a' }, { U'ã', 'a' }, { U'å', 'a' },
-			{ U'é', 'e' }, { U'è', 'e' }, { U'ë', 'e' }, { U'ê', 'e' },
-			{ U'í', 'i' }, { U'ì', 'i' }, { U'ï', 'i' }, { U'î', 'i' },
-			{ U'ó', 'o' }, { U'ò', 'o' }, { U'ö', 'o' }, { U'ô', 'o' }, { U'õ', 'o' },
-			{ U'ú', 'u' }, { U'ù', 'u' }, { U'ü', 'u' }, { U'û', 'u' },
-			{ U'ñ', 'n' },
+			case 0x00e1: case 0x00e0: case 0x00e4: case 0x00e2: case 0x00e3: case 0x00e5: return 'a';
+			case 0x00e9: case 0x00e8: case 0x00eb: case 0x00ea: return 'e';
+			case 0x00ed: case 0x00ec: case 0x00ef: case 0x00ee: return 'i';
+			case 0x00f3: case 0x00f2: case 0x00f6: case 0x00f4: case 0x00f5: return 'o';
+			case 0x00fa: case 0x00f9: case 0x00fc: case 0x00fb: return 'u';
+			case 0x00f1: return 'n';
 			// Uppercase
-			{ U'Á', 'A' }, { U'À', 'A' }, { U'Ä', 'A' }, { U'Â', 'A' }, { U'Ã', 'A' }, { U'Å', 'A' },
-			{ U'É', 'E' }, { U'È', 'E' }, { U'Ë', 'E' }, { U'Ê', 'E' },
-			{ U'Í', 'I' }, { U'Ì', 'I' }, { U'Ï', 'I' }, { U'Î', 'I' },
-			{ U'Ó', 'O' }, { U'Ò', 'O' }, { U'Ö', 'O' }, { U'Ô', 'O' }, { U'Õ', 'O' },
-			{ U'Ú', 'U' }, { U'Ù', 'U' }, { U'Ü', 'U' }, { U'Û', 'U' },
-			{ U'Ñ', 'N' }
-		};
-
-		auto it = replacements.find(ch);
-		return it != replacements.end() ? it->second : 0;
+			case 0x00c1: case 0x00c0: case 0x00c4: case 0x00c2: case 0x00c3: case 0x00c5: return 'A';
+			case 0x00c9: case 0x00c8: case 0x00cb: case 0x00ca: return 'E';
+			case 0x00cd: case 0x00cc: case 0x00cf: case 0x00ce: return 'I';
+			case 0x00d3: case 0x00d2: case 0x00d6: case 0x00d4: case 0x00d5: return 'O';
+			case 0x00da: case 0x00d9: case 0x00dc: case 0x00db: return 'U';
+			case 0x00d1: return 'N';
+			default: return 0;
+		}
 	}
 };
 

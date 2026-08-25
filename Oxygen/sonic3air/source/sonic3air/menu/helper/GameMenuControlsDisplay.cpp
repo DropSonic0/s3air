@@ -63,9 +63,9 @@ void GameMenuControlsDisplay::render(Drawer& drawer, float visibility)
 
 	// Right-aligned entries (in reverse order)
 	pos.x = 400 - 8;
-	for (auto it = mControls.crbegin(); it != mControls.crend(); ++it)
+	for (int i = (int)mControls.size() - 1; i >= 0; --i)
 	{
-		const Control& control = *it;
+		const Control& control = mControls[i];
 		if (!control.mSpriteKeys.empty() && control.mAlignRight)
 		{
 			drawControl(control, drawer, pos);
