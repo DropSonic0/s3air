@@ -299,7 +299,7 @@ protected:
 	T& createObject(const A& a)
 	{
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(a);
+		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a));
 		item.mIsConstructed = true;
 		return item.mObject;
 	}
@@ -308,7 +308,7 @@ protected:
 	T& createObject(const A& a, const B& b)
 	{
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(a, b);
+		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b));
 		item.mIsConstructed = true;
 		return item.mObject;
 	}
@@ -317,7 +317,7 @@ protected:
 	T& createObject(const A& a, const B& b, const C& c)
 	{
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(a, b, c);
+		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c));
 		item.mIsConstructed = true;
 		return item.mObject;
 	}
@@ -326,7 +326,7 @@ protected:
 	T& createObject(const A& a, const B& b, const C& c, const D& d)
 	{
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(a, b, c, d);
+		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c), const_cast<D&>(d));
 		item.mIsConstructed = true;
 		return item.mObject;
 	}
@@ -335,7 +335,7 @@ protected:
 	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e)
 	{
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e);
+		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c), const_cast<D&>(d), const_cast<E&>(e));
 		item.mIsConstructed = true;
 		return item.mObject;
 	}
@@ -344,7 +344,7 @@ protected:
 	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e, const F& f)
 	{
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e, f);
+		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c), const_cast<D&>(d), const_cast<E&>(e), const_cast<F&>(f));
 		item.mIsConstructed = true;
 		return item.mObject;
 	}

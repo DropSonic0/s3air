@@ -73,8 +73,9 @@ void DebugTracking::clear()
 void DebugTracking::onBeginFrame()
 {
 	// Reset script logging
-	for (auto& [key, entry] : mScriptLogEntries)
+	for (auto& pair : mScriptLogEntries)
 	{
+		ScriptLogEntry& entry = pair.second;
 		for (ScriptLogSingleEntry& singleEntry : entry.mEntries)
 		{
 			singleEntry.mCallFrameIndex = -1;
@@ -162,7 +163,6 @@ int DebugTracking::getExistingWatchIndex(uint32 address, uint16 bytes) const
 {
 	address &= 0x00ffffff;
 
-	int index = -1;
 	for (int i = 0; i < (int)mWatches.size(); ++i)
 	{
 		if (mWatches[i]->mAddress == address && mWatches[i]->mBytes == bytes)

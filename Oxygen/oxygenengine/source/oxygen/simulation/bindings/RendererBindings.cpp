@@ -652,14 +652,19 @@ namespace
 
 	struct SpriteHandleWrapper
 	{
-		uint32 mHandle = 0;
-		static inline const lemon::CustomDataType* mDataType = nullptr;
+		uint32 mHandle;
+		static const lemon::CustomDataType* mDataType;
+
+		SpriteHandleWrapper() : mHandle(0) {}
+		explicit SpriteHandleWrapper(uint32 handle) : mHandle(handle) {}
 	};
+
+	const lemon::CustomDataType* SpriteHandleWrapper::mDataType = nullptr;
 
 	SpriteHandleWrapper Renderer_addSpriteHandle(uint64 spriteKey, int32 px, int32 py, uint16 renderQueue)
 	{
 		const uint32 handle = RenderParts::instance().getSpriteManager().addSpriteHandle(spriteKey, Vec2i(px, py), renderQueue);
-		return SpriteHandleWrapper { handle };
+		return SpriteHandleWrapper(handle);
 	}
 
 	void SpriteHandle_setFlags(SpriteHandleWrapper spriteHandle, uint8 flags)
@@ -935,7 +940,7 @@ namespace lemon
 		template<>
 		SpriteHandleWrapper popStackGeneric(const NativeFunction::Context context)
 		{
-			return SpriteHandleWrapper { context.mControlFlow.popValueStack<uint32>() };
+			return SpriteHandleWrapper(context.mControlFlow.popValueStack<uint32>());
 		}
 	}
 }

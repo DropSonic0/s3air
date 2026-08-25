@@ -9,8 +9,8 @@
 #pragma once
 
 #include <rmxbase.h>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <chrono>
-
 
 class LagStopwatch
 {
@@ -29,8 +29,9 @@ private:
 	int mMaximumMilliseconds = 2000;
 	std::chrono::steady_clock::time_point mStartTime;
 };
+#endif
 
-#ifdef OXYGEN_SERVER
+#if defined(OXYGEN_SERVER) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	#define LAG_STOPWATCH(_text_, _maxMs_) LagStopwatch lagStopwatch_##LINE_NUMBER(_text_, _maxMs_)
 #else
 	#define LAG_STOPWATCH(_text_, _maxMs_)

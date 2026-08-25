@@ -136,6 +136,7 @@ using std::expf;
 using std::cos;
 using std::sin;
 using std::pow;
+using std::log;
 using std::log10;
 using std::log10f;
 #endif

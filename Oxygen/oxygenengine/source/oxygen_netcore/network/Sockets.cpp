@@ -15,6 +15,8 @@ bool Sockets::mIsInitialized = false;
 bool SocketAddress::mPreventIPLogging = false;
 #endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+
 #ifdef _WIN32
 	#define WIN32_LEAN_AND_MEAN
 	#include <winsock2.h>
@@ -871,3 +873,83 @@ bool UDPSocket::receiveInternal(ReceiveResult& outReceiveResult)
 		return true;
 	}
 }
+
+#else
+
+void Sockets::startupSockets()
+{
+	mIsInitialized = true;
+}
+
+void Sockets::shutdownSockets()
+{
+	mIsInitialized = false;
+}
+
+bool Sockets::resolveToIP(const std::string& hostName, std::string& outIP, bool useIPv6)
+{
+	outIP = hostName;
+	return true;
+}
+
+bool SocketAddress::operator==(const SocketAddress& other) const
+{
+	return (mIP == other.mIP && mPort == other.mPort);
+}
+
+std::string SocketAddress::toLoggedString() const
+{
+	if (mPreventIPLogging)
+		return "[IP]:" + std::to_string(mPort);
+	else
+		return mIP + ':' + std::to_string(mPort);
+}
+
+uint64 SocketAddress::getHash() const
+{
+	return rmx::getMurmur2_64(mSockAddr, 16);
+}
+
+void SocketAddress::assureSockAddr() const
+{
+	mHasSockAddr = true;
+}
+
+void SocketAddress::assureIpPort() const
+{
+	mHasIpPort = true;
+}
+
+struct TCPSocket::Internal
+{
+	SocketAddress mRemoteAddress;
+};
+
+TCPSocket::TCPSocket() {}
+TCPSocket::~TCPSocket() { if (mInternal) delete mInternal; }
+bool TCPSocket::isValid() const { return false; }
+void TCPSocket::close() {}
+const SocketAddress& TCPSocket::getRemoteAddress() { if (mInternal) return mInternal->mRemoteAddress; static SocketAddress EMPTY; return EMPTY; }
+void TCPSocket::swapWith(TCPSocket& other) { std::swap(mInternal, other.mInternal); }
+bool TCPSocket::setupServer(uint16 serverPort, Sockets::ProtocolFamily protocolFamily) { return false; }
+bool TCPSocket::acceptConnection(TCPSocket& outSocket) { return false; }
+bool TCPSocket::connectTo(const std::string& serverAddress, uint16 serverPort, Sockets::ProtocolFamily protocolFamily) { return false; }
+bool TCPSocket::sendData(const uint8* data, size_t length) { return false; }
+bool TCPSocket::sendData(const std::vector<uint8>& data) { return false; }
+bool TCPSocket::receiveBlocking(ReceiveResult& outReceiveResult) { outReceiveResult.mBuffer.clear(); return false; }
+bool TCPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult) { outReceiveResult.mBuffer.clear(); return true; }
+bool TCPSocket::receiveInternal(ReceiveResult& outReceiveResult) { return false; }
+
+struct UDPSocket::Internal {};
+UDPSocket::~UDPSocket() { if (mInternal) delete mInternal; }
+bool UDPSocket::isValid() const { return false; }
+void UDPSocket::close() {}
+bool UDPSocket::bindToPort(uint16 port, Sockets::ProtocolFamily protocolFamily) { return false; }
+bool UDPSocket::bindToAnyPort(Sockets::ProtocolFamily protocolFamily) { return false; }
+bool UDPSocket::sendData(const uint8* data, size_t length, const SocketAddress& destinationAddress) { return false; }
+bool UDPSocket::sendData(const std::vector<uint8>& data, const SocketAddress& destinationAddress) { return false; }
+bool UDPSocket::receiveBlocking(ReceiveResult& outReceiveResult) { outReceiveResult.mBuffer.clear(); return false; }
+bool UDPSocket::receiveNonBlocking(ReceiveResult& outReceiveResult) { outReceiveResult.mBuffer.clear(); return true; }
+bool UDPSocket::receiveInternal(ReceiveResult& outReceiveResult) { return false; }
+
+#endif

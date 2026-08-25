@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <rmxbase.h>
 #include <vector>
 
 
@@ -17,14 +18,17 @@ class HandleProvider
 public:
 	struct Entry
 	{
-		HANDLE mHandle = 0;	// Invalid handle by default
+		HANDLE mHandle;
 		mutable CONTENT mContent;
+
+		Entry() : mHandle(0), mContent() {}
+		Entry(HANDLE handle, CONTENT content) : mHandle(handle), mContent(content) {}
 	};
 
 public:
 	HandleProvider()
 	{
-		static_assert((DEFAULT_SIZE & (DEFAULT_SIZE - 1)) == 0);	// Make sure it's a power of two
+		static_assert((DEFAULT_SIZE & (DEFAULT_SIZE - 1)) == 0, "DEFAULT_SIZE must be a power of two");
 		mEntries.resize(DEFAULT_SIZE);
 		mBitmask = DEFAULT_SIZE - 1;
 	}
@@ -76,7 +80,7 @@ public:
 				if (!isValidEntry(entry))
 				{
 					// We're good to go
-					entry = Entry { newHandle, CONTENT() };
+					entry = Entry(newHandle, CONTENT());
 					++mNumValidEntries;
 					return entry;
 				}
@@ -85,7 +89,7 @@ public:
 		}
 
 		RMX_ASSERT(false, "Handle creation failed");
-		static const Entry FALLBACK = Entry {};
+		static const Entry FALLBACK = Entry();
 		return FALLBACK;
 	}
 
@@ -94,7 +98,7 @@ public:
 		Entry& entry = mEntries[handle & mBitmask];
 		if (entry.mHandle == handle)
 		{
-			entry = Entry { 0, CONTENT() };
+			entry = Entry(0, CONTENT());
 			--mNumValidEntries;
 		}
 	}

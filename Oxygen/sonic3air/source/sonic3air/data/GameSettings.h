@@ -42,7 +42,9 @@ public:
 		{
 			const size_t numValues = (size_t)serializer.read<uint16>();
 			mCurrentValues.clear();
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			mCurrentValues.reserve(numValues);
+#endif
 			for (size_t k = 0; k < numValues; ++k)
 			{
 				const uint32 key = serializer.read<uint32>();

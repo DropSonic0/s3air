@@ -15,10 +15,14 @@
 #include "oxygen_netcore/network/internal/WebSocketWrapper.h"
 
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#include <sys/sys_time.h>
+#endif
+
 namespace
 {
-	static const constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSION_RANGE { 1, 1 };
-	static const constexpr size_t MAX_NUM_ACTIVE_CONNECTIONS = 1024;	// Not a hard limit, but should be good enough for now
+	static const VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSION_RANGE(1, 1);
+	static const size_t MAX_NUM_ACTIVE_CONNECTIONS = 1024;	// Not a hard limit, but should be good enough for now
 
 	struct ProtocolVersionChecker
 	{
@@ -52,7 +56,11 @@ namespace
 
 uint64 ConnectionManager::getCurrentTimestamp()
 {
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+#else
+	return (uint64)(sys_time_get_system_time() / 1000);
+#endif
 }
 
 ConnectionManager::ConnectionManager(UDPSocket* udpSocket, TCPSocket* tcpListenSocket, ConnectionListenerInterface& listener, VersionRange<uint8> highLevelProtocolVersionRange) :
@@ -61,7 +69,9 @@ ConnectionManager::ConnectionManager(UDPSocket* udpSocket, TCPSocket* tcpListenS
 	mListener(listener),
 	mHighLevelProtocolVersionRange(highLevelProtocolVersionRange)
 {
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	mActiveConnections.reserve(16);
+#endif
 }
 
 ConnectionManager::~ConnectionManager()

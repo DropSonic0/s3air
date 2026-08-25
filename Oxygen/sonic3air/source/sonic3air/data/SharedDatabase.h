@@ -192,6 +192,25 @@ public:
 		bool mSerialized = false;
 	};
 
+private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+	static inline bool mIsInitialized;
+	static inline std::vector<Zone> mAllZones;
+	static inline std::vector<Zone> mAvailableZones;
+	static inline std::unordered_map<uint32, Setting> mSettings;
+	static inline std::vector<Achievement> mAchievements;
+	static inline std::map<uint32, Achievement*> mAchievementMap;
+	static inline std::vector<Secret> mSecrets;
+#else
+	static bool mIsInitialized;
+	static std::vector<Zone> mAllZones;
+	static std::vector<Zone> mAvailableZones;
+	static std::unordered_map<uint32, Setting> mSettings;
+	static std::vector<Achievement> mAchievements;
+	static std::map<uint32, Achievement*> mAchievementMap;
+	static std::vector<Secret> mSecrets;
+#endif
+
 public:
 	static void initialize();
 
@@ -216,13 +235,4 @@ public:
 private:
 	static Setting& addSetting(SharedDatabase::Setting::Type id, const char* identifier, SharedDatabase::Setting::SerializationType serializationType, bool enforceAllowInTimeAttack = false);
 	static void setupSettings();
-
-private:
-	static inline bool mIsInitialized;
-	static inline std::vector<Zone> mAllZones;
-	static inline std::vector<Zone> mAvailableZones;
-	static inline std::unordered_map<uint32, Setting> mSettings;
-	static inline std::vector<Achievement> mAchievements;
-	static inline std::map<uint32, Achievement*> mAchievementMap;
-	static inline std::vector<Secret> mSecrets;
 };

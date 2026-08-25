@@ -292,7 +292,7 @@ namespace
 		return System_loadPersistentData_withOffset(targetAddress, 0, bytes, file, key, localFile);
 	}
 
-	void System_savePersistentData_shared(uint32 sourceAddress, uint32 bytes, lemon::StringRef file, lemon::StringRef key, bool localFile, std::optional<uint32> offset)
+	void System_savePersistentData_shared(uint32 sourceAddress, uint32 bytes, lemon::StringRef file, lemon::StringRef key, bool localFile, bool hasOffset, uint32 offset)
 	{
 		if (!key.isValid() || key.isEmpty() || !file.isValid())
 			return;
@@ -312,9 +312,9 @@ namespace
 		if (nullptr != mod)
 		{
 			const std::string filePath = mod->mUniqueID + "/" + std::string(file.getString());
-			if (offset.has_value())
+			if (hasOffset)
 			{
-				PersistentData::instance().setDataPartial(filePath, key.getString(), data, *offset);
+				PersistentData::instance().setDataPartial(filePath, key.getString(), data, offset);
 			}
 			else
 			{
@@ -323,9 +323,9 @@ namespace
 		}
 		else
 		{
-			if (offset.has_value())
+			if (hasOffset)
 			{
-				PersistentData::instance().setDataPartial(file.getString(), key.getString(), data, *offset);
+				PersistentData::instance().setDataPartial(file.getString(), key.getString(), data, offset);
 			}
 			else
 			{
@@ -336,12 +336,12 @@ namespace
 
 	void System_savePersistentData_noOffset(uint32 sourceAddress, uint32 bytes, lemon::StringRef file, lemon::StringRef key, bool localFile)
 	{
-		System_savePersistentData_shared(sourceAddress, bytes, file, key, localFile, std::optional<uint32>());
+		System_savePersistentData_shared(sourceAddress, bytes, file, key, localFile, false, 0);
 	}
 
 	void System_savePersistentData_withOffset(uint32 sourceAddress, uint32 offset, uint32 bytes, lemon::StringRef file, lemon::StringRef key, bool localFile)
 	{
-		System_savePersistentData_shared(sourceAddress, bytes, file, key, localFile, offset);
+		System_savePersistentData_shared(sourceAddress, bytes, file, key, localFile, true, offset);
 	}
 
 	void System_removePersistentData(lemon::StringRef file, lemon::StringRef key, bool localFile)
@@ -1161,6 +1161,20 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 		const std::string registerNamesDAR[16] = { "D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7" };
 		for (size_t i = 0; i < 16; ++i)
 		{
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+			struct RegisterAccessor {
+				size_t idx;
+				RegisterAccessor(size_t index) : idx(index) {}
+				int64* operator()() const { return accessRegister(idx); }
+			};
+			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".u16", &lemon::PredefinedDataTypes::UINT_16, RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  RegisterAccessor(i));
+#else
 			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   std::bind(accessRegister, i));
@@ -1168,6 +1182,7 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  std::bind(accessRegister, i));
+#endif
 		}
 
 
@@ -1437,6 +1452,21 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 	// Debug features
 	{
 		// Debug log output
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		struct LogSetterFunctor {
+			bool dec;
+			LogSetterFunctor(bool decimal) : dec(decimal) {}
+			void operator()(lemon::ControlFlow& cf) const { logSetter(cf, dec); }
+		};
+		{
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Log", &lemon::PredefinedDataTypes::ANY);
+			var.mSetter = LogSetterFunctor(false);
+		}
+		{
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("LogDec", &lemon::PredefinedDataTypes::ANY);
+			var.mSetter = LogSetterFunctor(true);
+		}
+#else
 		{
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("Log", &lemon::PredefinedDataTypes::ANY);
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, false);
@@ -1445,6 +1475,7 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable("LogDec", &lemon::PredefinedDataTypes::ANY);
 			var.mSetter = std::bind(logSetter, std::placeholders::_1, true);
 		}
+#endif
 
 		builder.addNativeFunction("debugLog", lemon::wrap(&debugLog), defaultFlags)
 			.setParameters("value");
@@ -1459,6 +1490,20 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 
 
 		// Debug keys
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		struct DebugKeyGetterFunctor {
+			int keyIndex;
+			DebugKeyGetterFunctor(int i) : keyIndex(i) {}
+			void operator()(lemon::ControlFlow& cf) const { debugKeyGetter(cf, keyIndex); }
+		};
+		for (int i = 0; i < 10; ++i)
+		{
+			char buf[16];
+			sprintf(buf, "Key%d", i);
+			lemon::UserDefinedVariable& var = module.addUserDefinedVariable(buf, &lemon::PredefinedDataTypes::UINT_8);
+			var.mGetter = DebugKeyGetterFunctor(i);
+		}
+#else
 		for (int i = 0; i < 10; ++i)
 		{
 			char buf[16];
@@ -1466,6 +1511,7 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 			lemon::UserDefinedVariable& var = module.addUserDefinedVariable(buf, &lemon::PredefinedDataTypes::UINT_8);
 			var.mGetter = std::bind(debugKeyGetter, std::placeholders::_1, i);
 		}
+#endif
 
 
 		// Watches
