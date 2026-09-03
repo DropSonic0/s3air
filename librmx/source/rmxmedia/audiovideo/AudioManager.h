@@ -11,6 +11,11 @@
 
 #pragma once
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#include <cell/audio.h>
+#include <sys/event.h>
+#include <pthread.h>
+#endif
 
 class AudioReference;
 
@@ -115,6 +120,16 @@ namespace rmx
 		void mixAudio(uint8* outputStream, int outputBytes);
 
 	private:
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		uint32_t mCellAudioPort = 0;
+		pthread_t mCellAudioThread;
+		pthread_mutex_t mCellAudioMutex;
+		volatile bool mCellAudioQuit = false;
+		sys_event_queue_t mCellAudioEventQueueId = 0;
+		sys_ipc_key_t mCellAudioEventQueueKey = 0;
+		static void* cellAudioEventLoopStatic(void* arg);
+		void cellAudioEventLoop();
+#endif
 		SDL_AudioDeviceID mAudioDeviceID = 0;		// Audio device opened by SDL
 		SDL_AudioSpec mFormat;						// Audio format
 		uint32 mAudioLocks = 0;						// Set if audio device is locked right now (needed to allow for nested audio locking)

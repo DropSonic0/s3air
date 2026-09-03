@@ -173,6 +173,7 @@ namespace lemon
 	struct PredefinedDataTypes
 	{
 	public:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		inline static const VoidDataType VOID		  = VoidDataType();
 		inline static const AnyDataType ANY			  = AnyDataType();
 
@@ -193,6 +194,28 @@ namespace lemon
 		inline static const StringDataType STRING	  = StringDataType(13);
 
 		inline static const CustomDataType ARRAY_BASE = CustomDataType("$array_base", 14, BaseType::INT_32);
+#else
+		static const VoidDataType VOID;
+		static const AnyDataType ANY;
+
+		static const IntegerDataType BOOL;
+		static const IntegerDataType UINT_8;
+		static const IntegerDataType UINT_16;
+		static const IntegerDataType UINT_32;
+		static const IntegerDataType UINT_64;
+		static const IntegerDataType INT_8;
+		static const IntegerDataType INT_16;
+		static const IntegerDataType INT_32;
+		static const IntegerDataType INT_64;
+		static const IntegerDataType CONST_INT;
+
+		static const FloatDataType FLOAT;
+		static const FloatDataType DOUBLE;
+
+		static const StringDataType STRING;
+
+		static const CustomDataType ARRAY_BASE;
+#endif
 
 	public:
 		static const DataTypeDefinition* getDataTypeDefinitionForBaseType(BaseType baseType);

@@ -29,7 +29,11 @@ namespace lemon
 		inline Token(Type type) : genericmanager::Element<Token>(type) {}
 
 	protected:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static constexpr Type assignType(const char* data, bool isStatement)  { return (rmx::constMurmur2_64(data) & 0x0fffffff) + isStatement * 0x10000000; }
+#else
+		static inline Type assignType(const char* data, bool isStatement)  { return (rmx::constMurmur2_64(data) & 0x0fffffff) + isStatement * 0x10000000; }
+#endif
 	};
 
 

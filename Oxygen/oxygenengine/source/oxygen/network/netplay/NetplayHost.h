@@ -21,7 +21,7 @@ class NetplayManager;
 class NetplayHost
 {
 public:
-	static const int MAX_PLAYERS = 4;
+	enum { MAX_PLAYERS = 4 };
 
 	enum class HostState
 	{

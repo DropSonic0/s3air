@@ -25,7 +25,11 @@ public:
 
 	struct PackageHeader
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const constexpr char SIGNATURE[] = "OPCK";
+#else
+		static const char SIGNATURE[];
+#endif
 		static const constexpr uint32 CURRENT_FORMAT_VERSION = 3;
 		static const constexpr size_t HEADER_SIZE = 20;
 

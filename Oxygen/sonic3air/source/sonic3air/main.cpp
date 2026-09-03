@@ -14,6 +14,12 @@
 
 #include "oxygen/platform/PlatformFunctions.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#include <sys/process.h>
+#include <cell/sysmodule.h>
+SYS_PROCESS_PARAM(1001, 0x80000);
+#endif
+
 
 // [Added for Switch platform] HJW: I know it's sloppy to put this here... it'll get moved afterwards
 // Building with my env (msys2,gcc) requires this stub for some reason
@@ -48,8 +54,50 @@ extern "C"
 
 int main(int argc, char** argv)
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	cellSysmoduleInitialize();
+	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);
+	cellSysmoduleLoadModule(CELL_SYSMODULE_GCM_SYS);
+	cellSysmoduleLoadModule(CELL_SYSMODULE_AUDIO);
+	cellSysmoduleLoadModule(CELL_SYSMODULE_IO);
+	cellSysmoduleLoadModule(CELL_SYSMODULE_SYSUTIL);
+	cellSysmoduleLoadModule(CELL_SYSMODULE_SYSUTIL_GAME);
+
+	if (argc > 0 && argv && argv[0] && argv[0][0])
+	{
+		char path_buf[256];
+		strncpy(path_buf, argv[0], sizeof(path_buf) - 1);
+		path_buf[sizeof(path_buf) - 1] = '\0';
+		char* slash = strrchr(path_buf, '/');
+		if (!slash) slash = strrchr(path_buf, '\\');
+		if (slash)
+		{
+			*slash = '\0';
+			ps3_set_usrdir(path_buf);
+		}
+	}
+
+	char log_path[384];
+	snprintf(log_path, sizeof(log_path), "%s/boot_debug.log", ps3_get_usrdir());
+	FILE* f_init = fopen(log_path, "w");
+	if (!f_init) f_init = fopen("boot_debug.log", "w");
+	if (!f_init) f_init = fopen("/dev_hdd0/game/SONIC3AIR/USRDIR/boot_debug.log", "w");
+	if (f_init)
+	{
+		fprintf(f_init, "[PS3] boot_debug.log initialized at %s\n", ps3_get_usrdir());
+		fflush(f_init);
+		fclose(f_init);
+	}
+	ps3_log("[PS3] main() entered");
+#endif
 	EngineMain::earlySetup();
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] earlySetup() completed");
+#endif
 	PlatformSpecifics::platformStartup();
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] platformStartup() completed");
+#endif
 
 	GameArgumentsReader arguments;
 
@@ -94,8 +142,14 @@ int main(int argc, char** argv)
 #endif
 	{
 		// Create engine delegate and engine main instance
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		ps3_log("[PS3] Creating EngineDelegate & EngineMain");
+#endif
 		EngineDelegate myDelegate;
 		EngineMain myMain(myDelegate, arguments);
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		ps3_log("[PS3] Calling myMain.execute()");
+#endif
 
 		// Evaluate some more arguments
 		Configuration& config = Configuration::instance();

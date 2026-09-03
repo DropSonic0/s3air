@@ -20,7 +20,7 @@ struct StartGamePacket;
 class NetplayClient
 {
 public:
-	static const int MAX_PLAYERS = 4;	// Needs to be inline, or the Android build fails for some reason
+	enum { MAX_PLAYERS = 4 };
 
 	enum class State
 	{

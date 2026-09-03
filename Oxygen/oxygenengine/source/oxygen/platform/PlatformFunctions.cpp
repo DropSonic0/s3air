@@ -15,7 +15,10 @@
 #include <thread>
 #endif
 
-#ifdef PLATFORM_WINDOWS
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	#include <stdlib.h>
+	#include <unistd.h>
+#elif defined(PLATFORM_WINDOWS)
 	#include <CleanWindowsInclude.h>
 	#include <shlobj.h>		// For "SHGetKnownFolderPath"
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
@@ -283,7 +286,12 @@ double PlatformFunctions::getTimerGranularityMilliseconds()
 
 void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallPath)
 {
-#if defined(PLATFORM_WINDOWS)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	if (FTX::FileSystem.hasInstance())
+	{
+		FTX::FileSystem->setCurrentDirectory(rmx::convertFromUTF8(ps3_get_usrdir()));
+	}
+#elif defined(PLATFORM_WINDOWS)
 	// Take the working directory from command line if possible
 	const size_t slashPos = executableCallPath.find_last_of(L"/\\");
 	if (slashPos != std::string::npos)
@@ -363,7 +371,10 @@ void PlatformFunctions::setAppIcon(int iconResource)
 
 std::wstring PlatformFunctions::getAppDataPath()
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	return rmx::convertFromUTF8(ps3_get_usrdir());
+#else
+#if defined(PLATFORM_WINDOWS)
 	PWSTR path = nullptr;
 	if (S_OK == SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DONT_UNEXPAND | KF_FLAG_CREATE, nullptr, &path))
 	{
@@ -382,6 +393,7 @@ std::wstring PlatformFunctions::getAppDataPath()
 	return mExAppDataPath;
 #endif
 	return L"";
+#endif
 }
 
 std::wstring PlatformFunctions::tryGetSteamRomPath(const std::wstring& romName)

@@ -8,10 +8,12 @@
 #include "json/value.h"
 #include "json/writer.h"
 #endif // if !defined(JSON_IS_AMALGAMATION)
+#include <cstdlib>
+#include <stdlib.h>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstddef>
+#include <stddef.h>
 #include <cstring>
 #include <iostream>
 #include <sstream>
@@ -48,6 +50,13 @@ int JSON_API msvc_pre1900_c99_snprintf(char* outBuf, size_t size,
 #define JSON_ASSERT_UNREACHABLE assert(false)
 
 namespace Json {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	using std::malloc;
+	using std::free;
+	using std::abort;
+	using std::modf;
+#endif
+
 	template <typename T>
 	static std::unique_ptr<T> cloneUnique(const std::unique_ptr<T>& p) {
 		std::unique_ptr<T> r;
@@ -814,8 +823,7 @@ namespace Json {
 			return value_.uint_ != 0;
 		case realValue: {
 							// According to JavaScript language zero or NaN is regarded as false
-							const auto value_classification = std::fpclassify(value_.real_);
-							return value_classification != FP_ZERO && value_classification != FP_NAN;
+							return value_.real_ != 0.0 && (value_.real_ == value_.real_);
 		}
 		default:
 			break;
@@ -969,7 +977,7 @@ namespace Json {
 	void Value::initBasic(ValueType type, bool allocated) {
 		setType(type);
 		setIsAllocated(allocated);
-		comments_ = Comments{};
+		comments_ = Comments();
 		start_ = 0;
 		limit_ = 0;
 	}
@@ -1133,7 +1141,7 @@ namespace Json {
 		if (type() == nullValue) {
 			*this = Value(arrayValue);
 		}
-		return this->value_.map_->emplace(size(), std::move(value)).first->second;
+		return this->value_.map_->insert(ObjectValues::value_type(size(), std::move(value))).first->second;
 	}
 
 	bool Value::insert(ArrayIndex index, const Value& newValue) {
@@ -1373,11 +1381,13 @@ namespace Json {
 
 	bool Value::isObject() const { return type() == objectValue; }
 
+	Value::Comments::Comments() : ptr_() {}
+
 	Value::Comments::Comments(const Comments& that)
-		: ptr_{ cloneUnique(that.ptr_) } {}
+		: ptr_(cloneUnique(that.ptr_)) {}
 
 	Value::Comments::Comments(Comments&& that) noexcept
-		: ptr_{ std::move(that.ptr_) }{}
+		: ptr_(std::move(that.ptr_)) {}
 
 	Value::Comments& Value::Comments::operator=(const Comments& that) {
 		ptr_ = cloneUnique(that.ptr_);
@@ -1408,9 +1418,9 @@ namespace Json {
 	}
 
 	void Value::setComment(String comment, CommentPlacement placement) {
-		if (!comment.empty() && (comment.back() == '\n')) {
+		if (!comment.empty() && (comment[comment.length() - 1] == '\n')) {
 			// Always discard trailing newline, to aid indentation.
-			comment.pop_back();
+			comment.resize(comment.length() - 1);
 		}
 		JSON_ASSERT(!comment.empty());
 		JSON_ASSERT_MESSAGE(
@@ -1500,14 +1510,15 @@ namespace Json {
 	// class PathArgument
 	// //////////////////////////////////////////////////////////////////
 
-	PathArgument::PathArgument() = default;
+	PathArgument::PathArgument()
+		: index_(0), kind_(kindNone) {}
 
 	PathArgument::PathArgument(ArrayIndex index)
 		: index_(index), kind_(kindIndex) {}
 
-	PathArgument::PathArgument(const char* key) : key_(key), kind_(kindKey) {}
+	PathArgument::PathArgument(const char* key) : key_(key), index_(0), kind_(kindKey) {}
 
-	PathArgument::PathArgument(String key) : key_(std::move(key)), kind_(kindKey) {}
+	PathArgument::PathArgument(String key) : key_(std::move(key)), index_(0), kind_(kindKey) {}
 
 	// class Path
 	// //////////////////////////////////////////////////////////////////

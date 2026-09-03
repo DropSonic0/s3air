@@ -11,6 +11,11 @@
 #include "oxygen/application/input/InputConfig.h"
 #include "oxygen/application/input/RumbleEffectQueue.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#include <cell/pad.h>
+#include <cell/keyboard.h>
+#include <sysutil/sysutil_common.h>
+#endif
 
 class InputManager;
 struct _SDL_Joystick;
@@ -212,6 +217,22 @@ private:
 	void stopControllerRumbleForDevice(RealDevice& device);
 
 private:
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	bool mPS3PadsInitialized;
+	bool mPS3KbInitialized;
+	uint8_t mPS3KbConnected[2];
+	uint8_t mPS3KeyboardState[256];
+	uint32_t mPS3KeyboardModifiers;
+	CellKbData mPS3LastKbState[2];
+	CellPadData mPS3CachedPadData[7];
+	bool mPS3CachedPadValid[7];
+
+	void initPS3Input();
+	void pollPS3Input();
+	static int32_t convertPS3HIDToKeycode(uint8_t code);
+	static int32_t getPS3Axis(const CellPadData* data, int offset);
+#endif
+
 	Player mPlayers[NUM_PLAYERS];
 
 	std::vector<Control*> mAllControls;

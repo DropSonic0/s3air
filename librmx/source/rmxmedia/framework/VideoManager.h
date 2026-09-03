@@ -8,6 +8,10 @@
 
 #pragma once
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#include <PSGL/psgl.h>
+#include <PSGL/psglu.h>
+#endif
 
 namespace rmx
 {
@@ -55,6 +59,10 @@ namespace rmx
 		bool setVideoMode(const VideoConfig& videoconfig);
 
 	private:
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		PSGLdevice* mPSGLDevice = nullptr;
+		PSGLcontext* mPSGLContext = nullptr;
+#endif
 		bool mInitialized = false;
 		VideoConfig mVideoConfig;
 		bool mReshaped = false;

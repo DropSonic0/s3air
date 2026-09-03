@@ -10,6 +10,10 @@
 #include "oxygen/file/FilePackage.h"
 #include "oxygen/helper/Utils.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+const char FilePackage::PackageHeader::SIGNATURE[] = "OPCK";
+#endif
+
 
 bool FilePackage::loadPackage(std::wstring_view packageFilename, std::map<std::wstring, PackedFile>& outPackedFiles, bool forceLoadAll, bool showErrors)
 {

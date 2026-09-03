@@ -12,6 +12,46 @@
 std::vector<rmx::LoggerBase*> rmx::Logging::mLoggers;
 #endif
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+static char gPS3UsrDir[256] = "/dev_hdd0/game/SONIC3AIR/USRDIR";
+
+extern "C" void ps3_set_usrdir(const char* path)
+{
+	if (path && path[0])
+	{
+		strncpy(gPS3UsrDir, path, sizeof(gPS3UsrDir) - 1);
+		gPS3UsrDir[sizeof(gPS3UsrDir) - 1] = '\0';
+		size_t len = strlen(gPS3UsrDir);
+		if (len > 0 && (gPS3UsrDir[len - 1] == '/' || gPS3UsrDir[len - 1] == '\\'))
+		{
+			gPS3UsrDir[len - 1] = '\0';
+		}
+	}
+}
+
+extern "C" const char* ps3_get_usrdir()
+{
+	return gPS3UsrDir;
+}
+
+extern "C" void ps3_log(const char* msg)
+{
+	if (!msg) return;
+	printf("%s\n", msg);
+	char log_path[384];
+	snprintf(log_path, sizeof(log_path), "%s/boot_debug.log", gPS3UsrDir);
+	FILE* f = fopen(log_path, "a");
+	if (!f) f = fopen("boot_debug.log", "a");
+	if (!f) f = fopen("/dev_hdd0/game/SONIC3AIR/USRDIR/boot_debug.log", "a");
+	if (f)
+	{
+		fprintf(f, "%s\n", msg);
+		fflush(f);
+		fclose(f);
+	}
+}
+#endif
+
 #if defined(PLATFORM_WINDOWS)
 	#define WIN32_LEAN_AND_MEAN
 	#include "CleanWindowsInclude.h"

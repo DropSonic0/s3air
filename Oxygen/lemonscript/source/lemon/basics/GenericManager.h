@@ -624,7 +624,7 @@ protected: \
 #else
 #define DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(_element_, _base_, _class_, _type_) \
 public: \
-	static const uint32 TYPE = _type_; \
+	enum { TYPE = _type_ }; \
 	static genericmanager::detail::ElementClassImpl<_element_, _class_, _type_> CLASS; \
 	inline _class_() : _base_(TYPE) {} \
 protected: \

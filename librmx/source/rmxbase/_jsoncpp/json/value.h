@@ -14,7 +14,9 @@
 // a) suppress false positives from static code analysis
 // b) possibly improve optimization opportunities.
 #if !defined(JSONCPP_NORETURN)
-#if defined(_MSC_VER) && _MSC_VER == 1800
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#define JSONCPP_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER) && _MSC_VER == 1800
 #define JSONCPP_NORETURN __declspec(noreturn)
 #else
 #define JSONCPP_NORETURN [[noreturn]]
@@ -44,7 +46,6 @@
 #endif
 
 #include <stddef.h>
-#include <cstddef>
 #if defined(__CELLOS_LV2__) || defined(__SNC__)
 namespace std {
     template<typename T>
@@ -683,7 +684,7 @@ private:
 
   class Comments {
   public:
-    Comments() = default;
+    Comments();
     Comments(const Comments& that);
     Comments(Comments&& that) noexcept;
     Comments& operator=(const Comments& that);
@@ -753,8 +754,8 @@ public:
 private:
   enum Kind { kindNone = 0, kindIndex, kindKey };
   String key_;
-  ArrayIndex index_{};
-  Kind kind_{kindNone};
+  ArrayIndex index_;
+  Kind kind_;
 };
 
 /** \brief Experimental and untested: represents a "path" to access a node.
@@ -859,7 +860,7 @@ protected:
 private:
   Value::ObjectValues::iterator current_;
   // Indicates that iterator is for a null value.
-  bool isNull_{true};
+  bool isNull_;
 
 public:
   // For some reason, BORLAND needs these at the end, rather

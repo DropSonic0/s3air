@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|PS3">
@@ -45,7 +45,9 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
+    <TargetExt>.elf</TargetExt>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'">
     <ClCompile>
       <PreprocessorDefinitions>PPU;__CELLOS_LV2__;__ppc__;__PPU__;RMX_PLATFORM_PS3;RMX_NO_GLEW;RMX_NO_IMGUI;USE_GLES;IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS;JSONCPP_NO_LOCALE_SUPPORT;JSON_USE_EXCEPTION=0;_DEBUG;__CELL_ASSERT__;%(PreprocessorDefinitions);</PreprocessorDefinitions>
@@ -59,11 +61,19 @@
     <ClCompile>
       <PreprocessorDefinitions>PPU;__CELLOS_LV2__;__ppc__;__PPU__;RMX_PLATFORM_PS3;RMX_NO_GLEW;RMX_NO_IMGUI;USE_GLES;IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS;JSONCPP_NO_LOCALE_SUPPORT;JSON_USE_EXCEPTION=0;NDEBUG;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>..\..\..\..\source;..\..\..\..\source\external;..\..\..\..\..\lemonscript\source;..\..\..\..\..\oxygenengine\source;..\..\..\..\..\..\librmx\source;..\..\..\..\..\..\framework\external\zlib\zlib;..\..\..\..\..\..\framework\external\zlib\zlib\contrib\minizip;..\..\..\..\..\..\framework\external\ogg-vorbis\libogg\include;..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\include;..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib;..\..\..\..\..\..\framework\external\imgui\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalOptions>-Xaltivec --no_exceptions --no_rtti -Xstd=cpp11 %(AdditionalOptions)</AdditionalOptions>
-      <OptimizationLevel>Level2</OptimizationLevel>
+      <OptimizationLevel>Level0</OptimizationLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CppLanguageStd>Cpp11</CppLanguageStd>
     </ClCompile>
+    <Link>
+      <OutputFormat>ELFFile</OutputFormat>
+    </Link>
+    <Link>
+      <AdditionalDependencies>libPSGLU.a;libPSGL.a;libgcm_cmd.a;libgcm_sys_stub.a;libresc_stub.a;libsysutil_game_stub.a;libsysutil_stub.a;libio_stub.a;libaudio_stub.a;libpthread.a;libsysmodule_stub.a;libm.a;libnet_stub.a</AdditionalDependencies>
+    </Link>
+    <Link>
+      <AdditionalLibraryDirectories>C:\usr\local\cell\target\ppu\lib\PSGL\RSX\ultra-opt;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\..\framework\external\imgui\imgui\backends\imgui_impl_opengl3.cpp" />
@@ -74,7 +84,6 @@
     <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libogg\src\bitwise.c" />
     <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libogg\src\framing.c" />
     <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\analysis.c" />
-    <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\barkmel.c" />
     <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\bitrate.c" />
     <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\block.c" />
     <ClCompile Include="..\..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\codebook.c" />
@@ -115,9 +124,7 @@
     <ClCompile Include="..\..\..\..\..\..\framework\external\zlib\zlib\uncompr.c" />
     <ClCompile Include="..\..\..\..\..\..\framework\external\zlib\zlib\zutil.c" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_reader.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_value.cpp">
-      <OptimizationLevel>Level0</OptimizationLevel>
-    </ClCompile>
+    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_value.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_writer.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\base\Basics.cpp" />
     <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\base\ErrorHandler.cpp" />

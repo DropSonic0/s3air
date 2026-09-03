@@ -235,6 +235,9 @@ Vec2i EngineMain::getDisplaySize(int displayIndex) const
 
 bool EngineMain::startupEngine()
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] startupEngine() started");
+#endif
 #if defined(PLATFORM_ANDROID)
 	{
 		// Create file provider for APK content access (and do it right here already)
@@ -260,6 +263,9 @@ bool EngineMain::startupEngine()
 	SDL_DisableScreenSaver();
 
 	// Determine various directory and file paths in config
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] initDirectories()");
+#endif
 	initDirectories();
 
 	// Startup logging
@@ -273,15 +279,24 @@ bool EngineMain::startupEngine()
 	}
 
 	// Load configuration and settings
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] initConfigAndSettings()");
+#endif
 	if (!initConfigAndSettings())
 		return false;
 
 	// Setup file system
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] initFileSystem()");
+#endif
 	RMX_LOG_INFO("File system setup");
 	if (!initFileSystem())
 		return false;
 
 	// System
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] FTX::System->initialize()");
+#endif
 	RMX_LOG_INFO("System initialization...");
 	if (!FTX::System->initialize())
 	{
@@ -290,6 +305,9 @@ bool EngineMain::startupEngine()
 	}
 
 	// Video
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] createWindow()");
+#endif
 	RMX_LOG_INFO("Video initialization...");
 	if (!createWindow())
 	{
@@ -297,17 +315,29 @@ bool EngineMain::startupEngine()
 		return false;
 	}
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] mVideoOut.startup()");
+#endif
 	RMX_LOG_INFO("Startup of VideoOut");
 	mInternal.mVideoOut.startup();
 
 	// Input manager startup after config is loaded
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] InputManager::startup()");
+#endif
 	RMX_LOG_INFO("Input initialization...");
 	InputManager::instance().startup();
 
 	// Audio
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] FTX::Audio->initialize()");
+#endif
 	RMX_LOG_INFO("Audio initialization...");
 	FTX::Audio->initialize(config.mAudio.mSampleRate, 2, 1024);
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] AudioOut::startup()");
+#endif
 	RMX_LOG_INFO("Startup of AudioOut");
 	mAudioOut = &EngineMain::getDelegate().createAudioOut();
 	mAudioOut->startup();
@@ -378,6 +408,9 @@ void EngineMain::initDirectories()
 	#elif defined(PLATFORM_VITA)
 		// Vita
 		config.mAppDataPath = L"ux0:data/sonic3air/savedata/";
+	#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		// PS3
+		config.mAppDataPath = rmx::convertFromUTF8(ps3_get_usrdir()) + L"/";
 	#elif !defined(PLATFORM_IOS)
 		// Choose app data path
 		{

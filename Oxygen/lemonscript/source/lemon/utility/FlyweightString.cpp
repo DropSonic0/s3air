@@ -12,6 +12,11 @@
 
 namespace lemon
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	detail::FlyweightStringManager FlyweightString::mManager;
+	std::string_view FlyweightString::EMPTY_STRING_VIEW;
+#endif
+
 	namespace detail
 	{
 		FlyweightStringManager::FlyweightStringManager()

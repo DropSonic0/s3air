@@ -1,3 +1,4 @@
+c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\ps3_release\sonic3air.elf
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\imgui_impl_opengl3.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\imgui.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\imgui_draw.o
@@ -6,7 +7,6 @@ c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\imgui_widge
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\bitwise.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\framing.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\analysis.o
-c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\barkmel.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\bitrate.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\block.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\codebook.o
@@ -47,6 +47,7 @@ c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\trees.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\uncompr.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\zutil.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\json_reader.o
+c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\json_value.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\json_writer.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\basics.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\errorhandler.o
@@ -375,6 +376,9 @@ c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\source_soni
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\platformspecifics.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\dynamicsprites.o
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\scriptimplementations.o
+c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\sonic3air.tlog\ps3ppuld64.command.1.tlog
+c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\sonic3air.tlog\ps3ppuld64.read.1.tlog
+c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\sonic3air.tlog\ps3ppuld64.write.1.tlog
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\sonic3air.tlog\ps3ppusnc.command.1.tlog
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\sonic3air.tlog\ps3ppusnc.read.1.tlog
 c:\s3air\oxygen\sonic3air\build\_ps3\sonic3air\sonic3air\ps3_release\sonic3air.tlog\ps3ppusnc.write.1.tlog

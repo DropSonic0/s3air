@@ -277,6 +277,12 @@
 	#define SDLK_F7 1029
 	#define SDLK_F10 1030
 	#define SDLK_F11 1031
+	#define SDLK_F12 1050
+	#define SDLK_LGUI 1051
+	#define SDLK_RGUI 1052
+	#define SDLK_SCROLLLOCK 1053
+	#define SDLK_PAUSE 1054
+	#define SDLK_NUMLOCKCLEAR 1055
 	#define SDLK_CLEAR 1032
 	#define SDLK_BACKQUOTE 1033
 	#define SDLK_TAB 1034
@@ -746,7 +752,9 @@
 	static inline void glGenerateMipmap(unsigned int) {}
 
 	// VertexArrayObject OpenGL stubs and constants
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 	typedef long GLsizeiptr;
+#endif
 	typedef float GLfloat;
 
 	#define GL_ARRAY_BUFFER 0

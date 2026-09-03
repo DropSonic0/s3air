@@ -27,11 +27,15 @@ namespace rmx
 
 	FileSystem::FileSystem()
 	{
-		// By default, add a real file provider with mounted at root
-	#if !defined(PLATFORM_VITA)
-		addMountPoint(mDefaultRealFileProvider, L"", L"", 0);
-	#else
+		// By default, add a real file provider mounted at root
+	#if defined(PLATFORM_VITA)
 		addMountPoint(mDefaultRealFileProvider, L"ux0:data/sonic3air/", L"ux0:data/sonic3air/", 0);
+	#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		std::wstring ps3Path = rmx::convertFromUTF8(ps3_get_usrdir());
+		if (!ps3Path.empty() && ps3Path[ps3Path.length() - 1] != L'/') ps3Path += L'/';
+		addMountPoint(mDefaultRealFileProvider, ps3Path, ps3Path, 0);
+	#else
+		addMountPoint(mDefaultRealFileProvider, L"", L"", 0);
 	#endif
 	}
 
@@ -437,15 +441,25 @@ namespace rmx
 		// Check if path starts with the mount point
 		if (!mountPoint.mMountPoint.empty() && !startsWith(inPath, mountPoint.mMountPoint))
 		{
-		#if !defined(PLATFORM_VITA)
-			return nullptr;
-		#else
+		#if defined(PLATFORM_VITA)
 			if (wstr_to_str(mountPoint.mMountPoint) == "ux0:data/sonic3air/")
 			{
 				tempPath = mountPoint.mMountPoint;
 				tempPath.append(inPath);
 				return &tempPath;
 			}
+			return nullptr;
+		#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+			std::wstring ps3Mount = rmx::convertFromUTF8(ps3_get_usrdir());
+			if (!ps3Mount.empty() && ps3Mount[ps3Mount.length() - 1] != L'/') ps3Mount += L'/';
+			if (mountPoint.mMountPoint == ps3Mount || mountPoint.mMountPoint == L"/dev_hdd0/game/SONIC3AIR/USRDIR/")
+			{
+				tempPath = mountPoint.mMountPoint;
+				tempPath.append(inPath);
+				return &tempPath;
+			}
+			return nullptr;
+		#else
 			return nullptr;
 		#endif
 		}

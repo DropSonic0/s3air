@@ -7,6 +7,7 @@
 #define JSON_ASSERTIONS_H_INCLUDED
 
 #include <cstdlib>
+#include <stdlib.h>
 #include <sstream>
 
 #if !defined(JSON_IS_AMALGAMATION)
@@ -32,7 +33,7 @@
     OStringStream oss;                                                         \
     oss << message;                                                            \
     Json::throwLogicError(oss.str());                                          \
-    abort();                                                                   \
+    std::abort();                                                              \
   } while (0)
 
 #else // JSON_USE_EXCEPTION
@@ -46,7 +47,7 @@
     OStringStream oss;                                                         \
     oss << message;                                                            \
     assert(false && oss.str().c_str());                                        \
-    abort();                                                                   \
+    std::abort();                                                              \
   }
 
 #endif

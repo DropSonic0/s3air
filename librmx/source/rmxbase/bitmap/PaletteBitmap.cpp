@@ -47,7 +47,11 @@ PaletteBitmap::PaletteBitmap(const PaletteBitmap& toCopy)
 
 PaletteBitmap::~PaletteBitmap()
 {
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	delete[] mData;
+#else
+	if (mData) free(mData);
+#endif
 }
 
 void PaletteBitmap::setPixel(int x, int y, uint8 color)
@@ -61,8 +65,13 @@ void PaletteBitmap::create(int width, int height)
 {
 	if (width != mWidth || height != mHeight)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		delete[] mData;
 		mData = new uint8[width * height];
+#else
+		if (mData) free(mData);
+		mData = static_cast<uint8*>(memalign(128, width * height));
+#endif
 		mWidth = width;
 		mHeight = height;
 	}

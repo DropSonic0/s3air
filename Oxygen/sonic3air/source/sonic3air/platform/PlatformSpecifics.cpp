@@ -8,6 +8,7 @@
 
 #include "sonic3air/pch.h"
 #include "sonic3air/platform/PlatformSpecifics.h"
+#include "oxygen/platform/PlatformFunctions.h"
 
 #if defined(PLATFORM_VITA)
 	#include <vitasdk.h>
@@ -65,7 +66,9 @@ namespace
 
 void PlatformSpecifics::platformStartup()
 {
-#if defined(PLATFORM_VITA)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	PlatformFunctions::changeWorkingDirectory(L"/dev_hdd0/game/SONIC3AIR/USRDIR");
+#elif defined(PLATFORM_VITA)
 	scePowerSetArmClockFrequency(444);
 	scePowerSetBusClockFrequency(222);
 	scePowerSetGpuClockFrequency(222);

@@ -15,6 +15,13 @@
 #include "oxygen_netcore/network/HighLevelPacketBase.h"
 #include "oxygen_netcore/network/RequestBase.h"
 
+namespace lowlevel
+{
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	const VersionRange<uint8> PacketBase::LOWLEVEL_PROTOCOL_VERSIONS(1, 1);
+#endif
+}
+
 
 uint64 NetConnection::buildSenderKey(const SocketAddress& remoteAddress, uint16 remoteConnectionID)
 {

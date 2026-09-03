@@ -30,6 +30,52 @@ namespace rmx
 		}
 	}
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	void* AudioManager::cellAudioEventLoopStatic(void* arg)
+	{
+		static_cast<AudioManager*>(arg)->cellAudioEventLoop();
+		return nullptr;
+	}
+
+	void AudioManager::cellAudioEventLoop()
+	{
+		sys_event_queue_t eventQueueId;
+		sys_ipc_key_t eventQueueKey;
+		sys_event_t event;
+
+		cellAudioCreateNotifyEventQueue(&eventQueueId, &eventQueueKey);
+		cellAudioSetNotifyEventQueue(eventQueueKey);
+
+		const size_t numSamplesPerBlock = 256;
+		const size_t numChannels = 2;
+		float floatBuffer[numSamplesPerBlock * numChannels] __attribute__((aligned(16)));
+		int16_t pcmBuffer[numSamplesPerBlock * numChannels];
+
+		while (!mCellAudioQuit)
+		{
+			sys_event_queue_receive(eventQueueId, &event, 10000);	// 10ms timeout
+
+			if (mCellAudioQuit)
+				break;
+
+			memset(pcmBuffer, 0, sizeof(pcmBuffer));
+			lockAudio();
+			mixAudio((uint8*)pcmBuffer, (int)(sizeof(pcmBuffer)));
+			unlockAudio();
+
+			for (size_t i = 0; i < numSamplesPerBlock * numChannels; ++i)
+			{
+				floatBuffer[i] = (float)pcmBuffer[i] / 32768.0f;
+			}
+
+			cellAudioAddData(mCellAudioPort, floatBuffer, numSamplesPerBlock, 1.0);
+		}
+
+		cellAudioRemoveNotifyEventQueue(eventQueueKey);
+		pthread_exit(nullptr);
+	}
+#endif
+
 	void AudioManager::initialize(int sample_freq, int channels, int audioBufferSamples)
 	{
 		if (!FTX::System->initialize())
@@ -39,6 +85,7 @@ namespace rmx
 		mInstances.clear();
 		mRootMixer.clearAudioInstances();
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		// Initialize SDL2 audio subsystem
 		SDL_InitSubSystem(SDL_INIT_AUDIO);
 
@@ -87,11 +134,53 @@ namespace rmx
 		// Everything alright so far
 		mPlayedSamples = 0;
 		playAudio(true);
+#else
+		// CellAudio initialization for PS3 target
+		mFormat.freq = 48000;
+		mFormat.format = AUDIO_S16LSB;
+		mFormat.channels = 2;
+		mFormat.samples = 256;
+		mFormat.callback = AudioManager::mixAudioStatic;
+		mFormat.userdata = 0;
+
+		cellAudioInit();
+
+		CellAudioPortParam params;
+		params.nChannel = 2;
+		params.nBlock = 16;
+		params.attr = 0;
+
+		if (cellAudioPortOpen(&params, &mCellAudioPort) == CELL_OK)
+		{
+			pthread_mutex_init(&mCellAudioMutex, nullptr);
+			mCellAudioQuit = false;
+			cellAudioPortStart(mCellAudioPort);
+			pthread_create(&mCellAudioThread, nullptr, cellAudioEventLoopStatic, this);
+		}
+		else
+		{
+			cellAudioQuit();
+		}
+		mPlayedSamples = 0;
+#endif
 	}
 
 	void AudioManager::exit()
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		SDL_CloseAudioDevice(mAudioDeviceID);
+#else
+		if (mCellAudioPort != 0)
+		{
+			mCellAudioQuit = true;
+			pthread_join(mCellAudioThread, nullptr);
+			cellAudioPortStop(mCellAudioPort);
+			cellAudioPortClose(mCellAudioPort);
+			cellAudioQuit();
+			pthread_mutex_destroy(&mCellAudioMutex);
+			mCellAudioPort = 0;
+		}
+#endif
 	}
 
 	void AudioManager::clear()
@@ -113,19 +202,35 @@ namespace rmx
 
 	void AudioManager::playAudio(bool onoff)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		SDL_PauseAudioDevice(mAudioDeviceID, onoff ? 0 : 1);
+#else
+		if (mCellAudioPort != 0)
+		{
+			if (onoff) cellAudioPortStart(mCellAudioPort);
+			else cellAudioPortStop(mCellAudioPort);
+		}
+#endif
 	}
 
 	bool AudioManager::getAudioState()
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		return (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING);
+#else
+		return (mCellAudioPort != 0 && !mCellAudioQuit);
+#endif
 	}
 
 	void AudioManager::lockAudio()
 	{
 		if (mAudioLocks == 0)
 		{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 			SDL_LockAudioDevice(mAudioDeviceID);
+#else
+			if (mCellAudioPort != 0) pthread_mutex_lock(&mCellAudioMutex);
+#endif
 		}
 		++mAudioLocks;
 	}
@@ -136,7 +241,11 @@ namespace rmx
 		--mAudioLocks;
 		if (mAudioLocks == 0)
 		{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 			SDL_UnlockAudioDevice(mAudioDeviceID);
+#else
+			if (mCellAudioPort != 0) pthread_mutex_unlock(&mCellAudioMutex);
+#endif
 		}
 	}
 

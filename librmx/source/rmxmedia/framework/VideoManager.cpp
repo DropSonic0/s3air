@@ -42,6 +42,7 @@ namespace rmx
 
 	bool VideoManager::setVideoMode(const VideoConfig& videoconfig)
 	{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		// Change video mode
 		uint32 flags = 0;
 	#ifdef RMX_WITH_OPENGL_SUPPORT
@@ -102,6 +103,32 @@ namespace rmx
 		#endif
 		}
 	#endif
+#else
+		// PSGL Video Mode initialization for PS3
+		psglInit(NULL);
+
+		mPSGLDevice = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
+		if (!mPSGLDevice)
+			return false;
+
+		GLuint width = 1280;
+		GLuint height = 720;
+		psglGetDeviceDimensions(mPSGLDevice, &width, &height);
+
+		mPSGLContext = psglCreateContext();
+		if (!mPSGLContext)
+			return false;
+
+		psglMakeCurrent(mPSGLContext, mPSGLDevice);
+		psglResetCurrentContext();
+
+		mVideoConfig = videoconfig;
+		mVideoConfig.mWindowRect.width = width;
+		mVideoConfig.mWindowRect.height = height;
+
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+#endif
 		return true;
 	}
 
@@ -211,12 +238,16 @@ namespace rmx
 	{
 		if (mVideoConfig.mAutoClearScreen)
 		{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		#ifdef RMX_WITH_OPENGL_SUPPORT
 			if (mVideoConfig.mRenderer == VideoConfig::Renderer::OPENGL)
 			{
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 			}
 		#endif
+#else
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#endif
 		}
 	}
 
@@ -224,12 +255,16 @@ namespace rmx
 	{
 		if (mVideoConfig.mAutoSwapBuffers)
 		{
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
 		#ifdef RMX_WITH_OPENGL_SUPPORT
 			if (mVideoConfig.mRenderer == VideoConfig::Renderer::OPENGL)
 			{
 				SDL_GL_SwapWindow(mMainWindow);
 			}
 		#endif
+#else
+			psglSwap();
+#endif
 		}
 		mReshaped = false;
 	}

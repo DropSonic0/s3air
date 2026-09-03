@@ -66,8 +66,13 @@ namespace lemon
 	private:
 		detail::FlyweightStringManager::Entry* mEntry = nullptr;
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		inline static detail::FlyweightStringManager mManager;
 		inline static std::string_view EMPTY_STRING_VIEW;
+#else
+		static detail::FlyweightStringManager mManager;
+		static std::string_view EMPTY_STRING_VIEW;
+#endif
 	};
 
 

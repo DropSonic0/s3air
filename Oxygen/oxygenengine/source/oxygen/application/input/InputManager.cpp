@@ -295,6 +295,15 @@ const std::string InputManager::KEYBOARD_DEVICE_NAMES[NUM_PLAYERS] = { "Keyboard
 
 InputManager::InputManager()
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	mPS3PadsInitialized = false;
+	mPS3KbInitialized = false;
+	mPS3KeyboardModifiers = 0;
+	memset(mPS3KbConnected, 0, sizeof(mPS3KbConnected));
+	memset(mPS3KeyboardState, 0, sizeof(mPS3KeyboardState));
+	memset(mPS3CachedPadValid, 0, sizeof(mPS3CachedPadValid));
+#endif
+
 	mKeyboards.reserve(NUM_PLAYERS);
 	mGamepads.reserve(8);	// That's quite a lot, but we have to make sure this is never exceeded by the actual number of devices
 
@@ -311,8 +320,279 @@ InputManager::InputManager()
 	}
 }
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#ifndef CELL_KB_MAX_KEYCODES
+#define CELL_KB_MAX_KEYCODES 62
+#endif
+#ifndef CELL_KB_CODETYPE_RAW
+#define CELL_KB_CODETYPE_RAW 0
+#endif
+#ifndef CELL_KB_RMODE_PACKET
+#define CELL_KB_RMODE_PACKET 1
+#endif
+
+#ifndef CELL_KB_MKEY_L_SHIFT
+#define CELL_KB_MKEY_L_SHIFT  (1<<1)
+#endif
+#ifndef CELL_KB_MKEY_R_SHIFT
+#define CELL_KB_MKEY_R_SHIFT  (1<<5)
+#endif
+#ifndef CELL_KB_MKEY_L_CTRL
+#define CELL_KB_MKEY_L_CTRL   (1<<0)
+#endif
+#ifndef CELL_KB_MKEY_R_CTRL
+#define CELL_KB_MKEY_R_CTRL   (1<<4)
+#endif
+#ifndef CELL_KB_MKEY_L_ALT
+#define CELL_KB_MKEY_L_ALT    (1<<2)
+#endif
+#ifndef CELL_KB_MKEY_R_ALT
+#define CELL_KB_MKEY_R_ALT    (1<<6)
+#endif
+#ifndef CELL_KB_MKEY_L_GUI
+#define CELL_KB_MKEY_L_GUI    (1<<3)
+#endif
+#ifndef CELL_KB_MKEY_R_GUI
+#define CELL_KB_MKEY_R_GUI    (1<<7)
+#endif
+
+extern "C" {
+	extern int cellKbSetCodeType(uint32_t port_no, uint32_t type);
+	extern int cellKbSetReadMode(uint32_t port_no, uint32_t mode);
+}
+
+static struct {
+	uint32_t mask;
+	SDL_Keycode key;
+} ps3_modifiers_map[8] = {
+	{ CELL_KB_MKEY_L_SHIFT, SDLK_LSHIFT },
+	{ CELL_KB_MKEY_R_SHIFT, SDLK_RSHIFT },
+	{ CELL_KB_MKEY_L_CTRL, SDLK_LCTRL },
+	{ CELL_KB_MKEY_R_CTRL, SDLK_RCTRL },
+	{ CELL_KB_MKEY_L_ALT, SDLK_LALT },
+	{ CELL_KB_MKEY_R_ALT, SDLK_RALT },
+	{ CELL_KB_MKEY_L_GUI, SDLK_LGUI },
+	{ CELL_KB_MKEY_R_GUI, SDLK_RGUI }
+};
+
+int32_t InputManager::getPS3Axis(const CellPadData* data, int offset)
+{
+	int val = (int)data->button[offset];
+	int centered = val - 128;
+	if (centered > -20 && centered < 20)
+		return 0;
+	return centered * 256;
+}
+
+int32_t InputManager::convertPS3HIDToKeycode(uint8_t code)
+{
+	if (code >= 0x04 && code <= 0x1D) return 'a' + (code - 0x04);
+	if (code >= 0x1E && code <= 0x26) return '1' + (code - 0x1E);
+	if (code == 0x27) return '0';
+	if (code >= 0x3A && code <= 0x43) return SDLK_F1 + (code - 0x3A);
+	if (code == 0x44) return SDLK_F11;
+	if (code == 0x45) return SDLK_F12;
+
+	switch (code)
+	{
+		case 0x28: return SDLK_RETURN;
+		case 0x29: return SDLK_ESCAPE;
+		case 0x2A: return SDLK_BACKSPACE;
+		case 0x2B: return SDLK_TAB;
+		case 0x2C: return SDLK_SPACE;
+		case 0x2D: return SDLK_MINUS;
+		case 0x2E: return SDLK_EQUALS;
+		case 0x2F: return '[';
+		case 0x30: return ']';
+		case 0x31: return '\\';
+		case 0x33: return ';';
+		case 0x34: return '\'';
+		case 0x35: return '`';
+		case 0x36: return ',';
+		case 0x37: return '.';
+		case 0x38: return '/';
+		case 0x39: return SDLK_CAPSLOCK;
+		case 0x47: return SDLK_SCROLLLOCK;
+		case 0x48: return SDLK_PAUSE;
+		case 0x49: return SDLK_INSERT;
+		case 0x4A: return SDLK_HOME;
+		case 0x4B: return SDLK_PAGEUP;
+		case 0x4C: return SDLK_DELETE;
+		case 0x4D: return SDLK_END;
+		case 0x4E: return SDLK_PAGEDOWN;
+		case 0x4F: return SDLK_RIGHT;
+		case 0x50: return SDLK_LEFT;
+		case 0x51: return SDLK_DOWN;
+		case 0x52: return SDLK_UP;
+		case 0x53: return SDLK_NUMLOCKCLEAR;
+		case 0x54: return SDLK_KP_DIVIDE;
+		case 0x55: return SDLK_KP_MULTIPLY;
+		case 0x56: return SDLK_KP_MINUS;
+		case 0x57: return SDLK_KP_PLUS;
+		case 0x58: return SDLK_KP_ENTER;
+		case 0x59: return SDLK_KP_1;
+		case 0x5A: return SDLK_KP_2;
+		case 0x5B: return SDLK_KP_3;
+		case 0x5C: return SDLK_KP_4;
+		case 0x5D: return SDLK_KP_5;
+		case 0x5E: return SDLK_KP_6;
+		case 0x5F: return SDLK_KP_7;
+		case 0x60: return SDLK_KP_8;
+		case 0x61: return SDLK_KP_9;
+		case 0x62: return SDLK_KP_0;
+		case 0x63: return SDLK_KP_PERIOD;
+		default:   break;
+	}
+	return 0;
+}
+
+void InputManager::initPS3Input()
+{
+	if (!mPS3PadsInitialized)
+	{
+		if (cellPadInit(7) == CELL_PAD_OK)
+		{
+			mPS3PadsInitialized = true;
+			memset(mPS3CachedPadData, 0, sizeof(mPS3CachedPadData));
+			memset(mPS3CachedPadValid, 0, sizeof(mPS3CachedPadValid));
+		}
+	}
+	if (!mPS3KbInitialized)
+	{
+		if (cellKbInit(2) == 0)
+		{
+			mPS3KbInitialized = true;
+			memset(mPS3KeyboardState, 0, sizeof(mPS3KeyboardState));
+			mPS3KeyboardModifiers = 0;
+			memset(mPS3KbConnected, 0, sizeof(mPS3KbConnected));
+			memset(mPS3LastKbState, 0, sizeof(mPS3LastKbState));
+		}
+	}
+}
+
+void InputManager::pollPS3Input()
+{
+	cellSysutilCheckCallback();
+
+	if (mPS3PadsInitialized)
+	{
+		for (int port = 0; port < 7; port++)
+		{
+			CellPadData data;
+			if (cellPadGetData(port, &data) == CELL_PAD_OK && data.len > 0)
+			{
+				mPS3CachedPadData[port] = data;
+				mPS3CachedPadValid[port] = true;
+			}
+			else
+			{
+				mPS3CachedPadValid[port] = false;
+			}
+		}
+	}
+
+	if (mPS3KbInitialized)
+	{
+		CellKbInfo kbInfo;
+		if (cellKbGetInfo(&kbInfo) == 0)
+		{
+			uint8_t currentHeld[256];
+			memset(currentHeld, 0, sizeof(currentHeld));
+			uint32_t currentModifiers = 0;
+
+			for (int i = 0; i < 2; i++)
+			{
+				if (i < (int)kbInfo.max_connect && kbInfo.status[i] != 0)
+				{
+					if (!mPS3KbConnected[i])
+					{
+						cellKbSetCodeType(i, CELL_KB_CODETYPE_RAW);
+						cellKbSetReadMode(i, CELL_KB_RMODE_PACKET);
+						mPS3KbConnected[i] = 1;
+						memset(&mPS3LastKbState[i], 0, sizeof(CellKbData));
+					}
+
+					int safety = 0;
+					CellKbData kbData;
+					while (safety < 64)
+					{
+						kbData.len = 0xFFFFFFFF;
+						kbData.mkey = 0xFFFFFFFF;
+						int readRes = cellKbRead(i, &kbData);
+						if (readRes == CELL_KB_ERROR_NO_DEVICE || readRes == CELL_KB_ERROR_UNINITIALIZED)
+						{
+							memset(&mPS3LastKbState[i], 0, sizeof(CellKbData));
+							mPS3KbConnected[i] = 0;
+							break;
+						}
+						if (readRes != 0 || kbData.len == 0xFFFFFFFF || kbData.mkey == 0xFFFFFFFF)
+						{
+							break;
+						}
+						mPS3LastKbState[i] = kbData;
+						safety++;
+					}
+				}
+				else
+				{
+					if (mPS3KbConnected[i])
+					{
+						memset(&mPS3LastKbState[i], 0, sizeof(CellKbData));
+						mPS3KbConnected[i] = 0;
+					}
+				}
+
+				if (mPS3KbConnected[i])
+				{
+					int len = mPS3LastKbState[i].len;
+					if (len > CELL_KB_MAX_KEYCODES) len = CELL_KB_MAX_KEYCODES;
+					for (int k = 0; k < len; k++)
+					{
+						uint8_t code = mPS3LastKbState[i].keycode[k] & 0xFF;
+						if (code > 0) currentHeld[code] = 1;
+					}
+					if (mPS3LastKbState[i].mkey != 0xFFFFFFFF)
+					{
+						currentModifiers |= mPS3LastKbState[i].mkey;
+					}
+				}
+			}
+
+			for (int i = 0; i < 256; i++)
+			{
+				if (currentHeld[i] && !mPS3KeyboardState[i])
+				{
+					SDL_Keycode sym = convertPS3HIDToKeycode(i);
+					if (sym != 0)
+					{
+						mOneFrameKeyboardInputs.insert(sym);
+						mHasKeyboard = true;
+					}
+				}
+				mPS3KeyboardState[i] = currentHeld[i];
+			}
+
+			for (int m = 0; m < 8; m++)
+			{
+				uint8_t newState = (currentModifiers & ps3_modifiers_map[m].mask) ? 1 : 0;
+				uint8_t oldState = (mPS3KeyboardModifiers & ps3_modifiers_map[m].mask) ? 1 : 0;
+				if (newState && !oldState)
+				{
+					mOneFrameKeyboardInputs.insert(ps3_modifiers_map[m].key);
+					mHasKeyboard = true;
+				}
+			}
+			mPS3KeyboardModifiers = currentModifiers;
+		}
+	}
+}
+#endif
+
 void InputManager::startup()
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	initPS3Input();
+#endif
 	// Initialize gamepad
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 	rescanRealDevices();
@@ -325,6 +605,10 @@ void InputManager::enableTouchInput(bool enable)
 
 void InputManager::updateInput(float timeElapsed)
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	pollPS3Input();
+#endif
+
 #if 0
 	if (!mGamepads.empty())
 	{
@@ -1042,6 +1326,64 @@ bool InputManager::isPressed(const ControlInput& input)
 
 bool InputManager::isPressed(SDL_Joystick* joystick, const ControlInput& input)
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	CellPadData padData;
+	int port = (nullptr != input.mDevice) ? input.mDevice->mAssignedPlayer : 0;
+	if (port < 0 || port >= 7) port = 0;
+	if (cellPadGetData(port, &padData) == CELL_PAD_OK && padData.len > 0)
+	{
+		uint16_t buttons = ((uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2] << 8) | (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+		switch (input.mType)
+		{
+			case InputConfig::Assignment::Type::AXIS:
+			{
+				int axisIndex = input.mIndex / 2;
+				int axisVal = 0;
+				if (axisIndex == 0) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X);
+				else if (axisIndex == 1) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y);
+				else if (axisIndex == 2) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X);
+				else if (axisIndex == 3) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y);
+
+				const float value = (float)axisVal / 32767.0f;
+				if ((input.mIndex % 2) == 0)
+					return (value < -0.25f);
+				else
+					return (value > 0.25f);
+			}
+			case InputConfig::Assignment::Type::BUTTON:
+			{
+				uint16_t digital1 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+				uint16_t digital2 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2];
+				switch (input.mIndex)
+				{
+					case 0: return (digital2 & CELL_PAD_CTRL_CROSS) != 0;    // A / Cross
+					case 1: return (digital2 & CELL_PAD_CTRL_CIRCLE) != 0;   // B / Circle
+					case 2: return (digital2 & CELL_PAD_CTRL_SQUARE) != 0;   // X / Square
+					case 3: return (digital2 & CELL_PAD_CTRL_TRIANGLE) != 0; // Y / Triangle
+					case 4: return (digital1 & CELL_PAD_CTRL_START) != 0;    // Start
+					case 5: return (digital1 & CELL_PAD_CTRL_SELECT) != 0;   // Back / Select
+					case 6: return (digital2 & CELL_PAD_CTRL_L1) != 0;       // L1
+					case 7: return (digital2 & CELL_PAD_CTRL_R1) != 0;       // R1
+					case 8: return (digital2 & CELL_PAD_CTRL_L2) != 0;       // L2
+					case 9: return (digital2 & CELL_PAD_CTRL_R2) != 0;       // R2
+					case 10: return (digital1 & CELL_PAD_CTRL_L3) != 0;      // L3
+					case 11: return (digital1 & CELL_PAD_CTRL_R3) != 0;      // R3
+				}
+				return (SDL_JoystickGetButton(joystick, input.mIndex) > 0);
+			}
+			case InputConfig::Assignment::Type::POV:
+			{
+				uint8 hatMask = 0;
+				if (buttons & CELL_PAD_CTRL_UP) hatMask |= 1;
+				if (buttons & CELL_PAD_CTRL_RIGHT) hatMask |= 2;
+				if (buttons & CELL_PAD_CTRL_DOWN) hatMask |= 4;
+				if (buttons & CELL_PAD_CTRL_LEFT) hatMask |= 8;
+				return (hatMask & (input.mIndex & 0xff)) != 0;
+			}
+		}
+	}
+#endif
+
 	if (nullptr != joystick)
 	{
 		switch (input.mType)

@@ -546,10 +546,14 @@ namespace rmx
 		if (path.empty())
 			return path;
 
-	#ifdef PLATFORM_VITA
+	#if defined(PLATFORM_VITA)
 		// Assume that the path is always normal when it begins with ux0:/data
 		const WString t(path);
 		if (t.startsWith(L"ux0:/data/") || t.startsWith(L"ux0:data/"))
+			return path;
+	#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		const WString t(path);
+		if (t.startsWith(L"/dev_hdd0/game/SONIC3AIR/USRDIR/") || t.startsWith(L"/dev_hdd0/"))
 			return path;
 	#endif
 

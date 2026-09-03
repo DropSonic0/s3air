@@ -13,6 +13,11 @@
 #include "oxygen/application/ArgumentsReader.h"
 #include "oxygen/platform/PlatformFunctions.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#include <sys/process.h>
+#include <cell/sysmodule.h>
+#endif
+
 
 #if defined(PLATFORM_WINDOWS) && !defined(__GNUC__)
 extern "C"

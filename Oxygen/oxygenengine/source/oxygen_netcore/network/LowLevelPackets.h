@@ -22,7 +22,11 @@ namespace lowlevel
 	public:
 		virtual ~PacketBase() {}
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		static const constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS { 1, 1 };
+#else
+		static const VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS;
+#endif
 
 	public:
 		bool serializePacket(VectorBinarySerializer& serializer, uint8 protocolVersion)

@@ -147,7 +147,11 @@ protected:
 			page.mSize = mPageSize;
 
 			const size_t memorySize = sizeof(Item) * page.mSize;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			page.mItems = static_cast<Item*>(malloc(memorySize));
+#else
+			page.mItems = static_cast<Item*>(memalign(128, memorySize));
+#endif
 
 			// Initialize items
 			for (size_t i = 0; i < page.mSize; ++i)

@@ -139,6 +139,10 @@ using std::pow;
 using std::log;
 using std::log10;
 using std::log10f;
+using std::malloc;
+using std::free;
+using std::abort;
+using std::modf;
 #endif
 #endif
 
@@ -206,6 +210,18 @@ namespace FTX
 // This include depends on FTX::FileSystem, so add it afterwards
 #include "rmxbase/memory/StringImpl.h"
 
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#ifdef __cplusplus
+extern "C" {
+#endif
+void ps3_log(const char* msg);
+void ps3_set_usrdir(const char* path);
+const char* ps3_get_usrdir();
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 // Initialization
 namespace rmxbase

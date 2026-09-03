@@ -12,6 +12,27 @@
 rmx::BitmapCodecList rmx::BitmapCodecList::mCodecs;
 
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#include <stdlib.h>
+static inline uint32* allocBitmapData(size_t count)
+{
+	return static_cast<uint32*>(memalign(128, count * sizeof(uint32)));
+}
+static inline void freeBitmapData(uint32* ptr)
+{
+	if (ptr) free(ptr);
+}
+#else
+static inline uint32* allocBitmapData(size_t count)
+{
+	return new uint32[count];
+}
+static inline void freeBitmapData(uint32* ptr)
+{
+	delete[] ptr;
+}
+#endif
+
 Bitmap::Bitmap()
 {
 }
@@ -46,7 +67,7 @@ void Bitmap::copy(const Bitmap& source)
 
 		mWidth = source.mWidth;
 		mHeight = source.mHeight;
-		mData = new uint32[mWidth*mHeight];
+		mData = allocBitmapData(mWidth*mHeight);
 	}
 	memcpy(mData, source.mData, mWidth*mHeight*4);
 }
@@ -70,7 +91,7 @@ void Bitmap::copy(const Bitmap& source, const Recti& rect)
 
 	mWidth = sx;
 	mHeight = sy;
-	mData = new uint32[mWidth*mHeight];
+	mData = allocBitmapData(mWidth*mHeight);
 	memcpyRect(mData, mWidth, &source.mData[px+py*source.mWidth], source.mWidth, mWidth, mHeight);
 }
 
@@ -82,7 +103,7 @@ void Bitmap::copy(const void* source, int wid, int hgt)
 
 	mWidth = wid;
 	mHeight = hgt;
-	mData = new uint32[mWidth*mHeight];
+	mData = allocBitmapData(mWidth*mHeight);
 	memcpy(mData, source, mWidth*mHeight*4);
 }
 
@@ -91,10 +112,10 @@ void Bitmap::create(int wid, int hgt)
 	if (nullptr != mData && mWidth == wid && mHeight == hgt)
 		return;
 
-	delete[] mData;
+	freeBitmapData(mData);
 	mWidth = wid;
 	mHeight = hgt;
-	mData = new uint32[mWidth*mHeight];
+	mData = allocBitmapData(mWidth*mHeight);
 }
 
 void Bitmap::create(int wid, int hgt, uint32 color)
@@ -127,7 +148,7 @@ void Bitmap::createReusingMemory(int wid, int hgt, int& reservedSize, uint32 col
 void Bitmap::clear()
 {
 	if (nullptr != mData)
-		delete[] mData;
+		freeBitmapData(mData);
 	mData = nullptr;
 	mWidth = 0;
 	mHeight = 0;
@@ -299,7 +320,11 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		case ColorFormat::RGB24:
 		{
 			size *= 3;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
+#else
+			output = static_cast<uint8*>(memalign(128, size));
+#endif
 			for (int i = 0; i < pixels; ++i)
 				memcpy(&output[i*3], &mData[i], 3);
 			return output;
@@ -309,7 +334,11 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		case ColorFormat::RGB16:
 		{
 			size *= 2;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
+#else
+			output = static_cast<uint8*>(memalign(128, size));
+#endif
 			for (int i = 0; i < pixels; ++i)
 			{
 				uint16 color = 0;
@@ -326,7 +355,11 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		{
 			if (!palette)
 				break;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
+#else
+			output = static_cast<uint8*>(memalign(128, size));
+#endif
 			convert2palette(output, 256, palette);
 			return output;
 		}
@@ -336,13 +369,25 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		{
 			if (!palette)
 				break;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			uint8* tmp = new uint8[size];
+#else
+			uint8* tmp = static_cast<uint8*>(memalign(128, size));
+#endif
 			convert2palette(tmp, 16, palette);
 			size /= 2;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
+#else
+			output = static_cast<uint8*>(memalign(128, size));
+#endif
 			for (int i = 0; i < pixels; i += 2)
 				output[i/2] = (tmp[i] << 4) + tmp[i+1];
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			delete[] tmp;
+#else
+			free(tmp);
+#endif
 			return output;
 		}
 
@@ -350,7 +395,11 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		default:
 		{
 			size *= 4;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
+#else
+			output = static_cast<uint8*>(memalign(128, size));
+#endif
 			memcpy(output, mData, size);
 			return output;
 		}
@@ -495,9 +544,9 @@ void Bitmap::resize(int wid, int hgt)
 		clear();
 		return;
 	}
-	uint32* mData2 = new uint32[wid*hgt];
+	uint32* mData2 = allocBitmapData(wid*hgt);
 	memcpyRect(mData2, wid, mData, mWidth, std::min(wid, mWidth), std::min(hgt, mHeight));
-	delete[] mData;
+	freeBitmapData(mData);
 	mData = mData2;
 	mWidth = wid;
 	mHeight = hgt;
@@ -520,11 +569,11 @@ void Bitmap::mirrorHorizontal()
 {
 	if (nullptr == mData)
 		return;
-	uint32* mData2 = new uint32[mWidth*mHeight];
+	uint32* mData2 = allocBitmapData(mWidth*mHeight);
 	for (int y = 0; y < mHeight; ++y)
 		for (int x = 0; x < mWidth; ++x)
 			mData2[x+y*mWidth] = mData[(mWidth-x-1)+y*mWidth];
-	delete[] mData;
+	freeBitmapData(mData);
 	mData = mData2;
 }
 
@@ -532,10 +581,10 @@ void Bitmap::mirrorVertical()
 {
 	if (nullptr == mData)
 		return;
-	uint32* mData2 = new uint32[mWidth*mHeight];
+	uint32* mData2 = allocBitmapData(mWidth*mHeight);
 	for (int y = 0; y < mHeight; ++y)
 		memcpy(&mData2[y*mWidth], &mData[(mHeight-y-1)*mWidth], mWidth*4);
-	delete[] mData;
+	freeBitmapData(mData);
 	mData = mData2;
 }
 
@@ -685,7 +734,7 @@ void Bitmap::sampleDown(const Bitmap& source, bool roundup)
 	int nx = (sx == 1) ? 1 : roundup ? (sx+1)/2 : sx/2;
 	int ny = (sy == 1) ? 1 : roundup ? (sy+1)/2 : sy/2;
 	int max_x = (nx <= sx/2) ? nx : sx/2;
-	uint32* newData = new uint32[nx*ny];
+	uint32* newData = allocBitmapData(nx*ny);
 	for (int y = 0; y < ny; ++y)
 	{
 		uint32* src = &source.mData[y*2*sx];
@@ -704,7 +753,7 @@ void Bitmap::sampleDown(const Bitmap& source, bool roundup)
 		if (nx*2-1 >= sx)
 			dst[max_x] = ((dst[max_x] & 0xfefefefe) >> 1) + ((src[max_x*2] & 0xfefefefe) >> 1);
 	}
-	delete[] mData;
+	freeBitmapData(mData);
 	mData = newData;
 	mWidth = nx;
 	mHeight = ny;
