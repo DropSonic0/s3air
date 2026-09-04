@@ -137,6 +137,8 @@ namespace opengldrawer
 
 			// Also register callback for blend mode changes by shaders
 			Shader::mShaderApplyBlendModeCallback = std::bind(&opengldrawer::applyShaderBlendMode, std::placeholders::_1, &mResources);
+#else
+			Shader::mShaderSourcePostProcessCallback = &opengldrawer::performShaderSourcePostProcessing;
 #endif
 
 		#ifdef USE_OPENGL_MESSAGE_CALLBACK

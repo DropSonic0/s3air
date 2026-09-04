@@ -97,7 +97,7 @@
 	typedef struct SDL_mutex SDL_mutex;
 	typedef struct SDL_Thread SDL_Thread;
 	typedef struct SDL_cond SDL_cond;
-	typedef struct SDL_Window SDL_Window;
+	typedef struct SDL_Window { int dummy; } SDL_Window;
 	typedef struct _SDL_Joystick SDL_Joystick;
 	typedef struct _SDL_GameController SDL_GameController;
 	typedef int64_t SDL_TouchID;
@@ -436,8 +436,16 @@
 	static inline void SDL_SetWindowPosition(SDL_Window*, int, int) {}
 	static inline void SDL_SetWindowResizable(SDL_Window*, unsigned char) {}
 	static inline void SDL_SetWindowBordered(SDL_Window*, unsigned char) {}
-	static inline int SDL_GetDisplayBounds(int, SDL_Rect*) { return -1; }
-	static inline int SDL_GetDesktopDisplayMode(int, SDL_DisplayMode*) { return -1; }
+	static inline int SDL_GetDisplayBounds(int, SDL_Rect* rect)
+	{
+		if (rect) { rect->x = 0; rect->y = 0; rect->w = 1280; rect->h = 720; }
+		return 0;
+	}
+	static inline int SDL_GetDesktopDisplayMode(int, SDL_DisplayMode* mode)
+	{
+		if (mode) { mode->w = 1280; mode->h = 720; }
+		return 0;
+	}
 
 	static inline int SDL_PollEvent(SDL_Event*) { return 0; }
 	static inline unsigned int SDL_GetTicks() { return 0; }
@@ -602,10 +610,21 @@
 	static inline int SDL_UpdateWindowSurface(SDL_Window*) { return 0; }
 	
 	static inline void SDL_DestroyWindow(SDL_Window*) {}
-	static inline SDL_Window* SDL_CreateWindow(const char*, int, int, int, int, unsigned int) { return nullptr; }
-	static inline void* SDL_GL_CreateContext(SDL_Window*) { return nullptr; }
+	static inline SDL_Window* SDL_CreateWindow(const char*, int, int, int, int, unsigned int)
+	{
+		return (SDL_Window*)1;
+	}
+	static inline void* SDL_GL_CreateContext(SDL_Window*)
+	{
+		static int dummy_context = 1;
+		return &dummy_context;
+	}
 	static inline int SDL_GL_SetSwapInterval(int) { return 0; }
-	static inline void SDL_GetWindowSize(SDL_Window*, int*, int*) {}
+	static inline void SDL_GetWindowSize(SDL_Window*, int* w, int* h)
+	{
+		if (w) *w = 1280;
+		if (h) *h = 720;
+	}
 	static inline int SDL_ShowCursor(int) { return 0; }
 	
 	#define SDL_GL_RED_SIZE 0
@@ -715,16 +734,34 @@
 	static inline void glUniformMatrix3fv(unsigned int, int, unsigned char, const float*) {}
 	static inline void glUniformMatrix4fv(unsigned int, int, unsigned char, const float*) {}
 	static inline void glBindTexture(unsigned int, unsigned int) {}
-	static inline unsigned int glCreateShader(unsigned int) { return 0; }
+	static inline unsigned int glCreateShader(unsigned int) { static unsigned int shader_id = 1; return shader_id++; }
 	static inline void glShaderSource(unsigned int, int, const char**, const int*) {}
 	static inline void glCompileShader(unsigned int) {}
-	static inline void glGetShaderiv(unsigned int, unsigned int, int*) {}
+	static inline void glGetShaderiv(unsigned int, unsigned int pname, int* params)
+	{
+		if (params)
+		{
+			if (pname == GL_COMPILE_STATUS)
+				*params = 1;
+			else
+				*params = 0;
+		}
+	}
 	static inline void glGetShaderInfoLog(unsigned int, int, int*, char*) {}
-	static inline unsigned int glCreateProgram() { return 0; }
+	static inline unsigned int glCreateProgram() { static unsigned int program_id = 1; return program_id++; }
 	static inline void glAttachShader(unsigned int, unsigned int) {}
 	static inline void glBindAttribLocation(unsigned int, unsigned int, const char*) {}
 	static inline void glLinkProgram(unsigned int) {}
-	static inline void glGetProgramiv(unsigned int, unsigned int, int*) {}
+	static inline void glGetProgramiv(unsigned int, unsigned int pname, int* params)
+	{
+		if (params)
+		{
+			if (pname == GL_LINK_STATUS)
+				*params = 1;
+			else
+				*params = 0;
+		}
+	}
 	static inline void glGetProgramInfoLog(unsigned int, int, int*, char*) {}
 
 	// Texture OpenGL stubs and constants

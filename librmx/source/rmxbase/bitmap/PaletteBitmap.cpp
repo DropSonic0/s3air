@@ -189,6 +189,24 @@ bool PaletteBitmap::loadBMP(const std::vector<uint8>& bmpContent, std::vector<ui
 	if (memcmp(header.signature, "BM", 2) != 0)
 		return false;
 
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+	header.fileSize = swapBytes32(header.fileSize);
+	header.creator1 = swapBytes16(header.creator1);
+	header.creator2 = swapBytes16(header.creator2);
+	header.headerSize = swapBytes32(header.headerSize);
+	header.dibHeaderSize = swapBytes32(header.dibHeaderSize);
+	header.width = swapBytes32(header.width);
+	header.height = swapBytes32(header.height);
+	header.numPlanes = swapBytes16(header.numPlanes);
+	header.bpp = swapBytes16(header.bpp);
+	header.compression = swapBytes32(header.compression);
+	header.dataSize = swapBytes32(header.dataSize);
+	header.resolutionX = swapBytes32(header.resolutionX);
+	header.resolutionY = swapBytes32(header.resolutionY);
+	header.numColors = swapBytes32(header.numColors);
+	header.importantColors = swapBytes32(header.importantColors);
+#endif
+
 	// Size
 	const int width = header.width;
 	const int height = header.height;

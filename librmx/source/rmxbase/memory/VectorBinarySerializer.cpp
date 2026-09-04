@@ -23,14 +23,21 @@ namespace
 			if (readPosition + sizeof(T) > buffer.size())
 				return false;
 
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+			value = rmx::readMemoryUnalignedSwapped<T>(&buffer[readPosition]);
+		#else
 			value = rmx::readMemoryUnaligned<T>(&buffer[readPosition]);
+		#endif
 			readPosition += sizeof(T);
 		}
 		else
 		{
 			const size_t oldSize = buffer.size();
 			buffer.resize(oldSize + sizeof(T));
-		#if !defined(PLATFORM_VITA)
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+			T swappedValue = rmx::swapBytes<T>(value);
+			memcpy(&buffer[oldSize], &swappedValue, sizeof(T));
+		#elif !defined(PLATFORM_VITA)
 			*(T*)&buffer[oldSize] = value;
 		#else
 			// Use memcpy to avoid issues with unaligned memory access

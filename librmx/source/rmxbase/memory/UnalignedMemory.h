@@ -18,7 +18,23 @@
 
 namespace rmx
 {
-#if !defined(__vita__)
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+	template<typename T>
+	T readMemoryUnaligned(const void* pointer)
+	{
+		T val;
+		memcpy(&val, pointer, sizeof(T));
+		return val;
+	}
+
+	template<typename T>
+	T readMemoryUnalignedSwapped(const void* pointer)
+	{
+		T val;
+		memcpy(&val, pointer, sizeof(T));
+		return swapBytes<T>(val);
+	}
+#elif !defined(__vita__)
 	template<typename T>
 	T readMemoryUnaligned(const void* pointer) { return *(T*)pointer; }
 

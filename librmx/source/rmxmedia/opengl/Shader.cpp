@@ -599,8 +599,8 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 		}
 	}
 
-#if defined(RMX_USE_GLES2) && !defined(PLATFORM_VITA)
-	// GLSL ES 2.0 translation
+#if (defined(RMX_USE_GLES2) && !defined(PLATFORM_VITA)) || defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	// GLSL ES 2.0 / PSGL translation
 	String newSource;
 	for (int pos = 0; pos < source.length(); )
 	{

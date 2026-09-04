@@ -9,9 +9,10 @@
 #include "rmxbase.h"
 #include <fstream>
 
-#if defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 	#include <dirent.h>
 	#include <sys/stat.h>
+	#include <unistd.h>
 #endif
 
 #ifndef S_ISDIR
@@ -87,6 +88,8 @@ namespace rmx
 				while (pos < path.length())
 				{
 					pos = path.findChars(L"/\\", pos + 1, +1);
+					if (pos < 0)
+						pos = path.length();
 					subpath.makeSubString(path, 0, pos);
 					if (!std_filesystem::exists(*subpath))
 					{
@@ -106,6 +109,32 @@ namespace rmx
 			#else
 				#error "Unsupported platform"
 			#endif
+			}
+		#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+			if (recursive)
+			{
+				WString subpath;
+				subpath.expand(path.length() + 1);
+				int pos = 0;
+				while (pos < path.length())
+				{
+					pos = path.findChars(L"/\\", pos + 1, +1);
+					if (pos < 0)
+						pos = path.length();
+					subpath.makeSubString(path, 0, pos);
+					const std::string subpathUTF8 = rmx::convertToUTF8(*subpath);
+					struct stat st;
+					if (rmx_stat(subpathUTF8.c_str(), &st) != 0)
+					{
+						if (mkdir(subpathUTF8.c_str(), 0777) != 0)
+							return false;
+					}
+				}
+				return true;
+			}
+			else
+			{
+				return (mkdir(*path.toUTF8(), 0777) == 0);
 			}
 		#else
 			// TODO
@@ -277,7 +306,9 @@ namespace rmx
 		static FileNameCharacterValidityLookup mFileNameCharacterValidityLookup(false);
 		static FileNameCharacterValidityLookup mFilePathCharacterValidityLookup(true);
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		inline void clearErrorCode(std::error_code& ec)  { ec.clear(); }
+#endif
 		inline void clearErrorCode(int& ec)               { ec = 0; }
 	}
 
@@ -287,6 +318,10 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		const std_filesystem::path fspath(path.data());
 		return std_filesystem::exists(fspath);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		struct stat st;
+		return (rmx_stat(pathUTF8.c_str(), &st) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::exists");
 		return false;
@@ -298,6 +333,14 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		const std_filesystem::path fspath(path.data());
 		return std_filesystem::is_regular_file(fspath);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		struct stat st;
+		if (rmx_stat(pathUTF8.c_str(), &st) == 0)
+		{
+			return !S_ISDIR(st.st_mode);
+		}
+		return false;
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::isFile");
 		return false;
@@ -309,6 +352,14 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		const std_filesystem::path fspath(path.data());
 		return std_filesystem::is_directory(fspath);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		struct stat st;
+		if (rmx_stat(pathUTF8.c_str(), &st) == 0)
+		{
+			return S_ISDIR(st.st_mode);
+		}
+		return false;
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::isDirectory");
 		return false;
@@ -349,6 +400,15 @@ namespace rmx
 		const std::chrono::system_clock::time_point timePoint = std::chrono::time_point_cast<std::chrono::system_clock::duration>(time - std_filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
 		outTime = std::chrono::system_clock::to_time_t(timePoint);
 		return true;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(filename);
+		struct stat st;
+		if (rmx_stat(pathUTF8.c_str(), &st) == 0)
+		{
+			outTime = st.st_mtime;
+			return true;
+		}
+		return false;
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::getFileTime");
 		return false;
@@ -432,6 +492,10 @@ namespace rmx
 		const std_filesystem::path fspathNew(newFilename.data());
 		std_filesystem::rename(fspathOld, fspathNew, mLastErrorCode);
 		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string oldUTF8 = rmx::convertToUTF8(oldFilename);
+		const std::string newUTF8 = rmx::convertToUTF8(newFilename);
+		return (rename(oldUTF8.c_str(), newUTF8.c_str()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::renameFile");
 		return false;
@@ -447,6 +511,10 @@ namespace rmx
 		const std_filesystem::path fspathNew(newFilename.data());
 		std_filesystem::rename(fspathOld, fspathNew, mLastErrorCode);
 		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string oldUTF8 = rmx::convertToUTF8(oldFilename);
+		const std::string newUTF8 = rmx::convertToUTF8(newFilename);
+		return (rename(oldUTF8.c_str(), newUTF8.c_str()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::renameDirectory");
 		return false;
@@ -461,6 +529,9 @@ namespace rmx
 		const std_filesystem::path fspath(path);
 		std_filesystem::remove(fspath, mLastErrorCode);
 		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		return (unlink(pathUTF8.c_str()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::removeFile");
 		return false;
@@ -475,6 +546,9 @@ namespace rmx
 		const std_filesystem::path fspath(path);
 		std_filesystem::remove_all(fspath, mLastErrorCode);
 		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		return (rmdir(pathUTF8.c_str()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::removeDirectory");
 		return false;
@@ -709,6 +783,8 @@ namespace rmx
 	{
 	#ifdef USE_STD_FILESYSTEM
 		return std_filesystem::current_path().wstring();
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		return rmx::convertFromUTF8(ps3_get_usrdir());
 	#else
 		return L"";
 	#endif
@@ -719,6 +795,8 @@ namespace rmx
 	#ifdef USE_STD_FILESYSTEM
 		const std_filesystem::path fspath(path.data());
 		std_filesystem::current_path(fspath);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		(void)path;
 	#endif
 	}
 

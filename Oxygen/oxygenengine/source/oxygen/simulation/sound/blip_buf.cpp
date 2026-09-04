@@ -80,7 +80,11 @@ limit the total buffered samples to blip_max_frame. That could only be
 increased by decreasing time_bits, which would reduce resample ratio accuracy.
 */
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3)
+struct __attribute__((aligned(16))) blip_t
+#else
 struct blip_t
+#endif
 {
 	fixed_t factor;
 	fixed_t offset;
@@ -319,7 +323,11 @@ int blip_mix_samples(blip_t* m, short out[], int count)
 	*/
 
 /* Sinc_Generator( 0.9, 0.55, 4.5 ) */
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3)
+static short const __attribute__((aligned(16))) bl_step[phase_count + 1][half_width] =
+#else
 static short const bl_step[phase_count + 1][half_width] =
+#endif
 {
 	{ 43, -115, 350, -488, 1136, -914, 5861, 21022 },
 	{ 44, -118, 348, -473, 1076, -799, 5274, 21001 },

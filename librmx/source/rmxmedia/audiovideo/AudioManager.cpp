@@ -136,6 +136,7 @@ namespace rmx
 		playAudio(true);
 #else
 		// CellAudio initialization for PS3 target
+		ps3_log("[PS3] AudioManager::initialize - Initializing CellAudio...");
 		mFormat.freq = 48000;
 		mFormat.format = AUDIO_S16LSB;
 		mFormat.channels = 2;
@@ -143,22 +144,29 @@ namespace rmx
 		mFormat.callback = AudioManager::mixAudioStatic;
 		mFormat.userdata = 0;
 
-		cellAudioInit();
+		int audioInitRes = cellAudioInit();
+		if (audioInitRes != CELL_OK && audioInitRes != 0)
+		{
+			ps3_log("[PS3] AudioManager::initialize - cellAudioInit failed");
+		}
 
 		CellAudioPortParam params;
 		params.nChannel = 2;
 		params.nBlock = 16;
 		params.attr = 0;
 
-		if (cellAudioPortOpen(&params, &mCellAudioPort) == CELL_OK)
+		int portRes = cellAudioPortOpen(&params, &mCellAudioPort);
+		if (portRes == CELL_OK)
 		{
 			pthread_mutex_init(&mCellAudioMutex, nullptr);
 			mCellAudioQuit = false;
 			cellAudioPortStart(mCellAudioPort);
 			pthread_create(&mCellAudioThread, nullptr, cellAudioEventLoopStatic, this);
+			ps3_log("[PS3] AudioManager::initialize - CellAudio port opened and thread started");
 		}
 		else
 		{
+			ps3_log("[PS3] AudioManager::initialize - cellAudioPortOpen failed");
 			cellAudioQuit();
 		}
 		mPlayedSamples = 0;

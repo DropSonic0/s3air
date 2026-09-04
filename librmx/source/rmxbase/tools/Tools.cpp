@@ -74,7 +74,18 @@ namespace rmx
 		const uint64* data64 = (const uint64_t*)data;
 		const uint64* end = data64 + (bytes / 8);
 
-	#if defined(__arm__) || defined(__vita__)
+	#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+		while (data64 != end)
+		{
+			uint64 k = rmx::readMemoryUnalignedSwapped<uint64>(data64);
+			++data64;
+			k *= m;
+			k ^= k >> r;
+			k *= m;
+			h ^= k;
+			h *= m;
+		}
+	#elif defined(__arm__) || defined(__vita__)
 		const bool isAligned64 = ((size_t)data & 7) == 0;
 		if (!isAligned64)
 		{
@@ -93,7 +104,6 @@ namespace rmx
 			}
 		}
 		else
-	#endif
 		{
 			while (data64 != end)
 			{
@@ -105,6 +115,17 @@ namespace rmx
 				h *= m;
 			}
 		}
+	#else
+		while (data64 != end)
+		{
+			uint64 k = *data64++;
+			k *= m;
+			k ^= k >> r;
+			k *= m;
+			h ^= k;
+			h *= m;
+		}
+	#endif
 
 		const uint8* data8 = (const uint8*)data64;
 		switch (bytes & 0x07)

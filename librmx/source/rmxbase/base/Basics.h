@@ -64,6 +64,8 @@ namespace rmx
 	template<> uint32 swapBytes(uint32 value);
 	template<> int64  swapBytes(int64 value);
 	template<> uint64 swapBytes(uint64 value);
+	template<> float  swapBytes(float value);
+	template<> double swapBytes(double value);
 }
 
 

@@ -105,11 +105,15 @@ namespace rmx
 	#endif
 #else
 		// PSGL Video Mode initialization for PS3
+		ps3_log("[PS3] VideoManager::setVideoMode - Initializing PSGL...");
 		psglInit(NULL);
 
 		mPSGLDevice = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
 		if (!mPSGLDevice)
+		{
+			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceAuto failed");
 			return false;
+		}
 
 		GLuint width = 1280;
 		GLuint height = 720;
@@ -117,7 +121,10 @@ namespace rmx
 
 		mPSGLContext = psglCreateContext();
 		if (!mPSGLContext)
+		{
+			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateContext failed");
 			return false;
+		}
 
 		psglMakeCurrent(mPSGLContext, mPSGLDevice);
 		psglResetCurrentContext();
@@ -128,6 +135,7 @@ namespace rmx
 
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		ps3_log("[PS3] VideoManager::setVideoMode - PSGL initialized successfully (1280x720)");
 #endif
 		return true;
 	}

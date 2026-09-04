@@ -348,6 +348,9 @@ bool EngineMain::startupEngine()
 	mInternal.mEngineServerClient.setupClient(useIPv6);
 
 	// Done
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] Engine startup successful");
+#endif
 	RMX_LOG_INFO("Engine startup successful");
 	return true;
 }

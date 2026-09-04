@@ -233,12 +233,9 @@ bool ResourcesCache::applyRomModifications(const GameProfile::RomInfo& romInfo)
 		if (content->size() != mRom.size())
 			return false;
 
-		uint64* ptr = (uint64*)&mRom[0];
-		uint64* diff = (uint64*)&(*content)[0];
-		const size_t count = content->size() / 8;
-		for (size_t i = 0; i < count; ++i)
+		for (size_t i = 0; i < content->size(); ++i)
 		{
-			ptr[i] ^= diff[i];
+			mRom[i] ^= (*content)[i];
 		}
 	}
 

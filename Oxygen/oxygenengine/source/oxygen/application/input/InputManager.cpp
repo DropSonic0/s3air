@@ -450,22 +450,36 @@ void InputManager::initPS3Input()
 {
 	if (!mPS3PadsInitialized)
 	{
-		if (cellPadInit(7) == CELL_PAD_OK)
+		ps3_log("[PS3] InputManager - Initializing CellPad...");
+		int padRes = cellPadInit(7);
+		if (padRes == CELL_PAD_OK)
 		{
 			mPS3PadsInitialized = true;
 			memset(mPS3CachedPadData, 0, sizeof(mPS3CachedPadData));
 			memset(mPS3CachedPadValid, 0, sizeof(mPS3CachedPadValid));
+			ps3_log("[PS3] InputManager - CellPad initialized successfully (7 ports)");
+		}
+		else
+		{
+			ps3_log("[PS3] InputManager - cellPadInit failed");
 		}
 	}
 	if (!mPS3KbInitialized)
 	{
-		if (cellKbInit(2) == 0)
+		ps3_log("[PS3] InputManager - Initializing CellKb...");
+		int kbRes = cellKbInit(2);
+		if (kbRes == 0)
 		{
 			mPS3KbInitialized = true;
 			memset(mPS3KeyboardState, 0, sizeof(mPS3KeyboardState));
 			mPS3KeyboardModifiers = 0;
 			memset(mPS3KbConnected, 0, sizeof(mPS3KbConnected));
 			memset(mPS3LastKbState, 0, sizeof(mPS3LastKbState));
+			ps3_log("[PS3] InputManager - CellKb initialized successfully (2 ports)");
+		}
+		else
+		{
+			ps3_log("[PS3] InputManager - cellKbInit failed");
 		}
 	}
 }

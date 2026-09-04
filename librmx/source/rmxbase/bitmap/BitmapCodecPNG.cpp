@@ -19,7 +19,7 @@ namespace rmx
 		uint32 readUint32LE(const uint8* pointer)
 		{
 			// Read as little endian
-			return rmx::readMemoryUnaligned<uint32>(pointer);
+			return ((uint32)pointer[0]) + ((uint32)pointer[1] << 8) + ((uint32)pointer[2] << 16) + ((uint32)pointer[3] << 24);
 		}
 
 		uint32 readUint32BE(const uint8* pointer)
@@ -35,7 +35,7 @@ namespace rmx
 	#define PNG_IEND 0x49454e44
 	#define PNG_PLTE 0x504c5445
 
-	const uint32 PNGSignature[2] = { 0x474e5089, 0x0a1a0a0d };
+	const uint8 PNGSignature[8] = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a };
 
 	// PNG header
 	struct PNGHeader
@@ -114,8 +114,8 @@ namespace rmx
 					if (length != 13)
 						RETURN(Bitmap::LoadResult::Error::FILE_ERROR);
 					memcpy(&header, mem, length);
-					width = swapBytes32(header.width);
-					height = swapBytes32(header.height);
+					width = readUint32BE((const uint8*)&header.width);
+					height = readUint32BE((const uint8*)&header.height);
 					break;
 				}
 

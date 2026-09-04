@@ -117,7 +117,11 @@ public:
 
 protected:
 	// An item is our little management struct that includes an object and some additional info needed
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3)
+	struct __attribute__((aligned(16))) Item
+#else
 	struct Item
+#endif
 	{
 		T mObject;
 		bool mIsUsed = false;			// Set if object is currently used
