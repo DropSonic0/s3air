@@ -450,13 +450,16 @@ namespace rmx
 			}
 			return nullptr;
 		#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
-			std::wstring ps3Mount = rmx::convertFromUTF8(ps3_get_usrdir());
-			if (!ps3Mount.empty() && ps3Mount[ps3Mount.length() - 1] != L'/') ps3Mount += L'/';
-			if (mountPoint.mMountPoint == ps3Mount || mountPoint.mMountPoint == L"/dev_hdd0/game/SONIC3AIR/USRDIR/")
+			if (mountPoint.mFileProvider == &mDefaultRealFileProvider)
 			{
-				tempPath = mountPoint.mMountPoint;
-				tempPath.append(inPath);
-				return &tempPath;
+				std::wstring ps3Mount = rmx::convertFromUTF8(ps3_get_usrdir());
+				if (!ps3Mount.empty() && ps3Mount[ps3Mount.length() - 1] != L'/') ps3Mount += L'/';
+				if (mountPoint.mMountPoint == ps3Mount || mountPoint.mMountPoint == L"/dev_hdd0/game/SONIC3AIR/USRDIR/")
+				{
+					tempPath = mountPoint.mMountPoint;
+					tempPath.append(inPath);
+					return &tempPath;
+				}
 			}
 			return nullptr;
 		#else

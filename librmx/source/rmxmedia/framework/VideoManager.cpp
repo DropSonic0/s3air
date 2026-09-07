@@ -106,9 +106,31 @@ namespace rmx
 #else
 		// PSGL Video Mode initialization for PS3
 		ps3_log("[PS3] VideoManager::setVideoMode - Initializing PSGL...");
-		psglInit(NULL);
 
-		mPSGLDevice = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
+		PSGLinitOptions options;
+		memset(&options, 0, sizeof(options));
+		options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE;
+		options.maxSPUs = 1;
+		options.initializeSPUs = GL_FALSE;
+		options.hostMemorySize = 16 * 1024 * 1024;
+		psglInit(&options);
+
+		PSGLdeviceParameters params;
+		memset(&params, 0, sizeof(params));
+		params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO | PSGL_DEVICE_PARAMETERS_RESC_RATIO_MODE;
+		params.bufferingMode = PSGL_BUFFERING_MODE_DOUBLE;
+		params.colorFormat = GL_ARGB_SCE;
+		params.depthFormat = GL_NONE;
+		params.multisamplingMode = GL_MULTISAMPLING_NONE_SCE;
+		params.rescRatioMode = RESC_RATIO_MODE_FULLSCREEN;
+
+		mPSGLDevice = psglCreateDeviceExtended(&params);
+		if (!mPSGLDevice)
+		{
+			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceExtended failed, trying psglCreateDeviceAuto");
+			mPSGLDevice = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
+		}
+
 		if (!mPSGLDevice)
 		{
 			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceAuto failed");
@@ -263,16 +285,7 @@ namespace rmx
 	{
 		if (mVideoConfig.mAutoSwapBuffers)
 		{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
-		#ifdef RMX_WITH_OPENGL_SUPPORT
-			if (mVideoConfig.mRenderer == VideoConfig::Renderer::OPENGL)
-			{
-				SDL_GL_SwapWindow(mMainWindow);
-			}
-		#endif
-#else
-			psglSwap();
-#endif
+			SDL_GL_SwapWindow(mMainWindow);
 		}
 		mReshaped = false;
 	}

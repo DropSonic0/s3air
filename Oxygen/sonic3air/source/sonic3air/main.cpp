@@ -16,6 +16,7 @@
 
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
 #include <sys/process.h>
+#include <sys/spu_initialize.h>
 #include <cell/sysmodule.h>
 SYS_PROCESS_PARAM(1001, 0x80000);
 #endif
@@ -55,6 +56,7 @@ extern "C"
 int main(int argc, char** argv)
 {
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	sys_spu_initialize(6, 1);
 	cellSysmoduleInitialize();
 	cellSysmoduleLoadModule(CELL_SYSMODULE_FS);
 	cellSysmoduleLoadModule(CELL_SYSMODULE_GCM_SYS);
@@ -77,17 +79,6 @@ int main(int argc, char** argv)
 		}
 	}
 
-	char log_path[384];
-	snprintf(log_path, sizeof(log_path), "%s/boot_debug.log", ps3_get_usrdir());
-	FILE* f_init = fopen(log_path, "w");
-	if (!f_init) f_init = fopen("boot_debug.log", "w");
-	if (!f_init) f_init = fopen("/dev_hdd0/game/SONIC3AIR/USRDIR/boot_debug.log", "w");
-	if (f_init)
-	{
-		fprintf(f_init, "[PS3] boot_debug.log initialized at %s\n", ps3_get_usrdir());
-		fflush(f_init);
-		fclose(f_init);
-	}
 	ps3_log("[PS3] main() entered");
 #endif
 	EngineMain::earlySetup();

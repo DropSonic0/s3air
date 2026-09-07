@@ -96,8 +96,10 @@ void Framebuffer::create(int width, int height)
 void Framebuffer::finishCreation()
 {
 	// Just do some final checks
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	RMX_CHECK(status == GL_FRAMEBUFFER_COMPLETE, "Failed to create framebuffer with error: " << rmx::hexString(status, 4) << " (OpenGL error: " << getGLErrorDescription(glGetError()) << ")", );
+#endif
 }
 
 void Framebuffer::destroy()

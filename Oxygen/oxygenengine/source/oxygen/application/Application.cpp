@@ -545,13 +545,28 @@ void Application::update(float timeElapsed)
 		return;
 	}
 
+	if (mLoggedFrameCount < 3)
+	{
+		RMX_LOG_INFO("[Frame " << mLoggedFrameCount << "] Updating simulation...");
+	}
+
 	// Update simulation
 	Profiling::pushRegion(ProfilingRegion::SIMULATION);
 	mSimulation->update(timeElapsed);
 	Profiling::popRegion(ProfilingRegion::SIMULATION);
 
+	if (mLoggedFrameCount < 3)
+	{
+		RMX_LOG_INFO("[Frame " << mLoggedFrameCount << "] Updating game delegate...");
+	}
+
 	// Update game
 	EngineMain::getDelegate().updateGame(timeElapsed);
+
+	if (mLoggedFrameCount < 3)
+	{
+		RMX_LOG_INFO("[Frame " << mLoggedFrameCount << "] Updating audio...");
+	}
 
 	// Update audio
 	Profiling::pushRegion(ProfilingRegion::AUDIO);
@@ -596,7 +611,7 @@ void Application::update(float timeElapsed)
 
 	if (mIsVeryFirstFrameForLogging)
 	{
-		RMX_LOG_INFO("End of first application render call");
+		RMX_LOG_INFO("End of first application update call");
 	}
 }
 
@@ -669,6 +684,11 @@ void Application::render()
 		}
 	}
 
+	if (mLoggedFrameCount < 3)
+	{
+		RMX_LOG_INFO("[Frame " << mLoggedFrameCount << "] Performing rendering...");
+	}
+
 	drawer.performRendering();
 
 	mImGuiIntegration.buildContents();
@@ -715,7 +735,18 @@ void Application::render()
 			RMX_LOG_INFO("First present screen call");
 		}
 
+		if (mLoggedFrameCount < 3)
+		{
+			RMX_LOG_INFO("[Frame " << mLoggedFrameCount << "] Presenting screen...");
+		}
+
 		drawer.presentScreen();
+
+		if (mLoggedFrameCount < 3)
+		{
+			RMX_LOG_INFO("[Frame " << mLoggedFrameCount << "] Present screen completed");
+			++mLoggedFrameCount;
+		}
 
 	#if 0
 		// Use a glFinish or glFlush here...?

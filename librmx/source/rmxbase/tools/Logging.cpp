@@ -38,17 +38,6 @@ extern "C" void ps3_log(const char* msg)
 {
 	if (!msg) return;
 	printf("%s\n", msg);
-	char log_path[384];
-	snprintf(log_path, sizeof(log_path), "%s/boot_debug.log", gPS3UsrDir);
-	FILE* f = fopen(log_path, "a");
-	if (!f) f = fopen("boot_debug.log", "a");
-	if (!f) f = fopen("/dev_hdd0/game/SONIC3AIR/USRDIR/boot_debug.log", "a");
-	if (f)
-	{
-		fprintf(f, "%s\n", msg);
-		fflush(f);
-		fclose(f);
-	}
 }
 #endif
 

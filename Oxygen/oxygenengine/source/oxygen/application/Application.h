@@ -78,6 +78,7 @@ private:
 	HighResolutionTimer mApplicationTimer;
 	double mNextRefreshTime = 0.0;		// In milliseconds since application start
 	bool mIsVeryFirstFrameForLogging = true;
+	int mLoggedFrameCount = 0;
 	bool mPausedByFocusLoss = false;
 
 	// Simulation

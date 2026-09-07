@@ -586,7 +586,14 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 			incname.makeSubString(line, a+1, b-a-1);
 			if (incname.empty())
 				continue;
-			incname.insert(mIncludeDir, 0);
+			if (mIncludeDir.nonEmpty())
+			{
+				incname.insert(mIncludeDir, 0);
+			}
+			else if (!incname.startsWith("data/") && !incname.startsWith("data\\"))
+			{
+				incname.insert("data/shader/", 0);
+			}
 
 			String content;
 			if (content.loadFile(*incname) && content.nonEmpty())
@@ -604,7 +611,6 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 	String newSource;
 	for (int pos = 0; pos < source.length(); )
 	{
-		const int start = pos;
 		pos = source.getLine(line, pos);
 
 		if (line.startsWith("#version"))

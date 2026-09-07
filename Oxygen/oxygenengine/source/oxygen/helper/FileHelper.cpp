@@ -153,6 +153,10 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 
 	bool FileHelper::loadShader(Shader& shader, const std::wstring& filename, const std::string& techname, const std::string& additionalDefines)
 	{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		RMX_LOG_INFO("Loaded shader '" << WString(filename).toStdString() << "'");
+		return true;
+#else
 		std::vector<uint8> content;
 	#ifndef PLATFORM_VITA
 		if (!FTX::FileSystem->readFile(filename, content))
@@ -187,6 +191,7 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 			RMX_ERROR("Shader loading failed for '" << WString(filename).toStdString() << "':\n" << shader.getCompileLog().toStdString(), );
 		}
 		return true;
+#endif
 	}
 
 #endif

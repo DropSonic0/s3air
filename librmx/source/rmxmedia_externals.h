@@ -89,8 +89,163 @@
 	#include <vitaGL.h>
 	#define RMX_USE_GLES2
 
-#elif defined(PLATFORM_PS3)
-	// PS3 does not use standard SDL or OpenGL/GLES2 headers from here
+#elif defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	#define RMX_USE_GLES2
+	#include <PSGL/psgl.h>
+	#include <PSGL/psglu.h>
+
+	#ifndef GL_FRAMEBUFFER
+	#define GL_FRAMEBUFFER            GL_FRAMEBUFFER_OES
+	#endif
+	#ifndef GL_RENDERBUFFER
+	#define GL_RENDERBUFFER           GL_RENDERBUFFER_OES
+	#endif
+	#ifndef GL_FRAMEBUFFER_COMPLETE
+	#define GL_FRAMEBUFFER_COMPLETE   GL_FRAMEBUFFER_COMPLETE_OES
+	#endif
+	#ifndef GL_COLOR_ATTACHMENT0_OES
+	#define GL_COLOR_ATTACHMENT0_OES  0x8CE0
+	#endif
+	#ifndef GL_COLOR_ATTACHMENT0
+	#define GL_COLOR_ATTACHMENT0      GL_COLOR_ATTACHMENT0_OES
+	#endif
+	#ifndef GL_DEPTH_ATTACHMENT
+	#define GL_DEPTH_ATTACHMENT       GL_DEPTH_ATTACHMENT_OES
+	#endif
+	#ifndef GL_FRAMEBUFFER_BINDING
+	#define GL_FRAMEBUFFER_BINDING    GL_FRAMEBUFFER_BINDING_OES
+	#endif
+
+	#define glIsRenderbuffer          glIsRenderbufferOES
+	#define glGenRenderbuffers        glGenRenderbuffersOES
+	#define glBindRenderbuffer       glBindRenderbufferOES
+	#define glRenderbufferStorage     glRenderbufferStorageOES
+	#define glDeleteRenderbuffers     glDeleteRenderbuffersOES
+	#define glGenFramebuffers         glGenFramebuffersOES
+	#define glCheckFramebufferStatus  glCheckFramebufferStatusOES
+	#define glDeleteFramebuffers      glDeleteFramebuffersOES
+	#define glFramebufferTexture2D    glFramebufferTexture2DOES
+	#define glFramebufferRenderbuffer glFramebufferRenderbufferOES
+	#define glIsFramebuffer           glIsFramebufferOES
+	#define glBindFramebuffer         glBindFramebufferOES
+	static inline void glGenerateMipmap(unsigned int) {}
+
+	#ifndef GL_INVALID_FRAMEBUFFER_OPERATION
+	#define GL_INVALID_FRAMEBUFFER_OPERATION 0x0506
+	#endif
+	#ifndef GL_VIEWPORT
+	#define GL_VIEWPORT               0x0BA2
+	#endif
+	#ifndef GL_COMPILE_STATUS
+	#define GL_COMPILE_STATUS         0x8B81
+	#endif
+	#ifndef GL_LINK_STATUS
+	#define GL_LINK_STATUS            0x8B82
+	#endif
+	#ifndef GL_VERTEX_SHADER
+	#define GL_VERTEX_SHADER          0x8B31
+	#endif
+	#ifndef GL_FRAGMENT_SHADER
+	#define GL_FRAGMENT_SHADER        0x8B30
+	#endif
+	#ifndef GL_INFO_LOG_LENGTH
+	#define GL_INFO_LOG_LENGTH        0x8B84
+	#endif
+
+	typedef char GLchar;
+	typedef int GLsizei;
+
+	static inline void glUseProgram(unsigned int) {}
+	static inline void glActiveTexture(unsigned int) {}
+	static inline void glDeleteProgram(unsigned int) {}
+	static inline void glDeleteShader(unsigned int) {}
+	static inline unsigned int glGetUniformLocation(unsigned int, const char*) { return 0; }
+	static inline unsigned int glGetAttribLocation(unsigned int, const char*) { return 0; }
+	static inline void glUniform1i(unsigned int, int) {}
+	static inline void glUniform2iv(unsigned int, int, const int*) {}
+	static inline void glUniform3iv(unsigned int, int, const int*) {}
+	static inline void glUniform4iv(unsigned int, int, const int*) {}
+	static inline void glUniform1f(unsigned int, float) {}
+	static inline void glUniform2fv(unsigned int, int, const float*) {}
+	static inline void glUniform3fv(unsigned int, int, const float*) {}
+	static inline void glUniform4fv(unsigned int, int, const float*) {}
+	static inline void glUniformMatrix3fv(unsigned int, int, unsigned char, const float*) {}
+	static inline void glUniformMatrix4fv(unsigned int, int, unsigned char, const float*) {}
+	static inline unsigned int glCreateShader(unsigned int) { static unsigned int shader_id = 1; return shader_id++; }
+	static inline void glShaderSource(unsigned int, int, const char**, const int*) {}
+	static inline void glCompileShader(unsigned int) {}
+	static inline void glGetShaderiv(unsigned int, unsigned int pname, int* params)
+	{
+		if (params)
+		{
+			if (pname == GL_COMPILE_STATUS)
+				*params = 1;
+			else
+				*params = 0;
+		}
+	}
+	static inline void glGetShaderInfoLog(unsigned int, int, int*, char*) {}
+	static inline unsigned int glCreateProgram() { static unsigned int program_id = 1; return program_id++; }
+	static inline void glAttachShader(unsigned int, unsigned int) {}
+	static inline void glBindAttribLocation(unsigned int, unsigned int, const char*) {}
+	static inline void glLinkProgram(unsigned int) {}
+	static inline void glGetProgramiv(unsigned int, unsigned int pname, int* params)
+	{
+		if (params)
+		{
+			if (pname == GL_LINK_STATUS)
+				*params = 1;
+			else
+				*params = 0;
+		}
+	}
+	static inline void glGetProgramInfoLog(unsigned int, int, int*, char*) {}
+
+	#ifndef GL_ARRAY_BUFFER
+	#define GL_ARRAY_BUFFER           0x8892
+	#endif
+	#ifndef GL_STATIC_DRAW
+	#define GL_STATIC_DRAW            0x88E4
+	#endif
+	#ifndef GL_FLOAT
+	#define GL_FLOAT                  0x1406
+	#endif
+	#ifndef GL_FALSE
+	#define GL_FALSE                  0
+	#endif
+	#ifndef GL_TRUE
+	#define GL_TRUE                   1
+	#endif
+
+	static inline void glDeleteVertexArrays(int, const unsigned int*) {}
+	static inline void glDeleteBuffers(int, const unsigned int*) {}
+	static inline void glGenVertexArrays(int n, unsigned int* arrays)
+	{
+		if (arrays)
+		{
+			static unsigned int id = 1;
+			for (int i = 0; i < n; ++i)
+				arrays[i] = id++;
+		}
+	}
+	static inline void glGenBuffers(int n, unsigned int* buffers)
+	{
+		if (buffers)
+		{
+			static unsigned int id = 1;
+			for (int i = 0; i < n; ++i)
+				buffers[i] = id++;
+		}
+	}
+	static inline void glBindVertexArray(unsigned int) {}
+	static inline void glBindBuffer(unsigned int, unsigned int) {}
+	static inline void glBufferData(unsigned int, long, const void*, unsigned int) {}
+	static inline void glBufferSubData(unsigned int, long, long, const void*) {}
+	static inline void glDrawArrays(unsigned int, int, int) {}
+	static inline void glVertexAttribPointer(unsigned int, int, unsigned int, unsigned char, int, const void*) {}
+	static inline void glEnableVertexAttribArray(unsigned int) {}
+	static inline void glDisableVertexAttribArray(unsigned int) {}
+
 	#ifndef SDL_VERSION_ATLEAST
 		#define SDL_VERSION_ATLEAST(X, Y, Z) 0
 	#endif
@@ -421,6 +576,7 @@
 
 	#define SDL_GL_CONTEXT_PROFILE_MASK 1
 	#define SDL_GL_CONTEXT_PROFILE_CORE 1
+	#define SDL_GL_CONTEXT_PROFILE_ES 4
 	#define SDL_GL_CONTEXT_MAJOR_VERSION 2
 	#define SDL_GL_CONTEXT_MINOR_VERSION 3
 
@@ -515,6 +671,7 @@
 	static inline void* SDL_LoadWAV(const char*, SDL_AudioSpec*, unsigned char**, unsigned int*) { return nullptr; }
 	static inline void SDL_FreeWAV(unsigned char*) {}
 
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	// OpenGL types
 	typedef int GLint;
 	typedef unsigned int GLenum;
@@ -545,6 +702,7 @@
 	static inline void glEnable(unsigned int) {}
 	static inline void glDisable(unsigned int) {}
 	static inline void glViewport(int, int, int, int) {}
+#endif
 	
 	// More SDL Video types
 	#define SDL_WINDOW_OPENGL 0
@@ -638,8 +796,21 @@
 	static inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void*, int, int, int, int, unsigned int, unsigned int, unsigned int, unsigned int) { return nullptr; }
 	static inline void SDL_SetWindowIcon(SDL_Window*, SDL_Surface*) {}
 	static inline void SDL_FreeSurface(SDL_Surface*) {}
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	#ifdef __cplusplus
+	extern "C" void psglSwap(void);
+	#else
+	void psglSwap(void);
+	#endif
+	static inline void SDL_GL_SwapWindow(SDL_Window*)
+	{
+		psglSwap();
+	}
+#else
 	static inline void SDL_GL_SwapWindow(SDL_Window*) {}
+#endif
 
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	// More OpenGL stubs
 	#define GL_BLEND 0
 	#define GL_SRC_ALPHA 0
@@ -812,13 +983,14 @@
 	static inline void glVertexAttribPointer(unsigned int, int, unsigned int, unsigned char, int, const void*) {}
 	static inline void glEnableVertexAttribArray(unsigned int) {}
 	static inline void glDisableVertexAttribArray(unsigned int) {}
+#endif
 #else
 	#error Unsupported platform
 #endif
 
 
 #if defined(RMX_USE_GLES2) && !defined(__EMSCRIPTEN__)
-	#if !defined(PLATFORM_LINUX) && !defined(__vita__)
+	#if !defined(PLATFORM_LINUX) && !defined(__vita__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		#define GL_RGB8				 GL_RGB
 		#define GL_RGBA8			 GL_RGBA
 		#define glGenVertexArrays	 glGenVertexArraysOES

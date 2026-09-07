@@ -82,7 +82,7 @@
 			case GL_INVALID_ENUM:					return "INVALID_ENUM";
 			case GL_INVALID_VALUE:					return "INVALID_VALUE";
 			case GL_OUT_OF_MEMORY:					return "OUT_OF_MEMORY";
-		#if !defined(PLATFORM_VITA)
+		#if !defined(PLATFORM_VITA) && defined(GL_INVALID_FRAMEBUFFER_OPERATION)
 			case GL_INVALID_FRAMEBUFFER_OPERATION:	return "INVALID_FRAMEBUFFER_OPERATION";
 		#endif
 		}
