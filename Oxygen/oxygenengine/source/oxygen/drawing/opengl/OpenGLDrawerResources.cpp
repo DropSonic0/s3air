@@ -83,7 +83,11 @@ void OpenGLDrawerResources::startup()
 	// Setup simple quad VAO, consisting of two triangles
 	{
 		opengl::VertexArrayObject& vao = mInternal.mSimpleQuadVAO;
-		const float vertexData[] =
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3)
+		static const float vertexData[] __attribute__((aligned(16))) =
+#else
+		static const float vertexData[] =
+#endif
 		{
 			0.0f, 0.0f,		// Upper left
 			0.0f, 1.0f,		// Lower left

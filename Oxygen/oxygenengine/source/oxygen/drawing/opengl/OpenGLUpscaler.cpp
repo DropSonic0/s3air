@@ -21,6 +21,7 @@ void OpenGLUpscaler::startup()
 {
 	mFilterLinear = false;
 
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	switch (mType)
 	{
 		default:
@@ -68,6 +69,7 @@ void OpenGLUpscaler::startup()
 	mPass0Buffer.attachTexture(GL_COLOR_ATTACHMENT0, mPass0Texture.getHandle(), GL_TEXTURE_2D);
 	mPass0Buffer.finishCreation();
 	mPass0Buffer.unbind();
+#endif
 }
 
 void OpenGLUpscaler::shutdown()
@@ -76,6 +78,20 @@ void OpenGLUpscaler::shutdown()
 
 void OpenGLUpscaler::renderImage(const Recti& rect, GLuint textureHandle, Vec2i textureResolution)
 {
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	SimpleRectTexturedShader& simpleRectTexturedShader = mResources.getSimpleRectTexturedShader(false, false);
+	simpleRectTexturedShader.setup(textureHandle, Vec4f(-1.0f, 1.0f, 2.0f, -2.0f));
+
+	mResources.setBlendMode(BlendMode::OPAQUE);
+	opengl::VertexArrayObject& vao = mResources.getSimpleQuadVAO();
+	vao.bind();
+
+	glViewport_Recti(Recti(rect.x, FTX::screenHeight() - rect.height - rect.y, rect.width, rect.height));
+	glDrawArrays(GL_TRIANGLES, 0, 6);
+	glViewport_Recti(FTX::screenRect());
+
+	OpenGLShader::resetLastUsedShader();
+#else
 	const int filtering = Configuration::instance().mFiltering;
 	const int scanlines = Configuration::instance().mScanlines;
 
@@ -221,6 +237,7 @@ void OpenGLUpscaler::renderImage(const Recti& rect, GLuint textureHandle, Vec2i 
 
 	secondShader->unbind();
 	OpenGLShader::resetLastUsedShader();
+#endif
 }
 
 #endif

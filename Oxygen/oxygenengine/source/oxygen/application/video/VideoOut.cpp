@@ -43,16 +43,20 @@ void VideoOut::startup()
 {
 	mGameResolution = Configuration::instance().mGameScreen;
 
-	RMX_LOG_INFO("VideoOut: Setup of game screen");
+	RMX_LOG_INFO("VideoOut: Setup of game screen (" << mGameResolution.x << "x" << mGameResolution.y << ")");
 	mGameScreenTexture.setupAsRenderTarget(mGameResolution.x, mGameResolution.y);
+	RMX_LOG_INFO("VideoOut: Finished game screen setup");
 
 	if (nullptr == mRenderParts)
 	{
 		RMX_LOG_INFO("VideoOut: Creating render parts");
 		mRenderParts = new RenderParts();
+		RMX_LOG_INFO("VideoOut: Finished render parts creation");
 	}
 
+	RMX_LOG_INFO("VideoOut: Creating renderer");
 	createRenderer(false);
+	RMX_LOG_INFO("VideoOut: Startup completed successfully");
 }
 
 void VideoOut::shutdown()
@@ -113,8 +117,9 @@ void VideoOut::setActiveRenderer(bool useOpenGLRenderer, bool reset)
 			RMX_LOG_INFO("VideoOut: Creating software renderer");
 			mSoftwareRenderer = new SoftwareRenderer(*mRenderParts, mGameScreenTexture);
 
-			RMX_LOG_INFO("VideoOut: Renderer initialization");
+			RMX_LOG_INFO("VideoOut: SoftwareRenderer initialization start");
 			mSoftwareRenderer->initialize();
+			RMX_LOG_INFO("VideoOut: SoftwareRenderer initialization finished");
 		}
 		mActiveRenderer = mSoftwareRenderer;
 	}

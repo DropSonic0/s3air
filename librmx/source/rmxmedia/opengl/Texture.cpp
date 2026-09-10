@@ -134,7 +134,8 @@ void Texture::create(int width, int height, GLint format)
 
 	glBindTexture(mType, mHandle);
 	setFilterLinear();
-	setWrapRepeat();
+	setWrapClamp();
+
 	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, nullptr);
 }
 

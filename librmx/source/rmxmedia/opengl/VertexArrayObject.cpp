@@ -53,7 +53,20 @@ namespace opengl
 	#endif
 
 		mCurrentFormat = format;
+		switch (mCurrentFormat)
+		{
+			case Format::P2:       mFloatsPerVertex = 2; break;
+			case Format::P2_C3:    mFloatsPerVertex = 5; break;
+			case Format::P2_C4:    mFloatsPerVertex = 6; break;
+			case Format::P2_T2:    mFloatsPerVertex = 4; break;
+			case Format::P3_C3:    mFloatsPerVertex = 6; break;
+			case Format::P3_N3_C3: mFloatsPerVertex = 9; break;
+			default: break;
+		}
+
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		applyCurrentFormat();
+#endif
 	}
 
 	void VertexArrayObject::updateVertexData(const float* vertexData, size_t numVertices)
@@ -68,12 +81,33 @@ namespace opengl
 		glBindVertexArray(mVertexArrayObjectHandle);
 	#endif
 		glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObjectHandle);
-		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(mFloatsPerVertex * numVertices * sizeof(GLfloat)), vertexData, GL_STATIC_DRAW);
+		
+		const size_t totalBytes = mFloatsPerVertex * numVertices * sizeof(GLfloat);
+
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		// PSGL on PS3 crashes inside driver glBufferData for VBO allocations.
+		// Use client-side vertex arrays by storing vertex pointer directly.
+		mClientVertexData.resize(mFloatsPerVertex * numVertices);
+		if (vertexData && totalBytes > 0)
+		{
+			memcpy(&mClientVertexData[0], vertexData, totalBytes);
+		}
+#else
+		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)totalBytes, vertexData, GL_STATIC_DRAW);
+#endif
+
 		mNumBufferedVertices = numVertices;
+
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		applyCurrentFormat();
+#endif
 	}
 
 	void VertexArrayObject::bind()
 	{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		applyCurrentFormat();
+#else
 	#ifdef RMX_OPENGL_SUPPORT_VAO
 		// Bind the VAO, which will implicitly bind the VBO
 		if (mVertexArrayObjectHandle != 0)
@@ -88,6 +122,7 @@ namespace opengl
 			applyCurrentFormat();
 		}
 	#endif
+#endif
 	}
 
 	void VertexArrayObject::unbind() const
@@ -110,13 +145,16 @@ namespace opengl
 
 	void VertexArrayObject::applyCurrentFormat()
 	{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		const float* basePtr = mClientVertexData.empty() ? nullptr : &mClientVertexData[0];
 		switch (mCurrentFormat)
 		{
 			case Format::P2:
 			{
 				mNumVertexAttributes = 1;
 				mFloatsPerVertex = 2;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
 				break;
 			}
 
@@ -124,8 +162,8 @@ namespace opengl
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 5;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(2 * sizeof(float)));	// Colors
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 2) : nullptr);
 				break;
 			}
 
@@ -133,8 +171,8 @@ namespace opengl
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(2 * sizeof(float)));	// Colors
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
+				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 2) : nullptr);
 				break;
 			}
 
@@ -142,8 +180,8 @@ namespace opengl
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 4;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(2 * sizeof(float)));	// Texcoords
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 2) : nullptr);
 				break;
 			}
 
@@ -151,8 +189,8 @@ namespace opengl
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(3 * sizeof(float)));	// Colors
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 3) : nullptr);
 				break;
 			}
 
@@ -160,9 +198,9 @@ namespace opengl
 			{
 				mNumVertexAttributes = 3;
 				mFloatsPerVertex = 9;
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(3 * sizeof(float)));	// Normals
-				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (void*)(6 * sizeof(float)));	// Colors
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 3) : nullptr);
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 6) : nullptr);
 				break;
 			}
 
@@ -170,6 +208,68 @@ namespace opengl
 				RMX_ERROR("Unrecognized or invalid format", );
 				break;
 		}
+#else
+		switch (mCurrentFormat)
+		{
+			case Format::P2:
+			{
+				mNumVertexAttributes = 1;
+				mFloatsPerVertex = 2;
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
+				break;
+			}
+
+			case Format::P2_C3:
+			{
+				mNumVertexAttributes = 2;
+				mFloatsPerVertex = 5;
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(2 * sizeof(float)));	// Colors
+				break;
+			}
+
+			case Format::P2_C4:
+			{
+				mNumVertexAttributes = 2;
+				mFloatsPerVertex = 6;
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(2 * sizeof(float)));	// Colors
+				break;
+			}
+
+			case Format::P2_T2:
+			{
+				mNumVertexAttributes = 2;
+				mFloatsPerVertex = 4;
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(2 * sizeof(float)));	// Texcoords
+				break;
+			}
+
+			case Format::P3_C3:
+			{
+				mNumVertexAttributes = 2;
+				mFloatsPerVertex = 6;
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(3 * sizeof(float)));	// Colors
+				break;
+			}
+
+			case Format::P3_N3_C3:
+			{
+				mNumVertexAttributes = 3;
+				mFloatsPerVertex = 9;
+				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(3 * sizeof(float)));	// Normals
+				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(6 * sizeof(float)));	// Colors
+				break;
+			}
+
+			default:
+				RMX_ERROR("Unrecognized or invalid format", );
+				break;
+		}
+#endif
 
 		for (size_t i = 0; i < mNumVertexAttributes; ++i)
 		{

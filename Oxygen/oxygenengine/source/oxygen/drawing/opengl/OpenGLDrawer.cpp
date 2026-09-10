@@ -724,7 +724,11 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 
 void OpenGLDrawer::presentScreen()
 {
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	psglSwap();
+#else
 	SDL_GL_SwapWindow(mInternal.mOutputWindow);
+#endif
 }
 
 OpenGLDrawerResources& OpenGLDrawer::getResources()

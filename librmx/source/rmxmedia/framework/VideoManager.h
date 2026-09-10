@@ -11,6 +11,7 @@
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
 #include <PSGL/psgl.h>
 #include <PSGL/psglu.h>
+#include <sysutil/sysutil_sysparam.h>
 #endif
 
 namespace rmx

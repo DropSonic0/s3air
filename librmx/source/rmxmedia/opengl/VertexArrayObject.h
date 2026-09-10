@@ -55,6 +55,8 @@ namespace opengl
 		size_t mNumBufferedVertices = 0;
 		size_t mNumVertexAttributes = 0;
 		size_t mFloatsPerVertex = 0;
+
+		std::vector<float> mClientVertexData;
 	};
 }
 

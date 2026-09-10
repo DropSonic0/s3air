@@ -855,8 +855,17 @@ bool EngineMain::createWindow()
 		mDrawer.createDrawer<SoftwareDrawer>();
 	}
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	RMX_LOG_INFO("Initializing PSGL via FTX::Video...");
+	if (!FTX::Video->initialize(videoConfig))
+	{
+		RMX_ERROR("Failed to initialize PSGL VideoManager", );
+		return false;
+	}
+#else
 	// Tell FTX video manager that everything is okay
 	FTX::Video->setInitialized(videoConfig, mSDLWindow);
+#endif
 
 #if defined(PLATFORM_WINDOWS)
 	// Set window icon (using a Windows-specific method)
