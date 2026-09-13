@@ -18,6 +18,9 @@
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
 	#include <stdlib.h>
 	#include <unistd.h>
+	#include <sys/timer.h>
+	#include <sysutil/sysutil_msgdialog.h>
+	extern "C" void psglSwap(void);
 #elif defined(PLATFORM_WINDOWS)
 	#include <CleanWindowsInclude.h>
 	#include <shlobj.h>		// For "SHGetKnownFolderPath"
@@ -35,6 +38,24 @@
 
 namespace
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	struct PS3MsgDialogState
+	{
+		bool mFinished;
+		int mButtonType;
+	};
+
+	static void ps3MsgDialogCallback(int buttonType, void* userData)
+	{
+		PS3MsgDialogState* state = static_cast<PS3MsgDialogState*>(userData);
+		if (state)
+		{
+			state->mButtonType = buttonType;
+			state->mFinished = true;
+		}
+	}
+#endif
+
 #ifdef PLATFORM_WINDOWS
 
 	std::wstring getStringRegKey(HKEY hKey, const wchar_t* valueName)
@@ -444,7 +465,29 @@ std::string PlatformFunctions::getCompactSystemTimeString()
 
 void PlatformFunctions::showMessageBox(const std::string& caption, const std::string& text)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+
+	std::string fullMsg = caption.empty() ? text : (caption + "\n\n" + text);
+	PS3MsgDialogState state;
+	state.mFinished = false;
+	state.mButtonType = CELL_MSGDIALOG_BUTTON_NONE;
+
+	unsigned int dialogType = CELL_MSGDIALOG_TYPE_SE_TYPE_ERROR | CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON;
+	int ret = cellMsgDialogOpen2(dialogType, fullMsg.c_str(), ps3MsgDialogCallback, &state, nullptr);
+	if (ret == 0)
+	{
+		while (!state.mFinished)
+		{
+			cellSysutilCheckCallback();
+			if (FTX::Video.valid() && FTX::Video->isActive())
+			{
+				psglSwap();
+			}
+			sys_timer_usleep(16000);
+		}
+	}
+
+#elif defined(PLATFORM_WINDOWS)
 
 	MessageBoxA((HWND)FTX::Video->getNativeWindowHandle(), text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
 
@@ -458,7 +501,51 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 
 PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+
+	std::string fullMsg = caption.empty() ? text : (caption + "\n\n" + text);
+	PS3MsgDialogState state;
+	state.mFinished = false;
+	state.mButtonType = CELL_MSGDIALOG_BUTTON_NONE;
+
+	unsigned int dialogType = (severity == rmx::ErrorSeverity::ERROR) ? CELL_MSGDIALOG_TYPE_SE_TYPE_ERROR : CELL_MSGDIALOG_TYPE_SE_TYPE_NORMAL;
+	if (dialogButtons == DialogButtons::OK)
+	{
+		dialogType |= CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON;
+	}
+	else
+	{
+		dialogType |= CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO;
+	}
+
+	int ret = cellMsgDialogOpen2(dialogType, fullMsg.c_str(), ps3MsgDialogCallback, &state, nullptr);
+	if (ret == 0)
+	{
+		while (!state.mFinished)
+		{
+			cellSysutilCheckCallback();
+			if (FTX::Video.valid() && FTX::Video->isActive())
+			{
+				psglSwap();
+			}
+			sys_timer_usleep(16000);
+		}
+	}
+
+	if (state.mButtonType == CELL_MSGDIALOG_BUTTON_YES || state.mButtonType == CELL_MSGDIALOG_BUTTON_OK)
+	{
+		return DialogResult::OK;
+	}
+	else if (state.mButtonType == CELL_MSGDIALOG_BUTTON_NO)
+	{
+		return DialogResult::NO;
+	}
+	else
+	{
+		return DialogResult::CANCEL;
+	}
+
+#elif defined(PLATFORM_WINDOWS)
 
 	uint32 type = 0;
 	switch (dialogButtons)

@@ -858,6 +858,7 @@
 	#define GL_OUT_OF_MEMORY 104
 	#define GL_INVALID_FRAMEBUFFER_OPERATION 105
 	
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	static inline unsigned char glIsRenderbuffer(unsigned int) { return 0; }
 	static inline void glGenRenderbuffers(int, unsigned int*) {}
 	static inline void glBindRenderbuffer(unsigned int, unsigned int) {}
@@ -871,6 +872,7 @@
 	static inline void glFramebufferRenderbuffer(unsigned int, unsigned int, unsigned int, unsigned int) {}
 	static inline unsigned char glIsFramebuffer(unsigned int) { return 0; }
 	static inline void glBindFramebuffer(unsigned int, unsigned int) {}
+#endif
 	
 	// Scissor / Blend stubs
 	#define GL_SCISSOR_TEST 0

@@ -18,7 +18,7 @@
 #include <sys/process.h>
 #include <sys/spu_initialize.h>
 #include <cell/sysmodule.h>
-SYS_PROCESS_PARAM(1001, 0x80000);
+SYS_PROCESS_PARAM(1001, 1024 * 1024)
 #endif
 
 

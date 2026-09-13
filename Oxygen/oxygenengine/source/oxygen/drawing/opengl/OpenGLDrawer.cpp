@@ -466,6 +466,16 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 			{
 				SetRenderTargetDrawCommand& dc = drawCommand->as<SetRenderTargetDrawCommand>();
 
+			#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				const Vec2i screenSize = FTX::Video->getScreenSize();
+				glViewport(0, 0, screenSize.x, screenSize.y);
+
+				mInternal.mPixelToViewSpaceTransform.x = -1.0f;
+				mInternal.mPixelToViewSpaceTransform.y = 1.0f;
+				mInternal.mPixelToViewSpaceTransform.z = 2.0f / (float)dc.mViewport.width;
+				mInternal.mPixelToViewSpaceTransform.w = -2.0f / (float)dc.mViewport.height;
+			#else
 				// Bind as frame buffer
 				OpenGLDrawerTexture& drawerTexture = *dc.mTexture->getImplementation<OpenGLDrawerTexture>();
 				glBindFramebuffer(GL_FRAMEBUFFER, drawerTexture.getFrameBufferHandle());
@@ -478,6 +488,7 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 				mInternal.mPixelToViewSpaceTransform.y = -1.0f;
 				mInternal.mPixelToViewSpaceTransform.z = 2.0f / (float)viewport.width;
 				mInternal.mPixelToViewSpaceTransform.w = 2.0f / (float)viewport.height;
+			#endif
 				break;
 			}
 
@@ -502,8 +513,12 @@ void OpenGLDrawer::performRendering(const DrawCollection& drawCollection)
 				if (!mInternal.mayRenderAnything())
 					break;
 
+			#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+				// On PS3, rendering was performed directly on the main window backbuffer during SET_RENDER_TARGET
+			#else
 				UpscaledRectDrawCommand& dc = drawCommand->as<UpscaledRectDrawCommand>();
 				mInternal.mResources.getUpscaler().renderImage(dc.mRect, dc.mTexture->getImplementation<OpenGLDrawerTexture>()->getTextureHandle(), dc.mTexture->getSize());
+			#endif
 				break;
 			}
 

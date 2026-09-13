@@ -21,6 +21,7 @@
 #include "oxygen/menu/imgui/ImGuiIntegration.h"
 #include "oxygen/menu/devmode/DevModeMainWindow.h"
 #include "oxygen/drawing/opengl/OpenGLDrawer.h"
+#include "oxygen/drawing/opengl/FixedFunctionDrawer.h"
 #include "oxygen/drawing/software/SoftwareDrawer.h"
 #include "oxygen/file/PackedFileProvider.h"
 #include "oxygen/helper/FileHelper.h"
@@ -525,7 +526,11 @@ bool EngineMain::initConfigAndSettings()
 	if (config.mFailSafeMode)
 	{
 		RMX_LOG_INFO("Using fail-safe mode");
+	#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		config.mRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
+	#else
 		config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;	// Should already be set actually, but why not play it safe
+	#endif
 	}
 	else if (config.mRenderMethod == Configuration::RenderMethod::UNDEFINED)
 	{
@@ -533,8 +538,12 @@ bool EngineMain::initConfigAndSettings()
 	}
 
 	// Respect the platform's settings for supported render methods
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	config.mRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
+#else
 	if (config.mRenderMethod > Configuration::getHighestSupportedRenderMethod())
 		config.mRenderMethod = Configuration::getHighestSupportedRenderMethod();
+#endif
 
 #if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
 	// Use fullscreen, with no borders please
@@ -819,9 +828,53 @@ bool EngineMain::createWindow()
 		SDL_GetWindowSize(mSDLWindow, &videoConfig.mWindowRect.width, &videoConfig.mWindowRect.height);
 		SDL_ShowCursor(!videoConfig.mHideCursor);
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		if (true)
+#else
 		if (useOpenGL)
+#endif
 		{
 			RMX_LOG_INFO("Creating OpenGL context...");
+		#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+			PSGLinitOptions options;
+			memset(&options, 0, sizeof(options));
+			options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE;
+			options.maxSPUs = 1;
+			options.initializeSPUs = GL_TRUE;
+			options.persistentMemorySize = 32 * 1024 * 1024;
+			options.transientMemorySize = 8 * 1024 * 1024;
+			options.errorConsole = 0;
+			options.fifoSize = 2 * 1024 * 1024;
+			options.hostMemorySize = 64 * 1024 * 1024;
+			psglInit(&options);
+
+			PSGLdeviceParameters params;
+			memset(&params, 0, sizeof(params));
+			params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO;
+			params.bufferingMode = PSGL_BUFFERING_MODE_DOUBLE;
+			params.colorFormat = GL_ARGB_SCE;
+			params.depthFormat = GL_NONE;
+			params.multisamplingMode = GL_MULTISAMPLING_NONE_SCE;
+			params.enable |= PSGL_DEVICE_PARAMETERS_RESC_RATIO_MODE;
+			params.rescRatioMode = RESC_RATIO_MODE_FULLSCREEN;
+
+			PSGLdevice* device = psglCreateDeviceExtended(&params);
+			RMX_LOG_INFO("PSGL device created: " << (void*)device);
+			PSGLcontext* context = psglCreateContext();
+			RMX_LOG_INFO("PSGL context created: " << (void*)context);
+			psglMakeCurrent(context, device);
+			psglResetCurrentContext();
+
+			if (nullptr != context)
+			{
+				GLuint w = 1280, h = 720;
+				psglGetDeviceDimensions(device, &w, &h);
+				videoConfig.mWindowRect.width = (int)w;
+				videoConfig.mWindowRect.height = (int)h;
+				SDL_SetWindowSize(mSDLWindow, (int)w, (int)h);
+				RMX_LOG_INFO("PSGL context created with resolution " << w << "x" << h);
+			}
+		#else
 			SDL_GLContext context = SDL_GL_CreateContext(mSDLWindow);
 			if (nullptr != context)
 			{
@@ -834,11 +887,25 @@ bool EngineMain::createWindow()
 				config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;
 				// TODO: In this case, the SDL window was created with SDL_WINDOW_OPENGL flag, but that does not seem to be a problem
 			}
+		#endif
 		}
 	}
 
 	// Create drawer depending on render method
 #ifdef RMX_WITH_OPENGL_SUPPORT
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	RMX_LOG_INFO("Creating FixedFunctionDrawer for PS3...");
+	if (!mDrawer.createDrawer<FixedFunctionDrawer>())
+	{
+		RMX_LOG_INFO("FixedFunctionDrawer setup failed, trying OpenGLDrawer");
+		if (!mDrawer.createDrawer<OpenGLDrawer>())
+		{
+			RMX_LOG_INFO("OpenGL drawer setup failed, using software rendering");
+			config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;
+			mDrawer.createDrawer<SoftwareDrawer>();
+		}
+	}
+#else
 	if (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT)
 	{
 		if (!mDrawer.createDrawer<OpenGLDrawer>())
@@ -850,22 +917,18 @@ bool EngineMain::createWindow()
 		}
 	}
 	else
-#endif
 	{
 		mDrawer.createDrawer<SoftwareDrawer>();
 	}
-
-#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
-	RMX_LOG_INFO("Initializing PSGL via FTX::Video...");
-	if (!FTX::Video->initialize(videoConfig))
-	{
-		RMX_ERROR("Failed to initialize PSGL VideoManager", );
-		return false;
-	}
+#endif
 #else
+	{
+		mDrawer.createDrawer<SoftwareDrawer>();
+	}
+#endif
+
 	// Tell FTX video manager that everything is okay
 	FTX::Video->setInitialized(videoConfig, mSDLWindow);
-#endif
 
 #if defined(PLATFORM_WINDOWS)
 	// Set window icon (using a Windows-specific method)

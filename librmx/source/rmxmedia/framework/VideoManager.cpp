@@ -107,69 +107,58 @@ namespace rmx
 		// PSGL Video Mode initialization for PS3
 		ps3_log("[PS3] VideoManager::setVideoMode - Initializing PSGL...");
 
-		CellVideoOutState videoState;
-		memset(&videoState, 0, sizeof(videoState));
-		if (cellVideoOutGetState(CELL_VIDEO_OUT_PRIMARY, 0, &videoState) == CELL_VIDEO_OUT_SUCCEEDED)
+		if (!mPSGLContext)
 		{
-			ps3_log("[PS3] VideoManager::setVideoMode - Querying cellVideoOutGetState succeeded");
-		}
+			PSGLinitOptions options;
+			memset(&options, 0, sizeof(options));
+			options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE;
+			options.maxSPUs = 1;
+			options.initializeSPUs = GL_TRUE;
+			options.persistentMemorySize = 32 * 1024 * 1024;
+			options.transientMemorySize = 8 * 1024 * 1024;
+			options.errorConsole = 0;
+			options.fifoSize = 2 * 1024 * 1024;
+			options.hostMemorySize = 64 * 1024 * 1024;
+			psglInit(&options);
 
-		PSGLinitOptions options;
-		memset(&options, 0, sizeof(options));
-		options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE;
-		options.maxSPUs = 1;
-		options.initializeSPUs = GL_FALSE;
-		options.hostMemorySize = 16 * 1024 * 1024;
-		psglInit(&options);
+			PSGLdeviceParameters params;
+			memset(&params, 0, sizeof(params));
+			params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO;
+			params.bufferingMode = PSGL_BUFFERING_MODE_DOUBLE;
+			params.colorFormat = GL_ARGB_SCE;
+			params.depthFormat = GL_NONE;
+			params.multisamplingMode = GL_MULTISAMPLING_NONE_SCE;
+			params.enable |= PSGL_DEVICE_PARAMETERS_RESC_RATIO_MODE;
+			params.rescRatioMode = RESC_RATIO_MODE_FULLSCREEN;
 
-		PSGLdeviceParameters params;
-		memset(&params, 0, sizeof(params));
-		params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO;
-		params.bufferingMode = PSGL_BUFFERING_MODE_TRIPLE;
-		params.colorFormat = GL_ARGB_SCE;
-		params.depthFormat = GL_NONE;
-		params.multisamplingMode = GL_MULTISAMPLING_NONE_SCE;
+			mPSGLDevice = psglCreateDeviceExtended(&params);
+			if (!mPSGLDevice)
+			{
+				ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceExtended failed, trying psglCreateDeviceAuto");
+				mPSGLDevice = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
+			}
 
-		CellVideoOutResolution resolution;
-		memset(&resolution, 0, sizeof(resolution));
-		if (videoState.displayMode.resolutionId != CELL_VIDEO_OUT_RESOLUTION_UNDEFINED &&
-			cellVideoOutGetResolution(videoState.displayMode.resolutionId, &resolution) == CELL_VIDEO_OUT_SUCCEEDED)
-		{
-			params.enable |= PSGL_DEVICE_PARAMETERS_WIDTH_HEIGHT;
-			params.width = resolution.width;
-			params.height = resolution.height;
-			ps3_log("[PS3] VideoManager::setVideoMode - Found resolution via cellVideoOut");
-		}
+			if (!mPSGLDevice)
+			{
+				ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceAuto failed");
+				return false;
+			}
 
-		params.enable |= PSGL_DEVICE_PARAMETERS_RESC_RATIO_MODE;
-		params.rescRatioMode = RESC_RATIO_MODE_FULLSCREEN;
+			mPSGLContext = psglCreateContext();
+			if (!mPSGLContext)
+			{
+				ps3_log("[PS3] VideoManager::setVideoMode - psglCreateContext failed");
+				return false;
+			}
 
-		mPSGLDevice = psglCreateDeviceExtended(&params);
-		if (!mPSGLDevice)
-		{
-			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceExtended failed, trying psglCreateDeviceAuto");
-			mPSGLDevice = psglCreateDeviceAuto(GL_ARGB_SCE, GL_NONE, GL_MULTISAMPLING_NONE_SCE);
-		}
-
-		if (!mPSGLDevice)
-		{
-			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateDeviceAuto failed");
-			return false;
+			psglMakeCurrent(mPSGLContext, mPSGLDevice);
+			psglResetCurrentContext();
 		}
 
 		GLuint width = 1280;
 		GLuint height = 720;
-		psglGetDeviceDimensions(mPSGLDevice, &width, &height);
-
-		mPSGLContext = psglCreateContext();
-		if (!mPSGLContext)
-		{
-			ps3_log("[PS3] VideoManager::setVideoMode - psglCreateContext failed");
-			return false;
-		}
-
-		psglMakeCurrent(mPSGLContext, mPSGLDevice);
-		psglResetCurrentContext();
+		if (mPSGLDevice)
+			psglGetDeviceDimensions(mPSGLDevice, &width, &height);
 
 		mVideoConfig = videoconfig;
 		mVideoConfig.mWindowRect.width = width;

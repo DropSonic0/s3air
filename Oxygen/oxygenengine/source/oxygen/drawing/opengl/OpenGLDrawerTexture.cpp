@@ -26,6 +26,7 @@ void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)
 {
 	mTexture.setup(size, rmx::OpenGLHelper::FORMAT_RGB);
 
+#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	if (mFrameBuffer.getHandle() == 0)
 	{
 		mFrameBuffer.create();
@@ -33,6 +34,7 @@ void OpenGLDrawerTexture::setupAsRenderTarget(const Vec2i& size)
 		mFrameBuffer.finishCreation();
 		mFrameBuffer.unbind();
 	}
+#endif
 }
 
 void OpenGLDrawerTexture::writeContentToBitmap(Bitmap& outBitmap)
