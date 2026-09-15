@@ -36,6 +36,7 @@
 	#include <unistd.h>
 	#include <cell/audio.h>
 	#include <cell/pad.h>
+	#include <cell/keyboard.h>
 	#include <sys/event.h>
 	#include <sys/timer.h>
 	#include <time.h>
@@ -266,6 +267,12 @@
 	#define SDLK_RSHIFT 0x400000e5
 	#define SDLK_LCTRL 0x400000e0
 	#define SDLK_RCTRL 0x400000e4
+	#define SDLK_LGUI 0x400000e3
+	#define SDLK_RGUI 0x400000e7
+	#define SDLK_F12 0x40000045
+	#define SDLK_SCROLLLOCK 0x40000047
+	#define SDLK_PAUSE 0x40000048
+	#define SDLK_NUMLOCKCLEAR 0x40000053
 
 	inline void SDL_PauseAudioDevice(SDL_AudioDeviceID d, int p) {}
 	inline SDL_AudioStatus SDL_GetAudioStatus() { return (SDL_AudioStatus)0; }
@@ -283,17 +290,21 @@
 	#define SDL_INIT_JOYSTICK 16
 	#define SDL_arraysize(X) (sizeof(X)/sizeof(X[0]))
 	#define SDL_VERSION_ATLEAST(X, Y, Z) 0
+	static inline void _SDL_PS3_InitKeyboard();
+
 	inline int SDL_Init(int f) {
 		static bool pad_init = false;
 		if ((f & SDL_INIT_JOYSTICK) && !pad_init) {
 			cellPadInit(7);
 			pad_init = true;
 		}
+		_SDL_PS3_InitKeyboard();
 		return 0;
 	}
 	inline int SDL_InitSubSystem(Uint32 f) { return SDL_Init(f); }
 	inline void SDL_Quit() {
 		cellPadEnd();
+		cellKbEnd();
 	}
 	inline char* SDL_GetError() { return (char*)""; }
 	inline int SDL_SetHint(const char* n, const char* v) { return 1; }
@@ -478,7 +489,6 @@
 	inline int SDL_GetDisplayBounds(int i, SDL_Rect* r) { if (r) { r->x = r->y = 0; r->w = 1920; r->h = 1080; } return 0; }
 	struct SDL_DisplayMode { int w, h; };
 	inline int SDL_GetDesktopDisplayMode(int i, SDL_DisplayMode* m) { if (m) { m->w = 1920; m->h = 1080; } return 0; }
-	inline int SDL_PollEvent(SDL_Event* e) { return 0; }
 	#define SDL_QUIT 1
 	#define SDL_WINDOWEVENT 2
 	#define SDL_WINDOWEVENT_RESIZED 3
@@ -492,6 +502,319 @@
 	#define SDL_JOYDEVICEADDED 11
 	#define SDL_JOYDEVICEREMOVED 12
 	#define SDL_APP_WILLENTERBACKGROUND 13
+
+	#define SDL_FALSE 0
+	#define SDL_TRUE 1
+	#define SDL_PRESSED 1
+
+	#ifndef CELL_KB_MAX_KEYCODES
+	#define CELL_KB_MAX_KEYCODES 62
+	#endif
+	#ifndef CELL_KB_CODETYPE_RAW
+	#define CELL_KB_CODETYPE_RAW 0
+	#endif
+	#ifndef CELL_KB_RMODE_PACKET
+	#define CELL_KB_RMODE_PACKET 1
+	#endif
+	#ifndef CELL_KB_MKEY_L_SHIFT
+	#define CELL_KB_MKEY_L_SHIFT  (1<<1)
+	#endif
+	#ifndef CELL_KB_MKEY_R_SHIFT
+	#define CELL_KB_MKEY_R_SHIFT  (1<<5)
+	#endif
+	#ifndef CELL_KB_MKEY_L_CTRL
+	#define CELL_KB_MKEY_L_CTRL   (1<<0)
+	#endif
+	#ifndef CELL_KB_MKEY_R_CTRL
+	#define CELL_KB_MKEY_R_CTRL   (1<<4)
+	#endif
+	#ifndef CELL_KB_MKEY_L_ALT
+	#define CELL_KB_MKEY_L_ALT    (1<<2)
+	#endif
+	#ifndef CELL_KB_MKEY_R_ALT
+	#define CELL_KB_MKEY_R_ALT    (1<<6)
+	#endif
+	#ifndef CELL_KB_MKEY_L_GUI
+	#define CELL_KB_MKEY_L_GUI    (1<<3)
+	#endif
+	#ifndef CELL_KB_MKEY_R_GUI
+	#define CELL_KB_MKEY_R_GUI    (1<<7)
+	#endif
+
+	#define PS3_KB_MAX 2
+	struct _SDL_PS3_KbState {
+		uint8_t connected;
+		CellKbData last_data;
+	};
+	static _SDL_PS3_KbState _ps3_kb_connected[PS3_KB_MAX];
+	static uint8_t _ps3_keyboard_state[256];
+	static uint32_t _ps3_keyboard_modifiers;
+	static uint8_t _ps3_kb_initialized = 0;
+
+	#define PS3_EV_QUEUE_SIZE 64
+	static SDL_Event _ps3_ev_queue[PS3_EV_QUEUE_SIZE];
+	static int _ps3_ev_queue_head = 0;
+	static int _ps3_ev_queue_tail = 0;
+
+	static inline void _ps3_push_event(const SDL_Event& ev) {
+		int next = (_ps3_ev_queue_head + 1) % PS3_EV_QUEUE_SIZE;
+		if (next != _ps3_ev_queue_tail) {
+			_ps3_ev_queue[_ps3_ev_queue_head] = ev;
+			_ps3_ev_queue_head = next;
+		}
+	}
+
+	static inline bool _ps3_pop_event(SDL_Event* ev) {
+		if (_ps3_ev_queue_head == _ps3_ev_queue_tail) return false;
+		*ev = _ps3_ev_queue[_ps3_ev_queue_tail];
+		_ps3_ev_queue_tail = (_ps3_ev_queue_tail + 1) % PS3_EV_QUEUE_SIZE;
+		return true;
+	}
+
+	static inline void _SDL_PS3_InitKeyboard() {
+		if (!_ps3_kb_initialized) {
+			int ret = cellKbInit(PS3_KB_MAX);
+			if (ret == 0) {
+				_ps3_kb_initialized = 1;
+				memset(_ps3_keyboard_state, 0, sizeof(_ps3_keyboard_state));
+				_ps3_keyboard_modifiers = 0;
+				memset(_ps3_kb_connected, 0, sizeof(_ps3_kb_connected));
+			}
+		}
+	}
+
+	static inline int _SDL_PS3_HID_To_Keycode(uint8_t code) {
+		if (code >= 0x04 && code <= 0x1D) return SDLK_a + (code - 0x04);
+		if (code >= 0x1E && code <= 0x26) return SDLK_1 + (code - 0x1E);
+		if (code == 0x27) return SDLK_0;
+		if (code >= 0x3A && code <= 0x43) return SDLK_F1 + (code - 0x3A);
+		if (code == 0x44) return SDLK_F11;
+		if (code == 0x45) return SDLK_F12;
+
+		switch (code) {
+			case 0x28: return SDLK_RETURN;
+			case 0x29: return SDLK_ESCAPE;
+			case 0x2A: return SDLK_BACKSPACE;
+			case 0x2B: return SDLK_TAB;
+			case 0x2C: return SDLK_SPACE;
+			case 0x2D: return SDLK_MINUS;
+			case 0x2E: return SDLK_EQUALS;
+			case 0x2F: return SDLK_LEFTBRACKET;
+			case 0x30: return SDLK_RIGHTBRACKET;
+			case 0x31: return SDLK_BACKSLASH;
+			case 0x33: return SDLK_SEMICOLON;
+			case 0x34: return SDLK_QUOTE;
+			case 0x35: return SDLK_BACKQUOTE;
+			case 0x36: return SDLK_COMMA;
+			case 0x37: return SDLK_PERIOD;
+			case 0x38: return SDLK_SLASH;
+			case 0x39: return SDLK_CAPSLOCK;
+			case 0x46: return SDLK_PRINTSCREEN;
+			case 0x47: return SDLK_SCROLLLOCK;
+			case 0x48: return SDLK_PAUSE;
+			case 0x49: return SDLK_INSERT;
+			case 0x4A: return SDLK_HOME;
+			case 0x4B: return SDLK_PAGEUP;
+			case 0x4C: return SDLK_DELETE;
+			case 0x4D: return SDLK_END;
+			case 0x4E: return SDLK_PAGEDOWN;
+			case 0x4F: return SDLK_RIGHT;
+			case 0x50: return SDLK_LEFT;
+			case 0x51: return SDLK_DOWN;
+			case 0x52: return SDLK_UP;
+			case 0x53: return SDLK_NUMLOCKCLEAR;
+			case 0x54: return SDLK_KP_DIVIDE;
+			case 0x55: return SDLK_KP_MULTIPLY;
+			case 0x56: return SDLK_KP_MINUS;
+			case 0x57: return SDLK_KP_PLUS;
+			case 0x58: return SDLK_KP_ENTER;
+			case 0x59: return SDLK_KP_1;
+			case 0x5A: return SDLK_KP_2;
+			case 0x5B: return SDLK_KP_3;
+			case 0x5C: return SDLK_KP_4;
+			case 0x5D: return SDLK_KP_5;
+			case 0x5E: return SDLK_KP_6;
+			case 0x5F: return SDLK_KP_7;
+			case 0x60: return SDLK_KP_8;
+			case 0x61: return SDLK_KP_9;
+			case 0x62: return SDLK_KP_0;
+			case 0x63: return SDLK_KP_PERIOD;
+			default:   break;
+		}
+		return 0;
+	}
+
+	static inline char _SDL_PS3_Get_Text_Char(int key, bool shift_held) {
+		if (key >= SDLK_a && key <= SDLK_z) {
+			return shift_held ? (char)(key - SDLK_a + 'A') : (char)key;
+		}
+		if (!shift_held) return (char)key;
+
+		switch (key) {
+			case '1': return '!';
+			case '2': return '@';
+			case '3': return '#';
+			case '4': return '$';
+			case '5': return '%';
+			case '6': return '^';
+			case '7': return '&';
+			case '8': return '*';
+			case '9': return '(';
+			case '0': return ')';
+			case '-': return '_';
+			case '=': return '+';
+			case '[': return '{';
+			case ']': return '}';
+			case '\\': return '|';
+			case ';': return ':';
+			case '\'': return '"';
+			case '`': return '~';
+			case ',': return '<';
+			case '.': return '>';
+			case '/': return '?';
+			default:  break;
+		}
+		return (char)key;
+	}
+
+	static inline int _SDL_PS3_PollKeyboardEvents(SDL_Event* e) {
+		if (_ps3_pop_event(e)) return 1;
+
+		if (!_ps3_kb_initialized) {
+			_SDL_PS3_InitKeyboard();
+			if (!_ps3_kb_initialized) return 0;
+		}
+
+		CellKbInfo kbInfo;
+		if (cellKbGetInfo(&kbInfo) != 0) return 0;
+
+		uint8_t current_held[256];
+		uint32_t current_modifiers = 0;
+		memset(current_held, 0, sizeof(current_held));
+
+		for (int i = 0; i < PS3_KB_MAX; i++) {
+			if (i < (int)kbInfo.max_connect && kbInfo.status[i] != 0) {
+				if (!_ps3_kb_connected[i].connected) {
+					cellKbSetCodeType(i, CELL_KB_CODETYPE_RAW);
+					cellKbSetReadMode(i, CELL_KB_RMODE_PACKET);
+					_ps3_kb_connected[i].connected = 1;
+					memset(&_ps3_kb_connected[i].last_data, 0, sizeof(CellKbData));
+				}
+
+				int safety = 0;
+				CellKbData kbData;
+				while (safety < 64) {
+					kbData.len = 0xFFFFFFFF;
+					kbData.mkey = 0xFFFFFFFF;
+					int readRes = cellKbRead(i, &kbData);
+					if (readRes == CELL_KB_ERROR_NO_DEVICE || readRes == CELL_KB_ERROR_UNINITIALIZED) {
+						memset(&_ps3_kb_connected[i].last_data, 0, sizeof(CellKbData));
+						_ps3_kb_connected[i].connected = 0;
+						break;
+					}
+					if (readRes != 0) break;
+					if (kbData.len == 0xFFFFFFFF || kbData.mkey == 0xFFFFFFFF) break;
+
+					_ps3_kb_connected[i].last_data = kbData;
+					safety++;
+				}
+			} else {
+				if (_ps3_kb_connected[i].connected) {
+					memset(&_ps3_kb_connected[i].last_data, 0, sizeof(CellKbData));
+					_ps3_kb_connected[i].connected = 0;
+				}
+			}
+
+			if (_ps3_kb_connected[i].connected) {
+				int len = _ps3_kb_connected[i].last_data.len;
+				if (len > CELL_KB_MAX_KEYCODES) len = CELL_KB_MAX_KEYCODES;
+				for (int k = 0; k < len; k++) {
+					uint8_t code = _ps3_kb_connected[i].last_data.keycode[k] & 0xFF;
+					if (code > 0) current_held[code] = 1;
+				}
+				if (_ps3_kb_connected[i].last_data.mkey != 0xFFFFFFFF) {
+					current_modifiers |= _ps3_kb_connected[i].last_data.mkey;
+				}
+			}
+		}
+
+		// Process key transitions
+		for (int i = 0; i < 256; i++) {
+			if (current_held[i] && !_ps3_keyboard_state[i]) {
+				int sdl_key = _SDL_PS3_HID_To_Keycode((uint8_t)i);
+				if (sdl_key != 0) {
+					SDL_Event ev;
+					memset(&ev, 0, sizeof(ev));
+					ev.type = SDL_KEYDOWN;
+					ev.key.state = SDL_PRESSED;
+					ev.key.keysym.sym = sdl_key;
+					ev.key.keysym.scancode = i;
+					_ps3_push_event(ev);
+
+					if ((sdl_key >= SDLK_a && sdl_key <= SDLK_z) ||
+						(sdl_key >= SDLK_0 && sdl_key <= SDLK_9) ||
+						sdl_key == SDLK_SPACE || sdl_key == SDLK_MINUS || sdl_key == SDLK_EQUALS ||
+						sdl_key == SDLK_LEFTBRACKET || sdl_key == SDLK_RIGHTBRACKET || sdl_key == SDLK_BACKSLASH ||
+						sdl_key == SDLK_SEMICOLON || sdl_key == SDLK_QUOTE || sdl_key == SDLK_BACKQUOTE ||
+						sdl_key == SDLK_COMMA || sdl_key == SDLK_PERIOD || sdl_key == SDLK_SLASH) {
+						bool shift_held = (current_modifiers & (CELL_KB_MKEY_L_SHIFT | CELL_KB_MKEY_R_SHIFT)) != 0;
+						SDL_Event text_ev;
+						memset(&text_ev, 0, sizeof(text_ev));
+						text_ev.type = SDL_TEXTINPUT;
+						text_ev.text.text[0] = _SDL_PS3_Get_Text_Char(sdl_key, shift_held);
+						text_ev.text.text[1] = '\0';
+						_ps3_push_event(text_ev);
+					}
+				}
+			} else if (!current_held[i] && _ps3_keyboard_state[i]) {
+				int sdl_key = _SDL_PS3_HID_To_Keycode((uint8_t)i);
+				if (sdl_key != 0) {
+					SDL_Event ev;
+					memset(&ev, 0, sizeof(ev));
+					ev.type = SDL_KEYUP;
+					ev.key.state = 0;
+					ev.key.keysym.sym = sdl_key;
+					ev.key.keysym.scancode = i;
+					_ps3_push_event(ev);
+				}
+			}
+			_ps3_keyboard_state[i] = current_held[i];
+		}
+
+		// Process modifier key transitions
+		static const struct { uint32_t mask; int sdl_key; } modifiers_map[8] = {
+			{ CELL_KB_MKEY_L_SHIFT, SDLK_LSHIFT },
+			{ CELL_KB_MKEY_R_SHIFT, SDLK_RSHIFT },
+			{ CELL_KB_MKEY_L_CTRL,  SDLK_LCTRL  },
+			{ CELL_KB_MKEY_R_CTRL,  SDLK_RCTRL  },
+			{ CELL_KB_MKEY_L_ALT,   SDLK_LALT   },
+			{ CELL_KB_MKEY_R_ALT,   SDLK_RALT   },
+			{ CELL_KB_MKEY_L_GUI,   SDLK_LGUI   },
+			{ CELL_KB_MKEY_R_GUI,   SDLK_RGUI   }
+		};
+
+		for (int m = 0; m < 8; m++) {
+			uint8_t new_state = (current_modifiers & modifiers_map[m].mask) ? 1 : 0;
+			uint8_t old_state = (_ps3_keyboard_modifiers & modifiers_map[m].mask) ? 1 : 0;
+			if (new_state != old_state) {
+				SDL_Event ev;
+				memset(&ev, 0, sizeof(ev));
+				ev.type = new_state ? SDL_KEYDOWN : SDL_KEYUP;
+				ev.key.state = new_state ? SDL_PRESSED : 0;
+				ev.key.keysym.sym = modifiers_map[m].sdl_key;
+				_ps3_push_event(ev);
+			}
+		}
+		_ps3_keyboard_modifiers = current_modifiers;
+
+		return _ps3_pop_event(e) ? 1 : 0;
+	}
+
+	inline int SDL_PollEvent(SDL_Event* e) {
+		if (_SDL_PS3_PollKeyboardEvents(e))
+			return 1;
+		return 0;
+	}
 	#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "SDL_VIDEO_ALLOW_SCREENSAVER"
 	#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "SDL_ACCELEROMETER_AS_JOYSTICK"
 	#define SDL_HINT_RENDER_VSYNC "SDL_RENDER_VSYNC"
@@ -535,9 +858,6 @@
 	#define SDL_PIXELFORMAT_NV12 35
 	#define SDL_PIXELFORMAT_NV21 36
 
-	#define SDL_FALSE 0
-	#define SDL_TRUE 1
-	#define SDL_PRESSED 1
 	#define SDL_BUTTON_LEFT 1
 	#define SDL_BUTTON_RIGHT 2
 	#define SDL_BUTTON_MIDDLE 3

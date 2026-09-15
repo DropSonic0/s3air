@@ -458,7 +458,7 @@ void InputConfig::setupDefaultDeviceDefinitions(std::vector<DeviceDefinition>& o
 		DeviceDefinition& deviceDefinition = vectorAdd(outDeviceDefinitions);
 		deviceDefinition.mDeviceType = DeviceType::GAMEPAD;
 		deviceDefinition.mIdentifier = "PLAYSTATION(R)3 Controller";
-		deviceDefinition.mDeviceNames[rmx::getMurmur2_64("PLAYSTATION(R)3 Controller")] = "PLAYSTATION(R)3 Controller";
+		deviceDefinition.mDeviceNames[rmx::getMurmur2_64("playstation(r)3 controller")] = "PLAYSTATION(R)3 Controller";
 
 		// Map buttons
 		deviceDefinition.mMappings[(size_t)DeviceDefinition::Button::UP].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, SDL_CONTROLLER_BUTTON_DPAD_UP));

@@ -1,6 +1,3 @@
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_reader.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_value.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_writer.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\basics.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\errorhandler.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmap.o
@@ -26,13 +23,16 @@ c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\outputstream.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rc4encryption.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxdeflate.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\string.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\utf8conversion.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\unalignedmemory.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\utf8conversion.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\vectorbinaryserializer.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\zlibdeflate.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxbase.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\logging.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\tools.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_reader.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_value.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_writer.o
 c:\s3air\oxygen\sonic3air\lib\rmxbase.a
 c:\s3air\oxygen\sonic3air\build\rmxbase\..\..\lib\\rmxbase.a
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxbase.tlog\ps3ppusnc.command.1.tlog
