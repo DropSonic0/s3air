@@ -239,7 +239,7 @@ typedef _W64 int ptrdiff_t;
 #ifdef GLEW_STATIC
 #  define GLEWAPI extern
 #else
-#  if defined(__GNUC__) && __GNUC__>=4
+#  if defined(__GNUC__) && __GNUC__>=4 && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 #   define GLEWAPI extern __attribute__ ((visibility("default")))
 #  elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
 #   define GLEWAPI extern __global
@@ -1187,6 +1187,12 @@ GLAPI void GLAPIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 #endif /* GL_VERSION_1_1 */
 
 /* ---------------------------------- GLU ---------------------------------- */
+
+#ifndef GLEW_NO_GLU
+#  if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+#    define GLEW_NO_GLU
+#  endif
+#endif
 
 #ifndef GLEW_NO_GLU
 #  ifdef __APPLE__

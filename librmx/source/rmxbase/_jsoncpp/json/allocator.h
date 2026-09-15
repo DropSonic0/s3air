@@ -15,6 +15,15 @@ namespace Json {
 template <typename T> class SecureAllocator {
 public:
   // Type definitions
+#if defined(PLATFORM_PS3)
+  typedef T value_type;
+  typedef T* pointer;
+  typedef const T* const_pointer;
+  typedef T& reference;
+  typedef const T& const_reference;
+  typedef std::size_t size_type;
+  typedef std::ptrdiff_t difference_type;
+#else
   using value_type = T;
   using pointer = T*;
   using const_pointer = const T*;
@@ -22,12 +31,13 @@ public:
   using const_reference = const T&;
   using size_type = std::size_t;
   using difference_type = std::ptrdiff_t;
+#endif
 
   /**
-   * Allocate memory for N items using the standard allocator.
+   * Allocate memory for N items typedef the standard allocator.
    */
   pointer allocate(size_type n) {
-    // allocate using "global operator new"
+    // allocate typedef "global operator new"
     return static_cast<pointer>(::operator new(n * sizeof(T)));
   }
 
@@ -38,18 +48,29 @@ public:
    */
   void deallocate(pointer p, size_type n) {
     // memset_s is used because memset may be optimized away by the compiler
+#if defined(PLATFORM_PS3)
+    memset(p, 0, n * sizeof(T));
+#else
     memset_s(p, n * sizeof(T), 0, n * sizeof(T));
-    // free using "global operator delete"
+#endif
+    // free typedef "global operator delete"
     ::operator delete(p);
   }
 
   /**
    * Construct an item in-place at pointer P.
    */
+#if defined(PLATFORM_PS3)
+  void construct(pointer p, const T& val) {
+    // construct typedef "placement new"
+    ::new (static_cast<void*>(p)) T(val);
+  }
+#else
   template <typename... Args> void construct(pointer p, Args&&... args) {
-    // construct using "placement new" and "perfect forwarding"
+    // construct typedef "placement new" and "perfect forwarding"
     ::new (static_cast<void*>(p)) T(std::forward<Args>(args)...);
   }
+#endif
 
   size_type max_size() const { return size_t(-1) / sizeof(T); }
 
@@ -61,14 +82,18 @@ public:
    * Destroy an item in-place at pointer P.
    */
   void destroy(pointer p) {
-    // destroy using "explicit destructor"
+    // destroy typedef "explicit destructor"
     p->~T();
   }
 
   // Boilerplate
   SecureAllocator() {}
   template <typename U> SecureAllocator(const SecureAllocator<U>&) {}
+#if defined(PLATFORM_PS3)
+  template <typename U> struct rebind { typedef SecureAllocator<U> other; };
+#else
   template <typename U> struct rebind { using other = SecureAllocator<U>; };
+#endif
 };
 
 template <typename T, typename U>

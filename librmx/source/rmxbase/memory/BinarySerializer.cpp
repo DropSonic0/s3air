@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -180,7 +180,7 @@ void BinarySerializer::endDataBlock(BinarySerializer::DataBlockInfo& dataBlockIn
 
 			mOutputStream->seekp(dataBlockInfo.mBeginPosition - 4);
 
-			RMX_CHECK(dataBlockInfo.mEndPosition - dataBlockInfo.mBeginPosition < UINT32_MAX, "Defining a datablock bigger than 4 GiB is currently not supported", RMX_REACT_THROW);
+			RMX_CHECK(dataBlockInfo.mEndPosition - dataBlockInfo.mBeginPosition < 0xffffffffU, "Defining a datablock bigger than 4 GiB is currently not supported", RMX_REACT_THROW);
 			uint32 length = static_cast<uint32>(dataBlockInfo.mEndPosition - dataBlockInfo.mBeginPosition);
 			writePortable(&length, 4, true);
 

@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -19,7 +19,7 @@ OpenGLFontOutput::OpenGLFontOutput(Font& font) :
 void OpenGLFontOutput::print(const std::vector<Font::TypeInfo>& infos)
 {
 	// Display with OpenGL
-	if (FTX::Video->getVideoConfig().mRenderer != rmx::VideoConfig::Renderer::OPENGL)
+	if (FTX::Video->getVideoConfig().mRenderer != rmx::VideoConfig::Renderer_OPENGL)
 		return;
 
 #ifdef ALLOW_LEGACY_OPENGL
@@ -53,24 +53,25 @@ void OpenGLFontOutput::buildVertexGroups(VertexGroups& outVertexGroups, const st
 
 	checkCacheValidity();
 
-	Texture* currentTexture = nullptr;
+	Texture* currentTexture = 0;
 	SpriteAtlas::Sprite sprite;
 
 	for (const Font::TypeInfo& info : infos)
 	{
-		if (nullptr == info.mBitmap)
+		if (0 == info.mBitmap)
 			continue;
 
 		const uint32 character = info.mUnicode;
-		const SpriteHandleInfo* spriteHandleInfo = mapFind(mHandleMap, character);
-		if (nullptr == spriteHandleInfo)
+		auto it = mHandleMap.find(character);
+		if (it == mHandleMap.end())
 		{
 			if (!loadTexture(info))
 				continue;
-			spriteHandleInfo = mapFind(mHandleMap, character);
+			it = mHandleMap.find(character);
 		}
+		const SpriteHandleInfo& spriteHandleInfo = it->second;
 
-		const bool result = mAtlas.getSprite(spriteHandleInfo->mAtlasHandle, sprite);
+		const bool result = mAtlas.getSprite(spriteHandleInfo.mAtlasHandle, sprite);
 		RMX_ASSERT(result, "Failed to get sprite from atlas");
 		if (!result)
 			continue;
@@ -89,10 +90,10 @@ void OpenGLFontOutput::buildVertexGroups(VertexGroups& outVertexGroups, const st
 		outVertexGroups.mVertexGroups.back().mNumVertices += 6;
 		Vertex* vertices = &outVertexGroups.mVertices[firstIndex];
 
-		const float x0 = info.mPosition.x - (float)spriteHandleInfo->mBorderLeft;
-		const float x1 = info.mPosition.x + (float)(info.mBitmap->getWidth() + spriteHandleInfo->mBorderRight);
-		const float y0 = info.mPosition.y - (float)spriteHandleInfo->mBorderTop;
-		const float y1 = info.mPosition.y + (float)(info.mBitmap->getHeight() + spriteHandleInfo->mBorderBottom);
+		const float x0 = info.mPosition.x - (float)spriteHandleInfo.mBorderLeft;
+		const float x1 = info.mPosition.x + (float)(info.mBitmap->getWidth() + spriteHandleInfo.mBorderRight);
+		const float y0 = info.mPosition.y - (float)spriteHandleInfo.mBorderTop;
+		const float y1 = info.mPosition.y + (float)(info.mBitmap->getHeight() + spriteHandleInfo.mBorderBottom);
 
 		vertices[0].mPosition.set(x0, y0);
 		vertices[1].mPosition.set(x0, y1);
@@ -113,7 +114,7 @@ void OpenGLFontOutput::buildVertexGroups(VertexGroups& outVertexGroups, const st
 bool OpenGLFontOutput::loadTexture(const Font::TypeInfo& typeInfo)
 {
 	// Load characters as texture
-	if (nullptr == typeInfo.mBitmap)
+	if (0 == typeInfo.mBitmap)
 		return false;
 
 	const uint32 character = typeInfo.mUnicode;

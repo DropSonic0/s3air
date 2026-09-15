@@ -1,6 +1,9 @@
+#include "rmxbase.h"
+
+#if !defined(PLATFORM_PS3)
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,7 +20,7 @@ namespace rmx
 	class API_EXPORT FileInputStreamSDL final : public InputStream
 	{
 	public:
-		FileInputStreamSDL() {}
+		FileInputStreamSDL() : mContext(nullptr), mLastStreamingState(InputStream::StreamingState::COMPLETED) {}
 		FileInputStreamSDL(const String& filename);
 		FileInputStreamSDL(const WString& filename);
 		~FileInputStreamSDL();
@@ -37,15 +40,16 @@ namespace rmx
 		size_t getPosition() const override  { return (size_t)getPosition64(); }
 		size_t getSize() const override  { return (size_t)getSize64(); }
 
-		using InputStream::read;
+		 
 		size_t read(void* dst, size_t len) override;
 		void skip(size_t len) override;
 		bool tryRead(const void* data, size_t len) override;
-		StreamingState getStreamingState() override;
+		InputStream::StreamingState_t getStreamingState() override;
 
 	private:
-		SDL_RWops* mContext = nullptr;
-		StreamingState mLastStreamingState = StreamingState::COMPLETED;
+		SDL_RWops* mContext;
+		InputStream::StreamingState_t mLastStreamingState;
 	};
 
 }
+#endif

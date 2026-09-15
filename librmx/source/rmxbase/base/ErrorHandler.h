@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,9 +8,9 @@
 
 #pragma once
 
+
 #include <sstream>
 #include <stdexcept> // for std::runtime_error
-#include <functional>
 
 
 // Debug break (platform specific)
@@ -44,24 +44,44 @@
 	#define RMX_REACT_THROW
 #endif
 
+#if defined(PLATFORM_PS3)
+	#define RMX_SEVERITY_ERROR rmx::ErrorSeverity::ERROR
+#else
+	#define RMX_SEVERITY_ERROR rmx::ErrorSeverity::ERROR
+#endif
+
 #ifdef DEBUG
-	#define RMX_ASSERT(condition, message)		RMX_CONDITIONAL_ERROR(rmx::ErrorSeverity::ERROR, condition, message, )
+	#define RMX_ASSERT(condition, message)		RMX_CONDITIONAL_ERROR(RMX_SEVERITY_ERROR, condition, message, )
 #else
 	#define RMX_ASSERT(condition, message)		{}
 #endif
 
-#define RMX_CHECK(condition, message, reaction)	RMX_CONDITIONAL_ERROR(rmx::ErrorSeverity::ERROR, condition, message, reaction)
-#define RMX_ERROR(message, reaction)			RMX_CONDITIONAL_ERROR(rmx::ErrorSeverity::ERROR, false, message, reaction)
+#define RMX_CHECK(condition, message, reaction)	RMX_CONDITIONAL_ERROR(RMX_SEVERITY_ERROR, condition, message, reaction)
+#define RMX_ERROR(message, reaction)			RMX_CONDITIONAL_ERROR(RMX_SEVERITY_ERROR, false, message, reaction)
 
 
 namespace rmx
 {
+#if defined(PLATFORM_PS3)
+	struct ErrorSeverity
+	{
+		enum Enum
+		{
+			INFO,
+			WARNING,
+			ERROR
+		};
+	};
+	typedef ErrorSeverity::Enum ErrorSeverity_t;
+#else
 	enum class ErrorSeverity
 	{
 		INFO,
 		WARNING,
 		ERROR
 	};
+	using ErrorSeverity_t = ErrorSeverity;
+#endif
 
 	struct ErrorHandling
 	{
@@ -70,49 +90,69 @@ namespace rmx
 		{
 		public:
 			virtual ~LoggerInterface() {}
-			virtual void logMessage(ErrorSeverity errorSeverity, const std::string& message) = 0;
+			virtual void logMessage(ErrorSeverity_t errorSeverity, const std::string& message) = 0;
 		};
 
 		class MessageBoxInterface
 		{
 		public:
+#if defined(PLATFORM_PS3)
+			struct DialogType
+			{
+				enum Enum
+				{
+					ACCEPT_ONLY,
+					ACCEPT_OR_CANCEL,
+					ALL_OPTIONS
+				};
+			};
+			typedef DialogType::Enum DialogType_t;
+
+			struct Result
+			{
+				enum Enum
+				{
+					ACCEPT,
+					ABORT,
+					IGNORE
+				};
+			};
+			typedef Result::Enum Result_t;
+#else
 			enum class DialogType
 			{
-				OK,
-				OK_CANCEL,
-				YES_NO_CANCEL
+				ACCEPT_ONLY,
+				ACCEPT_OR_CANCEL,
+				ALL_OPTIONS
 			};
+			using DialogType_t = DialogType;
+
 			enum class Result
 			{
 				ACCEPT,
 				ABORT,
 				IGNORE
 			};
+			using Result_t = Result;
+#endif
 
 		public:
 			virtual ~MessageBoxInterface() {}
-			virtual Result showMessageBox(DialogType dialogType, ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line) = 0;
+			virtual Result_t showMessageBox(DialogType_t dialogType, ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line) = 0;
 		};
 
 	public:
 		static bool isDebuggerAttached();
-		static void printToLog(ErrorSeverity errorSeverity, const std::string& message);
-		static bool handleAssertBreak(ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line);
-		static bool isIgnoringAssertsWithHash(uint64 hash);
-		static void setIgnoreAssertsWithHash(uint64 hash, bool ignore);
+		static void printToLog(ErrorSeverity_t errorSeverity, const std::string& message);
+		static bool handleAssertBreak(ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line);
 
 	public:
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-		static inline LoggerInterface* mLogger = nullptr;
-		static inline MessageBoxInterface* mMessageBoxImplementation = nullptr;
-		static inline std::function<uint64()> mNativeWindowHandleProvider;
-		static inline bool mShowAssertMessageBox = true;
-#else
+		#if defined(PLATFORM_PS3)
 		static LoggerInterface* mLogger;
 		static MessageBoxInterface* mMessageBoxImplementation;
-		typedef uint64 (*NativeWindowHandleProviderFn)();
-		static NativeWindowHandleProviderFn mNativeWindowHandleProvider;
-		static bool mShowAssertMessageBox;
-#endif
+		#else
+		static LoggerInterface* mLogger;
+		static MessageBoxInterface* mMessageBoxImplementation;
+		#endif
 	};
 }

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,14 +11,13 @@
 #include "sonic3air/menu/overlays/SecretUnlockedWindow.h"
 #include "oxygen/drawing/DrawerTexture.h"
 
-class ApplicationContextMenu;
 class GameView;
 class GameMenuManager;
-class ImGuiFileBrowser;
 class MenuBackground;
 class PauseMenu;
-class SkippableCutsceneWindow;
 class TimeAttackResultsMenu;
+class SkippableCutsceneWindow;
+class ApplicationContextMenu;
 
 
 class GameApp : public GuiBase, public SingleInstance<GameApp>
@@ -38,8 +37,12 @@ public:
 	void openTitleScreen();
 	void openMainMenu();
 	void openOptionsMenuInGame();
+	void onExitOptions();
 	void onFadedOutOptions();
+	void onExitExtras();
+	void onExitMods();
 	void onGamePaused(bool canRestart);
+	void onGameResumed();
 	void restartTimeAttack();
 	void returnToMenu();
 
@@ -51,10 +54,6 @@ public:
 
 	inline GameView& getGameView() const { return *mGameView; }
 	inline GameMenuManager& getGameMenuManager() const  { return *mGameMenuManager; }
-	inline MenuBackground& getMenuBackground() const	{ return *mMenuBackground; }
-
-	bool supportsFileBrowser();
-	bool openFileBrowser();
 
 private:
 	void gotoPhase(int phaseNumber);
@@ -86,6 +85,4 @@ private:
 	ApplicationContextMenu* mApplicationContextMenu = nullptr;
 
 	GuiBase* mRemoveChild = nullptr;
-
-	Vec2i mRestoreGameResolution;
 };

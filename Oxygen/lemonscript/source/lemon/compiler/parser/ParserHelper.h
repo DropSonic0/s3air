@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,60 +13,8 @@
 #include "lemon/compiler/Utility.h"
 #include "lemon/utility/AnyBaseValue.h"
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 #include <optional>
-#else
-#ifndef _STD_OPTIONAL_DEFINED_PS3_
-#define _STD_OPTIONAL_DEFINED_PS3_
-namespace std {
-    struct nullopt_t {
-        struct init {};
-        explicit constexpr nullopt_t(init) {}
-    };
-    static const nullopt_t nullopt{nullopt_t::init{}};
-
-    template<typename T>
-    class optional {
-    public:
-        optional() : mHasValue(false) {}
-        optional(const nullopt_t&) : mHasValue(false) {}
-        optional(const T& value) : mHasValue(true), mValue(value) {}
-        optional(const optional& other) : mHasValue(other.mHasValue), mValue(other.mValue) {}
-        
-        optional& operator=(const nullopt_t&) {
-            mHasValue = false;
-            return *this;
-        }
-        optional& operator=(const T& value) {
-            mHasValue = true;
-            mValue = value;
-            return *this;
-        }
-        optional& operator=(const optional& other) {
-            if (this != &other) {
-                mHasValue = other.mHasValue;
-                mValue = other.mValue;
-            }
-            return *this;
-        }
-        
-        const T& operator*() const { return mValue; }
-        T& operator*() { return mValue; }
-        const T* operator->() const { return &mValue; }
-        T* operator->() { return &mValue; }
-        
-        operator bool() const { return mHasValue; }
-        bool has_value() const { return mHasValue; }
-        const T& value() const { return mValue; }
-        T& value() { return mValue; }
-        void reset() { mHasValue = false; }
-        
-    private:
-        bool mHasValue;
-        T mValue;
-    };
-}
-#endif
 #endif
 
 
@@ -143,11 +91,8 @@ namespace lemon
 	private:
 		struct Lookup
 		{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 			constexpr Lookup() :
-#else
-			Lookup() :
-#endif
 				mIsLetter(),
 				mIsDigitOrLetter(),
 				mIsDigitOrDot(),
@@ -164,6 +109,9 @@ namespace lemon
 					mIsIdentifierCharacter[i] = isDigit || isLetter || (ch == '_') || (ch == '.');
 				}
 			}
+#else
+			Lookup();
+#endif
 
 			bool mIsLetter[0x100];
 			bool mIsDigitOrLetter[0x100];
@@ -173,21 +121,7 @@ namespace lemon
 
 		struct DigitLookup
 		{
-			DigitLookup(bool hexadecimal)
-			{
-				for (int i = 0; i < 55; ++i)
-				{
-					const char ch = '0' + (char)i;
-					if (ch >= '0' && ch <= '9')
-						mValues[i] = (uint8)(ch - '0');
-					else if (hexadecimal && ch >= 'A' && ch <= 'F')
-						mValues[i] = (uint8)(ch - 'A') + 10;
-					else if (hexadecimal && ch >= 'a' && ch <= 'f')
-						mValues[i] = (uint8)(ch - 'a') + 10;
-					else
-						mValues[i] = 0x80;	// Uppermost bit encodes an invalid value
-				}
-			}
+			DigitLookup(bool hexadecimal);
 
 			inline uint8 getValueByCharacter(char ch) const  { return (ch >= '0' && ch <= 'f') ? mValues[ch - '0'] : 0x80; }
 
@@ -216,15 +150,9 @@ namespace lemon
 		};
 
 	private:
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-		inline static const Lookup mLookup;
-		inline static const DigitLookup mDigitLookupHex = DigitLookup(true);
-		inline static const DigitLookup mDigitLookupDec = DigitLookup(false);
-#else
 		static const Lookup mLookup;
 		static const DigitLookup mDigitLookupHex;
 		static const DigitLookup mDigitLookupDec;
-#endif
 		static OperatorLookup mOperatorLookup;
 	};
 

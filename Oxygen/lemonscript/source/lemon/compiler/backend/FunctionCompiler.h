@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,7 +17,6 @@ namespace lemon
 	class Node;
 	class BlockNode;
 	class StatementToken;
-	class UnaryOperationToken;
 	class BinaryOperationToken;
 	class LabelToken;
 	class GlobalsLookup;
@@ -46,23 +45,20 @@ namespace lemon
 		Opcode& addOpcode(Opcode::Type type, BaseType dataType, int64 parameter = 0);
 		Opcode& addOpcode(Opcode::Type type, const DataTypeDefinition* dataType, int64 parameter = 0);
 		void addCastOpcodeIfNecessary(const DataTypeDefinition* sourceType, const DataTypeDefinition* targetType);
-		void addMoveStackOpcode(int stackChange);
 		Opcode& addJumpToLabel(Opcode::Type type, const LabelToken& labelToken);
 
 		void buildOpcodesFromNodes(const BlockNode& blockNode, NodeContext& context);
 		void buildOpcodesForNode(const Node& node, NodeContext& context);
 
 		void compileTokenTreeToOpcodes(const StatementToken& token, bool consumeResult = false, bool isLValue = false);
-		void compileUnaryDecIncToOpcodes(const UnaryOperationToken& uot);
-		void compileAssignmentToOpcodes(const BinaryOperationToken& bot);
 		void compileBinaryAssignmentToOpcodes(const BinaryOperationToken& bot, Opcode::Type opcodeType);
 		void compileBinaryOperationToOpcodes(const BinaryOperationToken& bot, Opcode::Type opcodeType);
-
-		void checkForUndefinedOrderOfOperations(const StatementToken& token1, const StatementToken& token2, bool alsoCheckReverseOrder = true) const;
 
 		void scopeBegin(int numVariables);
 		void scopeEnd(int numVariables);
 
+		void optimizeOpcodes();
+		void cleanupNOPs();
 		void assignOpcodeFlags();
 
 	private:
@@ -77,7 +73,11 @@ namespace lemon
 			FlyweightString mLabelName;
 			std::vector<uint32> mJumpLocations;
 		};
+#if !defined(PLATFORM_PS3)
 		std::unordered_map<uint64, CollectedLabel> mCollectedLabels;
+#else
+		std::map<uint64, CollectedLabel> mCollectedLabels;
+#endif
 	};
 
 }

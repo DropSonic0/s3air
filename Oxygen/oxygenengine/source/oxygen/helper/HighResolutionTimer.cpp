@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,14 +10,6 @@
 #include "oxygen/helper/HighResolutionTimer.h"
 
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-static HighResolutionTimer::TimePoint getNowPS3()
-{
-	return (HighResolutionTimer::TimePoint)sys_time_get_system_time();
-}
-#endif
-
-
 void HighResolutionTimer::reset()
 {
 	mRunning = false;
@@ -25,10 +17,10 @@ void HighResolutionTimer::reset()
 
 void HighResolutionTimer::start()
 {
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 	mStart = std::chrono::high_resolution_clock::now();
 #else
-	mStart = getNowPS3();
+	mStart = SDL_GetTicks();
 #endif
 	mRunning = true;
 }
@@ -37,11 +29,11 @@ double HighResolutionTimer::getSecondsSinceStart() const
 {
 	if (mRunning)
 	{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 		const Duration duration = (std::chrono::high_resolution_clock::now() - mStart);
 		return duration.count();
 #else
-		return (double)(getNowPS3() - mStart) / 1000000.0;
+		return (double)(SDL_GetTicks() - mStart) / 1000.0;
 #endif
 	}
 	return 0.0;
@@ -51,7 +43,7 @@ double HighResolutionTimer::getSecondsSinceStart() const
 void AccumulativeTimer::resetTiming()
 {
 	reset();
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 	mAccumulatedTime = Duration::zero();
 #else
 	mAccumulatedTime = 0.0;
@@ -70,10 +62,10 @@ void AccumulativeTimer::pauseTiming()
 {
 	if (mRunning)
 	{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 		mAccumulatedTime += (std::chrono::high_resolution_clock::now() - mStart);
 #else
-		mAccumulatedTime += (double)(getNowPS3() - mStart) / 1000000.0;
+		mAccumulatedTime += (double)(SDL_GetTicks() - mStart) / 1000.0;
 #endif
 		mRunning = false;
 	}
@@ -84,13 +76,13 @@ double AccumulativeTimer::getAccumulatedSeconds() const
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
 	{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 		totalDuration += (std::chrono::high_resolution_clock::now() - mStart);
 #else
-		totalDuration += (double)(getNowPS3() - mStart) / 1000000.0;
+		totalDuration += (double)(SDL_GetTicks() - mStart) / 1000.0;
 #endif
 	}
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 	return totalDuration.count();
 #else
 	return totalDuration;
@@ -99,7 +91,7 @@ double AccumulativeTimer::getAccumulatedSeconds() const
 
 double AccumulativeTimer::getAccumulatedSecondsAndRestart()
 {
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 	const TimePoint now = std::chrono::high_resolution_clock::now();
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
@@ -112,11 +104,11 @@ double AccumulativeTimer::getAccumulatedSecondsAndRestart()
 	mRunning = true;
 	return totalDuration.count();
 #else
-	const TimePoint now = getNowPS3();
+	const TimePoint now = SDL_GetTicks();
 	Duration totalDuration = mAccumulatedTime;
 	if (mRunning)
 	{
-		totalDuration += (double)(now - mStart) / 1000000.0;
+		totalDuration += (double)(now - mStart) / 1000.0;
 	}
 
 	mStart = now;

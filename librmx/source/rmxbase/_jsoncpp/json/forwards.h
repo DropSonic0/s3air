@@ -29,7 +29,11 @@ class CharReaderBuilder;
 class Features;
 
 // value.h
+#if defined(PLATFORM_PS3)
+typedef unsigned int ArrayIndex;
+#else
 using ArrayIndex = unsigned int;
+#endif
 class StaticString;
 class Path;
 class PathArgument;

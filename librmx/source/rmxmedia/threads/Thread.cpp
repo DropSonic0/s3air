@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -24,13 +24,19 @@ namespace rmx
 
 
 	ThreadBase::ThreadBase() :
-		mName("rmx Thread")
+		mShouldBeRunning(false),
+		mSDLThread(nullptr),
+		mName("rmx Thread"),
+		mIsThreadRunning(false)
 	{
 		mManager->registerThread(*this);
 	}
 
 	ThreadBase::ThreadBase(const std::string& name) :
-		mName(name)
+		mShouldBeRunning(false),
+		mSDLThread(nullptr),
+		mName(name),
+		mIsThreadRunning(false)
 	{
 		mManager->registerThread(*this);
 	}
@@ -67,11 +73,7 @@ namespace rmx
 	{
 		if (!mIsThreadRunning)
 		{
-		#if !defined(PLATFORM_VITA)
 			mSDLThread = SDL_CreateThread(ThreadBase::runThreadStatic, mName.c_str(), this);
-		#else
-			mSDLThread = SDL_CreateThreadWithStackSize(ThreadBase::runThreadStatic, mName.c_str(), 4 * 1024 * 1024, this);
-		#endif
 		}
 	}
 

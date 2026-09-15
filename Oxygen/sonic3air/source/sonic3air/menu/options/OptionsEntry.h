@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,8 +9,7 @@
 #pragma once
 
 #include "sonic3air/data/SharedDatabase.h"
-
-class GameMenuEntry;
+#include "sonic3air/menu/GameMenuBase.h"
 
 
 namespace option
@@ -25,7 +24,6 @@ namespace option
 		SHOW_CONTROLS_DISPLAY,
 		SCRIPT_OPTIMIZATION,
 		GAME_RECORDING_MODE,
-		DEV_MODE,
 
 		// Display
 		WINDOW_MODE,
@@ -40,7 +38,7 @@ namespace option
 		PERFORMANCE_DISPLAY,
 
 		// Audio
-		MASTER_VOLUME,
+		AUDIO_VOLUME,
 		MUSIC_VOLUME,
 		SOUND_VOLUME,
 		SOUNDTRACK,
@@ -94,14 +92,10 @@ namespace option
 		// Controls
 		CONTROLLER_PLAYER_1,
 		CONTROLLER_PLAYER_2,
-		CONTROLLER_PLAYER_3,
-		CONTROLLER_PLAYER_4,
 		CONTROLLER_AUTOASSIGN,
 		CONTROLLER_SETUP,
 		CONTROLLER_RUMBLE_P1,
 		CONTROLLER_RUMBLE_P2,
-		CONTROLLER_RUMBLE_P3,
-		CONTROLLER_RUMBLE_P4,
 		DROP_DASH,
 		SUPER_PEELOUT,
 		SUPER_CANCEL,
@@ -110,7 +104,6 @@ namespace option
 		HYPER_DASH_CONTROLS,
 		SUPER_SONIC_ABILITY,
 		MONITOR_BEHAVIOR,
-		HIDDEN_MONITOR_HINT,
 		TAILS_ASSIST,
 		TAILS_FLIGHT_CANCEL,
 		NO_CONTROL_LOCK,
@@ -132,21 +125,9 @@ namespace option
 		SPECIAL_STAGE_REPEAT,
 		REGION,
 		FIX_GLITCHES,
-		FASTER_PUSH,
-		LEVELRESULT_SCORE,
-		LBZ_TUBETRANSPORT,
-		MHZ_ELEVATOR,
-		FBZ_SCREWDOORS,
-		SOZ_PYRAMID,
-		AIZ_INTRO_KNUCKLES,
-		FBZ_ENTERCYLINDER,
-		PLAYER2_OFFSCREEN,
-		//HCZ_WATERPIPE,		// Left out of options as it's just too minor
-		//LBZ_CUPELEVATOR,		// Left out of options as it's just too minor
 
 		_CHECK_FOR_UPDATE,
 		RELEASE_CHANNEL,
-		_OPEN_FILE_BROWSER,
 		_OPEN_HOMEPAGE,
 		_OPEN_MANUAL,
 		_BACK,

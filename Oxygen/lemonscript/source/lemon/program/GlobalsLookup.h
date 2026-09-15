@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,7 +11,7 @@
 #include "lemon/program/Constant.h"
 #include "lemon/program/ConstantArray.h"
 #include "lemon/program/Define.h"
-#include "lemon/program/function/Function.h"
+#include "lemon/program/Function.h"
 #include "lemon/program/StringRef.h"
 #include "lemon/compiler/PreprocessorDefinition.h"
 
@@ -68,9 +68,8 @@ namespace lemon
 		const Identifier* resolveIdentifierByHash(uint64 nameHash) const;
 
 		// Functions
-		const std::vector<FunctionReference>& getFunctionsByName(uint64 nameHash) const;
-		const FunctionReference* getFunctionByNameAndSignature(uint64 nameHash, uint32 signatureHash, bool* outAnyFound = nullptr) const;
-		const std::vector<FunctionReference>& getMethodsByName(uint64 contextNameHash) const;
+		const std::vector<Function*>& getFunctionsByName(uint64 nameHash) const;
+		const std::vector<Function*>& getMethodsByName(uint64 contextNameHash) const;
 		void registerFunction(Function& function);
 
 		// Global variables
@@ -90,18 +89,23 @@ namespace lemon
 
 		// Data types
 		inline const std::vector<const DataTypeDefinition*>& getDataTypes() const  { return mDataTypes; }
-		const DataTypeDefinition* findDataTypeByName(uint64 nameHash) const;
-		void registerDataType(const DataTypeDefinition* dataTypeDefinition);
+		void registerDataType(const CustomDataType* dataTypeDefinition);
 		const DataTypeDefinition* readDataType(VectorBinarySerializer& serializer) const;
 		void serializeDataType(VectorBinarySerializer& serializer, const DataTypeDefinition*& dataTypeDefinition) const;
 
 	private:
 		// All identifiers
+#if !defined(PLATFORM_PS3)
 		std::unordered_map<uint64, Identifier> mAllIdentifiers;
 
 		// Functions
-		std::unordered_map<uint64, std::vector<FunctionReference>> mFunctionsByName;	// Key is the hashed function name
-		std::unordered_map<uint64, std::vector<FunctionReference>> mMethodsByName;		// Key is the sum of hashed context name + hashed function name
+		std::unordered_map<uint64, std::vector<Function*>> mFunctionsByName;	// Key is the hashed function name
+		std::unordered_map<uint64, std::vector<Function*>> mMethodsByName;		// Key is the sum of hashed context name + hashed function name
+#else
+		std::map<uint64, Identifier> mAllIdentifiers;
+		std::map<uint64, std::vector<Function*>> mFunctionsByName;
+		std::map<uint64, std::vector<Function*>> mMethodsByName;
+#endif
 		uint32 mNextFunctionID = 0;
 
 		// Global variables

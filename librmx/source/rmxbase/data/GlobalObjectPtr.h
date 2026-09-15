@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,12 +13,13 @@ template<class CLASS>
 class GlobalObjectPtr
 {
 public:
+	GlobalObjectPtr() : mInstance(0) {}
 	~GlobalObjectPtr()
 	{
 		clear();
 	}
 
-	inline bool hasInstance() const { return (nullptr != mInstance); }
+	inline bool hasInstance() const { return (0 != mInstance); }
 	inline CLASS& instance() const  { return *mInstance; }
 
 	void clear()
@@ -41,5 +42,5 @@ public:
 	CLASS* operator->()  { return mInstance; }
 
 private:
-	CLASS* mInstance = nullptr;
+	CLASS* mInstance;
 };

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,8 +14,10 @@
 
 namespace
 {
+#ifdef PLATFORM_WEB
 	//static const char* WEBSOCKET_PROTOCOL = "ws://";		// Only for testing
 	static const char* WEBSOCKET_PROTOCOL = "wss://";		// This is required for the web build when running on a https website
+#endif
 }
 
 

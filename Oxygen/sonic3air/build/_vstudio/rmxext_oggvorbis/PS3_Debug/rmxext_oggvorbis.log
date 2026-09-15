@@ -1,0 +1,19 @@
+﻿Build started 4/9/2026 14:45:25.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\rmxext_oggvorbis\rmxext_oggvorbis.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         OggLoader.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\OggLoader.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxext_oggvorbis\OggLoader.cpp
+         rmxext_oggvorbis.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\rmxext_oggvorbis.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxext_oggvorbis\rmxext_oggvorbis.cpp
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\rmxext_oggvorbis.a
+         addmod PS3_Debug\OggLoader.o
+         addmod PS3_Debug\rmxext_oggvorbis.o
+         save
+         end
+         rmxext_oggvorbis.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\rmxext_oggvorbis.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\rmxext_oggvorbis\rmxext_oggvorbis.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:02.49

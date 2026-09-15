@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2026 by Eukaryot
+	Copyright (C) 2017-2024 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -262,11 +262,11 @@ function void UpdateBackground.HCZ1()
 			for (u8 i = 0; i < 0x60; ++i)
 			{
 				u16[A1] = (D1 >> 16)
-			#if STANDALONE
-				// Add a nice moving waves effect
-				s16 distance = (0x1200 / (0x80 - i))
-				u16[A1] += (lookupSin(distance * 10 - level.framecounter) / s32(distance))
-			#endif
+				#if STANDALONE
+					// Add a nice moving waves effect
+					s16 distance = (0x1200 / (0x80 - i))
+					u16[A1] += (lookupSin(distance * 10 - level.framecounter) / s32(distance))
+				#endif
 				A1 += 2
 				D1 -= D3
 			}
@@ -278,11 +278,11 @@ function void UpdateBackground.HCZ1()
 			{
 				A1 -= 2
 				u16[A1] = D1 >> 16
-			#if STANDALONE
-				// Add a nice moving waves effect
-				s16 distance = (0x1200 / (0x80 - i))
-				u16[A1] += (lookupSin(distance * 10 - level.framecounter) / s32(distance))
-			#endif
+				#if STANDALONE
+					// Add a nice moving waves effect
+					s16 distance = (0x1200 / (0x80 - i))
+					u16[A1] += (lookupSin(distance * 10 - level.framecounter) / s32(distance))
+				#endif
 				D1 -= D3
 			}
 
@@ -691,7 +691,7 @@ function void fn050fce()
 //# address-hook(0x050ff0) end(0x05106e)
 function void fn050ff0()
 {
-	if (u8[0xffffb000 + 0x05] < base_state.DIED)
+	if (u8[0xffffb000 + 0x05] < 0x06)
 	{
 		D0 = (u16[0xffffb000 + 0x10] < 0x0a88) ? 0x00e000 : 0x014000
 		D1.u16 = level.display_routine

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,9 +10,8 @@
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/GameProfile.h"
-#include "oxygen/resources/RawDataCollection.h"
 #include "oxygen/resources/ResourcesCache.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 namespace emulatorinterface
 {
@@ -82,8 +81,8 @@ namespace emulatorinterface
 			}
 			else if (address >= 0xa00000 && address < 0xd00000)
 			{
-				if (MODE == MEMORY_MODE_WRITE_DEV && (address & 0xfffff0) == 0xc00000)
-					RMX_ERROR("Unhandled VDP memory " << (MODE == MEMORY_MODE_READ ? "read" : "write") << " to address " << rmx::hexString(address, 6), );
+				//if ((address & 0xfffff0) == 0xc00000)
+				//	_asm nop;
 				static uint64 dummy;
 				dummy = 0;
 				return (uint8*)&dummy;
@@ -137,7 +136,7 @@ void RuntimeMemory::clear()
 
 void RuntimeMemory::applyRomInjections()
 {
-	RawDataCollection::instance().applyRomInjections(mRom, sizeof(mRom));
+	ResourcesCache::instance().applyRomInjections(mRom, sizeof(mRom));
 }
 
 
@@ -223,19 +222,19 @@ uint8 EmulatorInterface::readMemory8(uint32 address)
 uint16 EmulatorInterface::readMemory16(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 2);
-	return rmx::readMemoryUnalignedSwapped<uint16>(pointer);
+	return rmx::readMemoryUnalignedBE<uint16>(pointer);
 }
 
 uint32 EmulatorInterface::readMemory32(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 4);
-	return rmx::readMemoryUnalignedSwapped<uint32>(pointer);
+	return rmx::readMemoryUnalignedBE<uint32>(pointer);
 }
 
 uint64 EmulatorInterface::readMemory64(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 8);
-	return rmx::readMemoryUnalignedSwapped<uint64>(pointer);
+	return rmx::readMemoryUnalignedBE<uint64>(pointer);
 }
 
 void EmulatorInterface::writeMemory8(uint32 address, uint8 value)
@@ -245,21 +244,20 @@ void EmulatorInterface::writeMemory8(uint32 address, uint8 value)
 
 void EmulatorInterface::writeMemory16(uint32 address, uint16 value)
 {
-	uint16* mem = (uint16*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 2);
-	*mem = swapBytes16(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 2);
+	rmx::writeMemoryUnalignedBE<uint16>(mem, value);
 }
 
 void EmulatorInterface::writeMemory32(uint32 address, uint32 value)
 {
-	uint32* mem = (uint32*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 4);
-	*mem = swapBytes32(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 4);
+	rmx::writeMemoryUnalignedBE<uint32>(mem, value);
 }
 
 void EmulatorInterface::writeMemory64(uint32 address, uint64 value)
 {
-	// TODO: Check if the ARM byte alignment issue an Android (see "readMemory64") can happen here as well
-	uint64* mem = (uint64*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 8);
-	*mem = swapBytes64(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 8);
+	rmx::writeMemoryUnalignedBE<uint64>(mem, value);
 }
 
 void EmulatorInterface::writeMemory8_dev(uint32 address, uint8 value)
@@ -269,20 +267,20 @@ void EmulatorInterface::writeMemory8_dev(uint32 address, uint8 value)
 
 void EmulatorInterface::writeMemory16_dev(uint32 address, uint16 value)
 {
-	uint16* mem = (uint16*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 2);
-	*mem = swapBytes16(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 2);
+	rmx::writeMemoryUnalignedBE<uint16>(mem, value);
 }
 
 void EmulatorInterface::writeMemory32_dev(uint32 address, uint32 value)
 {
-	uint32* mem = (uint32*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 4);
-	*mem = swapBytes32(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 4);
+	rmx::writeMemoryUnalignedBE<uint32>(mem, value);
 }
 
 void EmulatorInterface::writeMemory64_dev(uint32 address, uint64 value)
 {
-	uint64* mem = (uint64*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 8);
-	*mem = swapBytes64(value);
+	void* mem = mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 8);
+	rmx::writeMemoryUnalignedBE<uint64>(mem, value);
 }
 
 uint32& EmulatorInterface::getRegister(size_t index)
@@ -322,13 +320,12 @@ uint8* EmulatorInterface::getVRam()
 
 uint16 EmulatorInterface::readVRam16(uint16 vramAddress)
 {
-	return *(uint16*)(mInternal.mVRam + vramAddress);
+	return rmx::readMemoryUnalignedBE<uint16>(mInternal.mVRam + vramAddress);
 }
 
 void EmulatorInterface::writeVRam16(uint16 vramAddress, uint16 value)
 {
-	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
-	*dst = value;
+	rmx::writeMemoryUnalignedBE(mInternal.mVRam + vramAddress, value);
 
 	// Mark as changed
 	mInternal.mVRamChangeBits.setBit(vramAddress >> 5);
@@ -339,11 +336,10 @@ void EmulatorInterface::fillVRam(uint16 vramAddress, uint16 fillValue, uint16 by
 	if (bytes == 0)
 		return;
 
-	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
+	uint8* dst = mInternal.mVRam + vramAddress;
 	for (uint16 i = 0; i < bytes; i += 2)
 	{
-		*dst = fillValue;
-		++dst;
+		rmx::writeMemoryUnalignedBE(dst + i, fillValue);
 	}
 
 	// Mark as changed
@@ -357,13 +353,8 @@ void EmulatorInterface::copyFromMemoryToVRam(uint16 vramAddress, uint32 sourceAd
 	if (bytes == 0)
 		return;
 
-	uint16* dst = (uint16*)(mInternal.mVRam + vramAddress);
-	const uint16* src = (uint16*)(mInternal.accessMemory<MEMORY_MODE_READ>(sourceAddress, bytes));
-	const uint16* end = src + (bytes / 2);
-	for (; src != end; ++src, ++dst)
-	{
-		*dst = swapBytes16(*src);
-	}
+	const uint8* src = mInternal.accessMemory<MEMORY_MODE_READ>(sourceAddress, bytes);
+	memcpy(mInternal.mVRam + vramAddress, src, bytes);
 
 	// Mark as changed
 	const size_t bitIndexStart = (vramAddress >> 5);
@@ -381,6 +372,49 @@ uint16* EmulatorInterface::getVSRam()
 	return mInternal.mVSRam;
 }
 
+size_t EmulatorInterface::loadSRAM(uint32 address, size_t offset, size_t bytes)
+{
+	if (mInternal.mSRam.empty())
+	{
+		// Load from disk first
+		FTX::FileSystem->readFile(Configuration::instance().mSRamFilename, mInternal.mSRam);
+	}
+
+	bytes = (offset >= mInternal.mSRam.size()) ? 0 : std::min(bytes, mInternal.mSRam.size() - offset);
+	if (bytes > 0)
+	{
+		uint8* mem = mInternal.accessMemory<MEMORY_MODE_WRITE>(address, (uint32)bytes);
+		memcpy(mem, &mInternal.mSRam[offset], bytes);
+	}
+	return bytes;
+}
+
+void EmulatorInterface::saveSRAM(uint32 address, size_t offset, size_t bytes)
+{
+	const uint8* mem = mInternal.accessMemory<MEMORY_MODE_READ>(address, (uint32)bytes);
+
+	// Check if there's any change
+	const size_t checkBytes = (offset >= mInternal.mSRam.size()) ? 0 : std::min(bytes, mInternal.mSRam.size() - offset);
+	if (checkBytes == bytes)
+	{
+		if (memcmp(mem, &mInternal.mSRam[offset], checkBytes) == 0)
+		{
+			// Nothing to do
+			return;
+		}
+	}
+
+	// Extend SRAM if needed and write data
+	if (mInternal.mSRam.size() < offset + bytes)
+	{
+		mInternal.mSRam.resize(offset + bytes);
+	}
+	memcpy(&mInternal.mSRam[offset], mem, bytes);
+
+	// Save to disk
+	FTX::FileSystem->saveFile(Configuration::instance().mSRamFilename, mInternal.mSRam);
+}
+
 std::vector<EmulatorInterface::Watch>& EmulatorInterface::getWatches()
 {
 	return mInternal.mWatches;
@@ -388,14 +422,13 @@ std::vector<EmulatorInterface::Watch>& EmulatorInterface::getWatches()
 
 void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outResult, uint64 address, size_t size, bool writeAccess)
 {
-	outResult.mSwapBytes = true;
+	outResult.mSwapBytes = (SDL_BYTEORDER == SDL_LIL_ENDIAN);
 	address &= 0x00ffffff;
 	if (address >= 0xff0000)
 	{
 		address &= 0x00ffff;
 		if (address + size > sizeof(mInternal.mRam))
 		{
-			RMX_ERROR("Too large memory " << (writeAccess ? "write" : "read") << " access of " << rmx::hexString(size) << " bytes at RAM address " << rmx::hexString(0xffff0000 + address, 6), );
 			outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 		}
 		else
@@ -408,7 +441,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 	{
 		if (address + size > sizeof(mInternal.mRom))
 		{
-			RMX_ERROR("Too large memory " << (writeAccess ? "write" : "read") << " access of " << rmx::hexString(size) << " bytes at ROM address " << rmx::hexString(address, 6), );
 			outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 		}
 		else
@@ -422,7 +454,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 		address &= 0x0fffff;
 		if (address + size > sizeof(mInternal.mSharedMemory))
 		{
-			RMX_ERROR("Too large memory " << (writeAccess ? "write" : "read") << " access of " << rmx::hexString(size) << " bytes at shared memory address " << rmx::hexString(0x800000 + address, 6), );
 			outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 		}
 		else
@@ -444,7 +475,6 @@ void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outR
 	}
 	else
 	{
-		RMX_ERROR("Invalid memory access at " << rmx::hexString(address, 6) << " of " << rmx::hexString(size) << " bytes", );
 		outResult.mResult = SpecializationResult::Result::INVALID_ACCESS;
 	}
 }

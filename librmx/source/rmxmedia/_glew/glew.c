@@ -1,5 +1,3 @@
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(__ppu__) && !defined(__PPU__)
-
 /*
 ** The OpenGL Extension Wrangler Library
 ** Copyright (C) 2008-2017, Nigel Stewart <nigels[]users sourceforge net>
@@ -53,7 +51,7 @@
 #    undef NOGDI
 #  endif
 #  include <GL/wglew.h>
-#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX))
+#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__CELLOS_LV2__) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 #  include <GL/glxew.h>
 #endif
 
@@ -178,6 +176,8 @@ void* NSGLGetProcAddress (const GLubyte *name)
 #  define glewGetProcAddress(name) NULL /* TODO */
 #elif defined(__native_client__)
 #  define glewGetProcAddress(name) NULL /* TODO */
+#elif defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+#  define glewGetProcAddress(name) NULL
 #else /* __linux */
 #  define glewGetProcAddress(name) (*glXGetProcAddressARB)(name)
 #endif
@@ -307,7 +307,7 @@ static GLboolean _glewStrSame3 (const GLubyte** a, GLuint* na, const GLubyte* b,
  * string returned by glGetString might be in read-only memory.
  */
 #if !defined(GLEW_OSMESA)
-#if !defined(__APPLE__) || defined(GLEW_APPLE_GLX)
+#if (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 static GLboolean _glewSearchExtension (const char* name, const GLubyte *start, const GLubyte *end)
 {
   const GLubyte* p;
@@ -19750,7 +19750,7 @@ GLenum GLEWAPIENTRY wglewInit ()
   return GLEW_OK;
 }
 
-#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX))
+#elif !defined(__ANDROID__) && !defined(__EMSCRIPTEN__) && !defined(__native_client__) && !defined(__HAIKU__) && (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__CELLOS_LV2__) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 
 PFNGLXGETCURRENTDISPLAYPROC __glewXGetCurrentDisplay = NULL;
 
@@ -20876,7 +20876,7 @@ GLenum GLEWAPIENTRY glewInit (void)
   return r;
 #elif defined(_WIN32)
   return wglewInit();
-#elif !defined(__APPLE__) || defined(GLEW_APPLE_GLX) /* _UNIX */
+#elif (!defined(__APPLE__) || defined(GLEW_APPLE_GLX)) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__) /* _UNIX */
   return glxewInit();
 #else
   return r;
@@ -28583,5 +28583,3 @@ GLboolean eglewIsSupported (const char* name)
 }
 
 #endif /* _WIN32 */
-
-#endif

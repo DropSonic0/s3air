@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -15,14 +15,6 @@
 
 void PackageBuilder::performPacking()
 {
-	// Check for engine data directory
-	const std::wstring engineBasePath = L"../oxygenengine/";
-	if (!FTX::FileSystem->exists(engineBasePath))
-	{
-		RMX_ERROR("Packaging failed! Could not find Oxygen Engine directory, expected at \"" << rmx::convertToUTF8(engineBasePath) << "\".", );
-		return;
-	}
-
 	// Update metadata.json
 	String metadata;
 	metadata << "{\r\n"
@@ -33,14 +25,15 @@ void PackageBuilder::performPacking()
 		<< "}\r\n";
 	metadata.saveFile("data/metadata.json");
 
-	// "gamedata.bin" = data directory except audio (and also excluding metadata.json)
+	// "gamedata.bin" = data directory except audio and shaders
 	{
 		std::vector<std::wstring> includedPaths;
 		includedPaths.push_back(L"data/");
 		std::vector<std::wstring> excludedPaths;
 		excludedPaths.push_back(L"data/audio/");
+		excludedPaths.push_back(L"data/shader/");
 		excludedPaths.push_back(L"data/metadata.json");
-		FilePackage::createFilePackage(L"gamedata.bin", L"", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
+		FilePackage::createFilePackage(L"gamedata.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 
 	// "audiodata.bin" = emulated / original audio directory
@@ -48,7 +41,7 @@ void PackageBuilder::performPacking()
 		std::vector<std::wstring> includedPaths;
 		includedPaths.push_back(L"data/audio/original/");
 		std::vector<std::wstring> excludedPaths;
-		FilePackage::createFilePackage(L"audiodata.bin", L"", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
+		FilePackage::createFilePackage(L"audiodata.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 
 	// "audioremaster.bin" = remastered audio directory
@@ -56,14 +49,14 @@ void PackageBuilder::performPacking()
 		std::vector<std::wstring> includedPaths;
 		includedPaths.push_back(L"data/audio/remastered/");
 		std::vector<std::wstring> excludedPaths;
-		FilePackage::createFilePackage(L"audioremaster.bin", L"", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
+		FilePackage::createFilePackage(L"audioremaster.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 
-	// "enginedata.bin" = engine's full data directory
+	// "enginedata.bin" = shaders directory
 	{
 		std::vector<std::wstring> includedPaths;
-		includedPaths.push_back(L"data/");
+		includedPaths.push_back(L"data/shader/");
 		std::vector<std::wstring> excludedPaths;
-		FilePackage::createFilePackage(L"enginedata.bin", engineBasePath, includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
+		FilePackage::createFilePackage(L"enginedata.bin", includedPaths, excludedPaths, L"_master_image_template/data/", BUILD_NUMBER);
 	}
 }

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,7 +10,6 @@
 
 #include "sonic3air/menu/helper/GameMenuControlsDisplay.h"
 #include "sonic3air/menu/helper/GameMenuScrolling.h"
-#include "sonic3air/menu/options/OptionsConfig.h"
 
 
 class GameMenuEntry
@@ -68,14 +67,10 @@ public:
 
 	inline GameMenuEntry& initEntry(const std::string& text, uint32 data)  { mText = text; mData = data; return *this; }
 
-	inline uint32 getMenuEntryType() const   { return mMenuEntryType; }
-	template<typename T> bool is() const	 { return mMenuEntryType == T::MENU_ENTRY_TYPE; }
-	template<typename T> T& as()			 { return static_cast<T&>(*this); }
-	template<typename T> const T& as() const { return static_cast<const T&>(*this); }
+	inline uint32 getMenuEntryType() const  { return mMenuEntryType; }
 
 	Option& addOptionRef(const std::string& text, uint32 value = 0);
 	GameMenuEntry& addOption(const std::string& text, uint32 value = 0);
-	GameMenuEntry& addOptions(const OptionsConfig::Setting& setting);
 	GameMenuEntry& addNumberOptions(int minValue, int maxValue, int step);
 	GameMenuEntry& addPercentageOptions(int minValue, int maxValue, int step);
 	Option* getOptionByValue(uint32 value);
@@ -165,9 +160,8 @@ public:
 	int getEntryChangeByInput() const;
 	int getOptionChangeByInput() const;
 
-	inline bool isValidIndex(int index) const	{ return (index >= 0 && index < (int)mEntries.size()); }
-	inline bool hasSelected() const				{ return isValidIndex(mSelectedEntryIndex); }
-	inline GameMenuEntry& selected()			{ return *mEntries[mSelectedEntryIndex]; }
+	inline bool hasSelected() const  { return (mSelectedEntryIndex < (int)mEntries.size()); }
+	inline GameMenuEntry& selected()  { return *mEntries[mSelectedEntryIndex]; }
 
 	bool setSelectedIndexByValue(uint32 value);
 	bool changeSelectedIndex(int change, bool loop = true);
@@ -205,11 +199,4 @@ public:
 	virtual void setBaseState(BaseState baseState) {}
 	virtual void onFadeIn() {}
 	virtual bool canBeRemoved() { return false; }
-
-protected:
-	bool updateFadeIn(float timeStep);
-	bool updateFadeOut(float timeStep);
-
-protected:
-	float mVisibility = 0.0f;
 };

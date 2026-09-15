@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -30,11 +30,7 @@
 
 #elif defined(PLATFORM_ANDROID)
 	#define PLATFORM_SUPPORTS_DOWNLOADER
-	#include "oxygen/platform/android/AndroidJavaInterface.h"
-
-#elif defined(PLATFORM_WEB)
-	#define PLATFORM_SUPPORTS_DOWNLOADER
-	#include <emscripten/fetch.h>
+	#include "oxygen/platform/AndroidJavaInterface.h"
 #endif
 
 
@@ -54,16 +50,19 @@ Downloader::~Downloader()
 
 void Downloader::setupDownload(std::string_view url, std::wstring_view outputFilename)
 {
+#if defined(PLATFORM_PS3)
+	mURL = std::string(url.data(), url.length());
+	mOutputFilename = std::wstring(outputFilename.data(), outputFilename.length());
+#else
 	mURL = url;
 	mOutputFilename = outputFilename;
+#endif
 }
 
 void Downloader::startDownload()
 {
 	mState = State::RUNNING;
-#ifdef PLATFORM_WEB
-	performDownloadStatic(this);
-#elif !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 	mThread = new std::thread(&Downloader::performDownloadStatic, this);
 #endif
 }
@@ -74,22 +73,12 @@ void Downloader::stopDownload()
 	if (nullptr != mThread)
 	{
 		mThreadRunning = false;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 		mThread->join();
 		delete mThread;
 #endif
 		mThread = nullptr;
 	}
-
-#ifdef PLATFORM_WEB
-	if (nullptr != mFetch)
-	{
-		emscripten_fetch_close(mFetch);
-		mFetch = nullptr;
-	}
-#endif
-
-	mOutputFile.close();
 
 	if (mState == State::RUNNING || mState == State::FAILED)
 	{
@@ -156,73 +145,10 @@ void Downloader::performDownload()
 		mState = State::FAILED;
 	}
 
-#elif defined(PLATFORM_WEB)
-
-	mThreadRunning = true;
-
-	emscripten_fetch_attr_t fetchAttr;
-	emscripten_fetch_attr_init(&fetchAttr);
-	strcpy(fetchAttr.requestMethod, "GET");
-	fetchAttr.attributes = EMSCRIPTEN_FETCH_LOAD_TO_MEMORY;
-	fetchAttr.onsuccess = [](emscripten_fetch_t* fetch)
-	{
-		Downloader* downloader = reinterpret_cast<Downloader*>(fetch->userData);
-		if (fetch == downloader->mFetch)
-			downloader->mFetch = nullptr;
-
-		// Write the complete downloaded data to file
-		if (fetch->numBytes > 0 && nullptr != fetch->data)
-		{
-			downloader->mOutputFile.open(Configuration::instance().mAppDataPath + downloader->mOutputFilename, FILE_ACCESS_WRITE);
-			if (downloader->mOutputFile.isOpen())
-			{
-				downloader->mOutputFile.write(fetch->data, (size_t)fetch->numBytes);
-				downloader->mOutputFile.close();
-				downloader->mBytesDownloaded = fetch->numBytes;
-			}
-		}
-
-		if (downloader->mThreadRunning)
-		{
-			downloader->mThreadRunning = false;
-			downloader->mState = State::DONE;
-		}
-		emscripten_fetch_close(fetch);
-	};
-	fetchAttr.onerror = [](emscripten_fetch_t* fetch)
-	{
-		Downloader* downloader = reinterpret_cast<Downloader*>(fetch->userData);
-		if (fetch == downloader->mFetch)
-			downloader->mFetch = nullptr;
-
-		if (downloader->mThreadRunning)
-		{
-			downloader->mThreadRunning = false;
-			downloader->mState = State::FAILED;
-		}
-		emscripten_fetch_close(fetch);
-	};
-	fetchAttr.onprogress = [](emscripten_fetch_t* fetch)
-	{
-		Downloader* downloader = reinterpret_cast<Downloader*>(fetch->userData);
-		if (!downloader->mThreadRunning)
-			return;
-
-		// Update progress counter (data is not written until success callback)
-		downloader->mBytesDownloaded = fetch->dataOffset + fetch->numBytes;
-	};
-	fetchAttr.userData = this;
-	mFetch = emscripten_fetch(&fetchAttr, mURL.c_str());
-	if (nullptr == mFetch)
-	{
-		mThreadRunning = false;
-		mState = State::FAILED;
-	}
-
 #elif defined(PLATFORM_ANDROID)
 
 	AndroidJavaInterface& javaInterface = AndroidJavaInterface::instance();
-	const uint64 downloadId = javaInterface.startFileDownload(mURL.c_str(), rmx::convertToUTF8(mOutputFilename).c_str());
+	const uint64 downloadId = javaInterface.startFileDownload(mURL.c_str(), *WString(mOutputFilename).toUTF8());
 
 	// The download runs in its own thread, so we just have to wait here...
 	mThreadRunning = true;
@@ -261,7 +187,9 @@ void Downloader::performDownload()
 			return;
 		}
 
+#if !defined(PLATFORM_PS3)
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+#endif
 	}
 
 #endif

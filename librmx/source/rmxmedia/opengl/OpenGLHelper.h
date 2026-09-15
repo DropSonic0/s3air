@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -18,14 +18,19 @@ namespace rmx
 	class OpenGLHelper
 	{
 	public:
-	#ifdef RMX_USE_GLES2
-		static const constexpr GLint FORMAT_RGB   = GL_RGBA;				// OpenGL ES 2.0 does not have GL_RGB, so we have to use GL_RGBA instead (and just don't use the alpha channel)
-		static const constexpr GLint FORMAT_RGBA  = GL_RGBA;
-		static const constexpr GLint FORMAT_DEPTH = GL_DEPTH_COMPONENT16;	// OpenGL ES 2.0 does not have the more general GL_DEPTH_COMPONENT, only GL_DEPTH_COMPONENT16, which is fine for us as well
+	#if defined(RMX_USE_GLES2) || defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
+		static constexpr GLint FORMAT_RGB   = GL_ARGB_SCE;
+		static constexpr GLint FORMAT_RGBA  = GL_ARGB_SCE;
 	#else
-		static const constexpr GLint FORMAT_RGB   = GL_RGB8;
-		static const constexpr GLint FORMAT_RGBA  = GL_RGBA8;
-		static const constexpr GLint FORMAT_DEPTH = GL_DEPTH_COMPONENT;
+		static constexpr GLint FORMAT_RGB   = GL_RGBA;				// OpenGL ES 2.0 does not have GL_RGB, so we have to use GL_RGBA instead
+		static constexpr GLint FORMAT_RGBA  = GL_RGBA;
+	#endif
+		static constexpr GLint FORMAT_DEPTH = GL_DEPTH_COMPONENT16;	// ES 2.0 / PS3 PSGL uses GL_DEPTH_COMPONENT16
+	#else
+		static constexpr GLint FORMAT_RGB   = GL_RGB8;
+		static constexpr GLint FORMAT_RGBA  = GL_RGBA8;
+		static constexpr GLint FORMAT_DEPTH = GL_DEPTH_COMPONENT;
 	#endif
 	};
 }

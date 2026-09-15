@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -28,13 +28,13 @@ void GameMenuControlsDisplay::addControl(std::string_view displayText, bool alig
 	{
 		if (!control.mSpriteKeys.empty() && spriteKey == control.mSpriteKeys[0])
 		{
-			control.mDisplayText = displayText;
+			control.mDisplayText.assign(displayText.data(), displayText.length());
 			return;
 		}
 	}
 
 	Control& newControl = vectorAdd(mControls);
-	newControl.mDisplayText = displayText;
+	newControl.mDisplayText.assign(displayText.data(), displayText.length());
 	newControl.mAlignRight = alignRight;
 	newControl.mSpriteKeys.push_back(spriteKey);
 

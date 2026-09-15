@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,45 +9,23 @@
 #include "rmxbase.h"
 
 
-rmx::BitmapCodecList rmx::BitmapCodecList::mCodecs;
+Bitmap::CodecList Bitmap::mCodecs;
 
-
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-#include <stdlib.h>
-static inline uint32* allocBitmapData(size_t count)
-{
-	return static_cast<uint32*>(memalign(128, count * sizeof(uint32)));
-}
-static inline void freeBitmapData(uint32* ptr)
-{
-	if (ptr) free(ptr);
-}
-#else
-static inline uint32* allocBitmapData(size_t count)
-{
-	return new uint32[count];
-}
-static inline void freeBitmapData(uint32* ptr)
-{
-	delete[] ptr;
-}
-#endif
-
-Bitmap::Bitmap()
+Bitmap::Bitmap() : mData(nullptr), mWidth(0), mHeight(0)
 {
 }
 
-Bitmap::Bitmap(const Bitmap& bitmap)
+Bitmap::Bitmap(const Bitmap& bitmap) : mData(nullptr), mWidth(0), mHeight(0)
 {
 	copy(bitmap);
 }
 
-Bitmap::Bitmap(const String& filename)
+Bitmap::Bitmap(const String& filename) : mData(nullptr), mWidth(0), mHeight(0)
 {
 	load(filename.toWString());
 }
 
-Bitmap::Bitmap(const WString& filename)
+Bitmap::Bitmap(const WString& filename) : mData(nullptr), mWidth(0), mHeight(0)
 {
 	load(filename);
 }
@@ -67,7 +45,7 @@ void Bitmap::copy(const Bitmap& source)
 
 		mWidth = source.mWidth;
 		mHeight = source.mHeight;
-		mData = allocBitmapData(mWidth*mHeight);
+		mData = new uint32[mWidth*mHeight];
 	}
 	memcpy(mData, source.mData, mWidth*mHeight*4);
 }
@@ -91,11 +69,11 @@ void Bitmap::copy(const Bitmap& source, const Recti& rect)
 
 	mWidth = sx;
 	mHeight = sy;
-	mData = allocBitmapData(mWidth*mHeight);
+	mData = new uint32[mWidth*mHeight];
 	memcpyRect(mData, mWidth, &source.mData[px+py*source.mWidth], source.mWidth, mWidth, mHeight);
 }
 
-void Bitmap::copy(const void* source, int wid, int hgt)
+void Bitmap::copy(void* source, int wid, int hgt)
 {
 	clear();
 	if (nullptr == source)
@@ -103,7 +81,7 @@ void Bitmap::copy(const void* source, int wid, int hgt)
 
 	mWidth = wid;
 	mHeight = hgt;
-	mData = allocBitmapData(mWidth*mHeight);
+	mData = new uint32[mWidth*mHeight];
 	memcpy(mData, source, mWidth*mHeight*4);
 }
 
@@ -112,10 +90,10 @@ void Bitmap::create(int wid, int hgt)
 	if (nullptr != mData && mWidth == wid && mHeight == hgt)
 		return;
 
-	freeBitmapData(mData);
+	delete[] mData;
 	mWidth = wid;
 	mHeight = hgt;
-	mData = allocBitmapData(mWidth*mHeight);
+	mData = new uint32[mWidth*mHeight];
 }
 
 void Bitmap::create(int wid, int hgt, uint32 color)
@@ -148,7 +126,7 @@ void Bitmap::createReusingMemory(int wid, int hgt, int& reservedSize, uint32 col
 void Bitmap::clear()
 {
 	if (nullptr != mData)
-		freeBitmapData(mData);
+		delete[] mData;
 	mData = nullptr;
 	mWidth = 0;
 	mHeight = 0;
@@ -174,7 +152,11 @@ void Bitmap::clear(uint32 color)
 
 void Bitmap::clear(const Color& color)
 {
+#if defined(PLATFORM_PS3)
+	clear(color.getRGBA32());
+#else
 	clear(color.getABGR32());
+#endif
 }
 
 void Bitmap::clearRGB(uint32 color)
@@ -186,7 +168,11 @@ void Bitmap::clearRGB(uint32 color)
 	uint32* end = dst + getPixelCount();
 	for (; dst < end; ++dst)
 	{
-		*dst = (*dst & 0xff000000) | color;
+#if defined(PLATFORM_PS3)
+		*dst = (*dst & 0x000000ff) | (color & 0xffffff00);
+#else
+		*dst = (*dst & 0xff000000) | (color & 0x00ffffff);
+#endif
 	}
 }
 
@@ -195,6 +181,7 @@ void Bitmap::clearAlpha(uint8 alpha)
 	if (nullptr == mData)
 		return;
 
+	// Layout is RGBA on all platforms
 	uint8* dst = (uint8*)mData + 3;
 	uint8* end = dst + getPixelCount() * 4;
 	for (; dst < end; dst += 4)
@@ -205,21 +192,21 @@ void Bitmap::clearAlpha(uint8 alpha)
 
 uint32 Bitmap::getPixelSafe(int x, int y) const
 {
-	if (!isValidPosition(x, y))
+	if (x < 0 || x >= mWidth || y < 0 || y >= mHeight)
 		return 0;
 	return mData[x + y * mWidth];
 }
 
 uint32* Bitmap::getPixelPointerSafe(int x, int y)
 {
-	if (!isValidPosition(x, y))
+	if (x < 0 || x >= mWidth || y < 0 || y >= mHeight)
 		return nullptr;
 	return &mData[x + y * mWidth];
 }
 
 const uint32* Bitmap::getPixelPointerSafe(int x, int y) const
 {
-	if (!isValidPosition(x, y))
+	if (x < 0 || x >= mWidth || y < 0 || y >= mHeight)
 		return nullptr;
 	return &mData[x + y * mWidth];
 }
@@ -251,34 +238,48 @@ uint32 Bitmap::sampleLinear(float x, float y) const
 	uint32 color = 0;
 	for (int i = 0; i < 3; ++i)
 	{
-		const float c = (float)((mData[ix+iy*mWidth]	   >> (i*8)) & 0xff) * (1.0f - fx) * (1.0f - fy)
-					  + (float)((mData[ix+1+iy*mWidth]	   >> (i*8)) & 0xff) * fx * (1.0f - fy)
-					  + (float)((mData[ix+(iy+1)*mWidth]   >> (i*8)) & 0xff) * (1.0f - fx) * fy
-					  + (float)((mData[ix+1+(iy+1)*mWidth] >> (i*8)) & 0xff) * fx * fy;
-		color += (int)(c + 0.5f) << (i*8);
+#if defined(PLATFORM_PS3)
+		int shift = (3 - i) * 8;
+#else
+		int shift = i * 8;
+#endif
+		const float c = (float)((mData[ix+iy*mWidth]	   >> shift) & 0xff) * (1.0f - fx) * (1.0f - fy)
+					  + (float)((mData[ix+1+iy*mWidth]	   >> shift) & 0xff) * fx * (1.0f - fy)
+					  + (float)((mData[ix+(iy+1)*mWidth]   >> shift) & 0xff) * (1.0f - fx) * fy
+					  + (float)((mData[ix+1+(iy+1)*mWidth] >> shift) & 0xff) * fx * fy;
+		color += (int)(c + 0.5f) << shift;
 	}
 	return color;
 }
 
 void Bitmap::setPixel(int x, int y, uint32 color)
 {
-	if (!isValidPosition(x, y))
+	if (x < 0 || x >= mWidth || y < 0 || y >= mHeight)
 		return;
-	mData[x + y * mWidth] = color;
+	mData[x+y*mWidth] = color;
 }
 
 void Bitmap::setPixel(int x, int y, float red, float green, float blue, float alpha)
 {
-	setPixel(x, y, (uint32)(saturate(red)   * 255.0f)
-				+ ((uint32)(saturate(green) * 255.0f) << 8)
-				+ ((uint32)(saturate(blue)  * 255.0f) << 16)
-				+ ((uint32)(saturate(alpha) * 255.0f) << 24));
+	if (x < 0 || x >= mWidth || y < 0 || y >= mHeight)
+		return;
+#if defined(PLATFORM_PS3)
+	mData[x+y*mWidth] = ((uint32)(saturate(red)   * 255.0f) << 24)
+					 | ((uint32)(saturate(green) * 255.0f) << 16)
+					 | ((uint32)(saturate(blue)  * 255.0f) << 8)
+					 | ((uint32)(saturate(alpha) * 255.0f));
+#else
+	mData[x+y*mWidth] = (uint32)(saturate(red)   * 255.0f)
+					 + ((uint32)(saturate(green) * 255.0f) << 8)
+					 + ((uint32)(saturate(blue)  * 255.0f) << 16)
+					 + ((uint32)(saturate(alpha) * 255.0f) << 24);
+#endif
 }
 
 bool Bitmap::decode(InputStream& stream, Bitmap::LoadResult& outResult, const char* format)
 {
 	// Load bitmap from memory
-	for (rmx::IBitmapCodec* codec : rmx::BitmapCodecList::mCodecs.mList)
+	for (IBitmapCodec* codec : mCodecs.mList)
 	{
 		if (nullptr != format && !codec->canDecode(format))
 			continue;
@@ -294,7 +295,7 @@ bool Bitmap::decode(InputStream& stream, Bitmap::LoadResult& outResult, const ch
 
 bool Bitmap::encode(OutputStream& stream, const char* format) const
 {
-	for (rmx::IBitmapCodec* codec : rmx::BitmapCodecList::mCodecs.mList)
+	for (IBitmapCodec* codec : mCodecs.mList)
 	{
 		if (!codec->canEncode(format))
 			continue;
@@ -308,7 +309,7 @@ bool Bitmap::encode(OutputStream& stream, const char* format) const
 	return false;
 }
 
-uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
+uint8* Bitmap::convert(ColorFormat_t format, int& size, uint32* palette)
 {
 	// Convert into a different color format
 	uint8* output = nullptr;
@@ -317,77 +318,53 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 	switch (format)
 	{
 		// Convert RGBA -> RGB
-		case ColorFormat::RGB24:
+		case (ColorFormat_t)ColorFormat::RGB24:
 		{
 			size *= 3;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
-#else
-			output = static_cast<uint8*>(memalign(128, size));
-#endif
 			for (int i = 0; i < pixels; ++i)
 				memcpy(&output[i*3], &mData[i], 3);
 			return output;
 		}
 
 		// Reduce to 16-bit
-		case ColorFormat::RGB16:
+		case (ColorFormat_t)ColorFormat::RGB16:
 		{
 			size *= 2;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
-#else
-			output = static_cast<uint8*>(memalign(128, size));
-#endif
 			for (int i = 0; i < pixels; ++i)
 			{
 				uint16 color = 0;
 				color += (mData[i] >> 3) & 0x001f;
 				color += (mData[i] >> 5) & 0x07e0;
 				color += (mData[i] >> 8) & 0xf800;
-				*(uint16*)(&output[i*2]) = color;
+				rmx::writeMemoryUnalignedLE<uint16>(&output[i*2], color);
 			}
 			return output;
 		}
 
 		// Create palette with 256 colors
-		case ColorFormat::INDEXED_256_COLORS:
+		case (ColorFormat_t)ColorFormat::INDEXED_256_COLORS:
 		{
 			if (!palette)
 				break;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
-#else
-			output = static_cast<uint8*>(memalign(128, size));
-#endif
 			convert2palette(output, 256, palette);
 			return output;
 		}
 
 		// Create palette with 16 colors
-		case ColorFormat::INDEXED_16_COLORS:
+		case (ColorFormat_t)ColorFormat::INDEXED_16_COLORS:
 		{
 			if (!palette)
 				break;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			uint8* tmp = new uint8[size];
-#else
-			uint8* tmp = static_cast<uint8*>(memalign(128, size));
-#endif
 			convert2palette(tmp, 16, palette);
 			size /= 2;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
-#else
-			output = static_cast<uint8*>(memalign(128, size));
-#endif
 			for (int i = 0; i < pixels; i += 2)
 				output[i/2] = (tmp[i] << 4) + tmp[i+1];
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			delete[] tmp;
-#else
-			free(tmp);
-#endif
 			return output;
 		}
 
@@ -395,11 +372,7 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 		default:
 		{
 			size *= 4;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			output = new uint8[size];
-#else
-			output = static_cast<uint8*>(memalign(128, size));
-#endif
 			memcpy(output, mData, size);
 			return output;
 		}
@@ -427,7 +400,7 @@ bool Bitmap::load(const WString& filename, LoadResult* outResult)
 	if (nullptr == stream)
 	{
 		if (nullptr != outResult)
-			outResult->mError = LoadResult::Error::FILE_NOT_FOUND;
+			outResult->mError = (Bitmap::LoadResult::Error_t)Bitmap::LoadResult::Error::FILE_NOT_FOUND;
 		return false;
 	}
 
@@ -466,9 +439,6 @@ bool Bitmap::save(const WString& filename)
 	// Save file
 	MemOutputStream s0(stream.getPosition());
 	result = stream.saveTo(s0);
-	if (!result)
-		return false;
-
 	result = s0.saveToFile(filename.toString());
 	return result;
 }
@@ -544,9 +514,9 @@ void Bitmap::resize(int wid, int hgt)
 		clear();
 		return;
 	}
-	uint32* mData2 = allocBitmapData(wid*hgt);
+	uint32* mData2 = new uint32[wid*hgt];
 	memcpyRect(mData2, wid, mData, mWidth, std::min(wid, mWidth), std::min(hgt, mHeight));
-	freeBitmapData(mData);
+	delete[] mData;
 	mData = mData2;
 	mWidth = wid;
 	mHeight = hgt;
@@ -559,9 +529,15 @@ void Bitmap::swapRedBlue()
 	int wxh = mWidth * mHeight;
 	for (int i = 0; i < wxh; ++i)
 	{
+#if defined(PLATFORM_PS3)
+		mData[i] = (mData[i] & 0x00ff00ff)
+				| ((mData[i] & 0xff000000) >> 16)
+				| ((mData[i] & 0x0000ff00) << 16);
+#else
 		mData[i] = (mData[i] & 0xff00ff00)
 				| ((mData[i] & 0x00ff0000) >> 16)
 				| ((mData[i] & 0x000000ff) << 16);
+#endif
 	}
 }
 
@@ -569,11 +545,11 @@ void Bitmap::mirrorHorizontal()
 {
 	if (nullptr == mData)
 		return;
-	uint32* mData2 = allocBitmapData(mWidth*mHeight);
+	uint32* mData2 = new uint32[mWidth*mHeight];
 	for (int y = 0; y < mHeight; ++y)
 		for (int x = 0; x < mWidth; ++x)
 			mData2[x+y*mWidth] = mData[(mWidth-x-1)+y*mWidth];
-	freeBitmapData(mData);
+	delete[] mData;
 	mData = mData2;
 }
 
@@ -581,10 +557,10 @@ void Bitmap::mirrorVertical()
 {
 	if (nullptr == mData)
 		return;
-	uint32* mData2 = allocBitmapData(mWidth*mHeight);
+	uint32* mData2 = new uint32[mWidth*mHeight];
 	for (int y = 0; y < mHeight; ++y)
 		memcpy(&mData2[y*mWidth], &mData[(mHeight-y-1)*mWidth], mWidth*4);
-	freeBitmapData(mData);
+	delete[] mData;
 	mData = mData2;
 }
 
@@ -593,18 +569,34 @@ void Bitmap::blendBG(uint32 color)
 	int size = mWidth * mHeight;
 	float bg_value[3];
 	for (int c = 0; c < 3; ++c)
+#if defined(PLATFORM_PS3)
+		bg_value[c] = float((color >> ((3-c)*8)) & 0xff);
+#else
 		bg_value[c] = float((color >> (c*8)) & 0xff);
+#endif
 
 	for (int i = 0; i < size; ++i)
 	{
+#if defined(PLATFORM_PS3)
+		float alpha = float(mData[i] & 0xff) / 255.0f;
+#else
 		float alpha = float((mData[i] >> 24) & 0xff) / 255.0f;
+#endif
 		int output[3];
 		for (int c = 0; c < 3; ++c)
 		{
+#if defined(PLATFORM_PS3)
+			int value = (mData[i] >> ((3-c)*8)) & 0xff;
+#else
 			int value = (mData[i] >> (c*8)) & 0xff;
+#endif
 			output[c] = int(float(value) * alpha + float(bg_value[c]) * (1.0f - alpha) + 0.5f);
 		}
+#if defined(PLATFORM_PS3)
+		mData[i] = 0x000000ff | (output[0] << 24) | (output[1] << 16) | (output[2] << 8);
+#else
 		mData[i] = 0xff000000 + output[0] + (output[1] << 8) + (output[2] << 16);
+#endif
 	}
 }
 
@@ -653,7 +645,7 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma)
 			{
 				float value = 0.0f;
 				float sum = 0.0f;
-				const float* factor = (c < 3) ? &factors_alpha[size] : &factors[size];
+				float* factor = (c < 3) ? &factors_alpha[size] : &factors[size];
 				for (int j = min_j; j <= max_j; ++j)
 				{
 					value += factor[j] * (float)src[j*swid+c];
@@ -698,7 +690,7 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma, int channel)
 		uint8* src;
 		uint8* dst;
 		int swid = 4;
-		if (step == 0)	{ maxz = mWidth;  src = (uint8*)mData;     dst = (uint8*)bmp.mData;              }
+		if (step == 0)	{ maxz = mWidth;  src = (uint8*)mData;     dst = (uint8*)bmp.mData;             }
 				  else	{ maxz = mHeight; src = (uint8*)bmp.mData; dst = (uint8*)mData;  swid *= mWidth; }
 
 		int wxh = mWidth * mHeight;
@@ -709,7 +701,7 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma, int channel)
 			int max_j = (z < maxz-size) ? +size : maxz-z-1;
 			float value = 0.0f;
 			float sum = 0.0f;
-			const float* factor = &factors[size];
+			float* factor = &factors[size];
 			for (int j = min_j; j <= max_j; ++j)
 			{
 				value += factor[j] * (float)src[j*swid+channel];
@@ -734,7 +726,7 @@ void Bitmap::sampleDown(const Bitmap& source, bool roundup)
 	int nx = (sx == 1) ? 1 : roundup ? (sx+1)/2 : sx/2;
 	int ny = (sy == 1) ? 1 : roundup ? (sy+1)/2 : sy/2;
 	int max_x = (nx <= sx/2) ? nx : sx/2;
-	uint32* newData = allocBitmapData(nx*ny);
+	uint32* newData = new uint32[nx*ny];
 	for (int y = 0; y < ny; ++y)
 	{
 		uint32* src = &source.mData[y*2*sx];
@@ -753,7 +745,7 @@ void Bitmap::sampleDown(const Bitmap& source, bool roundup)
 		if (nx*2-1 >= sx)
 			dst[max_x] = ((dst[max_x] & 0xfefefefe) >> 1) + ((src[max_x*2] & 0xfefefefe) >> 1);
 	}
-	freeBitmapData(mData);
+	delete[] mData;
 	mData = newData;
 	mWidth = nx;
 	mHeight = ny;
@@ -813,24 +805,19 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 				int w = rescale_x ? y : x;
 				float fz = ((float)z + 0.5f) * ratio - 0.5f;
 				if (fz < 0.0f)
-				{
 					*dst = source.mData[w*mulw];
-				}
 				else if (fz >= (float)(srcsize-1))
-				{
 					*dst = source.mData[(srcsize-1)*mulz+w*mulw];
-				}
 				else
 				{
 					int iz = (int)fz;
 					fz -= (float)iz;
 					int offset = iz*mulz + w*mulw;
-					const uint8* color1 = (uint8*)&source.mData[offset];
-					const uint8* color2 = (uint8*)&source.mData[offset+mulz];
+					uint8* color1 = (uint8*)&source.mData[offset];
+					uint8* color2 = (uint8*)&source.mData[offset+mulz];
 					for (int c = 0; c < 4; ++c)
-					{
-						((uint8*)dst)[c] = (uint8)((float)color1[c] * (1.0f - fz) + (float)color2[c] * fz + 0.5f);
-					}
+						((uint8*)dst)[c] = (uint8)((float)color1[c] * (1.0f - fz)
+											   + (float)color2[c] * fz + 0.5f);
 				}
 				++dst;
 			}
@@ -851,15 +838,12 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 				int i1 = (int)f1;  f1 -= (float)i1;
 				int i2 = (int)f2;  f2 -= (float)i2;
 				if (i2 >= srcsize)
-				{
-					i2 = srcsize - 1;
-					f2 = 1.0f;
-				}
-				const uint8* src = (uint8*)&source.mData[w*mulw];
+					{ i2 = srcsize-1;  f2 = 1.0f; }
+				uint8* src = (uint8*)&source.mData[w*mulw];
 				for (int c = 0; c < 4; ++c)
 				{
 					float value = 0.0f;
-					for (int i = i1 + 1; i < i2; ++i)
+					for (int i = i1+1; i < i2; ++i)
 						value += (float)src[i*mulz+c];
 					value += (float)src[i1*mulz+c] * (1.0f - f1);
 					value += (float)src[i2*mulz+c] * f2;
@@ -883,27 +867,37 @@ void Bitmap::swap(Bitmap& other)
 	std::swap(mHeight, other.mHeight);
 }
 
-inline void Bitmap::memcpyRect(uint32* dst, int dwid, const uint32* src, int swid, int wid, int hgt)
+inline void Bitmap::memcpyRect(uint32* dst, int dwid, uint32* src, int swid, int wid, int hgt)
 {
 	wid *= 4;			// 4 Bytes per pixel
 	for (int y = 0; y < hgt; ++y)
 		memcpy(&dst[y*dwid], &src[y*swid], wid);
 }
 
-inline void Bitmap::memcpyBlend(uint32* dst, int dwid, const uint32* src, int swid, int wid, int hgt)
+inline void Bitmap::memcpyBlend(uint32* dst, int dwid, uint32* src, int swid, int wid, int hgt)
 {
+	// Layout is RGBA on all platforms
+	const int alphaIdx = 3;
+	const int colorIdx[3] = { 0, 1, 2 };
+
 	for (int y = 0; y < hgt; ++y)
 	{
 		for (int x = 0; x < wid; ++x)
 		{
-			uint8* dstPtr = (uint8*)(&dst[x+y*dwid]);
-			const uint8* srcPtr = (const uint8*)(&src[x+y*swid]);
-			float alpha = (float)srcPtr[3] / 255.0f;
-			float alpha_dst = (float)dstPtr[3] / 255.0f;
+			uint8* dst_ptr = (uint8*)(&dst[x+y*dwid]);
+			uint8* src_ptr = (uint8*)(&src[x+y*swid]);
+			float alpha = (float)src_ptr[alphaIdx] / 255.0f;
+			float alpha_dst = (float)dst_ptr[alphaIdx] / 255.0f;
 			float A = 1.0f - (1.0f - alpha) * (1.0f - alpha_dst);
-			for (int c = 0; c < 3; ++c)
-				dstPtr[c] = (uint8)(((float)srcPtr[c] * alpha + (float)dstPtr[c] * alpha_dst * (1.0f - alpha)) / A);
-			dstPtr[3] = (uint8)(A * 255.0f);
+			if (A > 0.0f)
+			{
+				for (int i = 0; i < 3; ++i)
+				{
+					int c = colorIdx[i];
+					dst_ptr[c] = (uint8)(((float)src_ptr[c] * alpha + (float)dst_ptr[c] * alpha_dst * (1.0f - alpha)) / A);
+				}
+			}
+			dst_ptr[alphaIdx] = (uint8)(A * 255.0f);
 		}
 	}
 }
@@ -911,134 +905,146 @@ inline void Bitmap::memcpyBlend(uint32* dst, int dwid, const uint32* src, int sw
 void Bitmap::convert2palette(uint8* output, int colors, uint32* palette)
 {
 	// Convert into a palette-based image
-	memset(palette, 0, colors * sizeof(uint32));
-	struct OctreeNode
+	memset(palette, 0, colors*4);
+	struct octree_struct
 	{
-		int mCount = 0;
-		int mRed = 0;
-		int mGreen = 0;
-		int mBlue = 0;
-		int mIndex = -1;
-		bool mIsLeaf = false;
-		OctreeNode* mChild[8] = { nullptr };
+		int count;
+		int red, green, blue;
+		int index;
+		bool is_leaf;
+		octree_struct* child[8];
 	};
-	OctreeNode octreeRoot;
-	int leafCount = 0;
+	octree_struct octree_root;
+	octree_root.count = 0;
+	octree_root.red   = 0;
+	octree_root.green = 0;
+	octree_root.blue  = 0;
+	octree_root.index = -1;
+	octree_root.is_leaf = false;
+	for (int i = 0; i < 8; ++i)
+		octree_root.child[i] = 0;
+	int leaf_count = 0;
 
 	for (int y = 0; y < mHeight; ++y)
 		for (int x = 0; x < mWidth; ++x)
 		{
-			uint32 color = mData[x+y*mWidth] & 0xffffff;	// Ignore alpha channel
-			OctreeNode* oct = &octreeRoot;
+			uint32 color = mData[x+y*mWidth] & 0xffffff;		// Alphakanal ignorieren
+			octree_struct* oct = &octree_root;
 			for (int j = 0; j < 8; ++j)
 			{
-				const int index = ((color >> 7) & 0x01) + ((color >> 14) & 0x02) + ((color >> 21) & 0x04);
-				if (nullptr != oct->mChild[index])
-				{
-					oct = oct->mChild[index];
-				}
+				int index = ((color >> 7) & 0x1)
+					+ ((color >> 14) & 0x2)
+					+ ((color >> 21) & 0x4);
+				if (oct->child[index])
+					oct = oct->child[index];
 				else
 				{
-					oct->mChild[index] = new OctreeNode();
-					oct = oct->mChild[index];
+					oct->child[index] = new octree_struct;
+					oct = oct->child[index];
+					oct->count = 0;
+					oct->red   = 0;
+					oct->green = 0;
+					oct->blue  = 0;
+					oct->index = -1;
+					oct->is_leaf = false;
+					for (int i = 0; i < 8; ++i)
+						oct->child[i] = 0;
 				}
 				color <<= 1;
 
-				if ((j == 7) && (oct->mCount == 0))
+				if ((j == 7) && (!oct->count))
 				{
-					oct->mIsLeaf = true;
-					++leafCount;
+					oct->is_leaf = true;
+					++leaf_count;
 				}
-				++oct->mCount;
-				oct->mRed   += mData[x+y*mWidth] & 0xff;
-				oct->mGreen += (mData[x+y*mWidth] >> 8) & 0xff;
-				oct->mBlue  += (mData[x+y*mWidth] >> 16) & 0xff;
+				++oct->count;
+				oct->red   += mData[x+y*mWidth] & 0xff;
+				oct->green += (mData[x+y*mWidth] >> 8) & 0xff;
+				oct->blue  += (mData[x+y*mWidth] >> 16) & 0xff;
 			}
 		}
 
 	// Reduce colors
-	OctreeNode* stack[64];
-	int stackSize;
-	while (leafCount > colors)
+	octree_struct* stack[64];
+	int stack_size;
+	while (leaf_count > colors)
 	{
-		OctreeNode* minNode = 0;
-		int minCount = 0x7fffffff;
-		stack[0] = &octreeRoot;
-		stackSize = 1;
-		while (stackSize)
+		octree_struct* min_oct = 0;
+		int min_count = 0x7fffffff;
+		stack[0] = &octree_root;
+		stack_size = 1;
+		while (stack_size)
 		{
-			--stackSize;
-			OctreeNode* oct = stack[stackSize];
-			bool allLeaves = true;
+			--stack_size;
+			octree_struct* oct = stack[stack_size];
+			bool all_leaves = true;
 			for (int i = 0; i < 8; ++i)
-			{
-				if (nullptr != oct->mChild[i] && !oct->mChild[i]->mIsLeaf)
+				if (oct->child[i])
+					if (!oct->child[i]->is_leaf)
+					{
+						stack[stack_size] = oct->child[i];
+						++stack_size;
+						all_leaves = false;
+					}
+			if (all_leaves)
+				if (oct->count < min_count)
 				{
-					stack[stackSize] = oct->mChild[i];
-					++stackSize;
-					allLeaves = false;
+					min_oct = oct;
+					min_count = oct->count;
 				}
-			}
-			if (allLeaves && oct->mCount < minCount)
-			{
-				minNode = oct;
-				minCount = oct->mCount;
-			}
 		}
 
 		for (int i = 0; i < 8; ++i)
-		{
-			if (nullptr != minNode->mChild[i])
+			if (min_oct->child[i])
 			{
-				SAFE_DELETE(minNode->mChild[i]);
-				--leafCount;
+				SAFE_DELETE(min_oct->child[i]);
+				--leaf_count;
 			}
-		}
-		minNode->mIsLeaf = true;
-		++leafCount;
+		min_oct->is_leaf = true;
+		++leaf_count;
 	}
 
 	// Create palette
-	int palSize = 0;
-	stack[0] = &octreeRoot;
-	stackSize = 1;
-	while (stackSize > 0)
+	int pal_size = 0;
+	stack[0] = &octree_root;
+	stack_size = 1;
+	while (stack_size)
 	{
-		--stackSize;
-		OctreeNode* oct = stack[stackSize];
-		if (oct->mIsLeaf)
+		--stack_size;
+		octree_struct* oct = stack[stack_size];
+		if (oct->is_leaf)
 		{
-			palette[palSize] = (oct->mRed / oct->mCount) + ((oct->mGreen / oct->mCount) << 8) + ((oct->mBlue / oct->mCount) << 16);
-			oct->mIndex = palSize;
-			++palSize;
+			palette[pal_size] = (oct->red / oct->count)
+				+ ((oct->green / oct->count) << 8)
+				+ ((oct->blue / oct->count) << 16);
+			oct->index = pal_size;
+			++pal_size;
 			continue;
 		}
 		for (int i = 0; i < 8; ++i)
-		{
-			if (nullptr != oct->mChild[i])
+			if (oct->child[i])
 			{
-				stack[stackSize] = oct->mChild[i];
-				++stackSize;
+				stack[stack_size] = oct->child[i];
+				++stack_size;
 			}
-		}
 	}
 
 	// Convert bitmap data
-	uint32* data = mData;
 	for (int y = 0; y < mHeight; ++y)
 	{
 		for (int x = 0; x < mWidth; ++x)
 		{
-			uint32 color = (*data) & 0xffffff;	// Ignore alpha channel
-			OctreeNode* oct = &octreeRoot;
-			while (!oct->mIsLeaf)
+			uint32 color = mData[x+y*mWidth] & 0xffffff;	// Ignore alpha channel
+			octree_struct* oct = &octree_root;
+			while (!oct->is_leaf)
 			{
-				const int index = ((color >> 7) & 0x01) + ((color >> 14) & 0x02) + ((color >> 21) & 0x04);
-				oct = oct->mChild[index];
+				int index = ((color >> 7) & 0x1)
+					+ ((color >> 14) & 0x2)
+					+ ((color >> 21) & 0x4);
+				oct = oct->child[index];
 				color <<= 1;
 			}
-			*data = (uint8)(oct->mIndex);
-			++data;
+			output[x+y*mWidth] = (uint8)(oct->index);
 		}
 	}
 }

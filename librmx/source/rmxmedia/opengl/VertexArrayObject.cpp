@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,197 +10,69 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
-// OpenGL ES 2 does not support actual vertex array objects - but despite its name, the VertexArrayObject class will still without them (though a bit less efficient in that case)
-#if !defined(RMX_USE_GLES2)
-	#define RMX_OPENGL_SUPPORT_VAO
-#endif
-
 namespace opengl
 {
+	VertexArrayObject::VertexArrayObject() : mHandle(0), mVertexBufferObjectHandle(0), mCurrentFormat(Format_UNDEFINED), mNumBufferedVertices(0), mNumVertexAttributes(0), mFloatsPerVertex(0) {}
 
 	VertexArrayObject::~VertexArrayObject()
 	{
-	#ifdef RMX_OPENGL_SUPPORT_VAO
-		if (mVertexArrayObjectHandle != 0)
-			glDeleteVertexArrays(1, &mVertexArrayObjectHandle);
-	#endif
-
-		if (mVertexBufferObjectHandle != 0)
+		if (mHandle != 0)
+		{
+			glDeleteVertexArrays(1, &mHandle);
 			glDeleteBuffers(1, &mVertexBufferObjectHandle);
+		}
 	}
 
 	void VertexArrayObject::setup(Format format)
 	{
-		const bool needsInitialization = (mVertexBufferObjectHandle == 0);
-	#ifdef RMX_OPENGL_SUPPORT_VAO
+		const bool needsInitialization = (mHandle == 0);
 		if (needsInitialization)
 		{
-			glGenVertexArrays(1, &mVertexArrayObjectHandle);
+			glGenVertexArrays(1, &mHandle);
 			glGenBuffers(1, &mVertexBufferObjectHandle);
-			glBindVertexArray(mVertexArrayObjectHandle);
+			glBindVertexArray(mHandle);
 			glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObjectHandle);
 		}
 		else
 		{
-			glBindVertexArray(mVertexArrayObjectHandle);
+			glBindVertexArray(mHandle);
 		}
-	#else
-		if (needsInitialization)
-		{
-			glGenBuffers(1, &mVertexBufferObjectHandle);
-			glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObjectHandle);
-		}
-	#endif
 
 		mCurrentFormat = format;
-		switch (mCurrentFormat)
+		switch (format)
 		{
-			case Format::P2:       mFloatsPerVertex = 2; break;
-			case Format::P2_C3:    mFloatsPerVertex = 5; break;
-			case Format::P2_C4:    mFloatsPerVertex = 6; break;
-			case Format::P2_T2:    mFloatsPerVertex = 4; break;
-			case Format::P3_C3:    mFloatsPerVertex = 6; break;
-			case Format::P3_N3_C3: mFloatsPerVertex = 9; break;
-			default: break;
-		}
-
-#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
-		applyCurrentFormat();
-#endif
-	}
-
-	void VertexArrayObject::updateVertexData(const float* vertexData, size_t numVertices)
-	{
-		if (mVertexBufferObjectHandle == 0)
-		{
-			RMX_ASSERT(false, "VAO must be setup with a format before updating data");
-			return;
-		}
-
-	#ifdef RMX_OPENGL_SUPPORT_VAO
-		glBindVertexArray(mVertexArrayObjectHandle);
-	#endif
-		glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObjectHandle);
-		
-		const size_t totalBytes = mFloatsPerVertex * numVertices * sizeof(GLfloat);
-
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-		// PSGL on PS3 crashes inside driver glBufferData for VBO allocations.
-		// Use client-side vertex arrays by storing vertex pointer directly.
-		mClientVertexData.resize(mFloatsPerVertex * numVertices);
-		if (vertexData && totalBytes > 0)
-		{
-			memcpy(&mClientVertexData[0], vertexData, totalBytes);
-		}
-#else
-		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)totalBytes, vertexData, GL_STATIC_DRAW);
-#endif
-
-		mNumBufferedVertices = numVertices;
-
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-		applyCurrentFormat();
-#endif
-	}
-
-	void VertexArrayObject::bind()
-	{
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-		applyCurrentFormat();
-#else
-	#ifdef RMX_OPENGL_SUPPORT_VAO
-		// Bind the VAO, which will implicitly bind the VBO
-		if (mVertexArrayObjectHandle != 0)
-		{
-			glBindVertexArray(mVertexArrayObjectHandle);
-		}
-	#else
-		// Explicitly bind the VAO, and apply the format
-		if (mVertexBufferObjectHandle != 0)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObjectHandle);
-			applyCurrentFormat();
-		}
-	#endif
-#endif
-	}
-
-	void VertexArrayObject::unbind() const
-	{
-	#ifdef RMX_OPENGL_SUPPORT_VAO
-		glBindVertexArray(0);
-	#else
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	#endif
-	}
-
-	void VertexArrayObject::draw(GLenum mode)
-	{
-		if (mNumBufferedVertices > 0)
-		{
-			bind();
-			glDrawArrays(mode, 0, (GLsizei)mNumBufferedVertices);
-		}
-	}
-
-	void VertexArrayObject::applyCurrentFormat()
-	{
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		const float* basePtr = mClientVertexData.empty() ? nullptr : &mClientVertexData[0];
-		switch (mCurrentFormat)
-		{
-			case Format::P2:
+			case Format_P2:
 			{
 				mNumVertexAttributes = 1;
 				mFloatsPerVertex = 2;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
 				break;
 			}
 
-			case Format::P2_C3:
+			case Format_P2_C3:
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 5;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 2) : nullptr);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(2 * sizeof(float)));	// Colors
 				break;
 			}
 
-			case Format::P2_C4:
+			case Format_P2_C4:
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
-				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 2) : nullptr);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(2 * sizeof(float)));	// Colors
 				break;
 			}
 
-			case Format::P2_T2:
+			case Format_P2_T2:
 			{
 				mNumVertexAttributes = 2;
 				mFloatsPerVertex = 4;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 2) : nullptr);
-				break;
-			}
-
-			case Format::P3_C3:
-			{
-				mNumVertexAttributes = 2;
-				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 3) : nullptr);
-				break;
-			}
-
-			case Format::P3_N3_C3:
-			{
-				mNumVertexAttributes = 3;
-				mFloatsPerVertex = 9;
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 0) : nullptr);
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 3) : nullptr);
-				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), basePtr ? (const void*)(basePtr + 6) : nullptr);
+				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(0 * sizeof(float)));	// Positions
+				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (char*)(2 * sizeof(float)));	// Texcoords
 				break;
 			}
 
@@ -208,79 +80,55 @@ namespace opengl
 				RMX_ERROR("Unrecognized or invalid format", );
 				break;
 		}
-#else
-		switch (mCurrentFormat)
-		{
-			case Format::P2:
-			{
-				mNumVertexAttributes = 1;
-				mFloatsPerVertex = 2;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
-				break;
-			}
-
-			case Format::P2_C3:
-			{
-				mNumVertexAttributes = 2;
-				mFloatsPerVertex = 5;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(2 * sizeof(float)));	// Colors
-				break;
-			}
-
-			case Format::P2_C4:
-			{
-				mNumVertexAttributes = 2;
-				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(2 * sizeof(float)));	// Colors
-				break;
-			}
-
-			case Format::P2_T2:
-			{
-				mNumVertexAttributes = 2;
-				mFloatsPerVertex = 4;
-				glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(2 * sizeof(float)));	// Texcoords
-				break;
-			}
-
-			case Format::P3_C3:
-			{
-				mNumVertexAttributes = 2;
-				mFloatsPerVertex = 6;
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(3 * sizeof(float)));	// Colors
-				break;
-			}
-
-			case Format::P3_N3_C3:
-			{
-				mNumVertexAttributes = 3;
-				mFloatsPerVertex = 9;
-				glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(0 * sizeof(float)));	// Positions
-				glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE,  (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(3 * sizeof(float)));	// Normals
-				glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, (GLsizei)(mFloatsPerVertex * sizeof(float)), (const void*)(6 * sizeof(float)));	// Colors
-				break;
-			}
-
-			default:
-				RMX_ERROR("Unrecognized or invalid format", );
-				break;
-		}
-#endif
 
 		for (size_t i = 0; i < mNumVertexAttributes; ++i)
 		{
 			glEnableVertexAttribArray((GLuint)i);
 		}
-		for (size_t i = mNumVertexAttributes; i < 4; ++i)	// Assuming we'll never use more than 4 vertex attributes inside here
+		if (!needsInitialization)
 		{
-			glDisableVertexAttribArray((GLuint)i);
+			for (size_t i = mNumVertexAttributes; i < 4; ++i)	// Assuming we'll never use more than 4 vertex attributes inside here
+			{
+				glDisableVertexAttribArray((GLuint)i);
+			}
 		}
 	}
 
+	void VertexArrayObject::updateVertexData(const float* vertexData, size_t numVertices)
+	{
+		if (mHandle == 0)
+		{
+			RMX_ASSERT(false, "VAO must be setup with a format before updating data");
+			return;
+		}
+
+		glBindVertexArray(mHandle);
+		glBindBuffer(GL_ARRAY_BUFFER, mVertexBufferObjectHandle);
+		glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)(mFloatsPerVertex * numVertices * sizeof(GLfloat)), vertexData, GL_STATIC_DRAW);
+		mNumBufferedVertices = numVertices;
+	}
+
+	void VertexArrayObject::bind()
+	{
+		if (mHandle != 0)
+		{
+			glBindVertexArray(mHandle);
+		}
+	}
+
+	void VertexArrayObject::unbind()
+	{
+		glBindVertexArray(0);
+	}
+
+	void VertexArrayObject::draw(GLenum mode)
+	{
+		if (mHandle != 0 && mNumBufferedVertices > 0)
+		{
+			glBindVertexArray(mHandle);
+			glDrawArrays(mode, 0, (GLsizei)mNumBufferedVertices);
+		}
+	}
 }
 
 #endif

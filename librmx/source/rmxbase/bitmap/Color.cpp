@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -24,12 +24,10 @@ const Color Color::TRANSPARENT(0.0f, 0.0f, 0.0f, 0.0f);
 Color Color::interpolateColor(const Color& c0, const Color& c1, float factor)
 {
 	Color result;
-	result.r = ::saturate(c0.r + (c1.r - c0.r) * factor);
-	result.g = ::saturate(c0.g + (c1.g - c0.g) * factor);
-	result.b = ::saturate(c0.b + (c1.b - c0.b) * factor);
-	result.a = ::saturate(c0.a + (c1.a - c0.a) * factor);
+	result.interpolate(c0, c1, factor);
 	return result;
 }
+
 
 uint32 Color::getRGBA32() const
 {
@@ -49,19 +47,32 @@ uint32 Color::getARGB32() const
 
 uint32 Color::getABGR32() const
 {
+#if defined(PLATFORM_PS3)
+	// On PS3, we use ARGB as the 32-bit pixel format
+	return ((uint32)(::saturate(a) * 255) << 24)
+		 + ((uint32)(::saturate(r) * 255) << 16)
+		 + ((uint32)(::saturate(g) * 255) << 8)
+		 + ((uint32)(::saturate(b) * 255));
+#else
 	return ((uint32)(::saturate(r) * 255))
 		 + ((uint32)(::saturate(g) * 255) << 8)
 		 + ((uint32)(::saturate(b) * 255) << 16)
 		 + ((uint32)(::saturate(a) * 255) << 24);
+#endif
 }
 
-void Color::setByEncoding(uint32 color, Encoding encoding)
+Color::Color(uint32 color, Encoding_t encoding) : Vec4f(Uninitialized)
+{
+	setByEncoding(color, encoding);
+}
+
+void Color::setByEncoding(uint32 color, Encoding_t encoding)
 {
 	switch (encoding)
 	{
-		case Encoding::RGBA_32:  setRGBA32(color);  break;
-		case Encoding::ARGB_32:  setARGB32(color);  break;
-		case Encoding::ABGR_32:  setABGR32(color);  break;
+		case (Encoding_t)Encoding::RGBA_32:  setRGBA32(color);  break;
+		case (Encoding_t)Encoding::ARGB_32:  setARGB32(color);  break;
+		case (Encoding_t)Encoding::ABGR_32:  setABGR32(color);  break;
 	}
 }
 
@@ -83,10 +94,18 @@ void Color::setARGB32(uint32 colorARGB)
 
 void Color::setABGR32(uint32 colorABGR)
 {
+#if defined(PLATFORM_PS3)
+	// On PS3, we use ARGB as the 32-bit pixel format
+	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
+	r = (float)((colorABGR >> 16) & 0xff) / 255.0f;
+	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
+	b = (float)((colorABGR)       & 0xff) / 255.0f;
+#else
 	r = (float)((colorABGR)       & 0xff) / 255.0f;
 	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
 	b = (float)((colorABGR >> 16) & 0xff) / 255.0f;
 	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
+#endif
 }
 
 void Color::setFromHSL(const Vec3f& hsl)
@@ -240,11 +259,38 @@ void Color::serialize(VectorBinarySerializer& serializer)
 {
 	if (serializer.isReading())
 	{
-		setABGR32(serializer.read<uint32>());
+		uint32 abgr = serializer.read<uint32>();
+#if defined(PLATFORM_PS3)
+		// On PS3, ABGR32 was (a<<24)|(r<<16)|(g<<8)|b but on others it was r|(g<<8)|(b<<16)|(a<<24)
+		// To maintain compatibility with Little-Endian save states, we must interpret the serialized 
+		// uint32 as Little-Endian ABGR (a|b|g|r in memory) and convert to our internal representation.
+		
+		// The VectorBinarySerializer already swapped bytes if host is BE, so we have the LE value here.
+		// LE value: a is highest byte, b, g, r is lowest. 
+		// We want to call setABGR32 which on PS3 expects (a<<24)|(r<<16)|(g<<8)|b.
+		uint32 converted = ((abgr & 0xff000000))        // Alpha
+						 | ((abgr & 0x000000ff) << 16)  // Red
+						 | ((abgr & 0x0000ff00))        // Green
+						 | ((abgr & 0x00ff0000) >> 16); // Blue
+		setABGR32(converted);
+#else
+		setABGR32(abgr);
+#endif
 	}
 	else
 	{
-		serializer.write<uint32>(getABGR32());
+		uint32 abgr = getABGR32();
+#if defined(PLATFORM_PS3)
+		// Convert from internal PS3 ABGR32 (a<<24)|(r<<16)|(g<<8)|b
+		// to standard LE ABGR32 (a<<24)|(b<<16)|(g<<8)|r
+		uint32 converted = ((abgr & 0xff000000))        // Alpha
+						 | ((abgr & 0x00ff0000) >> 16)  // Red
+						 | ((abgr & 0x0000ff00))        // Green
+						 | ((abgr & 0x000000ff) << 16); // Blue
+		serializer.write<uint32>(converted);
+#else
+		serializer.write<uint32>(abgr);
+#endif
 	}
 }
 

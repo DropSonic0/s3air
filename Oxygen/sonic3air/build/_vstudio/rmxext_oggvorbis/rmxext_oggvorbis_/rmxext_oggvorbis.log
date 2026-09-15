@@ -1,0 +1,24 @@
+﻿Build started 14/9/2026 20:31:37.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\rmxext_oggvorbis\rmxext_oggvorbis.vcxproj" on node 2 (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\12.0\bin\Microsoft.Common.CurrentVersion.targets(1430,5): warning : The referenced project '..\rmxbase\rmxbase.vcxproj' does not exist.
+     1>ClCompile:
+         OggLoader.cpp
+         ps3ppusnc.exe -DNDEBUG -D__PS3__ -o rmxext_oggvorbis_\OggLoader.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\Oxygen\libs\zlib -IC:\s3air\Oxygen\libs\libogg\include -IC:\s3air\Oxygen\libs\tremor\include -IC:\s3air\Oxygen -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxext_oggvorbis\OggLoader.cpp
+     1>C:\s3air\librmx\source\rmxmedia/audiovideo/AudioBuffer.h(55,14): warning 84: type qualifier specified more than once
+         
+         rmxext_oggvorbis.cpp
+         ps3ppusnc.exe -DNDEBUG -D__PS3__ -o rmxext_oggvorbis_\rmxext_oggvorbis.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\Oxygen\libs\zlib -IC:\s3air\Oxygen\libs\libogg\include -IC:\s3air\Oxygen\libs\tremor\include -IC:\s3air\Oxygen -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxext_oggvorbis\rmxext_oggvorbis.cpp
+     1>C:\s3air\librmx\source\rmxmedia/audiovideo/AudioBuffer.h(55,14): warning 84: type qualifier specified more than once
+         
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\rmxext_oggvorbis\..\..\lib\\rmxext_oggvorbis.a
+         addmod rmxext_oggvorbis_\OggLoader.o
+         addmod rmxext_oggvorbis_\rmxext_oggvorbis.o
+         save
+         end
+         rmxext_oggvorbis.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\rmxext_oggvorbis\..\..\lib\\rmxext_oggvorbis.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\rmxext_oggvorbis\rmxext_oggvorbis.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.99

@@ -4,8 +4,8 @@
 // recognized in your jurisdiction.
 // See file LICENSE for detail or copy at http://jsoncpp.sourceforge.net/LICENSE
 
-#include <stddef.h>
-#include <cstddef>
+#include "rmxbase.h"
+
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json_tool.h"
 #include "json/assertions.h"
@@ -63,9 +63,10 @@ using CharReaderPtr = std::auto_ptr<CharReader>;
 // Implementation of class Features
 // ////////////////////////////////
 
-Features::Features() = default;
+Features::Features() : allowComments_(true), strictRoot_(false), allowDroppedNullPlaceholders_(false), allowNumericKeys_(false) {}
 
-Features Features::all() { return {}; }
+Features Features::all() { return Features(); }
+
 
 Features Features::strictMode() {
   Features features;
@@ -80,9 +81,8 @@ Features Features::strictMode() {
 // ////////////////////////////////
 
 bool Reader::containsNewLine(Reader::Location begin, Reader::Location end) {
-  for (const char* p = begin; p != end; ++p) {
-    if (*p == '\n' || *p == '\r')
-      return true;
+  for (; begin < end; ++begin) {
+    if (*begin == '\n' || *begin == '\r') return true;
   }
   return false;
 }
@@ -90,7 +90,7 @@ bool Reader::containsNewLine(Reader::Location begin, Reader::Location end) {
 // Class Reader
 // //////////////////////////////////////////////////////////////////
 
-Reader::Reader() : features_(Features::all()) {}
+Reader::Reader() : features_(Features::all()), lastValueEnd_(0), lastValue_(0), collectComments_(false) {}
 
 Reader::Reader(const Features& features) : features_(features) {}
 
@@ -124,8 +124,8 @@ bool Reader::parse(const char* beginDoc, const char* endDoc, Value& root,
   end_ = endDoc;
   collectComments_ = collectComments;
   current_ = begin_;
-  lastValueEnd_ = nullptr;
-  lastValue_ = nullptr;
+  lastValueEnd_ = 0;
+  lastValue_ = 0;
   commentsBefore_.clear();
   errors_.clear();
   while (!nodes_.empty())
@@ -379,7 +379,7 @@ void Reader::addComment(Location begin, Location end,
   assert(collectComments_);
   const String& normalized = normalizeEOL(begin, end);
   if (placement == commentAfterOnSameLine) {
-    assert(lastValue_ != nullptr);
+    assert(lastValue_ != 0);
     lastValue_->setComment(normalized, placement);
   } else {
     commentsBefore_ += normalized;
@@ -568,7 +568,7 @@ bool Reader::decodeNumber(Token& token, Value& decoded) {
     Char c = *current++;
     if (c < '0' || c > '9')
       return decodeDouble(token, decoded);
-    auto digit(static_cast<Value::UInt>(c - '0'));
+    Value::UInt digit = static_cast<Value::UInt>(c - '0');
     if (value >= threshold) {
       // We've hit or exceeded the max value divided by 10 (rounded down). If
       // a) we've only just touched the limit, b) this is the last digit, and
@@ -835,7 +835,7 @@ bool Reader::pushError(const Value& value, const String& message) {
   ErrorInfo info;
   info.token_ = token;
   info.message_ = message;
-  info.extra_ = nullptr;
+  info.extra_ = 0;
   errors_.push_back(info);
   return true;
 }
@@ -878,7 +878,21 @@ public:
   size_t stackLimit_;
 }; // OurFeatures
 
-OurFeatures OurFeatures::all() { return {}; }
+OurFeatures OurFeatures::all() {
+  OurFeatures features;
+  features.allowComments_ = true;
+  features.allowTrailingCommas_ = true;
+  features.strictRoot_ = false;
+  features.allowDroppedNullPlaceholders_ = false;
+  features.allowNumericKeys_ = false;
+  features.allowSingleQuotes_ = false;
+  features.failIfExtra_ = false;
+  features.rejectDupKeys_ = false;
+  features.allowSpecialFloats_ = false;
+  features.skipBom_ = true;
+  features.stackLimit_ = 1000;
+  return features;
+}
 
 // Implementation of class Reader
 // ////////////////////////////////
@@ -964,7 +978,7 @@ private:
                               unsigned int& unicode);
   bool decodeUnicodeEscapeSequence(Token& token, Location& current,
                                    Location end, unsigned int& unicode);
-  bool addError(const String& message, Token& token, Location extra = nullptr);
+  bool addError(const String& message, Token& token, Location extra = 0);
   bool recoverFromError(TokenType skipUntilToken);
   bool addErrorAndRecover(const String& message, Token& token,
                           TokenType skipUntilToken);
@@ -982,33 +996,32 @@ private:
 
   using Nodes = std::stack<Value*>;
 
-  Nodes nodes_{};
-  Errors errors_{};
-  String document_{};
-  Location begin_ = nullptr;
-  Location end_ = nullptr;
-  Location current_ = nullptr;
-  Location lastValueEnd_ = nullptr;
-  Value* lastValue_ = nullptr;
+  Nodes nodes_;
+  Errors errors_;
+  String document_;
+  Location begin_ = 0;
+  Location end_ = 0;
+  Location current_ = 0;
+  Location lastValueEnd_ = 0;
+  Value* lastValue_ = 0;
   bool lastValueHasAComment_ = false;
   String commentsBefore_{};
 
   OurFeatures const features_;
-  bool collectComments_ = false;
+  bool collectComments_;
 }; // OurReader
 
 // complete copy of Read impl, for OurReader
 
 bool OurReader::containsNewLine(OurReader::Location begin,
                                 OurReader::Location end) {
-  for (const char* p = begin; p != end; ++p) {
-    if (*p == '\n' || *p == '\r')
-      return true;
+  for (; begin < end; ++begin) {
+    if (*begin == '\n' || *begin == '\r') return true;
   }
   return false;
 }
 
-OurReader::OurReader(OurFeatures const& features) : features_(features) {}
+OurReader::OurReader(OurFeatures const& features) : features_(features), collectComments_(false) {}
 
 bool OurReader::parse(const char* beginDoc, const char* endDoc, Value& root,
                       bool collectComments) {
@@ -1020,8 +1033,8 @@ bool OurReader::parse(const char* beginDoc, const char* endDoc, Value& root,
   end_ = endDoc;
   collectComments_ = collectComments;
   current_ = begin_;
-  lastValueEnd_ = nullptr;
-  lastValue_ = nullptr;
+  lastValueEnd_ = 0;
+  lastValue_ = 0;
   commentsBefore_.clear();
   errors_.clear();
   while (!nodes_.empty())
@@ -1359,7 +1372,7 @@ void OurReader::addComment(Location begin, Location end,
   assert(collectComments_);
   const String& normalized = normalizeEOL(begin, end);
   if (placement == commentAfterOnSameLine) {
-    assert(lastValue_ != nullptr);
+    assert(lastValue_ != 0);
     lastValue_->setComment(normalized, placement);
   } else {
     commentsBefore_ += normalized;
@@ -1575,32 +1588,32 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
   // We assume we can represent the largest and smallest integer types as
   // unsigned integers with separate sign. This is only true if they can fit
   // into an unsigned integer.
-  static_assert(Value::maxLargestInt <= Value::maxLargestUInt,
-                "Int must be smaller than UInt");
+  // static_assert(Value::maxLargestInt <= Value::maxLargestUInt,
+  //               "Int must be smaller than UInt");
 
   // We need to convert minLargestInt into a positive number. The easiest way
   // to do this conversion is to assume our "threshold" value of minLargestInt
   // divided by 10 can fit in maxLargestInt when absolute valued. This should
   // be a safe assumption.
-  static_assert(Value::minLargestInt <= -Value::maxLargestInt,
-                "The absolute value of minLargestInt must be greater than or "
-                "equal to maxLargestInt");
-  static_assert(Value::minLargestInt / 10 >= -Value::maxLargestInt,
-                "The absolute value of minLargestInt must be only 1 magnitude "
-                "larger than maxLargest Int");
+  // static_assert(Value::minLargestInt <= -Value::maxLargestInt,
+  //               "The absolute value of minLargestInt must be greater than or "
+  //               "equal to maxLargestInt");
+  // static_assert(Value::minLargestInt / 10 >= -Value::maxLargestInt,
+  //               "The absolute value of minLargestInt must be only 1 magnitude "
+  //               "larger than maxLargest Int");
 
-  static constexpr Value::LargestUInt positive_threshold =
+  const Value::LargestUInt positive_threshold =
       Value::maxLargestUInt / 10;
-  static constexpr Value::UInt positive_last_digit = Value::maxLargestUInt % 10;
+  const Value::UInt positive_last_digit = Value::maxLargestUInt % 10;
 
   // For the negative values, we have to be more careful. Since typically
   // -Value::minLargestInt will cause an overflow, we first divide by 10 and
   // then take the inverse. This assumes that minLargestInt is only a single
   // power of 10 different in magnitude, which we check above. For the last
   // digit, we take the modulus before negating for the same reason.
-  static constexpr auto negative_threshold =
+  const Value::LargestUInt negative_threshold =
       Value::LargestUInt(-(Value::minLargestInt / 10));
-  static constexpr auto negative_last_digit =
+  const Value::UInt negative_last_digit =
       Value::UInt(-(Value::minLargestInt % 10));
 
   const Value::LargestUInt threshold =
@@ -1614,7 +1627,7 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
     if (c < '0' || c > '9')
       return decodeDouble(token, decoded);
 
-    const auto digit(static_cast<Value::UInt>(c - '0'));
+    Value::UInt digit = static_cast<Value::UInt>(c - '0');
     if (value >= threshold) {
       // We've hit or exceeded the max value divided by 10 (rounded down). If
       // a) we've only just touched the limit, meaing value == threshold,
@@ -1631,7 +1644,7 @@ bool OurReader::decodeNumber(Token& token, Value& decoded) {
 
   if (isNegative) {
     // We use the same magnitude assumption here, just in case.
-    const auto last_digit = static_cast<Value::UInt>(value % 10);
+    const Value::UInt last_digit = static_cast<Value::UInt>(value % 10);
     decoded = -Value::LargestInt(value / 10) * 10 - last_digit;
   } else if (value <= Value::LargestUInt(Value::maxLargestInt)) {
     decoded = Value::LargestInt(value);
@@ -1888,7 +1901,6 @@ public:
 };
 
 CharReaderBuilder::CharReaderBuilder() { setDefaults(&settings_); }
-CharReaderBuilder::~CharReaderBuilder() = default;
 CharReader* CharReaderBuilder::newCharReader() const {
   bool collectComments = settings_["collectComments"].asBool();
   OurFeatures features = OurFeatures::all();
@@ -1911,25 +1923,23 @@ CharReader* CharReaderBuilder::newCharReader() const {
 }
 
 bool CharReaderBuilder::validate(Json::Value* invalid) const {
-  static std::set<String>* valid_keys_ptr = nullptr;
-  if (!valid_keys_ptr) {
-      valid_keys_ptr = new std::set<String>();
-      valid_keys_ptr->insert("collectComments");
-      valid_keys_ptr->insert("allowComments");
-      valid_keys_ptr->insert("allowTrailingCommas");
-      valid_keys_ptr->insert("strictRoot");
-      valid_keys_ptr->insert("allowDroppedNullPlaceholders");
-      valid_keys_ptr->insert("allowNumericKeys");
-      valid_keys_ptr->insert("allowSingleQuotes");
-      valid_keys_ptr->insert("stackLimit");
-      valid_keys_ptr->insert("failIfExtra");
-      valid_keys_ptr->insert("rejectDupKeys");
-      valid_keys_ptr->insert("allowSpecialFloats");
-      valid_keys_ptr->insert("skipBom");
+  static std::set<String> valid_keys;
+  if (valid_keys.empty()) {
+      valid_keys.insert("collectComments");
+      valid_keys.insert("allowComments");
+      valid_keys.insert("allowTrailingCommas");
+      valid_keys.insert("strictRoot");
+      valid_keys.insert("allowDroppedNullPlaceholders");
+      valid_keys.insert("allowNumericKeys");
+      valid_keys.insert("allowSingleQuotes");
+      valid_keys.insert("stackLimit");
+      valid_keys.insert("failIfExtra");
+      valid_keys.insert("rejectDupKeys");
+      valid_keys.insert("allowSpecialFloats");
+      valid_keys.insert("skipBom");
   }
-  static const std::set<String>& valid_keys = *valid_keys_ptr;
-  for (auto si = settings_.begin(); si != settings_.end(); ++si) {
-    auto key = si.name();
+  for (Value::const_iterator si = settings_.begin(); si != settings_.end(); ++si) {
+    String key = si.name();
     if (valid_keys.count(key))
       continue;
     if (invalid)

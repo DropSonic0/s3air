@@ -15,7 +15,7 @@ namespace Json {
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 
-ValueIteratorBase::ValueIteratorBase() : current_(), isNull_(true) {}
+ValueIteratorBase::ValueIteratorBase() : current_() {}
 
 ValueIteratorBase::ValueIteratorBase(
     const Value::ObjectValues::iterator& current)
@@ -113,7 +113,7 @@ char const* ValueIteratorBase::memberName(char const** end) const {
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 
-ValueConstIterator::ValueConstIterator() : ValueIteratorBase() {}
+ValueConstIterator::ValueConstIterator() = default;
 
 ValueConstIterator::ValueConstIterator(
     const Value::ObjectValues::iterator& current)
@@ -136,7 +136,7 @@ operator=(const ValueIteratorBase& other) {
 // //////////////////////////////////////////////////////////////////
 // //////////////////////////////////////////////////////////////////
 
-ValueIterator::ValueIterator() : ValueIteratorBase() {}
+ValueIterator::ValueIterator() = default;
 
 ValueIterator::ValueIterator(const Value::ObjectValues::iterator& current)
     : ValueIteratorBase(current) {}
@@ -146,7 +146,7 @@ ValueIterator::ValueIterator(const ValueConstIterator& other)
   throwRuntimeError("ConstIterator to Iterator should never be allowed.");
 }
 
-ValueIterator::ValueIterator(const ValueIterator& other) : ValueIteratorBase(other) {}
+ValueIterator::ValueIterator(const ValueIterator& other) = default;
 
 ValueIterator& ValueIterator::operator=(const SelfType& other) {
   copy(other);

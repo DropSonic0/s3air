@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,12 +9,6 @@
 #include "oxygen/pch.h"
 #include "oxygen/application/audio/EmulationAudioSource.h"
 #include "oxygen/application/Configuration.h"
-
-#if defined(PLATFORM_VITA) // For the emergency unloads
-	#include "oxygen/application/audio/AudioOutBase.h"
-	#include "oxygen/application/audio/AudioPlayer.h"
-	#include "oxygen/application/EngineMain.h"
-#endif
 
 
 EmulationAudioSource::EmulationAudioSource(CachingType cachingType) :
@@ -58,7 +52,7 @@ bool EmulationAudioSource::initWithCustomContent(uint8 soundId, const std::wstri
 	{
 		if (!FTX::FileSystem->readFile(filename, mCompressedContent))
 		{
-			RMX_ERROR("Failed to load audio file '" << *WString(filename).toString() << "': File not found", );
+			RMX_ERROR("Failed to load audio file '" << *WString(filename).toString() << "'", );
 			return false;
 		}
 		mSoundDriver.setFixedContent(&mCompressedContent[0], (uint32)mCompressedContent.size(), contentOffset);
@@ -96,20 +90,6 @@ bool EmulationAudioSource::checkForUnload(float timestamp)
 {
 	bool mayUnload = false;
 
-#if defined(PLATFORM_VITA)
-	// PSVITA has limited RAM, so...
-	if (((float)EngineMain::instance().getAudioOut().getAudioPlayer().getMemoryUsage() / 1048576.0f) >= 80.0f) // 80 MB
-	{
-		// Let's make an emergency forced unload since the buffer is getting too big
-		mayUnload = (timestamp - mLastUsedTimestamp > 10.0f); // Everything not used in the past 10 seconds
-	}
-	if (EngineMain::instance().getAudioOut().getAudioPlayer().getNumPlayingSounds() == 0) // No sound playing
-	{
-		// Since it's silenced, lets take the chance to unload stuff
-		mayUnload = (timestamp - mLastUsedTimestamp > 30.0f); // Everything not used in the past 30 seconds
-	}
-#endif
-
 	if (isDynamic())
 	{
 		// Ignore tracks not loaded
@@ -125,12 +105,7 @@ bool EmulationAudioSource::checkForUnload(float timestamp)
 		if (mAudioBuffer.getLengthInSec() > 5.0f)
 		{
 			// Unload after 3 minutes
-		#if !defined(PLATFORM_VITA)
 			mayUnload = (timestamp - mLastUsedTimestamp > 180.0f);
-		#else
-			// PSVITA has limited RAM, so...
-			mayUnload = (timestamp - mLastUsedTimestamp > 60.0f); // 60 seconds and unload
-		#endif
 		}
 	}
 
@@ -164,10 +139,10 @@ AudioSourceBase::State EmulationAudioSource::startupInternal()
 
 	SDL_LockMutex(mMutex);
 	mAudioBuffer.lock();
-	mAudioBuffer.clear(Configuration::instance().mAudio.mSampleRate, 2);
+	mAudioBuffer.clear(Configuration::instance().mAudioSampleRate, 2);
 	mAudioBuffer.unlock();
 
-	mSoundEmulation.init(Configuration::instance().mAudio.mSampleRate, 60.0);
+	mSoundEmulation.init(Configuration::instance().mAudioSampleRate, 60.0);
 	mSoundDriver.reset();
 	mSoundDriver.playSound(mSoundId);
 	SDL_UnlockMutex(mMutex);
@@ -182,7 +157,7 @@ void EmulationAudioSource::progressInternal(float precacheTime)
 	// Update job priority
 	setJobPriority(mPrecacheTime - mAudioBuffer.getLengthInSec());
 
-	if (Configuration::instance().mAudio.mUseAudioThreading)
+	if (Configuration::instance().mUseAudioThreading)
 	{
 		// Add to job manager if not done yet
 		if (!isJobRegistered())

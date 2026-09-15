@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -12,8 +12,6 @@
 #pragma once
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
-
-#include <memory>
 
 namespace rmx
 {
@@ -44,10 +42,8 @@ namespace rmx
 		void drawRect(const Rectf& rect, const Texture& texture, const Vec2f& uv0, const Vec2f& uv1, const Color& color = Color::WHITE);
 		void drawQuadPatch(int numVertX, int numVertY, float* verticesX, float* verticesY, float* texcrdsX, float* texcrdsY);
 
-		void print(Font& font, const Vec2i& pos, const StringReader& text, int alignment = 1, const Color& color = Color::WHITE);
-		void print(Font& font, const Vec2i& pos, const StringReader& text, const PrintOptions& printOptions);
-		void print(Font& font, const Recti& rect, const StringReader& text, int alignment = 1, const Color& color = Color::WHITE);
-		void print(Font& font, const Recti& rect, const StringReader& text, const PrintOptions& printOptions);
+		void print(Font& font, const Rectf& rect, const StringReader& text, int alignment = 1, const Color& color = Color::WHITE);
+		void print(Font& font, const Rectf& rect, const StringReader& text, const PrintOptions& printOptions);
 		OpenGLFontOutput& getOpenGLFontOutput(Font& font);
 
 		void resetScissor();
@@ -64,7 +60,7 @@ namespace rmx
 		typedef std::vector<Recti> RectStack;
 		RectStack mScissorStack;
 
-		std::map<Font*, std::shared_ptr<OpenGLFontOutput>> mFontOutputMap;
+		std::map<Font*, OpenGLFontOutput> mFontOutputMap;
 	};
 }
 

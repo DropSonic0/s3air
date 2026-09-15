@@ -1,20 +1,13 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
 */
 
 #include "rmxbase.h"
-
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-	rmx::ErrorHandling::LoggerInterface* rmx::ErrorHandling::mLogger = nullptr;
-	rmx::ErrorHandling::MessageBoxInterface* rmx::ErrorHandling::mMessageBoxImplementation = nullptr;
-	rmx::ErrorHandling::NativeWindowHandleProviderFn rmx::ErrorHandling::mNativeWindowHandleProvider = nullptr;
-	bool rmx::ErrorHandling::mShowAssertMessageBox = true;
-#endif
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 #include <locale>
 #endif
 
@@ -37,19 +30,15 @@
 	#endif
 #endif
 
-#ifdef PLATFORM_VITA
-	#include <psp2/kernel/clib.h>
-#endif
-
 
 namespace
 {
 
-	static std::set<uint64> gIgnoredAssertHashes;
+	static std::set<uint32> gIgnoredAssertHashes;
 
 #ifdef PLATFORM_WINDOWS
 #ifdef USE_VISTA_STYLE
-	static void* mTaskDialogIndirectProcPointer = nullptr;
+	static void* mTaskDialogIndirectProcPointer = 0;
 	static bool mLoadedProcPointers = false;
 
 	bool canShowVistaStyleMessageBox()
@@ -59,12 +48,12 @@ namespace
 		{
 			const wchar_t* unicodeFilenameName = L"comctl32.dll";
 			HMODULE module = GetModuleHandleW(unicodeFilenameName);
-			if (nullptr == module)
+			if (0 == module)
 			{
 				module = LoadLibraryW(unicodeFilenameName);
 			}
 
-			if (nullptr != module)
+			if (0 != module)
 			{
 				// Try to get the "TaskDialogIndirect()" function pointer
 				mTaskDialogIndirectProcPointer = GetProcAddress(module, "TaskDialogIndirect");
@@ -73,7 +62,7 @@ namespace
 			mLoadedProcPointers = true;
 		}
 
-		return (nullptr != mTaskDialogIndirectProcPointer);
+		return (0 != mTaskDialogIndirectProcPointer);
 	}
 
 	int showVistaStyleMessageBox(const std::wstring& message)
@@ -81,11 +70,11 @@ namespace
 		int result = IDRETRY;
 
 		// Sanity check (for obvious reason, we don't use RMX_CHECK here)
-		if (nullptr == mTaskDialogIndirectProcPointer)
+		if (0 == mTaskDialogIndirectProcPointer)
 			return result;
 
 		// Dialog button definition
-		const TASKDIALOG_BUTTON* buttons = nullptr;
+		const TASKDIALOG_BUTTON* buttons = 0;
 		uint32 numButtons = 0;
 
 		static const TASKDIALOG_BUTTON buttonArray[] =
@@ -105,30 +94,30 @@ namespace
 		config.pszMainIcon = TD_ERROR_ICON;
 		config.pszMainInstruction = message.c_str();
 		config.pszContent = L"Asset break";
-		config.pszFooter = nullptr;
+		config.pszFooter = 0;
 		config.pButtons = buttons;
 		config.cButtons = numButtons;
 		config.nDefaultButton = buttons[0].nButtonID;
 		config.cxWidth = 250;
-		config.pfCallback = nullptr;
+		config.pfCallback = 0;
 		config.lpCallbackData = 0;
 
 		// Call "::TaskDialogIndirect" now
 		typedef HRESULT(WINAPI* TaskDialogIndirectProc)(const TASKDIALOGCONFIG* pTaskConfig, int* pnButton, int* pnRadioButton, BOOL* pfVerificationFlagChecked);
-		reinterpret_cast<TaskDialogIndirectProc>(mTaskDialogIndirectProcPointer)(&config, &result, nullptr, nullptr);
+		reinterpret_cast<TaskDialogIndirectProc>(mTaskDialogIndirectProcPointer)(&config, &result, 0, 0);
 
 		return result;
 	}
 #endif
 
-	int showFallbackMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message)
+	int showFallbackMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType_t dialogType, rmx::ErrorSeverity_t errorSeverity, const std::string& message)
 	{
 		// Build output message
 		std::stringstream stringBuilder;
 		stringBuilder << message << "\n\n";
 
-		const uint32 type = (dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::YES_NO_CANCEL) ? MB_YESNOCANCEL :
-							(dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::OK_CANCEL) ? MB_OKCANCEL : MB_OK;
+		const uint32 type = (dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::ALL_OPTIONS) ? MB_YESNOCANCEL :
+							(dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::ACCEPT_OR_CANCEL) ? MB_OKCANCEL : MB_OK;
 		const uint32 icon = (errorSeverity == rmx::ErrorSeverity::ERROR) ? MB_ICONERROR : MB_ICONWARNING;
 
 		std::string caption;
@@ -143,17 +132,16 @@ namespace
 		}
 
 		// Show the message box
-		const uint64 handle = (rmx::ErrorHandling::mNativeWindowHandleProvider) ? rmx::ErrorHandling::mNativeWindowHandleProvider() : 0;
-		return MessageBoxA((HWND)handle, stringBuilder.str().c_str(), caption.c_str(), type | icon);
+		return MessageBoxA(0, stringBuilder.str().c_str(), caption.c_str(), type | icon);
 	}
 
-	int showWindowsMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message)
+	int showWindowsMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType_t dialogType, rmx::ErrorSeverity_t errorSeverity, const std::string& message)
 	{
 		// Show a message box, preferably Vista-style
 	#ifdef USE_VISTA_STYLE
 		if (canShowVistaStyleMessageBox())
 		{
-			const auto size_needed = MultiByteToWideChar(CP_UTF8, 0, &message.at(0), (int)message.size(), nullptr, 0);
+			const  size_needed = MultiByteToWideChar(CP_UTF8, 0, &message.at(0), (int)message.size(), 0, 0);
 			if (size_needed <= 0)
 				return 0;
 
@@ -177,6 +165,11 @@ namespace
 namespace rmx
 {
 
+#if defined(PLATFORM_PS3)
+	ErrorHandling::LoggerInterface* ErrorHandling::mLogger = 0;
+	ErrorHandling::MessageBoxInterface* ErrorHandling::mMessageBoxImplementation = 0;
+#endif
+
 	bool ErrorHandling::isDebuggerAttached()
 	{
 	#if defined(PLATFORM_WINDOWS)
@@ -186,29 +179,22 @@ namespace rmx
 	#endif
 	}
 
-	void ErrorHandling::printToLog(ErrorSeverity errorSeverity, const std::string& message)
+	void ErrorHandling::printToLog(ErrorSeverity_t errorSeverity, const std::string& message)
 	{
-	#if !defined(PLATFORM_VITA)
-		if (nullptr != mLogger)
+		if (0 != mLogger)
 		{
 			mLogger->logMessage(errorSeverity, message);
 		}
-	#else
-		sceClibPrintf("[ERROR] %s\n", message.c_str());
-	#endif
 	}
 
-	bool ErrorHandling::handleAssertBreak(ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line)
+	bool ErrorHandling::handleAssertBreak(ErrorSeverity_t errorSeverity, const std::string& message, const char* filename, int line)
 	{
 		// Log message in any case
 		printToLog(errorSeverity, message);
 
 		// Check if ignored
-		const uint64 hash = getMurmur2_64(filename) ^ (uint64)line;
-		if (isIgnoringAssertsWithHash(hash))
-			return false;
-
-		if (!mShowAssertMessageBox)
+		const uint32 hash = (uint32)getMurmur2_64(String(filename)) ^ (uint32)line;
+		if (gIgnoredAssertHashes.count(hash) != 0)
 			return false;
 
 		static bool isInsideAssertBreakHandler = false;
@@ -216,14 +202,14 @@ namespace rmx
 			return false;
 		isInsideAssertBreakHandler = true;
 
-		MessageBoxInterface::DialogType dialogType = MessageBoxInterface::DialogType::OK_CANCEL;
+		MessageBoxInterface::DialogType_t dialogType = MessageBoxInterface::DialogType::ACCEPT_OR_CANCEL;
 		if (isDebuggerAttached())
 		{
-			dialogType = MessageBoxInterface::DialogType::YES_NO_CANCEL;
+			dialogType = MessageBoxInterface::DialogType::ALL_OPTIONS;
 		}
 
-		MessageBoxInterface::Result result = MessageBoxInterface::Result::ABORT;
-		if (nullptr != mMessageBoxImplementation)
+		MessageBoxInterface::Result_t result = MessageBoxInterface::Result::ABORT;
+		if (0 != mMessageBoxImplementation)
 		{
 			result = mMessageBoxImplementation->showMessageBox(dialogType, errorSeverity, message, filename, line);
 		}
@@ -240,25 +226,12 @@ namespace rmx
 		// Ignore from now on?
 		if (result == MessageBoxInterface::Result::IGNORE)
 		{
-			setIgnoreAssertsWithHash(hash, true);
+			gIgnoredAssertHashes.insert(hash);
 		}
 
 		isInsideAssertBreakHandler = false;
 
 		// If aborted, break now
 		return (result == MessageBoxInterface::Result::ACCEPT && isDebuggerAttached());
-	}
-
-	bool ErrorHandling::isIgnoringAssertsWithHash(uint64 hash)
-	{
-		return (gIgnoredAssertHashes.count(hash) != 0);
-	}
-
-	void ErrorHandling::setIgnoreAssertsWithHash(uint64 hash, bool ignore)
-	{
-		if (ignore)
-			gIgnoredAssertHashes.insert(hash);
-		else
-			gIgnoredAssertHashes.erase(hash);
 	}
 }

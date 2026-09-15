@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2026 by Eukaryot
+	Copyright (C) 2017-2024 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -273,7 +273,7 @@ function void DataSelect.setup()
 	VDP.Config.setVerticalScrolling(false, 0)	// Horizontal scrolling mode without scroll mask
 	VDP.Config.setRenderingModeConfiguration(false)
 	VDP.Config.setPlayfieldSizeInPixels(1024, 256)
-	VDP.Config.setWindowPlaneSplitY(true, 0)
+	VDP.Config.setupWindowPlane(true, 0)
 
 	zeroMemory(0xffffac00, 0x400)
 	zeroMemory(0xffffb000, 0x2000)
@@ -625,7 +625,6 @@ function void fn00d1fa()
 
 	#if STANDALONE
 		playSound(0xad)
-		DataSelect.drawCustomPlanes()	// Required here, otherwise we can have one frame without custom plane setup if returning already during the fade-in
 
 		u32 backupA0 = A0
 		FadeOutScreenBlocking()
@@ -1015,9 +1014,7 @@ function bool fn00d458()
 			{
 				playSound(SFX_CLICK)
 				--D1.u16
-			#if STANDALONE
-				if (D1.s16 < 0 || D1.s16 > D6.u16)	// Fixes that you could select zones that aren't selectable for the character (like DDZ for Knuckles); #contributed by AtomicRey
-			#endif
+				if (D1.s16 < 0)
 				{
 					D1.u16 = D6.u16
 				}

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -21,45 +21,38 @@ void DebugDrawPlaneShader::initialize()
 {
 	if (BufferTexture::supportsBufferTextures())	// Buffer texture support is required for this shader
 	{
-		if (FileHelper::loadShader(mShader, L"data/shader/debugdraw_plane.shader", "Standard", "USE_BUFFER_TEXTURES"))
-		{
-			bindShader();
+		FileHelper::loadShader(mShader, L"data/shader/debugdraw_plane.shader", "Standard", "USE_BUFFER_TEXTURES");
 
-			mLocPlayfieldSize = mShader.getUniformLocation("PlayfieldSize");
-			mLocHighlightPrio = mShader.getUniformLocation("HighlightPrio");
-
-			mShader.setParam("IndexTexture", 0);
-			mShader.setParam("PatternCacheTexture", 1);
-			mShader.setParam("PaletteTexture", 2);
-		}
+		mLocPlayfieldSize	= mShader.getUniformLocation("PlayfieldSize");
+		mLocIndexTex		= mShader.getUniformLocation("IndexTexture");
+		mLocPatternCacheTex	= mShader.getUniformLocation("PatternCacheTexture");
+		mLocPaletteTex		= mShader.getUniformLocation("PaletteTexture");
+		mLocHighlightPrio	= mShader.getUniformLocation("HighlightPrio");
 	}
 }
 
 void DebugDrawPlaneShader::draw(int planeIndex, RenderParts& renderParts, const OpenGLRenderResources& resources)
 {
-	bindShader();
+	mShader.bind();
 
-	// Bind textures
-	{
-		glActiveTexture(GL_TEXTURE0);
-		resources.getPlanePatternsTexture(planeIndex).bindTexture();
+	if (planeIndex <= PlaneManager::PLANE_A)
+		glUniform4iv(mLocPlayfieldSize, 1, *renderParts.getPlaneManager().getPlayfieldSizeForShaders());
+	else
+		glUniform4iv(mLocPlayfieldSize, 1, *Vec4i(512, 256, 64, 32));
 
-		glActiveTexture(GL_TEXTURE1);
-		resources.getPatternCacheTexture().bindTexture();
+	glActiveTexture(GL_TEXTURE0);
+	resources.mPlanePatternsTexture[planeIndex].bindTexture();
+	glUniform1i(mLocIndexTex, 0);
 
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_2D, resources.getMainPaletteTexture().getHandle());
-	}
+	glActiveTexture(GL_TEXTURE1);
+	resources.mPatternCacheTexture.bindTexture();
+	glUniform1i(mLocPatternCacheTex, 1);
 
-	// Update uniforms
-	{
-		if (planeIndex <= PlaneManager::PLANE_A)
-			mShader.setParam(mLocPlayfieldSize, renderParts.getPlaneManager().getPlayfieldSizeForShaders());
-		else
-			mShader.setParam(mLocPlayfieldSize, Vec4i(512, 256, 64, 32));
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, resources.mPaletteTexture.getHandle());
+	glUniform1i(mLocPaletteTex, 2);
 
-		mShader.setParam(mLocHighlightPrio, FTX::keyState(SDLK_LSHIFT) ? 1 : 0);
-	}
+	glUniform1i(mLocHighlightPrio, FTX::keyState(SDLK_LSHIFT) ? 1 : 0);
 
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 

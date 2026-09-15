@@ -1,0 +1,2030 @@
+Disassembly of section .text:
+
+_ZN17PlatformFunctions31getTimerGranularityMillisecondsEv$rodata:
+0x00000000: 3FF00000 addis    r31,r16,0x0
+0x00000004: 00000000 illegal  
+
+PlatformFunctions::getTimerGranularityMilliseconds():
+0x00000008: 3C600000 lis      r3,0x0
+0x0000000C: 88830000 lbz      r4,0x0(r3)           04 (00000008) REG LSU
+0x00000010: 2C040000 cmpwi    r4,0x0               01 (0000000C) REG
+0x00000014: 40820020 bne      0x00000034           01 (00000010) REG
+0x00000018: 3C800000 lis      r4,0x0
+0x0000001C: 3CA00000 lis      r5,0x0                PIPE
+0x00000020: 38840000 addi     r4,r4,0x0
+0x00000024: 38C00001 li       r6,0x1                PIPE
+0x00000028: C8240000 lfd      f1,0x0(r4)
+0x0000002C: 98C30000 stb      r6,0x0(r3)            PIPE
+0x00000030: D8250000 stfd     f1,0x0(r5)
+0x00000034: 3C600000 lis      r3,0x0
+0x00000038: C8230000 lfd      f1,0x0(r3)           03 (00000034) REG LSU
+0x0000003C: 4E800020 blr                           08
+0x00000040: 48000000 b        0x00000040           08
+0x00000044: 60000000 nop                            PIPE
+
+_ZN17PlatformFunctions12preciseDelayEd$rodata:
+0x00000048: 3FF00000 addis    r31,r16,0x0
+0x0000004C: 00000000 illegal  
+0x00000050: 408F4000 bns      cr3,0x00004050
+0x00000054: 00000000 illegal  
+0x00000058: 00000000 illegal  
+0x0000005C: 00000000 illegal  
+
+PlatformFunctions::preciseDelay(double):
+0x00000060: F821FF61 stdu     r1,-0xA0(r1)
+0x00000064: 7C0802A6 mfspr    r0,lr                02
+0x00000068: F80100B0 std      r0,0xB0(r1)
+0x0000006C: DBA10088 stfd     f29,0x88(r1)          PIPE
+0x00000070: DBC10090 stfd     f30,0x90(r1)
+0x00000074: DBE10098 stfd     f31,0x98(r1)          PIPE
+0x00000078: 3C600000 lis      r3,0x0
+0x0000007C: FFA00890 fmr      f29,f1
+0x00000080: 88830000 lbz      r4,0x0(r3)           03 (00000078) REG LSU
+0x00000084: 2C040000 cmpwi    r4,0x0               02 (00000080) REG
+0x00000088: 40820020 bne      0x000000A8
+0x0000008C: 3C800000 lis      r4,0x0
+0x00000090: 3CA00000 lis      r5,0x0
+0x00000094: 38840000 addi     r4,r4,0x0             PIPE
+0x00000098: 38C00001 li       r6,0x1
+0x0000009C: C8240000 lfd      f1,0x0(r4)           03 (00000094) REG LSU
+0x000000A0: 98C30000 stb      r6,0x0(r3)
+0x000000A4: D8250000 stfd     f1,0x0(r5)            PIPE
+0x000000A8: 38800000 li       r4,0x0
+0x000000AC: 38A00000 li       r5,0x0                PIPE
+0x000000B0: 30610070 addic    r3,r1,0x70
+0x000000B4: F8810070 std      r4,0x70(r1)           PIPE
+0x000000B8: 98A10078 stb      r5,0x78(r1)
+0x000000BC: 48000001 bl       HighResolutionTimer::start() 08
+0x000000C0: 60000000 nop      
+0x000000C4: 3C600000 lis      r3,0x0                PIPE
+0x000000C8: 38630000 addi     r3,r3,0x0            01 (000000C4) REG
+0x000000CC: CBC30008 lfd      f30,0x8(r3)          04 (000000C8) REG LSU
+0x000000D0: CBE30010 lfd      f31,0x10(r3)
+0x000000D4: 30610070 addic    r3,r1,0x70
+0x000000D8: 48000001 bl       HighResolutionTimer::getSecondsSinceStart() const 08
+0x000000DC: 60000000 nop                            PIPE
+0x000000E0: FC21EFBC fnmsub   f1,f1,f30,f29
+0x000000E4: FC01F800 fcmpu    f1,f31               09 (000000E0) REG PIPE
+0x000000E8: 4CC01382 cror     crb6,crb0,crb2
+0x000000EC: 41860008 beq      cr1,0x000000F4        PIPE
+0x000000F0: 4BFFFFE4 b        0x000000D4           08
+0x000000F4: E80100B0 ld       r0,0xB0(r1)           PIPE
+0x000000F8: 7C0803A6 mtspr    lr,r0                01 (000000F4) REG
+0x000000FC: CBA10088 lfd      f29,0x88(r1)
+0x00000100: CBC10090 lfd      f30,0x90(r1)
+0x00000104: CBE10098 lfd      f31,0x98(r1)          PIPE
+0x00000108: 382100A0 addi     r1,r1,0xA0
+0x0000010C: 4E800020 blr                           08
+0x00000110: 48000000 b        0x00000110           08
+
+PlatformFunctions::changeWorkingDirectory(std::basic_string_view<wchar_t>):
+0x00000114: F821FF21 stdu     r1,-0xE0(r1)          PIPE
+0x00000118: 7C0802A6 mfspr    r0,lr                02
+0x0000011C: F80100F0 std      r0,0xF0(r1)           PIPE
+0x00000120: 3C600000 lis      r3,0x0
+0x00000124: 80630000 lwz      r3,0x0(r3)           04 (00000120) REG LSU
+0x00000128: FBE100D8 std      r31,0xD8(r1)
+0x0000012C: FBC100D0 std      r30,0xD0(r1)          PIPE
+0x00000130: 2C030000 cmpwi    r3,0x0
+0x00000134: 418200EC beq      0x00000220           01 (00000130) REG
+0x00000138: 33E1008C addic    r31,r1,0x8C
+0x0000013C: 48000001 bl       .ps3_get_usrdir      08
+0x00000140: 60000000 nop      
+0x00000144: 33C100A8 addic    r30,r1,0xA8           PIPE
+0x00000148: 60640000 mr       r4,r3
+0x0000014C: 63C30000 mr       r3,r30                PIPE
+0x00000150: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::basic_string(char const*) 08
+0x00000154: 60000000 nop                            PIPE
+0x00000158: 63E30000 mr       r3,r31
+0x0000015C: 63C40000 mr       r4,r30                PIPE
+0x00000160: 48000001 bl       rmx::convertFromUTF8(std::basic_string_view<char>) 08
+0x00000164: 60000000 nop                            PIPE
+0x00000168: 38A00000 li       r5,0x0
+0x0000016C: 38800007 li       r4,0x7                PIPE
+0x00000170: 3C60FFFF lis      r3,0xFFFF
+0x00000174: 33C10070 addic    r30,r1,0x70           PIPE
+0x00000178: 90A10084 stw      r5,0x84(r1)
+0x0000017C: B0A10074 sth      r5,0x74(r1)           PIPE
+0x00000180: 6066FFFF ori      r6,r3,0xFFFF
+0x00000184: 90810088 stw      r4,0x88(r1)           PIPE
+0x00000188: 63C30000 mr       r3,r30
+0x0000018C: 78C60020 clrldi   r6,r6,32              PIPE
+0x00000190: 63E40000 mr       r4,r31
+0x00000194: 38A00000 li       r5,0x0                PIPE
+0x00000198: 48000001 bl       std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::assign(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, unsigned int, unsigned int) 08
+0x0000019C: 60000000 nop                            PIPE
+0x000001A0: 63C30000 mr       r3,r30
+0x000001A4: 48000001 bl       rmx::FileSystem::setCurrentDirectory(std::basic_string_view<wchar_t>) 08
+0x000001A8: 60000000 nop      
+0x000001AC: 80610088 lwz      r3,0x88(r1)
+0x000001B0: 28030008 cmplwi   r3,0x8               01 (000001AC) REG
+0x000001B4: 41800010 blt      0x000001C4           01 (000001B0) REG
+0x000001B8: 80610074 lwz      r3,0x74(r1)
+0x000001BC: 48000001 bl       operator delete(void*) 08
+0x000001C0: 60000000 nop      
+0x000001C4: 38600007 li       r3,0x7                PIPE
+0x000001C8: 38800000 li       r4,0x0
+0x000001CC: 90610088 stw      r3,0x88(r1)           PIPE
+0x000001D0: 806100A4 lwz      r3,0xA4(r1)
+0x000001D4: 90810084 stw      r4,0x84(r1)           PIPE
+0x000001D8: 28030008 cmplwi   r3,0x8
+0x000001DC: B0810074 sth      r4,0x74(r1)           PIPE
+0x000001E0: 41800010 blt      0x000001F0
+0x000001E4: 80610090 lwz      r3,0x90(r1)
+0x000001E8: 48000001 bl       operator delete(void*) 08
+0x000001EC: 60000000 nop                            PIPE
+0x000001F0: 806100C0 lwz      r3,0xC0(r1)
+0x000001F4: 28030010 cmplwi   r3,0x10              02 (000001F0) REG
+0x000001F8: 41800028 blt      0x00000220
+0x000001FC: 38600000 li       r3,0x0
+0x00000200: 80A100AC lwz      r5,0xAC(r1)
+0x00000204: 38800007 li       r4,0x7
+0x00000208: B0610090 sth      r3,0x90(r1)
+0x0000020C: 906100A0 stw      r3,0xA0(r1)           PIPE
+0x00000210: 60A30000 mr       r3,r5
+0x00000214: 908100A4 stw      r4,0xA4(r1)           PIPE
+0x00000218: 48000001 bl       operator delete(void*) 08
+0x0000021C: 60000000 nop                            PIPE
+0x00000220: E80100F0 ld       r0,0xF0(r1)
+0x00000224: 7C0803A6 mtspr    lr,r0                02 (00000220) REG
+0x00000228: EBC100D0 ld       r30,0xD0(r1)
+0x0000022C: EBE100D8 ld       r31,0xD8(r1)          PIPE
+0x00000230: 382100E0 addi     r1,r1,0xE0
+0x00000234: 4E800020 blr                           08
+
+PlatformFunctions::onEngineStartup():
+0x00000238: 4E800020 blr                           08
+
+PlatformFunctions::setAppIcon(int):
+0x0000023C: 4E800020 blr                           08 PIPE
+
+PlatformFunctions::getAppDataPath():
+0x00000240: F821FF61 stdu     r1,-0xA0(r1)
+0x00000244: 7C0802A6 mfspr    r0,lr                02
+0x00000248: F80100B0 std      r0,0xB0(r1)
+0x0000024C: FBE10098 std      r31,0x98(r1)          PIPE
+0x00000250: FBC10090 std      r30,0x90(r1)
+0x00000254: 607F0000 mr       r31,r3                PIPE
+0x00000258: 48000001 bl       .ps3_get_usrdir      08
+0x0000025C: 60000000 nop                            PIPE
+0x00000260: 33C10070 addic    r30,r1,0x70
+0x00000264: 60640000 mr       r4,r3                 PIPE
+0x00000268: 63C30000 mr       r3,r30
+0x0000026C: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::basic_string(char const*) 08
+0x00000270: 60000000 nop      
+0x00000274: 63E30000 mr       r3,r31                PIPE
+0x00000278: 63C40000 mr       r4,r30
+0x0000027C: 48000001 bl       rmx::convertFromUTF8(std::basic_string_view<char>) 08
+0x00000280: 60000000 nop      
+0x00000284: 80610088 lwz      r3,0x88(r1)
+0x00000288: 28030010 cmplwi   r3,0x10              01 (00000284) REG
+0x0000028C: 41800010 blt      0x0000029C           01 (00000288) REG
+0x00000290: 80610074 lwz      r3,0x74(r1)
+0x00000294: 48000001 bl       operator delete(void*) 08
+0x00000298: 60000000 nop      
+0x0000029C: E80100B0 ld       r0,0xB0(r1)
+0x000002A0: 7C0803A6 mtspr    lr,r0                01 (0000029C) REG
+0x000002A4: EBC10090 ld       r30,0x90(r1)
+0x000002A8: EBE10098 ld       r31,0x98(r1)
+0x000002AC: 382100A0 addi     r1,r1,0xA0
+0x000002B0: 4E800020 blr                           08
+
+PlatformFunctions::tryGetSteamRomPath(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&):
+0x000002B4: F821FF91 stdu     r1,-0x70(r1)          PIPE
+0x000002B8: 7C0802A6 mfspr    r0,lr                02
+0x000002BC: F8010080 std      r0,0x80(r1)           PIPE
+0x000002C0: 3C800000 lis      r4,0x0
+0x000002C4: 30840000 addic    r4,r4,0x0            01 (000002C0) REG PIPE
+0x000002C8: 48000001 bl       std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::basic_string(wchar_t const*) 08
+0x000002CC: 60000000 nop                            PIPE
+0x000002D0: E8010080 ld       r0,0x80(r1)
+0x000002D4: 7C0803A6 mtspr    lr,r0                02 (000002D0) REG
+0x000002D8: 38210070 addi     r1,r1,0x70
+0x000002DC: 4E800020 blr                           08
+
+PlatformFunctions::getCompactSystemTimeString():
+0x000002E0: F821FF01 stdu     r1,-0x100(r1)
+0x000002E4: 7C0802A6 mfspr    r0,lr                02
+0x000002E8: F8010110 std      r0,0x110(r1)
+0x000002EC: FBE100F8 std      r31,0xF8(r1)          PIPE
+0x000002F0: 607F0000 mr       r31,r3
+0x000002F4: FBC100F0 std      r30,0xF0(r1)          PIPE
+0x000002F8: 38600000 li       r3,0x0
+0x000002FC: 48000001 bl       .time                08
+0x00000300: 60000000 nop      
+0x00000304: F8610070 std      r3,0x70(r1)           PIPE
+0x00000308: 30610070 addic    r3,r1,0x70
+0x0000030C: 48000001 bl       .localtime           08
+0x00000310: 60000000 nop      
+0x00000314: 80830000 lwz      r4,0x0(r3)
+0x00000318: 80A30004 lwz      r5,0x4(r3)
+0x0000031C: 33C100A0 addic    r30,r1,0xA0
+0x00000320: 80C30008 lwz      r6,0x8(r3)
+0x00000324: 80E3000C lwz      r7,0xC(r3)            PIPE
+0x00000328: 90810078 stw      r4,0x78(r1)
+0x0000032C: 90A1007C stw      r5,0x7C(r1)           PIPE
+0x00000330: 90C10080 stw      r6,0x80(r1)
+0x00000334: 3CA00000 lis      r5,0x0                PIPE
+0x00000338: 90E10084 stw      r7,0x84(r1)
+0x0000033C: 30C10078 addic    r6,r1,0x78            PIPE
+0x00000340: 80830010 lwz      r4,0x10(r3)
+0x00000344: 30A50000 addic    r5,r5,0x0
+0x00000348: 80E30014 lwz      r7,0x14(r3)
+0x0000034C: 81030018 lwz      r8,0x18(r3)           PIPE
+0x00000350: 8123001C lwz      r9,0x1C(r3)
+0x00000354: 90810088 stw      r4,0x88(r1)           PIPE
+0x00000358: 90E1008C stw      r7,0x8C(r1)
+0x0000035C: 38800050 li       r4,0x50               PIPE
+0x00000360: 91010090 stw      r8,0x90(r1)
+0x00000364: 91210094 stw      r9,0x94(r1)           PIPE
+0x00000368: 80E30020 lwz      r7,0x20(r3)
+0x0000036C: 63C30000 mr       r3,r30
+0x00000370: 90E10098 stw      r7,0x98(r1)          03 (00000368) REG LSU
+0x00000374: 48000001 bl       .strftime            08
+0x00000378: 60000000 nop      
+0x0000037C: 63E30000 mr       r3,r31                PIPE
+0x00000380: 63C40000 mr       r4,r30
+0x00000384: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::basic_string(char const*) 08
+0x00000388: 60000000 nop      
+0x0000038C: E8010110 ld       r0,0x110(r1)
+0x00000390: 7C0803A6 mtspr    lr,r0                01 (0000038C) REG
+0x00000394: EBC100F0 ld       r30,0xF0(r1)
+0x00000398: EBE100F8 ld       r31,0xF8(r1)
+0x0000039C: 38210100 addi     r1,r1,0x100
+0x000003A0: 4E800020 blr                           08
+
+PlatformFunctions::showMessageBox(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&):
+0x000003A4: F821FEE1 stdu     r1,-0x120(r1)         PIPE
+0x000003A8: 7C0802A6 mfspr    r0,lr                02
+0x000003AC: F8010130 std      r0,0x130(r1)          PIPE
+0x000003B0: FBC10110 std      r30,0x110(r1)
+0x000003B4: 609E0000 mr       r30,r4                PIPE
+0x000003B8: FBE10118 std      r31,0x118(r1)
+0x000003BC: 60640000 mr       r4,r3                 PIPE
+0x000003C0: 3BE00000 li       r31,0x0
+0x000003C4: 80640014 lwz      r3,0x14(r4)          03 (000003BC) REG LSU
+0x000003C8: FBA10108 std      r29,0x108(r1)
+0x000003CC: FB810100 std      r28,0x100(r1)         PIPE
+0x000003D0: FB6100F8 std      r27,0xF8(r1)
+0x000003D4: FB4100F0 std      r26,0xF0(r1)          PIPE
+0x000003D8: 2C030000 cmpwi    r3,0x0
+0x000003DC: 4082003C bne      0x00000418           01 (000003D8) REG
+0x000003E0: 3C60FFFF lis      r3,0xFFFF
+0x000003E4: 38C0000F li       r6,0xF                PIPE
+0x000003E8: 93E100C4 stw      r31,0xC4(r1)
+0x000003EC: 6067FFFF ori      r7,r3,0xFFFF          PIPE
+0x000003F0: 9BE100B4 stb      r31,0xB4(r1)
+0x000003F4: 63C40000 mr       r4,r30                PIPE
+0x000003F8: 78E70020 clrldi   r7,r7,32
+0x000003FC: 90C100C8 stw      r6,0xC8(r1)           PIPE
+0x00000400: 38A00000 li       r5,0x0
+0x00000404: 306100B0 addic    r3,r1,0xB0            PIPE
+0x00000408: 60E60000 mr       r6,r7
+0x0000040C: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000410: 60000000 nop      
+0x00000414: 48000130 b        0x00000544           08
+0x00000418: 33A10094 addic    r29,r1,0x94
+0x0000041C: 3CA00000 lis      r5,0x0                PIPE
+0x00000420: 63A30000 mr       r3,r29
+0x00000424: 63DC0000 mr       r28,r30               PIPE
+0x00000428: 30A50000 addic    r5,r5,0x0
+0x0000042C: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>> std::operator+ <char, std::char_traits<char>, std::allocator<char>>(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, char const*) 08
+0x00000430: 60000000 nop      
+0x00000434: 3C60FFFF lis      r3,0xFFFF             PIPE
+0x00000438: 93E100E0 stw      r31,0xE0(r1)
+0x0000043C: 3B60000F li       r27,0xF               PIPE
+0x00000440: 9BE100D0 stb      r31,0xD0(r1)
+0x00000444: 6063FFFF ori      r3,r3,0xFFFF          PIPE
+0x00000448: 334100CC addic    r26,r1,0xCC
+0x0000044C: 787E0020 clrldi   r30,r3,32             PIPE
+0x00000450: 63430000 mr       r3,r26
+0x00000454: 63A40000 mr       r4,r29                PIPE
+0x00000458: 936100E4 stw      r27,0xE4(r1)
+0x0000045C: 38A00000 li       r5,0x0                PIPE
+0x00000460: 63C60000 mr       r6,r30
+0x00000464: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000468: 60000000 nop      
+0x0000046C: 63430000 mr       r3,r26                PIPE
+0x00000470: 63840000 mr       r4,r28
+0x00000474: 38A00000 li       r5,0x0                PIPE
+0x00000478: 63C60000 mr       r6,r30
+0x0000047C: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::append(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000480: 60000000 nop      
+0x00000484: 93E1008C stw      r31,0x8C(r1)          PIPE
+0x00000488: 60640000 mr       r4,r3
+0x0000048C: 9BE1007C stb      r31,0x7C(r1)          PIPE
+0x00000490: 30610078 addic    r3,r1,0x78
+0x00000494: 93610090 stw      r27,0x90(r1)          PIPE
+0x00000498: 38A00000 li       r5,0x0
+0x0000049C: 63C60000 mr       r6,r30                PIPE
+0x000004A0: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x000004A4: 60000000 nop                            PIPE
+0x000004A8: 806100E4 lwz      r3,0xE4(r1)
+0x000004AC: 28030010 cmplwi   r3,0x10              02 (000004A8) REG
+0x000004B0: 41800010 blt      0x000004C0
+0x000004B4: 806100D0 lwz      r3,0xD0(r1)
+0x000004B8: 48000001 bl       operator delete(void*) 08
+0x000004BC: 60000000 nop                            PIPE
+0x000004C0: 38E0000F li       r7,0xF
+0x000004C4: 93E100C4 stw      r31,0xC4(r1)          PIPE
+0x000004C8: 306100B0 addic    r3,r1,0xB0
+0x000004CC: 9BE100B4 stb      r31,0xB4(r1)          PIPE
+0x000004D0: 30810078 addic    r4,r1,0x78
+0x000004D4: 38A00000 li       r5,0x0                PIPE
+0x000004D8: 90E100C8 stw      r7,0xC8(r1)
+0x000004DC: 9BE100D0 stb      r31,0xD0(r1)          PIPE
+0x000004E0: 63C60000 mr       r6,r30
+0x000004E4: 93E100E0 stw      r31,0xE0(r1)          PIPE
+0x000004E8: 90E100E4 stw      r7,0xE4(r1)
+0x000004EC: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x000004F0: 60000000 nop      
+0x000004F4: 80610090 lwz      r3,0x90(r1)
+0x000004F8: 28030010 cmplwi   r3,0x10              01 (000004F4) REG
+0x000004FC: 41800010 blt      0x0000050C           01 (000004F8) REG
+0x00000500: 8061007C lwz      r3,0x7C(r1)
+0x00000504: 48000001 bl       operator delete(void*) 08
+0x00000508: 60000000 nop      
+0x0000050C: 3860000F li       r3,0xF                PIPE
+0x00000510: 90610090 stw      r3,0x90(r1)          03 (0000050C) REG LSU
+0x00000514: 806100AC lwz      r3,0xAC(r1)           PIPE
+0x00000518: 93E1008C stw      r31,0x8C(r1)
+0x0000051C: 9BE1007C stb      r31,0x7C(r1)          PIPE
+0x00000520: 28030010 cmplwi   r3,0x10
+0x00000524: 41800010 blt      0x00000534           01 (00000520) REG
+0x00000528: 80610098 lwz      r3,0x98(r1)
+0x0000052C: 48000001 bl       operator delete(void*) 08
+0x00000530: 60000000 nop      
+0x00000534: 3860000F li       r3,0xF                PIPE
+0x00000538: 906100AC stw      r3,0xAC(r1)          03 (00000534) REG LSU
+0x0000053C: 93E100A8 stw      r31,0xA8(r1)          PIPE
+0x00000540: 9BE10098 stb      r31,0x98(r1)
+0x00000544: 3860FFFF li       r3,-0x1               PIPE
+0x00000548: 9BE10070 stb      r31,0x70(r1)
+0x0000054C: 80A100C8 lwz      r5,0xC8(r1)           PIPE
+0x00000550: 308100B4 addic    r4,r1,0xB4
+0x00000554: 28050010 cmplwi   r5,0x10               PIPE
+0x00000558: 90610074 stw      r3,0x74(r1)
+0x0000055C: 41800008 blt      0x00000564
+0x00000560: 808100B4 lwz      r4,0xB4(r1)
+0x00000564: 3CA00000 lis      r5,0x0
+0x00000568: 386000A0 li       r3,0xA0
+0x0000056C: 30C10070 addic    r6,r1,0x70            PIPE
+0x00000570: 30A50000 addic    r5,r5,0x0
+0x00000574: 38E00000 li       r7,0x0                PIPE
+0x00000578: 48000001 bl       .cellMsgDialogOpen2  08
+0x0000057C: 60000000 nop                            PIPE
+0x00000580: 2C030000 cmpwi    r3,0x0
+0x00000584: 40820054 bne      0x000005D8           01 (00000580) REG
+0x00000588: 88610070 lbz      r3,0x70(r1)
+0x0000058C: 2C030000 cmpwi    r3,0x0               02 (00000588) REG
+0x00000590: 40820048 bne      0x000005D8
+0x00000594: 48000001 bl       .cellSysutilCheckCallback 08 PIPE
+0x00000598: 60000000 nop      
+0x0000059C: 3C600000 lis      r3,0x0                PIPE
+0x000005A0: 80630000 lwz      r3,0x0(r3)           03 (0000059C) REG LSU
+0x000005A4: 2C030000 cmpwi    r3,0x0               02 (000005A0) REG
+0x000005A8: 41820018 beq      0x000005C0
+0x000005AC: 88630008 lbz      r3,0x8(r3)
+0x000005B0: 2C030000 cmpwi    r3,0x0               01 (000005AC) REG
+0x000005B4: 4182000C beq      0x000005C0           01 (000005B0) REG
+0x000005B8: 48000001 bl       .psglSwap            08
+0x000005BC: 60000000 nop                            PIPE
+0x000005C0: 3960008D li       r11,0x8D
+0x000005C4: 38603E80 li       r3,0x3E80             PIPE
+0x000005C8: 44000002 sc                            23 CSI
+0x000005CC: 88610070 lbz      r3,0x70(r1)           PIPE
+0x000005D0: 2C030000 cmpwi    r3,0x0               01 (000005CC) REG
+0x000005D4: 4182FFC0 beq      0x00000594           01 (000005D0) REG
+0x000005D8: 806100C8 lwz      r3,0xC8(r1)
+0x000005DC: 28030010 cmplwi   r3,0x10              02 (000005D8) REG
+0x000005E0: 41800010 blt      0x000005F0
+0x000005E4: 806100B4 lwz      r3,0xB4(r1)
+0x000005E8: 48000001 bl       operator delete(void*) 08
+0x000005EC: 60000000 nop                            PIPE
+0x000005F0: E8010130 ld       r0,0x130(r1)
+0x000005F4: 7C0803A6 mtspr    lr,r0                02 (000005F0) REG
+0x000005F8: EB4100F0 ld       r26,0xF0(r1)
+0x000005FC: EB6100F8 ld       r27,0xF8(r1)          PIPE
+0x00000600: EB810100 ld       r28,0x100(r1)
+0x00000604: EBA10108 ld       r29,0x108(r1)         PIPE
+0x00000608: EBC10110 ld       r30,0x110(r1)
+0x0000060C: EBE10118 ld       r31,0x118(r1)         PIPE
+0x00000610: 38210120 addi     r1,r1,0x120
+0x00000614: 4E800020 blr                           08
+
+PlatformFunctions::showDialogBox(rmx::ErrorSeverity, PlatformFunctions::DialogButtons, std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&):
+0x00000618: F821FED1 stdu     r1,-0x130(r1)
+0x0000061C: 7C0802A6 mfspr    r0,lr                02
+0x00000620: F8010140 std      r0,0x140(r1)
+0x00000624: FBC10120 std      r30,0x120(r1)         PIPE
+0x00000628: 609E0000 mr       r30,r4
+0x0000062C: FBA10118 std      r29,0x118(r1)         PIPE
+0x00000630: FB810110 std      r28,0x110(r1)
+0x00000634: 60A40000 mr       r4,r5                 PIPE
+0x00000638: 607D0000 mr       r29,r3
+0x0000063C: FBE10128 std      r31,0x128(r1)         PIPE
+0x00000640: 60DC0000 mr       r28,r6
+0x00000644: 3BE00000 li       r31,0x0               PIPE
+0x00000648: 80640014 lwz      r3,0x14(r4)
+0x0000064C: FB610108 std      r27,0x108(r1)         PIPE
+0x00000650: FB410100 std      r26,0x100(r1)
+0x00000654: FB2100F8 std      r25,0xF8(r1)          PIPE
+0x00000658: FB0100F0 std      r24,0xF0(r1)
+0x0000065C: 2C030000 cmpwi    r3,0x0                PIPE
+0x00000660: 4082003C bne      0x0000069C
+0x00000664: 3C60FFFF lis      r3,0xFFFF
+0x00000668: 38C0000F li       r6,0xF
+0x0000066C: 93E100C4 stw      r31,0xC4(r1)          PIPE
+0x00000670: 6067FFFF ori      r7,r3,0xFFFF
+0x00000674: 9BE100B4 stb      r31,0xB4(r1)          PIPE
+0x00000678: 63840000 mr       r4,r28
+0x0000067C: 78E70020 clrldi   r7,r7,32              PIPE
+0x00000680: 90C100C8 stw      r6,0xC8(r1)
+0x00000684: 38A00000 li       r5,0x0                PIPE
+0x00000688: 306100B0 addic    r3,r1,0xB0
+0x0000068C: 60E60000 mr       r6,r7                 PIPE
+0x00000690: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000694: 60000000 nop                            PIPE
+0x00000698: 48000130 b        0x000007C8           08
+0x0000069C: 33610094 addic    r27,r1,0x94           PIPE
+0x000006A0: 3CA00000 lis      r5,0x0
+0x000006A4: 63630000 mr       r3,r27                PIPE
+0x000006A8: 639A0000 mr       r26,r28
+0x000006AC: 30A50000 addic    r5,r5,0x0             PIPE
+0x000006B0: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>> std::operator+ <char, std::char_traits<char>, std::allocator<char>>(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, char const*) 08
+0x000006B4: 60000000 nop                            PIPE
+0x000006B8: 3C60FFFF lis      r3,0xFFFF
+0x000006BC: 93E100E0 stw      r31,0xE0(r1)          PIPE
+0x000006C0: 3B20000F li       r25,0xF
+0x000006C4: 9BE100D0 stb      r31,0xD0(r1)          PIPE
+0x000006C8: 6063FFFF ori      r3,r3,0xFFFF
+0x000006CC: 330100CC addic    r24,r1,0xCC           PIPE
+0x000006D0: 787C0020 clrldi   r28,r3,32
+0x000006D4: 63030000 mr       r3,r24                PIPE
+0x000006D8: 63640000 mr       r4,r27
+0x000006DC: 932100E4 stw      r25,0xE4(r1)          PIPE
+0x000006E0: 38A00000 li       r5,0x0
+0x000006E4: 63860000 mr       r6,r28                PIPE
+0x000006E8: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x000006EC: 60000000 nop                            PIPE
+0x000006F0: 63030000 mr       r3,r24
+0x000006F4: 63440000 mr       r4,r26                PIPE
+0x000006F8: 38A00000 li       r5,0x0
+0x000006FC: 63860000 mr       r6,r28                PIPE
+0x00000700: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::append(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000704: 60000000 nop                            PIPE
+0x00000708: 93E1008C stw      r31,0x8C(r1)
+0x0000070C: 60640000 mr       r4,r3                 PIPE
+0x00000710: 9BE1007C stb      r31,0x7C(r1)
+0x00000714: 30610078 addic    r3,r1,0x78            PIPE
+0x00000718: 93210090 stw      r25,0x90(r1)
+0x0000071C: 38A00000 li       r5,0x0                PIPE
+0x00000720: 63860000 mr       r6,r28
+0x00000724: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000728: 60000000 nop      
+0x0000072C: 806100E4 lwz      r3,0xE4(r1)
+0x00000730: 28030010 cmplwi   r3,0x10              01 (0000072C) REG
+0x00000734: 41800010 blt      0x00000744           01 (00000730) REG
+0x00000738: 806100D0 lwz      r3,0xD0(r1)
+0x0000073C: 48000001 bl       operator delete(void*) 08
+0x00000740: 60000000 nop      
+0x00000744: 38E0000F li       r7,0xF                PIPE
+0x00000748: 93E100C4 stw      r31,0xC4(r1)
+0x0000074C: 306100B0 addic    r3,r1,0xB0            PIPE
+0x00000750: 9BE100B4 stb      r31,0xB4(r1)
+0x00000754: 30810078 addic    r4,r1,0x78            PIPE
+0x00000758: 38A00000 li       r5,0x0
+0x0000075C: 90E100C8 stw      r7,0xC8(r1)           PIPE
+0x00000760: 9BE100D0 stb      r31,0xD0(r1)
+0x00000764: 63860000 mr       r6,r28                PIPE
+0x00000768: 93E100E0 stw      r31,0xE0(r1)
+0x0000076C: 90E100E4 stw      r7,0xE4(r1)           PIPE
+0x00000770: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000774: 60000000 nop                            PIPE
+0x00000778: 80610090 lwz      r3,0x90(r1)
+0x0000077C: 28030010 cmplwi   r3,0x10              02 (00000778) REG
+0x00000780: 41800010 blt      0x00000790
+0x00000784: 8061007C lwz      r3,0x7C(r1)
+0x00000788: 48000001 bl       operator delete(void*) 08
+0x0000078C: 60000000 nop                            PIPE
+0x00000790: 3860000F li       r3,0xF
+0x00000794: 90610090 stw      r3,0x90(r1)          03 (00000790) REG PIPE LSU
+0x00000798: 806100AC lwz      r3,0xAC(r1)
+0x0000079C: 93E1008C stw      r31,0x8C(r1)          PIPE
+0x000007A0: 9BE1007C stb      r31,0x7C(r1)
+0x000007A4: 28030010 cmplwi   r3,0x10               PIPE
+0x000007A8: 41800010 blt      0x000007B8
+0x000007AC: 80610098 lwz      r3,0x98(r1)
+0x000007B0: 48000001 bl       operator delete(void*) 08
+0x000007B4: 60000000 nop                            PIPE
+0x000007B8: 3860000F li       r3,0xF
+0x000007BC: 906100AC stw      r3,0xAC(r1)          03 (000007B8) REG PIPE LSU
+0x000007C0: 93E100A8 stw      r31,0xA8(r1)
+0x000007C4: 9BE10098 stb      r31,0x98(r1)          PIPE
+0x000007C8: 307DFFFE addic    r3,r29,-0x2
+0x000007CC: 9BE10070 stb      r31,0x70(r1)          PIPE
+0x000007D0: 3880FFFF li       r4,-0x1
+0x000007D4: 7C630034 cntlzw   r3,r3                 PIPE
+0x000007D8: 2C1E0000 cmpwi    r30,0x0
+0x000007DC: 547DDFFE extrwi   r29,r3,1,26           PIPE
+0x000007E0: 90810074 stw      r4,0x74(r1)
+0x000007E4: 6BBD0001 xori     r29,r29,0x1           PIPE
+0x000007E8: 63A30010 ori      r3,r29,0x10          01 (000007E4) REG
+0x000007EC: 40820008 bne      0x000007F4
+0x000007F0: 63A300A0 ori      r3,r29,0xA0
+0x000007F4: 80A100C8 lwz      r5,0xC8(r1)
+0x000007F8: 308100B4 addic    r4,r1,0xB4
+0x000007FC: 28050010 cmplwi   r5,0x10               PIPE
+0x00000800: 41800008 blt      0x00000808
+0x00000804: 808100B4 lwz      r4,0xB4(r1)
+0x00000808: 3CA00000 lis      r5,0x0
+0x0000080C: 30C10070 addic    r6,r1,0x70            PIPE
+0x00000810: 30A50000 addic    r5,r5,0x0
+0x00000814: 38E00000 li       r7,0x0                PIPE
+0x00000818: 48000001 bl       .cellMsgDialogOpen2  08
+0x0000081C: 60000000 nop                            PIPE
+0x00000820: 2C030000 cmpwi    r3,0x0
+0x00000824: 40820054 bne      0x00000878           01 (00000820) REG
+0x00000828: 88610070 lbz      r3,0x70(r1)
+0x0000082C: 2C030000 cmpwi    r3,0x0               02 (00000828) REG
+0x00000830: 40820048 bne      0x00000878
+0x00000834: 48000001 bl       .cellSysutilCheckCallback 08 PIPE
+0x00000838: 60000000 nop      
+0x0000083C: 3C800000 lis      r4,0x0                PIPE
+0x00000840: 80840000 lwz      r4,0x0(r4)           03 (0000083C) REG LSU
+0x00000844: 2C040000 cmpwi    r4,0x0               02 (00000840) REG
+0x00000848: 41820018 beq      0x00000860
+0x0000084C: 88640008 lbz      r3,0x8(r4)
+0x00000850: 2C030000 cmpwi    r3,0x0               01 (0000084C) REG
+0x00000854: 4182000C beq      0x00000860           01 (00000850) REG
+0x00000858: 48000001 bl       .psglSwap            08
+0x0000085C: 60000000 nop                            PIPE
+0x00000860: 3960008D li       r11,0x8D
+0x00000864: 38603E80 li       r3,0x3E80             PIPE
+0x00000868: 44000002 sc                            23 CSI
+0x0000086C: 88610070 lbz      r3,0x70(r1)           PIPE
+0x00000870: 2C030000 cmpwi    r3,0x0               01 (0000086C) REG
+0x00000874: 4182FFC0 beq      0x00000834           01 (00000870) REG
+0x00000878: 80610074 lwz      r3,0x74(r1)
+0x0000087C: 2C830002 cmpwi    cr1,r3,0x2           02 (00000878) REG
+0x00000880: 2C030001 cmpwi    r3,0x1
+0x00000884: 40820024 bne      0x000008A8           01 (00000880) REG
+0x00000888: 806100C8 lwz      r3,0xC8(r1)
+0x0000088C: 28030010 cmplwi   r3,0x10              02 (00000888) REG
+0x00000890: 41800010 blt      0x000008A0
+0x00000894: 806100B4 lwz      r3,0xB4(r1)
+0x00000898: 48000001 bl       operator delete(void*) 08
+0x0000089C: 60000000 nop                            PIPE
+0x000008A0: 63E30000 mr       r3,r31
+0x000008A4: 48000044 b        0x000008E8           08
+0x000008A8: 40860024 bne      cr1,0x000008CC
+0x000008AC: 806100C8 lwz      r3,0xC8(r1)
+0x000008B0: 28030010 cmplwi   r3,0x10              01 (000008AC) REG
+0x000008B4: 41800010 blt      0x000008C4           01 (000008B0) REG
+0x000008B8: 806100B4 lwz      r3,0xB4(r1)
+0x000008BC: 48000001 bl       operator delete(void*) 08
+0x000008C0: 60000000 nop      
+0x000008C4: 38600001 li       r3,0x1                PIPE
+0x000008C8: 48000020 b        0x000008E8           08
+0x000008CC: 806100C8 lwz      r3,0xC8(r1)           PIPE
+0x000008D0: 28030010 cmplwi   r3,0x10              01 (000008CC) REG
+0x000008D4: 41800010 blt      0x000008E4           01 (000008D0) REG
+0x000008D8: 806100B4 lwz      r3,0xB4(r1)
+0x000008DC: 48000001 bl       operator delete(void*) 08
+0x000008E0: 60000000 nop      
+0x000008E4: 38600002 li       r3,0x2                PIPE
+0x000008E8: E8010140 ld       r0,0x140(r1)
+0x000008EC: 7C0803A6 mtspr    lr,r0                02 (000008E8) REG
+0x000008F0: EB0100F0 ld       r24,0xF0(r1)
+0x000008F4: EB2100F8 ld       r25,0xF8(r1)          PIPE
+0x000008F8: EB410100 ld       r26,0x100(r1)
+0x000008FC: EB610108 ld       r27,0x108(r1)         PIPE
+0x00000900: EB810110 ld       r28,0x110(r1)
+0x00000904: EBA10118 ld       r29,0x118(r1)         PIPE
+0x00000908: EBC10120 ld       r30,0x120(r1)
+0x0000090C: EBE10128 ld       r31,0x128(r1)         PIPE
+0x00000910: 38210130 addi     r1,r1,0x130
+0x00000914: 4E800020 blr                           08
+
+PlatformFunctions::openFileSelectionDialog(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, wchar_t const*):
+0x00000918: F821FF91 stdu     r1,-0x70(r1)
+0x0000091C: 7C0802A6 mfspr    r0,lr                02
+0x00000920: F8010080 std      r0,0x80(r1)
+0x00000924: 3C800000 lis      r4,0x0                PIPE
+0x00000928: 30840000 addic    r4,r4,0x0            01 (00000924) REG
+0x0000092C: 48000001 bl       std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::basic_string(wchar_t const*) 08
+0x00000930: 60000000 nop      
+0x00000934: E8010080 ld       r0,0x80(r1)
+0x00000938: 7C0803A6 mtspr    lr,r0                01 (00000934) REG
+0x0000093C: 38210070 addi     r1,r1,0x70
+0x00000940: 4E800020 blr                           08
+
+PlatformFunctions::openFileExternal(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&):
+0x00000944: 4E800020 blr                           08 PIPE
+
+PlatformFunctions::openDirectoryExternal(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&):
+0x00000948: 4E800020 blr                           08
+
+PlatformFunctions::openURLExternal(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&):
+0x0000094C: 4E800020 blr                           08 PIPE
+
+PlatformFunctions::openApplicationExternal(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&):
+0x00000950: 38600000 li       r3,0x0
+0x00000954: 4E800020 blr                           08
+
+PlatformFunctions::hasClipboardSupport():
+0x00000958: 38600000 li       r3,0x0
+0x0000095C: 4E800020 blr                           08
+
+PlatformFunctions::copyToClipboard(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&):
+0x00000960: 38600000 li       r3,0x0
+0x00000964: 4E800020 blr                           08
+
+PlatformFunctions::copyToClipboard(std::basic_string_view<wchar_t>):
+0x00000968: F821FF51 stdu     r1,-0xB0(r1)
+0x0000096C: 7C0802A6 mfspr    r0,lr                02
+0x00000970: F80100C0 std      r0,0xC0(r1)
+0x00000974: 38C00000 li       r6,0x0                PIPE
+0x00000978: 38A00007 li       r5,0x7
+0x0000097C: 3CE0FFFF lis      r7,0xFFFF             PIPE
+0x00000980: 60640000 mr       r4,r3
+0x00000984: 90C100A0 stw      r6,0xA0(r1)           PIPE
+0x00000988: 60E3FFFF ori      r3,r7,0xFFFF
+0x0000098C: FBE100A8 std      r31,0xA8(r1)          PIPE
+0x00000990: B0C10090 sth      r6,0x90(r1)
+0x00000994: 33E1008C addic    r31,r1,0x8C           PIPE
+0x00000998: 90A100A4 stw      r5,0xA4(r1)
+0x0000099C: 78660020 clrldi   r6,r3,32              PIPE
+0x000009A0: 63E30000 mr       r3,r31
+0x000009A4: 38A00000 li       r5,0x0                PIPE
+0x000009A8: 48000001 bl       std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::assign(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, unsigned int, unsigned int) 08
+0x000009AC: 60000000 nop                            PIPE
+0x000009B0: 63E40000 mr       r4,r31
+0x000009B4: 30610070 addic    r3,r1,0x70            PIPE
+0x000009B8: 48000001 bl       rmx::convertToUTF8(std::basic_string_view<wchar_t>) 08
+0x000009BC: 60000000 nop                            PIPE
+0x000009C0: 80810088 lwz      r4,0x88(r1)
+0x000009C4: 80610074 lwz      r3,0x74(r1)           PIPE
+0x000009C8: 28040010 cmplwi   r4,0x10
+0x000009CC: 4180000C blt      0x000009D8           01 (000009C8) REG
+0x000009D0: 48000001 bl       operator delete(void*) 08
+0x000009D4: 60000000 nop                            PIPE
+0x000009D8: 806100A4 lwz      r3,0xA4(r1)
+0x000009DC: 28030008 cmplwi   r3,0x8               02 (000009D8) REG
+0x000009E0: 41800028 blt      0x00000A08
+0x000009E4: 38600000 li       r3,0x0
+0x000009E8: 80A10090 lwz      r5,0x90(r1)
+0x000009EC: 3880000F li       r4,0xF
+0x000009F0: 98610074 stb      r3,0x74(r1)
+0x000009F4: 90610084 stw      r3,0x84(r1)           PIPE
+0x000009F8: 60A30000 mr       r3,r5
+0x000009FC: 90810088 stw      r4,0x88(r1)           PIPE
+0x00000A00: 48000001 bl       operator delete(void*) 08
+0x00000A04: 60000000 nop                            PIPE
+0x00000A08: 38600000 li       r3,0x0
+0x00000A0C: E80100C0 ld       r0,0xC0(r1)
+0x00000A10: 7C0803A6 mtspr    lr,r0                01 (00000A0C) REG
+0x00000A14: EBE100A8 ld       r31,0xA8(r1)
+0x00000A18: 382100B0 addi     r1,r1,0xB0
+0x00000A1C: 4E800020 blr                           08
+
+PlatformFunctions::pasteFromClipboard(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>&):
+0x00000A20: 38600000 li       r3,0x0
+0x00000A24: 4E800020 blr                           08
+
+PlatformFunctions::isDebuggerPresent():
+0x00000A28: 38600000 li       r3,0x0
+0x00000A2C: 4E800020 blr                           08
+
+.__std___21_PlatformFunctions_cpp_25315041:
+0x00000A30: F821FF91 stdu     r1,-0x70(r1)
+0x00000A34: 7C0802A6 mfspr    r0,lr                02
+0x00000A38: F8010080 std      r0,0x80(r1)
+0x00000A3C: 3C600000 lis      r3,0x0                PIPE
+0x00000A40: 30630000 addic    r3,r3,0x0            01 (00000A3C) REG
+0x00000A44: 48000001 bl       std::_Winit::~_Winit() 08
+0x00000A48: 60000000 nop      
+0x00000A4C: 3C600000 lis      r3,0x0                PIPE
+0x00000A50: 30630000 addic    r3,r3,0x0            01 (00000A4C) REG
+0x00000A54: 48000001 bl       std::ios_base::Init::~Init() 08
+0x00000A58: 60000000 nop      
+0x00000A5C: E8010080 ld       r0,0x80(r1)
+0x00000A60: 7C0803A6 mtspr    lr,r0                01 (00000A5C) REG
+0x00000A64: 38210070 addi     r1,r1,0x70
+0x00000A68: 4E800020 blr                           08
+
+[local to PlatformFunctions_cpp]::(anonymous namespace)::ps3MsgDialogCallback(int, void*):
+0x00000A6C: 2C040000 cmpwi    r4,0x0                PIPE
+0x00000A70: 41820010 beq      0x00000A80
+0x00000A74: 38A00001 li       r5,0x1
+0x00000A78: 90640004 stw      r3,0x4(r4)
+0x00000A7C: 98A40000 stb      r5,0x0(r4)            PIPE
+0x00000A80: 4E800020 blr                           08
+
+.__sti___21_PlatformFunctions_cpp_25315041:
+0x00000A84: F821FF91 stdu     r1,-0x70(r1)          PIPE
+0x00000A88: 7C0802A6 mfspr    r0,lr                02
+0x00000A8C: F8010080 std      r0,0x80(r1)           PIPE
+0x00000A90: 3C600000 lis      r3,0x0
+0x00000A94: 30630000 addic    r3,r3,0x0            01 (00000A90) REG PIPE
+0x00000A98: 48000001 bl       std::ios_base::Init::Init() 08
+0x00000A9C: 60000000 nop                            PIPE
+0x00000AA0: 3C600000 lis      r3,0x0
+0x00000AA4: 30630000 addic    r3,r3,0x0            01 (00000AA0) REG PIPE
+0x00000AA8: 48000001 bl       std::_Winit::_Winit() 08
+0x00000AAC: 60000000 nop                            PIPE
+0x00000AB0: E8010080 ld       r0,0x80(r1)
+0x00000AB4: 7C0803A6 mtspr    lr,r0                02 (00000AB0) REG
+0x00000AB8: 38210070 addi     r1,r1,0x70
+0x00000ABC: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSt17basic_string_viewIcED1Ev:
+
+std::basic_string_view<char>::~basic_string_view():
+0x00000000: F821FF81 stdu     r1,-0x80(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F8010090 std      r0,0x90(r1)
+0x0000000C: FBE10078 std      r31,0x78(r1)          PIPE
+0x00000010: 607F0000 mr       r31,r3
+0x00000014: 807F0018 lwz      r3,0x18(r31)         04 (00000010) REG LSU
+0x00000018: 28030010 cmplwi   r3,0x10              01 (00000014) REG
+0x0000001C: 41800010 blt      0x0000002C           01 (00000018) REG
+0x00000020: 807F0004 lwz      r3,0x4(r31)
+0x00000024: 48000001 bl       operator delete(void*) 08
+0x00000028: 60000000 nop      
+0x0000002C: 307F0004 addic    r3,r31,0x4            PIPE
+0x00000030: 3880000F li       r4,0xF
+0x00000034: 38A00000 li       r5,0x0                PIPE
+0x00000038: 78630020 clrldi   r3,r3,32
+0x0000003C: 909F0018 stw      r4,0x18(r31)          PIPE
+0x00000040: 90BF0014 stw      r5,0x14(r31)
+0x00000044: 98A30000 stb      r5,0x0(r3)            PIPE
+0x00000048: E8010090 ld       r0,0x90(r1)
+0x0000004C: 7C0803A6 mtspr    lr,r0                02 (00000048) REG
+0x00000050: EBE10078 ld       r31,0x78(r1)
+0x00000054: 38210080 addi     r1,r1,0x80
+0x00000058: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSt17basic_string_viewIwED1Ev:
+
+std::basic_string_view<wchar_t>::~basic_string_view():
+0x00000000: F821FF81 stdu     r1,-0x80(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F8010090 std      r0,0x90(r1)
+0x0000000C: FBE10078 std      r31,0x78(r1)          PIPE
+0x00000010: 607F0000 mr       r31,r3
+0x00000014: 807F0018 lwz      r3,0x18(r31)         04 (00000010) REG LSU
+0x00000018: 28030008 cmplwi   r3,0x8               01 (00000014) REG
+0x0000001C: 41800010 blt      0x0000002C           01 (00000018) REG
+0x00000020: 807F0004 lwz      r3,0x4(r31)
+0x00000024: 48000001 bl       operator delete(void*) 08
+0x00000028: 60000000 nop      
+0x0000002C: 307F0004 addic    r3,r31,0x4            PIPE
+0x00000030: 38800007 li       r4,0x7
+0x00000034: 38A00000 li       r5,0x0                PIPE
+0x00000038: 78630020 clrldi   r3,r3,32
+0x0000003C: 909F0018 stw      r4,0x18(r31)          PIPE
+0x00000040: 90BF0014 stw      r5,0x14(r31)
+0x00000044: B0A30000 sth      r5,0x0(r3)            PIPE
+0x00000048: E8010090 ld       r0,0x90(r1)
+0x0000004C: 7C0803A6 mtspr    lr,r0                02 (00000048) REG
+0x00000050: EBE10078 ld       r31,0x78(r1)
+0x00000054: 38210080 addi     r1,r1,0x80
+0x00000058: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSs6assignERKSsjj:
+
+std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int):
+0x00000000: F821FF51 stdu     r1,-0xB0(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100C0 std      r0,0xC0(r1)
+0x0000000C: FB410080 std      r26,0x80(r1)          PIPE
+0x00000010: FB210078 std      r25,0x78(r1)
+0x00000014: 609A0000 mr       r26,r4                PIPE
+0x00000018: FBC100A0 std      r30,0xA0(r1)
+0x0000001C: FB610088 std      r27,0x88(r1)          PIPE
+0x00000020: 60B90000 mr       r25,r5
+0x00000024: 60DE0000 mr       r30,r6                PIPE
+0x00000028: FBE100A8 std      r31,0xA8(r1)
+0x0000002C: 607B0000 mr       r27,r3                PIPE
+0x00000030: 83FA0014 lwz      r31,0x14(r26)
+0x00000034: FBA10098 std      r29,0x98(r1)          PIPE
+0x00000038: FB810090 std      r28,0x90(r1)
+0x0000003C: 7C1FC840 cmplw    r31,r25               PIPE
+0x00000040: 40800014 bge      0x00000054
+0x00000044: 63630000 mr       r3,r27
+0x00000048: 48000001 bl       std::_String_base::_Xran() const 08
+0x0000004C: 60000000 nop                            PIPE
+0x00000050: 83FA0014 lwz      r31,0x14(r26)
+0x00000054: 7FF9F810 subfc    r31,r25,r31          02 (00000050) REG
+0x00000058: 7BFF0020 clrldi   r31,r31,32           01 (00000054) REG
+0x0000005C: 7C1EF840 cmplw    r30,r31              01 (00000058) REG PIPE
+0x00000060: 40800008 bge      0x00000068
+0x00000064: 63DF0000 mr       r31,r30
+0x00000068: 7C1BD000 cmpw     r27,r26
+0x0000006C: 4082014C bne      0x000001B8           01 (00000068) REG
+0x00000070: 7FFFC814 addc     r31,r31,r25
+0x00000074: 809B0014 lwz      r4,0x14(r27)
+0x00000078: 3BC0FFFF li       r30,-0x1
+0x0000007C: 7C04F840 cmplw    r4,r31                PIPE
+0x00000080: 40800014 bge      0x00000094
+0x00000084: 63630000 mr       r3,r27
+0x00000088: 48000001 bl       std::_String_base::_Xran() const 08
+0x0000008C: 60000000 nop                            PIPE
+0x00000090: 809B0014 lwz      r4,0x14(r27)
+0x00000094: 7CDF2010 subfc    r6,r31,r4            02 (00000090) REG
+0x00000098: 7C06F040 cmplw    r6,r30               01 (00000094) REG
+0x0000009C: 40800010 bge      0x000000AC           01 (00000098) REG
+0x000000A0: 60DE0000 mr       r30,r6
+0x000000A4: 2C1E0000 cmpwi    r30,0x0              01 (000000A0) REG PIPE
+0x000000A8: 41820084 beq      0x0000012C
+0x000000AC: 307B0004 addic    r3,r27,0x4
+0x000000B0: 809B0018 lwz      r4,0x18(r27)
+0x000000B4: 607D0000 mr       r29,r3               01 (000000AC) REG
+0x000000B8: 28040010 cmplwi   r4,0x10
+0x000000BC: 41800008 blt      0x000000C4           01 (000000B8) REG
+0x000000C0: 807B0004 lwz      r3,0x4(r27)
+0x000000C4: 60850000 mr       r5,r4
+0x000000C8: 7C63F814 addc     r3,r3,r31            01 (000000C0) REG
+0x000000CC: 63A40000 mr       r4,r29                PIPE
+0x000000D0: 28050010 cmplwi   r5,0x10
+0x000000D4: 78630020 clrldi   r3,r3,32              PIPE
+0x000000D8: 41800008 blt      0x000000E0
+0x000000DC: 809B0004 lwz      r4,0x4(r27)
+0x000000E0: 7C84F814 addc     r4,r4,r31            01 (000000DC) REG
+0x000000E4: 7CBE3010 subfc    r5,r30,r6             PIPE
+0x000000E8: 7C84F014 addc     r4,r4,r30
+0x000000EC: 78A50020 clrldi   r5,r5,32              PIPE
+0x000000F0: 78840020 clrldi   r4,r4,32
+0x000000F4: 48000001 bl       .memmove             08
+0x000000F8: 60000000 nop      
+0x000000FC: 83FB0014 lwz      r31,0x14(r27)
+0x00000100: 807B0018 lwz      r3,0x18(r27)
+0x00000104: 7FFEF810 subfc    r31,r30,r31          01 (000000FC) REG
+0x00000108: 28030010 cmplwi   r3,0x10
+0x0000010C: 41800008 blt      0x00000114           01 (00000108) REG
+0x00000110: 83BB0004 lwz      r29,0x4(r27)
+0x00000114: 7C7DF814 addc     r3,r29,r31           02 (00000110) REG
+0x00000118: 93FB0014 stw      r31,0x14(r27)
+0x0000011C: 38800000 li       r4,0x0                PIPE
+0x00000120: 78630020 clrldi   r3,r3,32
+0x00000124: 98830000 stb      r4,0x0(r3)           03 (00000120) REG PIPE LSU
+0x00000128: 809B0014 lwz      r4,0x14(r27)         50 (00000118) LHS[07]
+0x0000012C: 7C04C840 cmplw    r4,r25               01 (00000128) REG PIPE
+0x00000130: 40800008 bge      0x00000138
+0x00000134: 60990000 mr       r25,r4
+0x00000138: 2C190000 cmpwi    r25,0x0              01 (00000134) REG
+0x0000013C: 4182022C beq      0x00000368           01 (00000138) REG
+0x00000140: 80BB0018 lwz      r5,0x18(r27)
+0x00000144: 28050010 cmplwi   r5,0x10              02 (00000140) REG
+0x00000148: 4180000C blt      0x00000154
+0x0000014C: 807B0004 lwz      r3,0x4(r27)
+0x00000150: 4800000C b        0x0000015C           08
+0x00000154: 307B0004 addic    r3,r27,0x4            PIPE
+0x00000158: 78630020 clrldi   r3,r3,32             01 (00000154) REG
+0x0000015C: 28050010 cmplwi   r5,0x10               PIPE
+0x00000160: 30BB0004 addic    r5,r27,0x4
+0x00000164: 60BF0000 mr       r31,r5               01 (00000160) REG PIPE
+0x00000168: 41800008 blt      0x00000170
+0x0000016C: 80BB0004 lwz      r5,0x4(r27)
+0x00000170: 7CC5C814 addc     r6,r5,r25            01 (0000016C) REG
+0x00000174: 7CB92010 subfc    r5,r25,r4             PIPE
+0x00000178: 78C40020 clrldi   r4,r6,32
+0x0000017C: 78A50020 clrldi   r5,r5,32              PIPE
+0x00000180: 48000001 bl       .memmove             08
+0x00000184: 60000000 nop                            PIPE
+0x00000188: 807B0014 lwz      r3,0x14(r27)
+0x0000018C: 809B0018 lwz      r4,0x18(r27)          PIPE
+0x00000190: 7F391810 subfc    r25,r25,r3
+0x00000194: 28040010 cmplwi   r4,0x10               PIPE
+0x00000198: 41800008 blt      0x000001A0
+0x0000019C: 83FB0004 lwz      r31,0x4(r27)
+0x000001A0: 7C7FC814 addc     r3,r31,r25           01 (0000019C) REG
+0x000001A4: 38800000 li       r4,0x0                PIPE
+0x000001A8: 933B0014 stw      r25,0x14(r27)
+0x000001AC: 78630020 clrldi   r3,r3,32              PIPE
+0x000001B0: 98830000 stb      r4,0x0(r3)           03 (000001AC) REG LSU
+0x000001B4: 480001B4 b        0x00000368           08
+0x000001B8: 3BA0FFFE li       r29,-0x2
+0x000001BC: 7C1FE840 cmplw    r31,r29              01 (000001B8) REG PIPE
+0x000001C0: 40810010 ble      0x000001D0
+0x000001C4: 63630000 mr       r3,r27
+0x000001C8: 48000001 bl       std::_String_base::_Xlen() const 08
+0x000001CC: 60000000 nop                            PIPE
+0x000001D0: 80DB0018 lwz      r6,0x18(r27)
+0x000001D4: 2C9F0000 cmpwi    cr1,r31,0x0
+0x000001D8: 7C06F840 cmplw    r6,r31               01 (000001D0) REG
+0x000001DC: 408000F0 bge      0x000002CC           01 (000001D8) REG
+0x000001E0: 63FC000F ori      r28,r31,0xF
+0x000001E4: 83DB0014 lwz      r30,0x14(r27)
+0x000001E8: 7C1CE840 cmplw    r28,r29              01 (000001E0) REG
+0x000001EC: 4081000C ble      0x000001F8           01 (000001E8) REG
+0x000001F0: 63FC0000 mr       r28,r31
+0x000001F4: 48000030 b        0x00000224           08
+0x000001F8: 3C60AAAA lis      r3,0xAAAA
+0x000001FC: 54C7F87E srwi     r7,r6,1               PIPE
+0x00000200: 6063AAAB ori      r3,r3,0xAAAB
+0x00000204: 7C63E016 mulhwu   r3,r3,r28            09+01 (00000200) REG PIPE
+0x00000208: 5463F87E srwi     r3,r3,1
+0x0000020C: 7C033840 cmplw    r3,r7                01 (00000208) REG PIPE
+0x00000210: 40800014 bge      0x00000224
+0x00000214: 7C67E810 subfc    r3,r7,r29
+0x00000218: 7C061840 cmplw    r6,r3                01 (00000214) REG
+0x0000021C: 41810008 bgt      0x00000224           01 (00000218) REG
+0x00000220: 7F863814 addc     r28,r6,r7
+0x00000224: 307C0001 addic    r3,r28,0x1           01 (00000220) REG PIPE
+0x00000228: 38800001 li       r4,0x1
+0x0000022C: 78630020 clrldi   r3,r3,32              PIPE
+0x00000230: 48000001 bl       operator new(unsigned int, unsigned int) 08
+0x00000234: 60000000 nop                            PIPE
+0x00000238: 607D0000 mr       r29,r3
+0x0000023C: 2C1E0000 cmpwi    r30,0x0               PIPE
+0x00000240: 41820030 beq      0x00000270
+0x00000244: 807B0018 lwz      r3,0x18(r27)
+0x00000248: 28030010 cmplwi   r3,0x10              01 (00000244) REG
+0x0000024C: 4180000C blt      0x00000258           01 (00000248) REG
+0x00000250: 809B0004 lwz      r4,0x4(r27)
+0x00000254: 4800000C b        0x00000260           08
+0x00000258: 309B0004 addic    r4,r27,0x4
+0x0000025C: 78840020 clrldi   r4,r4,32             01 (00000258) REG PIPE
+0x00000260: 63A30000 mr       r3,r29
+0x00000264: 63C50000 mr       r5,r30                PIPE
+0x00000268: 48000001 bl       .memcpy              08
+0x0000026C: 60000000 nop                            PIPE
+0x00000270: 807B0018 lwz      r3,0x18(r27)
+0x00000274: 28030010 cmplwi   r3,0x10              02 (00000270) REG
+0x00000278: 41800010 blt      0x00000288
+0x0000027C: 807B0004 lwz      r3,0x4(r27)
+0x00000280: 48000001 bl       operator delete(void*) 08
+0x00000284: 60000000 nop                            PIPE
+0x00000288: 30DB0004 addic    r6,r27,0x4
+0x0000028C: 3860000F li       r3,0xF                PIPE
+0x00000290: 38E00000 li       r7,0x0
+0x00000294: 78C40020 clrldi   r4,r6,32              PIPE
+0x00000298: 281C0010 cmplwi   r28,0x10
+0x0000029C: 907B0018 stw      r3,0x18(r27)          PIPE
+0x000002A0: 90FB0014 stw      r7,0x14(r27)
+0x000002A4: 98E40000 stb      r7,0x0(r4)            PIPE
+0x000002A8: 93BB0004 stw      r29,0x4(r27)
+0x000002AC: 939B0018 stw      r28,0x18(r27)         PIPE
+0x000002B0: 41800008 blt      0x000002B8
+0x000002B4: 63A60000 mr       r6,r29
+0x000002B8: 7C66F014 addc     r3,r6,r30            01 (000002B4) REG
+0x000002BC: 93DB0014 stw      r30,0x14(r27)         PIPE
+0x000002C0: 78630020 clrldi   r3,r3,32
+0x000002C4: 98E30000 stb      r7,0x0(r3)           03 (000002C0) REG PIPE LSU
+0x000002C8: 4800002C b        0x000002F4           08
+0x000002CC: 40860028 bne      cr1,0x000002F4        PIPE
+0x000002D0: 60C30000 mr       r3,r6
+0x000002D4: 30DB0004 addic    r6,r27,0x4            PIPE
+0x000002D8: 28030010 cmplwi   r3,0x10
+0x000002DC: 41800008 blt      0x000002E4           01 (000002D8) REG
+0x000002E0: 80DB0004 lwz      r6,0x4(r27)
+0x000002E4: 38600000 li       r3,0x0
+0x000002E8: 78C40020 clrldi   r4,r6,32             01 (000002E0) REG
+0x000002EC: 907B0014 stw      r3,0x14(r27)          PIPE
+0x000002F0: 98640000 stb      r3,0x0(r4)
+0x000002F4: 2C1F0000 cmpwi    r31,0x0               PIPE
+0x000002F8: 41820070 beq      0x00000368
+0x000002FC: 807B0018 lwz      r3,0x18(r27)
+0x00000300: 28030010 cmplwi   r3,0x10              01 (000002FC) REG
+0x00000304: 4180000C blt      0x00000310           01 (00000300) REG
+0x00000308: 807B0004 lwz      r3,0x4(r27)
+0x0000030C: 4800000C b        0x00000318           08
+0x00000310: 307B0004 addic    r3,r27,0x4
+0x00000314: 78630020 clrldi   r3,r3,32             01 (00000310) REG PIPE
+0x00000318: 809A0018 lwz      r4,0x18(r26)
+0x0000031C: 30DA0004 addic    r6,r26,0x4
+0x00000320: 28040010 cmplwi   r4,0x10              01 (00000318) REG
+0x00000324: 41800008 blt      0x0000032C           01 (00000320) REG
+0x00000328: 80DA0004 lwz      r6,0x4(r26)
+0x0000032C: 7C86C814 addc     r4,r6,r25            02 (00000328) REG
+0x00000330: 63E50000 mr       r5,r31
+0x00000334: 78840020 clrldi   r4,r4,32              PIPE
+0x00000338: 48000001 bl       .memcpy              08
+0x0000033C: 60000000 nop                            PIPE
+0x00000340: 809B0018 lwz      r4,0x18(r27)
+0x00000344: 307B0004 addic    r3,r27,0x4
+0x00000348: 28040010 cmplwi   r4,0x10              01 (00000340) REG
+0x0000034C: 41800008 blt      0x00000354           01 (00000348) REG
+0x00000350: 807B0004 lwz      r3,0x4(r27)
+0x00000354: 7C63F814 addc     r3,r3,r31            02 (00000350) REG
+0x00000358: 93FB0014 stw      r31,0x14(r27)
+0x0000035C: 38800000 li       r4,0x0                PIPE
+0x00000360: 78630020 clrldi   r3,r3,32
+0x00000364: 98830000 stb      r4,0x0(r3)           03 (00000360) REG PIPE LSU
+0x00000368: 63630000 mr       r3,r27
+0x0000036C: E80100C0 ld       r0,0xC0(r1)
+0x00000370: 7C0803A6 mtspr    lr,r0                01 (0000036C) REG
+0x00000374: EB210078 ld       r25,0x78(r1)
+0x00000378: EB410080 ld       r26,0x80(r1)
+0x0000037C: EB610088 ld       r27,0x88(r1)          PIPE
+0x00000380: EB810090 ld       r28,0x90(r1)
+0x00000384: EBA10098 ld       r29,0x98(r1)          PIPE
+0x00000388: EBC100A0 ld       r30,0xA0(r1)
+0x0000038C: EBE100A8 ld       r31,0xA8(r1)          PIPE
+0x00000390: 382100B0 addi     r1,r1,0xB0
+0x00000394: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSsC1EPKc:
+
+std::basic_string<char, std::char_traits<char>, std::allocator<char>>::basic_string(char const*):
+0x00000000: F821FF51 stdu     r1,-0xB0(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100C0 std      r0,0xC0(r1)
+0x0000000C: FB410080 std      r26,0x80(r1)          PIPE
+0x00000010: 607A0000 mr       r26,r3
+0x00000014: FBE100A8 std      r31,0xA8(r1)          PIPE
+0x00000018: 38C00000 li       r6,0x0
+0x0000001C: 33FA0004 addic    r31,r26,0x4           PIPE
+0x00000020: FBC100A0 std      r30,0xA0(r1)
+0x00000024: 38A0000F li       r5,0xF                PIPE
+0x00000028: 7BFE0020 clrldi   r30,r31,32
+0x0000002C: FB210078 std      r25,0x78(r1)          PIPE
+0x00000030: 90DA0014 stw      r6,0x14(r26)
+0x00000034: 60990000 mr       r25,r4                PIPE
+0x00000038: 90BA0018 stw      r5,0x18(r26)
+0x0000003C: 63230000 mr       r3,r25                PIPE
+0x00000040: FBA10098 std      r29,0x98(r1)
+0x00000044: FB810090 std      r28,0x90(r1)          PIPE
+0x00000048: FB610088 std      r27,0x88(r1)
+0x0000004C: FB010070 std      r24,0x70(r1)          PIPE
+0x00000050: 98DE0000 stb      r6,0x0(r30)
+0x00000054: 48000001 bl       .strlen              08
+0x00000058: 60000000 nop      
+0x0000005C: 80BA0018 lwz      r5,0x18(r26)
+0x00000060: 607D0000 mr       r29,r3
+0x00000064: 831A0014 lwz      r24,0x14(r26)
+0x00000068: 63E60000 mr       r6,r31
+0x0000006C: 28050010 cmplwi   r5,0x10               PIPE
+0x00000070: 41800008 blt      0x00000078
+0x00000074: 80DA0004 lwz      r6,0x4(r26)
+0x00000078: 7C193040 cmplw    r25,r6               01 (00000074) REG
+0x0000007C: 4180004C blt      0x000000C8           01 (00000078) REG
+0x00000080: 63E60000 mr       r6,r31
+0x00000084: 28050010 cmplwi   r5,0x10               PIPE
+0x00000088: 41800008 blt      0x00000090
+0x0000008C: 80DA0004 lwz      r6,0x4(r26)
+0x00000090: 7C66C014 addc     r3,r6,r24            01 (0000008C) REG
+0x00000094: 7C03C840 cmplw    r3,r25               01 (00000090) REG PIPE
+0x00000098: 40810030 ble      0x000000C8
+0x0000009C: 28050010 cmplwi   r5,0x10
+0x000000A0: 41800008 blt      0x000000A8
+0x000000A4: 83FA0004 lwz      r31,0x4(r26)
+0x000000A8: 7CBFC810 subfc    r5,r31,r25           01 (000000A4) REG
+0x000000AC: 63430000 mr       r3,r26                PIPE
+0x000000B0: 78A50020 clrldi   r5,r5,32
+0x000000B4: 63440000 mr       r4,r26                PIPE
+0x000000B8: 63A60000 mr       r6,r29
+0x000000BC: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x000000C0: 60000000 nop      
+0x000000C4: 48000188 b        0x0000024C           08
+0x000000C8: 3B80FFFE li       r28,-0x2
+0x000000CC: 7C1DE040 cmplw    r29,r28              01 (000000C8) REG PIPE
+0x000000D0: 40810018 ble      0x000000E8
+0x000000D4: 63430000 mr       r3,r26
+0x000000D8: 48000001 bl       std::_String_base::_Xlen() const 08
+0x000000DC: 60000000 nop                            PIPE
+0x000000E0: 80BA0018 lwz      r5,0x18(r26)
+0x000000E4: 831A0014 lwz      r24,0x14(r26)         PIPE
+0x000000E8: 7C05E840 cmplw    r5,r29
+0x000000EC: 408000E4 bge      0x000001D0           01 (000000E8) REG
+0x000000F0: 63BB000F ori      r27,r29,0xF
+0x000000F4: 7C1BE040 cmplw    r27,r28              01 (000000F0) REG PIPE
+0x000000F8: 4081000C ble      0x00000104
+0x000000FC: 63BB0000 mr       r27,r29
+0x00000100: 48000030 b        0x00000130           08
+0x00000104: 3C60AAAA lis      r3,0xAAAA             PIPE
+0x00000108: 54A6F87E srwi     r6,r5,1
+0x0000010C: 6063AAAB ori      r3,r3,0xAAAB          PIPE
+0x00000110: 7C63D816 mulhwu   r3,r3,r27            09+01 (0000010C) REG
+0x00000114: 5463F87E srwi     r3,r3,1               PIPE
+0x00000118: 7C033040 cmplw    r3,r6                01 (00000114) REG
+0x0000011C: 40800014 bge      0x00000130           01 (00000118) REG
+0x00000120: 7C66E010 subfc    r3,r6,r28
+0x00000124: 7C051840 cmplw    r5,r3                01 (00000120) REG PIPE
+0x00000128: 41810008 bgt      0x00000130
+0x0000012C: 7F653014 addc     r27,r5,r6
+0x00000130: 307B0001 addic    r3,r27,0x1           01 (0000012C) REG
+0x00000134: 38800001 li       r4,0x1                PIPE
+0x00000138: 78630020 clrldi   r3,r3,32
+0x0000013C: 48000001 bl       operator new(unsigned int, unsigned int) 08
+0x00000140: 60000000 nop      
+0x00000144: 607C0000 mr       r28,r3                PIPE
+0x00000148: 2C180000 cmpwi    r24,0x0
+0x0000014C: 41820028 beq      0x00000174           01 (00000148) REG
+0x00000150: 807A0018 lwz      r3,0x18(r26)
+0x00000154: 63C40000 mr       r4,r30
+0x00000158: 28030010 cmplwi   r3,0x10              01 (00000150) REG
+0x0000015C: 41800008 blt      0x00000164           01 (00000158) REG
+0x00000160: 809A0004 lwz      r4,0x4(r26)
+0x00000164: 63830000 mr       r3,r28
+0x00000168: 63050000 mr       r5,r24
+0x0000016C: 48000001 bl       .memcpy              08
+0x00000170: 60000000 nop      
+0x00000174: 807A0018 lwz      r3,0x18(r26)
+0x00000178: 28030010 cmplwi   r3,0x10              01 (00000174) REG
+0x0000017C: 41800010 blt      0x0000018C           01 (00000178) REG
+0x00000180: 807A0004 lwz      r3,0x4(r26)
+0x00000184: 48000001 bl       operator delete(void*) 08
+0x00000188: 60000000 nop      
+0x0000018C: 38600000 li       r3,0x0                PIPE
+0x00000190: 3880000F li       r4,0xF
+0x00000194: 63E50000 mr       r5,r31                PIPE
+0x00000198: 281B0010 cmplwi   r27,0x10
+0x0000019C: 907A0014 stw      r3,0x14(r26)          PIPE
+0x000001A0: 909A0018 stw      r4,0x18(r26)
+0x000001A4: 987E0000 stb      r3,0x0(r30)           PIPE
+0x000001A8: 939A0004 stw      r28,0x4(r26)
+0x000001AC: 937A0018 stw      r27,0x18(r26)         PIPE
+0x000001B0: 41800008 blt      0x000001B8
+0x000001B4: 63850000 mr       r5,r28
+0x000001B8: 7C65C014 addc     r3,r5,r24            01 (000001B4) REG
+0x000001BC: 931A0014 stw      r24,0x14(r26)         PIPE
+0x000001C0: 38800000 li       r4,0x0
+0x000001C4: 78630020 clrldi   r3,r3,32              PIPE
+0x000001C8: 98830000 stb      r4,0x0(r3)           03 (000001C4) REG LSU
+0x000001CC: 48000030 b        0x000001FC           08
+0x000001D0: 2C1D0000 cmpwi    r29,0x0
+0x000001D4: 40820028 bne      0x000001FC           01 (000001D0) REG
+0x000001D8: 60A30000 mr       r3,r5
+0x000001DC: 63E50000 mr       r5,r31                PIPE
+0x000001E0: 28030010 cmplwi   r3,0x10
+0x000001E4: 41800008 blt      0x000001EC           01 (000001E0) REG
+0x000001E8: 80BA0004 lwz      r5,0x4(r26)
+0x000001EC: 38600000 li       r3,0x0
+0x000001F0: 78A40020 clrldi   r4,r5,32             01 (000001E8) REG
+0x000001F4: 907A0014 stw      r3,0x14(r26)          PIPE
+0x000001F8: 98640000 stb      r3,0x0(r4)
+0x000001FC: 2C1D0000 cmpwi    r29,0x0               PIPE
+0x00000200: 4182004C beq      0x0000024C
+0x00000204: 809A0018 lwz      r4,0x18(r26)
+0x00000208: 63C30000 mr       r3,r30
+0x0000020C: 28040010 cmplwi   r4,0x10               PIPE
+0x00000210: 41800008 blt      0x00000218
+0x00000214: 807A0004 lwz      r3,0x4(r26)
+0x00000218: 63240000 mr       r4,r25
+0x0000021C: 63A50000 mr       r5,r29                PIPE
+0x00000220: 48000001 bl       .memcpy              08
+0x00000224: 60000000 nop                            PIPE
+0x00000228: 807A0018 lwz      r3,0x18(r26)
+0x0000022C: 28030010 cmplwi   r3,0x10              02 (00000228) REG
+0x00000230: 41800008 blt      0x00000238
+0x00000234: 83FA0004 lwz      r31,0x4(r26)
+0x00000238: 7C7FE814 addc     r3,r31,r29           01 (00000234) REG
+0x0000023C: 93BA0014 stw      r29,0x14(r26)         PIPE
+0x00000240: 38800000 li       r4,0x0
+0x00000244: 78630020 clrldi   r3,r3,32              PIPE
+0x00000248: 98830000 stb      r4,0x0(r3)           03 (00000244) REG LSU
+0x0000024C: E80100C0 ld       r0,0xC0(r1)           PIPE
+0x00000250: 7C0803A6 mtspr    lr,r0                01 (0000024C) REG
+0x00000254: EB010070 ld       r24,0x70(r1)
+0x00000258: EB210078 ld       r25,0x78(r1)
+0x0000025C: EB410080 ld       r26,0x80(r1)          PIPE
+0x00000260: EB610088 ld       r27,0x88(r1)
+0x00000264: EB810090 ld       r28,0x90(r1)          PIPE
+0x00000268: EBA10098 ld       r29,0x98(r1)
+0x0000026C: EBC100A0 ld       r30,0xA0(r1)          PIPE
+0x00000270: EBE100A8 ld       r31,0xA8(r1)
+0x00000274: 382100B0 addi     r1,r1,0xB0
+0x00000278: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSbIwSt11char_traitsIwESaIwEE6assignERKS2_jj:
+
+std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::assign(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, unsigned int, unsigned int):
+0x00000000: F821FF51 stdu     r1,-0xB0(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100C0 std      r0,0xC0(r1)
+0x0000000C: FB410080 std      r26,0x80(r1)          PIPE
+0x00000010: FB210078 std      r25,0x78(r1)
+0x00000014: 609A0000 mr       r26,r4                PIPE
+0x00000018: FBC100A0 std      r30,0xA0(r1)
+0x0000001C: FB610088 std      r27,0x88(r1)          PIPE
+0x00000020: 60B90000 mr       r25,r5
+0x00000024: 60DE0000 mr       r30,r6                PIPE
+0x00000028: FBE100A8 std      r31,0xA8(r1)
+0x0000002C: 607B0000 mr       r27,r3                PIPE
+0x00000030: 83FA0014 lwz      r31,0x14(r26)
+0x00000034: FBA10098 std      r29,0x98(r1)          PIPE
+0x00000038: FB810090 std      r28,0x90(r1)
+0x0000003C: 7C1FC840 cmplw    r31,r25               PIPE
+0x00000040: 40800014 bge      0x00000054
+0x00000044: 63630000 mr       r3,r27
+0x00000048: 48000001 bl       std::_String_base::_Xran() const 08
+0x0000004C: 60000000 nop                            PIPE
+0x00000050: 83FA0014 lwz      r31,0x14(r26)
+0x00000054: 7FF9F810 subfc    r31,r25,r31          02 (00000050) REG
+0x00000058: 7BFF0020 clrldi   r31,r31,32           01 (00000054) REG
+0x0000005C: 7C1EF840 cmplw    r30,r31              01 (00000058) REG PIPE
+0x00000060: 40800008 bge      0x00000068
+0x00000064: 63DF0000 mr       r31,r30
+0x00000068: 7C1BD000 cmpw     r27,r26
+0x0000006C: 40820168 bne      0x000001D4           01 (00000068) REG
+0x00000070: 7FFFC814 addc     r31,r31,r25
+0x00000074: 809B0014 lwz      r4,0x14(r27)
+0x00000078: 3BC0FFFF li       r30,-0x1
+0x0000007C: 7C04F840 cmplw    r4,r31                PIPE
+0x00000080: 40800014 bge      0x00000094
+0x00000084: 63630000 mr       r3,r27
+0x00000088: 48000001 bl       std::_String_base::_Xran() const 08
+0x0000008C: 60000000 nop                            PIPE
+0x00000090: 809B0014 lwz      r4,0x14(r27)
+0x00000094: 7CDF2010 subfc    r6,r31,r4            02 (00000090) REG
+0x00000098: 7C06F040 cmplw    r6,r30               01 (00000094) REG
+0x0000009C: 40800010 bge      0x000000AC           01 (00000098) REG
+0x000000A0: 60DE0000 mr       r30,r6
+0x000000A4: 2C1E0000 cmpwi    r30,0x0              01 (000000A0) REG PIPE
+0x000000A8: 41820090 beq      0x00000138
+0x000000AC: 309B0004 addic    r4,r27,0x4
+0x000000B0: 80FB0018 lwz      r7,0x18(r27)
+0x000000B4: 609D0000 mr       r29,r4               01 (000000AC) REG
+0x000000B8: 28070008 cmplwi   r7,0x8
+0x000000BC: 41800008 blt      0x000000C4           01 (000000B8) REG
+0x000000C0: 809B0004 lwz      r4,0x4(r27)
+0x000000C4: 60830000 mr       r3,r4                02 (000000C0) REG
+0x000000C8: 7BE40FA4 sldi     r4,r31,1
+0x000000CC: 63BF0000 mr       r31,r29               PIPE
+0x000000D0: 7C632014 addc     r3,r3,r4
+0x000000D4: 28070008 cmplwi   r7,0x8                PIPE
+0x000000D8: 78630020 clrldi   r3,r3,32
+0x000000DC: 41800008 blt      0x000000E4
+0x000000E0: 83FB0004 lwz      r31,0x4(r27)
+0x000000E4: 7CBE3010 subfc    r5,r30,r6
+0x000000E8: 7C9F2014 addc     r4,r31,r4            01 (000000E0) REG
+0x000000EC: 7BC60FA4 sldi     r6,r30,1              PIPE
+0x000000F0: 78A50020 clrldi   r5,r5,32
+0x000000F4: 7C843014 addc     r4,r4,r6              PIPE
+0x000000F8: 78840020 clrldi   r4,r4,32             01 (000000F4) REG
+0x000000FC: 48000001 bl       .wmemmove            08
+0x00000100: 60000000 nop      
+0x00000104: 807B0014 lwz      r3,0x14(r27)
+0x00000108: 809B0018 lwz      r4,0x18(r27)
+0x0000010C: 7FDE1810 subfc    r30,r30,r3           01 (00000104) REG
+0x00000110: 28040008 cmplwi   r4,0x8
+0x00000114: 41800008 blt      0x0000011C           01 (00000110) REG
+0x00000118: 83BB0004 lwz      r29,0x4(r27)
+0x0000011C: 7BC30FA4 sldi     r3,r30,1
+0x00000120: 93DB0014 stw      r30,0x14(r27)
+0x00000124: 38800000 li       r4,0x0                PIPE
+0x00000128: 7C7D1814 addc     r3,r29,r3
+0x0000012C: 78630020 clrldi   r3,r3,32             01 (00000128) REG PIPE
+0x00000130: B0830000 sth      r4,0x0(r3)           03 (0000012C) REG LSU
+0x00000134: 809B0014 lwz      r4,0x14(r27)         50 (00000120) PIPE LHS[09]
+0x00000138: 7C04C840 cmplw    r4,r25               01 (00000134) REG
+0x0000013C: 40800008 bge      0x00000144           01 (00000138) REG
+0x00000140: 60990000 mr       r25,r4
+0x00000144: 2C190000 cmpwi    r25,0x0              01 (00000140) REG PIPE
+0x00000148: 4182024C beq      0x00000394
+0x0000014C: 80BB0018 lwz      r5,0x18(r27)
+0x00000150: 28050008 cmplwi   r5,0x8               01 (0000014C) REG
+0x00000154: 4180000C blt      0x00000160           01 (00000150) REG
+0x00000158: 807B0004 lwz      r3,0x4(r27)
+0x0000015C: 4800000C b        0x00000168           08
+0x00000160: 307B0004 addic    r3,r27,0x4
+0x00000164: 78630020 clrldi   r3,r3,32             01 (00000160) REG PIPE
+0x00000168: 60A60000 mr       r6,r5
+0x0000016C: 30BB0004 addic    r5,r27,0x4            PIPE
+0x00000170: 28060008 cmplwi   r6,0x8
+0x00000174: 60BF0000 mr       r31,r5                PIPE
+0x00000178: 41800008 blt      0x00000180
+0x0000017C: 80BB0004 lwz      r5,0x4(r27)
+0x00000180: 60A60000 mr       r6,r5                01 (0000017C) REG
+0x00000184: 5727083C slwi     r7,r25,1              PIPE
+0x00000188: 7CB92010 subfc    r5,r25,r4
+0x0000018C: 7C863814 addc     r4,r6,r7              PIPE
+0x00000190: 78A50020 clrldi   r5,r5,32
+0x00000194: 78840020 clrldi   r4,r4,32              PIPE
+0x00000198: 48000001 bl       .wmemmove            08
+0x0000019C: 60000000 nop                            PIPE
+0x000001A0: 807B0014 lwz      r3,0x14(r27)
+0x000001A4: 809B0018 lwz      r4,0x18(r27)          PIPE
+0x000001A8: 7F391810 subfc    r25,r25,r3
+0x000001AC: 28040008 cmplwi   r4,0x8                PIPE
+0x000001B0: 41800008 blt      0x000001B8
+0x000001B4: 83FB0004 lwz      r31,0x4(r27)
+0x000001B8: 7B230FA4 sldi     r3,r25,1
+0x000001BC: 38800000 li       r4,0x0                PIPE
+0x000001C0: 933B0014 stw      r25,0x14(r27)
+0x000001C4: 7C7F1814 addc     r3,r31,r3             PIPE
+0x000001C8: 78630020 clrldi   r3,r3,32             01 (000001C4) REG
+0x000001CC: B0830000 sth      r4,0x0(r3)           03 (000001C8) REG PIPE LSU
+0x000001D0: 480001C4 b        0x00000394           08
+0x000001D4: 3FA07FFF lis      r29,0x7FFF            PIPE
+0x000001D8: 63BDFFFE ori      r29,r29,0xFFFE       01 (000001D4) REG
+0x000001DC: 7C1FE840 cmplw    r31,r29              01 (000001D8) REG PIPE
+0x000001E0: 40810010 ble      0x000001F0
+0x000001E4: 63630000 mr       r3,r27
+0x000001E8: 48000001 bl       std::_String_base::_Xlen() const 08
+0x000001EC: 60000000 nop                            PIPE
+0x000001F0: 80DB0018 lwz      r6,0x18(r27)
+0x000001F4: 2C9F0000 cmpwi    cr1,r31,0x0
+0x000001F8: 7C06F840 cmplw    r6,r31               01 (000001F0) REG
+0x000001FC: 408000F4 bge      0x000002F0           01 (000001F8) REG
+0x00000200: 63FC0007 ori      r28,r31,0x7
+0x00000204: 83DB0014 lwz      r30,0x14(r27)
+0x00000208: 7C1CE840 cmplw    r28,r29              01 (00000200) REG
+0x0000020C: 4081000C ble      0x00000218           01 (00000208) REG
+0x00000210: 63FC0000 mr       r28,r31
+0x00000214: 48000030 b        0x00000244           08
+0x00000218: 3C60AAAA lis      r3,0xAAAA
+0x0000021C: 54C7F87E srwi     r7,r6,1               PIPE
+0x00000220: 6063AAAB ori      r3,r3,0xAAAB
+0x00000224: 7C63E016 mulhwu   r3,r3,r28            09+01 (00000220) REG PIPE
+0x00000228: 5463F87E srwi     r3,r3,1
+0x0000022C: 7C033840 cmplw    r3,r7                01 (00000228) REG PIPE
+0x00000230: 40800014 bge      0x00000244
+0x00000234: 7C67E810 subfc    r3,r7,r29
+0x00000238: 7C061840 cmplw    r6,r3                01 (00000234) REG
+0x0000023C: 41810008 bgt      0x00000244           01 (00000238) REG
+0x00000240: 7F863814 addc     r28,r6,r7
+0x00000244: 307C0001 addic    r3,r28,0x1           01 (00000240) REG PIPE
+0x00000248: 38800002 li       r4,0x2
+0x0000024C: 5463083C slwi     r3,r3,1               PIPE
+0x00000250: 48000001 bl       operator new(unsigned int, unsigned int) 08
+0x00000254: 60000000 nop                            PIPE
+0x00000258: 607D0000 mr       r29,r3
+0x0000025C: 2C1E0000 cmpwi    r30,0x0               PIPE
+0x00000260: 41820030 beq      0x00000290
+0x00000264: 807B0018 lwz      r3,0x18(r27)
+0x00000268: 28030008 cmplwi   r3,0x8               01 (00000264) REG
+0x0000026C: 4180000C blt      0x00000278           01 (00000268) REG
+0x00000270: 809B0004 lwz      r4,0x4(r27)
+0x00000274: 4800000C b        0x00000280           08
+0x00000278: 309B0004 addic    r4,r27,0x4
+0x0000027C: 78840020 clrldi   r4,r4,32             01 (00000278) REG PIPE
+0x00000280: 63A30000 mr       r3,r29
+0x00000284: 63C50000 mr       r5,r30                PIPE
+0x00000288: 48000001 bl       .wmemcpy             08
+0x0000028C: 60000000 nop                            PIPE
+0x00000290: 807B0018 lwz      r3,0x18(r27)
+0x00000294: 28030008 cmplwi   r3,0x8               02 (00000290) REG
+0x00000298: 41800010 blt      0x000002A8
+0x0000029C: 807B0004 lwz      r3,0x4(r27)
+0x000002A0: 48000001 bl       operator delete(void*) 08
+0x000002A4: 60000000 nop                            PIPE
+0x000002A8: 30DB0004 addic    r6,r27,0x4
+0x000002AC: 38600007 li       r3,0x7                PIPE
+0x000002B0: 38E00000 li       r7,0x0
+0x000002B4: 78C40020 clrldi   r4,r6,32              PIPE
+0x000002B8: 281C0008 cmplwi   r28,0x8
+0x000002BC: 907B0018 stw      r3,0x18(r27)          PIPE
+0x000002C0: 90FB0014 stw      r7,0x14(r27)
+0x000002C4: B0E40000 sth      r7,0x0(r4)            PIPE
+0x000002C8: 93BB0004 stw      r29,0x4(r27)
+0x000002CC: 939B0018 stw      r28,0x18(r27)         PIPE
+0x000002D0: 41800008 blt      0x000002D8
+0x000002D4: 63A60000 mr       r6,r29
+0x000002D8: 57C3083C slwi     r3,r30,1
+0x000002DC: 93DB0014 stw      r30,0x14(r27)         PIPE
+0x000002E0: 7C661814 addc     r3,r6,r3
+0x000002E4: 78630020 clrldi   r3,r3,32             01 (000002E0) REG PIPE
+0x000002E8: B0E30000 sth      r7,0x0(r3)           03 (000002E4) REG LSU
+0x000002EC: 4800002C b        0x00000318           08
+0x000002F0: 40860028 bne      cr1,0x00000318
+0x000002F4: 60C30000 mr       r3,r6
+0x000002F8: 30DB0004 addic    r6,r27,0x4
+0x000002FC: 28030008 cmplwi   r3,0x8                PIPE
+0x00000300: 41800008 blt      0x00000308
+0x00000304: 80DB0004 lwz      r6,0x4(r27)
+0x00000308: 38600000 li       r3,0x0
+0x0000030C: 78C40020 clrldi   r4,r6,32              PIPE
+0x00000310: 907B0014 stw      r3,0x14(r27)
+0x00000314: B0640000 sth      r3,0x0(r4)            PIPE
+0x00000318: 2C1F0000 cmpwi    r31,0x0
+0x0000031C: 41820078 beq      0x00000394           01 (00000318) REG
+0x00000320: 807B0018 lwz      r3,0x18(r27)
+0x00000324: 28030008 cmplwi   r3,0x8               02 (00000320) REG
+0x00000328: 4180000C blt      0x00000334
+0x0000032C: 807B0004 lwz      r3,0x4(r27)
+0x00000330: 4800000C b        0x0000033C           08
+0x00000334: 307B0004 addic    r3,r27,0x4            PIPE
+0x00000338: 78630020 clrldi   r3,r3,32             01 (00000334) REG
+0x0000033C: 809A0018 lwz      r4,0x18(r26)
+0x00000340: 30DA0004 addic    r6,r26,0x4
+0x00000344: 28040008 cmplwi   r4,0x8                PIPE
+0x00000348: 41800008 blt      0x00000350
+0x0000034C: 80DA0004 lwz      r6,0x4(r26)
+0x00000350: 5724083C slwi     r4,r25,1
+0x00000354: 63E50000 mr       r5,r31                PIPE
+0x00000358: 7C862014 addc     r4,r6,r4
+0x0000035C: 78840020 clrldi   r4,r4,32             01 (00000358) REG PIPE
+0x00000360: 48000001 bl       .wmemcpy             08
+0x00000364: 60000000 nop                            PIPE
+0x00000368: 809B0018 lwz      r4,0x18(r27)
+0x0000036C: 307B0004 addic    r3,r27,0x4
+0x00000370: 28040008 cmplwi   r4,0x8               01 (00000368) REG
+0x00000374: 41800008 blt      0x0000037C           01 (00000370) REG
+0x00000378: 807B0004 lwz      r3,0x4(r27)
+0x0000037C: 57E4083C slwi     r4,r31,1
+0x00000380: 93FB0014 stw      r31,0x14(r27)
+0x00000384: 38A00000 li       r5,0x0                PIPE
+0x00000388: 7C632014 addc     r3,r3,r4
+0x0000038C: 78630020 clrldi   r3,r3,32             01 (00000388) REG PIPE
+0x00000390: B0A30000 sth      r5,0x0(r3)           03 (0000038C) REG LSU
+0x00000394: 63630000 mr       r3,r27                PIPE
+0x00000398: E80100C0 ld       r0,0xC0(r1)
+0x0000039C: 7C0803A6 mtspr    lr,r0                02 (00000398) REG
+0x000003A0: EB210078 ld       r25,0x78(r1)
+0x000003A4: EB410080 ld       r26,0x80(r1)          PIPE
+0x000003A8: EB610088 ld       r27,0x88(r1)
+0x000003AC: EB810090 ld       r28,0x90(r1)          PIPE
+0x000003B0: EBA10098 ld       r29,0x98(r1)
+0x000003B4: EBC100A0 ld       r30,0xA0(r1)          PIPE
+0x000003B8: EBE100A8 ld       r31,0xA8(r1)
+0x000003BC: 382100B0 addi     r1,r1,0xB0
+0x000003C0: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSbIwSt11char_traitsIwESaIwEEC1EPKw:
+
+std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::basic_string(wchar_t const*):
+0x00000000: F821FF51 stdu     r1,-0xB0(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100C0 std      r0,0xC0(r1)
+0x0000000C: FB410080 std      r26,0x80(r1)          PIPE
+0x00000010: 607A0000 mr       r26,r3
+0x00000014: FBE100A8 std      r31,0xA8(r1)          PIPE
+0x00000018: 38C00000 li       r6,0x0
+0x0000001C: 33FA0004 addic    r31,r26,0x4           PIPE
+0x00000020: FBC100A0 std      r30,0xA0(r1)
+0x00000024: 38A00007 li       r5,0x7                PIPE
+0x00000028: 7BFE0020 clrldi   r30,r31,32
+0x0000002C: FB210078 std      r25,0x78(r1)          PIPE
+0x00000030: 90DA0014 stw      r6,0x14(r26)
+0x00000034: 60990000 mr       r25,r4                PIPE
+0x00000038: 90BA0018 stw      r5,0x18(r26)
+0x0000003C: 63230000 mr       r3,r25                PIPE
+0x00000040: FBA10098 std      r29,0x98(r1)
+0x00000044: FB810090 std      r28,0x90(r1)          PIPE
+0x00000048: FB610088 std      r27,0x88(r1)
+0x0000004C: FB010070 std      r24,0x70(r1)          PIPE
+0x00000050: B0DE0000 sth      r6,0x0(r30)
+0x00000054: 48000001 bl       .wcslen              08
+0x00000058: 60000000 nop      
+0x0000005C: 80BA0018 lwz      r5,0x18(r26)
+0x00000060: 607D0000 mr       r29,r3
+0x00000064: 831A0014 lwz      r24,0x14(r26)
+0x00000068: 63E60000 mr       r6,r31
+0x0000006C: 28050008 cmplwi   r5,0x8                PIPE
+0x00000070: 41800008 blt      0x00000078
+0x00000074: 80DA0004 lwz      r6,0x4(r26)
+0x00000078: 7C193040 cmplw    r25,r6               01 (00000074) REG
+0x0000007C: 41800058 blt      0x000000D4           01 (00000078) REG
+0x00000080: 63E60000 mr       r6,r31
+0x00000084: 28050008 cmplwi   r5,0x8                PIPE
+0x00000088: 41800008 blt      0x00000090
+0x0000008C: 80DA0004 lwz      r6,0x4(r26)
+0x00000090: 5703083C slwi     r3,r24,1
+0x00000094: 7C661814 addc     r3,r6,r3             01 (00000090) REG PIPE
+0x00000098: 7C03C840 cmplw    r3,r25               01 (00000094) REG
+0x0000009C: 40810038 ble      0x000000D4           01 (00000098) REG
+0x000000A0: 28050008 cmplwi   r5,0x8
+0x000000A4: 41800008 blt      0x000000AC           01 (000000A0) REG
+0x000000A8: 83FA0004 lwz      r31,0x4(r26)
+0x000000AC: 7C7FC810 subfc    r3,r31,r25           02 (000000A8) REG
+0x000000B0: 63A60000 mr       r6,r29
+0x000000B4: 7C640E70 srawi    r4,r3,1               PIPE
+0x000000B8: 63430000 mr       r3,r26
+0x000000BC: 7CA40194 addze    r5,r4                 PIPE
+0x000000C0: 63440000 mr       r4,r26
+0x000000C4: 78A50020 clrldi   r5,r5,32              PIPE
+0x000000C8: 48000001 bl       std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::assign(std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>> const&, unsigned int, unsigned int) 08
+0x000000CC: 60000000 nop                            PIPE
+0x000000D0: 48000194 b        0x00000264           08
+0x000000D4: 3F807FFF lis      r28,0x7FFF            PIPE
+0x000000D8: 639CFFFE ori      r28,r28,0xFFFE       01 (000000D4) REG
+0x000000DC: 7C1DE040 cmplw    r29,r28              01 (000000D8) REG PIPE
+0x000000E0: 40810018 ble      0x000000F8
+0x000000E4: 63430000 mr       r3,r26
+0x000000E8: 48000001 bl       std::_String_base::_Xlen() const 08
+0x000000EC: 60000000 nop                            PIPE
+0x000000F0: 80BA0018 lwz      r5,0x18(r26)
+0x000000F4: 831A0014 lwz      r24,0x14(r26)         PIPE
+0x000000F8: 7C05E840 cmplw    r5,r29
+0x000000FC: 408000E8 bge      0x000001E4           01 (000000F8) REG
+0x00000100: 63BB0007 ori      r27,r29,0x7
+0x00000104: 7C1BE040 cmplw    r27,r28              01 (00000100) REG PIPE
+0x00000108: 4081000C ble      0x00000114
+0x0000010C: 63BB0000 mr       r27,r29
+0x00000110: 48000030 b        0x00000140           08
+0x00000114: 3C60AAAA lis      r3,0xAAAA             PIPE
+0x00000118: 54A6F87E srwi     r6,r5,1
+0x0000011C: 6063AAAB ori      r3,r3,0xAAAB          PIPE
+0x00000120: 7C63D816 mulhwu   r3,r3,r27            09+01 (0000011C) REG
+0x00000124: 5463F87E srwi     r3,r3,1               PIPE
+0x00000128: 7C033040 cmplw    r3,r6                01 (00000124) REG
+0x0000012C: 40800014 bge      0x00000140           01 (00000128) REG
+0x00000130: 7C66E010 subfc    r3,r6,r28
+0x00000134: 7C051840 cmplw    r5,r3                01 (00000130) REG PIPE
+0x00000138: 41810008 bgt      0x00000140
+0x0000013C: 7F653014 addc     r27,r5,r6
+0x00000140: 307B0001 addic    r3,r27,0x1           01 (0000013C) REG
+0x00000144: 38800002 li       r4,0x2                PIPE
+0x00000148: 5463083C slwi     r3,r3,1
+0x0000014C: 48000001 bl       operator new(unsigned int, unsigned int) 08
+0x00000150: 60000000 nop      
+0x00000154: 607C0000 mr       r28,r3                PIPE
+0x00000158: 2C180000 cmpwi    r24,0x0
+0x0000015C: 41820028 beq      0x00000184           01 (00000158) REG
+0x00000160: 807A0018 lwz      r3,0x18(r26)
+0x00000164: 63C40000 mr       r4,r30
+0x00000168: 28030008 cmplwi   r3,0x8               01 (00000160) REG
+0x0000016C: 41800008 blt      0x00000174           01 (00000168) REG
+0x00000170: 809A0004 lwz      r4,0x4(r26)
+0x00000174: 63830000 mr       r3,r28
+0x00000178: 63050000 mr       r5,r24
+0x0000017C: 48000001 bl       .wmemcpy             08
+0x00000180: 60000000 nop      
+0x00000184: 807A0018 lwz      r3,0x18(r26)
+0x00000188: 28030008 cmplwi   r3,0x8               01 (00000184) REG
+0x0000018C: 41800010 blt      0x0000019C           01 (00000188) REG
+0x00000190: 807A0004 lwz      r3,0x4(r26)
+0x00000194: 48000001 bl       operator delete(void*) 08
+0x00000198: 60000000 nop      
+0x0000019C: 38600000 li       r3,0x0                PIPE
+0x000001A0: 38800007 li       r4,0x7
+0x000001A4: 63E50000 mr       r5,r31                PIPE
+0x000001A8: 281B0008 cmplwi   r27,0x8
+0x000001AC: 907A0014 stw      r3,0x14(r26)          PIPE
+0x000001B0: 909A0018 stw      r4,0x18(r26)
+0x000001B4: B07E0000 sth      r3,0x0(r30)           PIPE
+0x000001B8: 939A0004 stw      r28,0x4(r26)
+0x000001BC: 937A0018 stw      r27,0x18(r26)         PIPE
+0x000001C0: 41800008 blt      0x000001C8
+0x000001C4: 63850000 mr       r5,r28
+0x000001C8: 5703083C slwi     r3,r24,1
+0x000001CC: 931A0014 stw      r24,0x14(r26)         PIPE
+0x000001D0: 38800000 li       r4,0x0
+0x000001D4: 7C651814 addc     r3,r5,r3              PIPE
+0x000001D8: 78630020 clrldi   r3,r3,32             01 (000001D4) REG
+0x000001DC: B0830000 sth      r4,0x0(r3)           03 (000001D8) REG PIPE LSU
+0x000001E0: 48000030 b        0x00000210           08
+0x000001E4: 2C1D0000 cmpwi    r29,0x0               PIPE
+0x000001E8: 40820028 bne      0x00000210
+0x000001EC: 60A30000 mr       r3,r5
+0x000001F0: 63E50000 mr       r5,r31
+0x000001F4: 28030008 cmplwi   r3,0x8                PIPE
+0x000001F8: 41800008 blt      0x00000200
+0x000001FC: 80BA0004 lwz      r5,0x4(r26)
+0x00000200: 38600000 li       r3,0x0
+0x00000204: 78A40020 clrldi   r4,r5,32              PIPE
+0x00000208: 907A0014 stw      r3,0x14(r26)
+0x0000020C: B0640000 sth      r3,0x0(r4)            PIPE
+0x00000210: 2C1D0000 cmpwi    r29,0x0
+0x00000214: 41820050 beq      0x00000264           01 (00000210) REG
+0x00000218: 809A0018 lwz      r4,0x18(r26)
+0x0000021C: 63C30000 mr       r3,r30
+0x00000220: 28040008 cmplwi   r4,0x8               01 (00000218) REG
+0x00000224: 41800008 blt      0x0000022C           01 (00000220) REG
+0x00000228: 807A0004 lwz      r3,0x4(r26)
+0x0000022C: 63240000 mr       r4,r25
+0x00000230: 63A50000 mr       r5,r29
+0x00000234: 48000001 bl       .wmemcpy             08
+0x00000238: 60000000 nop      
+0x0000023C: 807A0018 lwz      r3,0x18(r26)
+0x00000240: 28030008 cmplwi   r3,0x8               01 (0000023C) REG
+0x00000244: 41800008 blt      0x0000024C           01 (00000240) REG
+0x00000248: 83FA0004 lwz      r31,0x4(r26)
+0x0000024C: 57A3083C slwi     r3,r29,1
+0x00000250: 38800000 li       r4,0x0
+0x00000254: 93BA0014 stw      r29,0x14(r26)         PIPE
+0x00000258: 7C7F1814 addc     r3,r31,r3
+0x0000025C: 78630020 clrldi   r3,r3,32             01 (00000258) REG PIPE
+0x00000260: B0830000 sth      r4,0x0(r3)           03 (0000025C) REG LSU
+0x00000264: E80100C0 ld       r0,0xC0(r1)           PIPE
+0x00000268: 7C0803A6 mtspr    lr,r0                01 (00000264) REG
+0x0000026C: EB010070 ld       r24,0x70(r1)
+0x00000270: EB210078 ld       r25,0x78(r1)
+0x00000274: EB410080 ld       r26,0x80(r1)          PIPE
+0x00000278: EB610088 ld       r27,0x88(r1)
+0x0000027C: EB810090 ld       r28,0x90(r1)          PIPE
+0x00000280: EBA10098 ld       r29,0x98(r1)
+0x00000284: EBC100A0 ld       r30,0xA0(r1)          PIPE
+0x00000288: EBE100A8 ld       r31,0xA8(r1)
+0x0000028C: 382100B0 addi     r1,r1,0xB0
+0x00000290: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSs6appendERKSsjj:
+
+std::basic_string<char, std::char_traits<char>, std::allocator<char>>::append(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int):
+0x00000000: F821FF51 stdu     r1,-0xB0(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100C0 std      r0,0xC0(r1)
+0x0000000C: FB610088 std      r27,0x88(r1)          PIPE
+0x00000010: FB410080 std      r26,0x80(r1)
+0x00000014: FB210078 std      r25,0x78(r1)          PIPE
+0x00000018: 609B0000 mr       r27,r4
+0x0000001C: 60D90000 mr       r25,r6                PIPE
+0x00000020: FB810090 std      r28,0x90(r1)
+0x00000024: 60BA0000 mr       r26,r5                PIPE
+0x00000028: 607C0000 mr       r28,r3
+0x0000002C: 80DB0014 lwz      r6,0x14(r27)
+0x00000030: FBE100A8 std      r31,0xA8(r1)
+0x00000034: FBC100A0 std      r30,0xA0(r1)          PIPE
+0x00000038: FBA10098 std      r29,0x98(r1)
+0x0000003C: FB010070 std      r24,0x70(r1)          PIPE
+0x00000040: 7C06D040 cmplw    r6,r26
+0x00000044: 40800014 bge      0x00000058           01 (00000040) REG
+0x00000048: 63830000 mr       r3,r28
+0x0000004C: 48000001 bl       std::_String_base::_Xran() const 08
+0x00000050: 60000000 nop      
+0x00000054: 80DB0014 lwz      r6,0x14(r27)
+0x00000058: 7CDA3010 subfc    r6,r26,r6            01 (00000054) REG
+0x0000005C: 78C60020 clrldi   r6,r6,32             01 (00000058) REG PIPE
+0x00000060: 7C193040 cmplw    r25,r6               01 (0000005C) REG
+0x00000064: 40810008 ble      0x0000006C           01 (00000060) REG
+0x00000068: 60D90000 mr       r25,r6
+0x0000006C: 3860FFFF li       r3,-0x1               PIPE
+0x00000070: 831C0014 lwz      r24,0x14(r28)
+0x00000074: 7C781810 subfc    r3,r24,r3            02 (00000070) REG
+0x00000078: 7C03C840 cmplw    r3,r25               01 (00000074) REG
+0x0000007C: 41810014 bgt      0x00000090           01 (00000078) REG
+0x00000080: 63830000 mr       r3,r28
+0x00000084: 48000001 bl       std::_String_base::_Xlen() const 08
+0x00000088: 60000000 nop      
+0x0000008C: 831C0014 lwz      r24,0x14(r28)
+0x00000090: 2C190000 cmpwi    r25,0x0
+0x00000094: 418201BC beq      0x00000250           01 (00000090) REG
+0x00000098: 7FF8C814 addc     r31,r24,r25
+0x0000009C: 3BC0FFFE li       r30,-0x2              PIPE
+0x000000A0: 7C1FF040 cmplw    r31,r30              01 (0000009C) REG
+0x000000A4: 40810014 ble      0x000000B8           01 (000000A0) REG
+0x000000A8: 63830000 mr       r3,r28
+0x000000AC: 48000001 bl       std::_String_base::_Xlen() const 08
+0x000000B0: 60000000 nop      
+0x000000B4: 831C0014 lwz      r24,0x14(r28)
+0x000000B8: 80DC0018 lwz      r6,0x18(r28)
+0x000000BC: 7C06F840 cmplw    r6,r31               02 (000000B8) REG
+0x000000C0: 408000EC bge      0x000001AC
+0x000000C4: 63FD000F ori      r29,r31,0xF
+0x000000C8: 7C1DF040 cmplw    r29,r30              01 (000000C4) REG
+0x000000CC: 4081000C ble      0x000000D8           01 (000000C8) REG
+0x000000D0: 63FD0000 mr       r29,r31
+0x000000D4: 48000030 b        0x00000104           08
+0x000000D8: 3C60AAAA lis      r3,0xAAAA
+0x000000DC: 54C7F87E srwi     r7,r6,1               PIPE
+0x000000E0: 6063AAAB ori      r3,r3,0xAAAB
+0x000000E4: 7C63E816 mulhwu   r3,r3,r29            09+01 (000000E0) REG PIPE
+0x000000E8: 5463F87E srwi     r3,r3,1
+0x000000EC: 7C033840 cmplw    r3,r7                01 (000000E8) REG PIPE
+0x000000F0: 40800014 bge      0x00000104
+0x000000F4: 7C67F010 subfc    r3,r7,r30
+0x000000F8: 7C061840 cmplw    r6,r3                01 (000000F4) REG
+0x000000FC: 41810008 bgt      0x00000104           01 (000000F8) REG
+0x00000100: 7FA63814 addc     r29,r6,r7
+0x00000104: 307D0001 addic    r3,r29,0x1           01 (00000100) REG PIPE
+0x00000108: 38800001 li       r4,0x1
+0x0000010C: 78630020 clrldi   r3,r3,32              PIPE
+0x00000110: 48000001 bl       operator new(unsigned int, unsigned int) 08
+0x00000114: 60000000 nop                            PIPE
+0x00000118: 607E0000 mr       r30,r3
+0x0000011C: 2C180000 cmpwi    r24,0x0               PIPE
+0x00000120: 41820030 beq      0x00000150
+0x00000124: 807C0018 lwz      r3,0x18(r28)
+0x00000128: 28030010 cmplwi   r3,0x10              01 (00000124) REG
+0x0000012C: 4180000C blt      0x00000138           01 (00000128) REG
+0x00000130: 809C0004 lwz      r4,0x4(r28)
+0x00000134: 4800000C b        0x00000140           08
+0x00000138: 309C0004 addic    r4,r28,0x4
+0x0000013C: 78840020 clrldi   r4,r4,32             01 (00000138) REG PIPE
+0x00000140: 63C30000 mr       r3,r30
+0x00000144: 63050000 mr       r5,r24                PIPE
+0x00000148: 48000001 bl       .memcpy              08
+0x0000014C: 60000000 nop                            PIPE
+0x00000150: 807C0018 lwz      r3,0x18(r28)
+0x00000154: 28030010 cmplwi   r3,0x10              02 (00000150) REG
+0x00000158: 41800010 blt      0x00000168
+0x0000015C: 807C0004 lwz      r3,0x4(r28)
+0x00000160: 48000001 bl       operator delete(void*) 08
+0x00000164: 60000000 nop                            PIPE
+0x00000168: 30DC0004 addic    r6,r28,0x4
+0x0000016C: 3860000F li       r3,0xF                PIPE
+0x00000170: 38E00000 li       r7,0x0
+0x00000174: 78C40020 clrldi   r4,r6,32              PIPE
+0x00000178: 281D0010 cmplwi   r29,0x10
+0x0000017C: 907C0018 stw      r3,0x18(r28)          PIPE
+0x00000180: 90FC0014 stw      r7,0x14(r28)
+0x00000184: 98E40000 stb      r7,0x0(r4)            PIPE
+0x00000188: 93DC0004 stw      r30,0x4(r28)
+0x0000018C: 93BC0018 stw      r29,0x18(r28)         PIPE
+0x00000190: 41800008 blt      0x00000198
+0x00000194: 63C60000 mr       r6,r30
+0x00000198: 7C66C014 addc     r3,r6,r24            01 (00000194) REG
+0x0000019C: 931C0014 stw      r24,0x14(r28)         PIPE
+0x000001A0: 78630020 clrldi   r3,r3,32
+0x000001A4: 98E30000 stb      r7,0x0(r3)           03 (000001A0) REG PIPE LSU
+0x000001A8: 48000030 b        0x000001D8           08
+0x000001AC: 2C1F0000 cmpwi    r31,0x0               PIPE
+0x000001B0: 40820028 bne      0x000001D8
+0x000001B4: 60C30000 mr       r3,r6
+0x000001B8: 30DC0004 addic    r6,r28,0x4
+0x000001BC: 28030010 cmplwi   r3,0x10               PIPE
+0x000001C0: 41800008 blt      0x000001C8
+0x000001C4: 80DC0004 lwz      r6,0x4(r28)
+0x000001C8: 38600000 li       r3,0x0
+0x000001CC: 78C40020 clrldi   r4,r6,32              PIPE
+0x000001D0: 907C0014 stw      r3,0x14(r28)
+0x000001D4: 98640000 stb      r3,0x0(r4)            PIPE
+0x000001D8: 2C1F0000 cmpwi    r31,0x0
+0x000001DC: 41820074 beq      0x00000250           01 (000001D8) REG
+0x000001E0: 30DC0004 addic    r6,r28,0x4
+0x000001E4: 807C0018 lwz      r3,0x18(r28)
+0x000001E8: 60DE0000 mr       r30,r6               01 (000001E0) REG
+0x000001EC: 28030010 cmplwi   r3,0x10               PIPE
+0x000001F0: 41800008 blt      0x000001F8
+0x000001F4: 80DC0004 lwz      r6,0x4(r28)
+0x000001F8: 807C0014 lwz      r3,0x14(r28)         50 (000001D0) LHS[09]
+0x000001FC: 809B0018 lwz      r4,0x18(r27)          PIPE
+0x00000200: 7C661814 addc     r3,r6,r3
+0x00000204: 30DB0004 addic    r6,r27,0x4            PIPE
+0x00000208: 78630020 clrldi   r3,r3,32
+0x0000020C: 28040010 cmplwi   r4,0x10               PIPE
+0x00000210: 41800008 blt      0x00000218
+0x00000214: 80DB0004 lwz      r6,0x4(r27)
+0x00000218: 7C86D014 addc     r4,r6,r26            01 (00000214) REG
+0x0000021C: 63250000 mr       r5,r25                PIPE
+0x00000220: 78840020 clrldi   r4,r4,32
+0x00000224: 48000001 bl       .memcpy              08
+0x00000228: 60000000 nop      
+0x0000022C: 807C0018 lwz      r3,0x18(r28)
+0x00000230: 28030010 cmplwi   r3,0x10              01 (0000022C) REG
+0x00000234: 41800008 blt      0x0000023C           01 (00000230) REG
+0x00000238: 83DC0004 lwz      r30,0x4(r28)
+0x0000023C: 7C7EF814 addc     r3,r30,r31           02 (00000238) REG
+0x00000240: 38800000 li       r4,0x0
+0x00000244: 93FC0014 stw      r31,0x14(r28)         PIPE
+0x00000248: 78630020 clrldi   r3,r3,32
+0x0000024C: 98830000 stb      r4,0x0(r3)           03 (00000248) REG PIPE LSU
+0x00000250: 63830000 mr       r3,r28
+0x00000254: E80100C0 ld       r0,0xC0(r1)
+0x00000258: 7C0803A6 mtspr    lr,r0                01 (00000254) REG
+0x0000025C: EB010070 ld       r24,0x70(r1)
+0x00000260: EB210078 ld       r25,0x78(r1)
+0x00000264: EB410080 ld       r26,0x80(r1)          PIPE
+0x00000268: EB610088 ld       r27,0x88(r1)
+0x0000026C: EB810090 ld       r28,0x90(r1)          PIPE
+0x00000270: EBA10098 ld       r29,0x98(r1)
+0x00000274: EBC100A0 ld       r30,0xA0(r1)          PIPE
+0x00000278: EBE100A8 ld       r31,0xA8(r1)
+0x0000027C: 382100B0 addi     r1,r1,0xB0
+0x00000280: 4E800020 blr                           08
+
+Disassembly of section .text._ZStplIcSt11char_traitsIcESaIcEESbIT_T0_T1_ERKS6_PKS3_:
+
+std::basic_string<char, std::char_traits<char>, std::allocator<char>> std::operator+ <char, std::char_traits<char>, std::allocator<char>>(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, char const*):
+0x00000000: F821FF31 stdu     r1,-0xD0(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100E0 std      r0,0xE0(r1)
+0x0000000C: 39000000 li       r8,0x0                PIPE
+0x00000010: 38E0000F li       r7,0xF
+0x00000014: FB4100A0 std      r26,0xA0(r1)          PIPE
+0x00000018: 3CC0FFFF lis      r6,0xFFFF
+0x0000001C: 60BA0000 mr       r26,r5                PIPE
+0x00000020: 91010084 stw      r8,0x84(r1)
+0x00000024: 99010074 stb      r8,0x74(r1)           PIPE
+0x00000028: 60C5FFFF ori      r5,r6,0xFFFF
+0x0000002C: FB6100A8 std      r27,0xA8(r1)          PIPE
+0x00000030: 90E10088 stw      r7,0x88(r1)
+0x00000034: FB210098 std      r25,0x98(r1)          PIPE
+0x00000038: 607B0000 mr       r27,r3
+0x0000003C: 78B90020 clrldi   r25,r5,32             PIPE
+0x00000040: 30610070 addic    r3,r1,0x70
+0x00000044: 38A00000 li       r5,0x0                PIPE
+0x00000048: FBE100C8 std      r31,0xC8(r1)
+0x0000004C: FBC100C0 std      r30,0xC0(r1)          PIPE
+0x00000050: FBA100B8 std      r29,0xB8(r1)
+0x00000054: FB8100B0 std      r28,0xB0(r1)          PIPE
+0x00000058: FB010090 std      r24,0x90(r1)
+0x0000005C: 63260000 mr       r6,r25                PIPE
+0x00000060: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x00000064: 60000000 nop                            PIPE
+0x00000068: 63430000 mr       r3,r26
+0x0000006C: 48000001 bl       .strlen              08
+0x00000070: 60000000 nop      
+0x00000074: 80A10088 lwz      r5,0x88(r1)
+0x00000078: 607F0000 mr       r31,r3
+0x0000007C: 83010084 lwz      r24,0x84(r1)
+0x00000080: 28050010 cmplwi   r5,0x10
+0x00000084: 41800010 blt      0x00000094           01 (00000080) REG
+0x00000088: 81010074 lwz      r8,0x74(r1)
+0x0000008C: 61070000 mr       r7,r8                02 (00000088) REG
+0x00000090: 4800000C b        0x0000009C           08
+0x00000094: 30E10074 addic    r7,r1,0x74            PIPE
+0x00000098: 81010074 lwz      r8,0x74(r1)
+0x0000009C: 7C1A3840 cmplw    r26,r7               01 (00000094) REG
+0x000000A0: 41800050 blt      0x000000F0
+0x000000A4: 30E10074 addic    r7,r1,0x74
+0x000000A8: 28050010 cmplwi   r5,0x10
+0x000000AC: 60E90000 mr       r9,r7                 PIPE
+0x000000B0: 41800008 blt      0x000000B8
+0x000000B4: 61070000 mr       r7,r8
+0x000000B8: 7C67C014 addc     r3,r7,r24            01 (000000B4) REG
+0x000000BC: 7C03D040 cmplw    r3,r26               01 (000000B8) REG PIPE
+0x000000C0: 40810030 ble      0x000000F0
+0x000000C4: 28050010 cmplwi   r5,0x10
+0x000000C8: 41800008 blt      0x000000D0
+0x000000CC: 61090000 mr       r9,r8
+0x000000D0: 7CA9D010 subfc    r5,r9,r26            01 (000000CC) REG
+0x000000D4: 30610070 addic    r3,r1,0x70            PIPE
+0x000000D8: 63E60000 mr       r6,r31
+0x000000DC: 78A50020 clrldi   r5,r5,32              PIPE
+0x000000E0: 60640000 mr       r4,r3
+0x000000E4: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::append(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x000000E8: 60000000 nop      
+0x000000EC: 480001BC b        0x000002A8           08
+0x000000F0: 3860FFFF li       r3,-0x1
+0x000000F4: 7C781810 subfc    r3,r24,r3            01 (000000F0) REG PIPE
+0x000000F8: 7C03F840 cmplw    r3,r31               01 (000000F4) REG
+0x000000FC: 41810014 bgt      0x00000110           01 (000000F8) REG
+0x00000100: 30610070 addic    r3,r1,0x70
+0x00000104: 48000001 bl       std::_String_base::_Xlen() const 08
+0x00000108: 60000000 nop      
+0x0000010C: 83010084 lwz      r24,0x84(r1)
+0x00000110: 2C1F0000 cmpwi    r31,0x0
+0x00000114: 41820190 beq      0x000002A4           01 (00000110) REG
+0x00000118: 7FD8F814 addc     r30,r24,r31
+0x0000011C: 3BA0FFFE li       r29,-0x2              PIPE
+0x00000120: 7C1EE840 cmplw    r30,r29              01 (0000011C) REG
+0x00000124: 40810014 ble      0x00000138           01 (00000120) REG
+0x00000128: 30610070 addic    r3,r1,0x70
+0x0000012C: 48000001 bl       std::_String_base::_Xlen() const 08
+0x00000130: 60000000 nop      
+0x00000134: 83010084 lwz      r24,0x84(r1)
+0x00000138: 80A10088 lwz      r5,0x88(r1)
+0x0000013C: 7C05F040 cmplw    r5,r30               02 (00000138) REG
+0x00000140: 408000D8 bge      0x00000218
+0x00000144: 63DC000F ori      r28,r30,0xF
+0x00000148: 7C1CE840 cmplw    r28,r29              01 (00000144) REG
+0x0000014C: 4081000C ble      0x00000158           01 (00000148) REG
+0x00000150: 63DC0000 mr       r28,r30
+0x00000154: 48000030 b        0x00000184           08
+0x00000158: 3C60AAAA lis      r3,0xAAAA
+0x0000015C: 54A7F87E srwi     r7,r5,1               PIPE
+0x00000160: 6063AAAB ori      r3,r3,0xAAAB
+0x00000164: 7C63E016 mulhwu   r3,r3,r28            09+01 (00000160) REG PIPE
+0x00000168: 5463F87E srwi     r3,r3,1
+0x0000016C: 7C033840 cmplw    r3,r7                01 (00000168) REG PIPE
+0x00000170: 40800014 bge      0x00000184
+0x00000174: 7C67E810 subfc    r3,r7,r29
+0x00000178: 7C051840 cmplw    r5,r3                01 (00000174) REG
+0x0000017C: 41810008 bgt      0x00000184           01 (00000178) REG
+0x00000180: 7F853814 addc     r28,r5,r7
+0x00000184: 307C0001 addic    r3,r28,0x1           01 (00000180) REG PIPE
+0x00000188: 38800001 li       r4,0x1
+0x0000018C: 78630020 clrldi   r3,r3,32              PIPE
+0x00000190: 48000001 bl       operator new(unsigned int, unsigned int) 08
+0x00000194: 60000000 nop                            PIPE
+0x00000198: 607D0000 mr       r29,r3
+0x0000019C: 2C180000 cmpwi    r24,0x0               PIPE
+0x000001A0: 41820028 beq      0x000001C8
+0x000001A4: 80610088 lwz      r3,0x88(r1)
+0x000001A8: 30810074 addic    r4,r1,0x74
+0x000001AC: 28030010 cmplwi   r3,0x10               PIPE
+0x000001B0: 41800008 blt      0x000001B8
+0x000001B4: 80810074 lwz      r4,0x74(r1)
+0x000001B8: 63A30000 mr       r3,r29
+0x000001BC: 63050000 mr       r5,r24                PIPE
+0x000001C0: 48000001 bl       .memcpy              08
+0x000001C4: 60000000 nop                            PIPE
+0x000001C8: 80610088 lwz      r3,0x88(r1)
+0x000001CC: 28030010 cmplwi   r3,0x10              02 (000001C8) REG
+0x000001D0: 41800010 blt      0x000001E0
+0x000001D4: 80610074 lwz      r3,0x74(r1)
+0x000001D8: 48000001 bl       operator delete(void*) 08
+0x000001DC: 60000000 nop                            PIPE
+0x000001E0: 38600000 li       r3,0x0
+0x000001E4: 30A10074 addic    r5,r1,0x74            PIPE
+0x000001E8: 281C0010 cmplwi   r28,0x10
+0x000001EC: 98610074 stb      r3,0x74(r1)           PIPE
+0x000001F0: 93A10074 stw      r29,0x74(r1)
+0x000001F4: 93810088 stw      r28,0x88(r1)          PIPE
+0x000001F8: 41800008 blt      0x00000200
+0x000001FC: 63A50000 mr       r5,r29
+0x00000200: 7C65C014 addc     r3,r5,r24            01 (000001FC) REG
+0x00000204: 93010084 stw      r24,0x84(r1)          PIPE
+0x00000208: 38800000 li       r4,0x0
+0x0000020C: 78630020 clrldi   r3,r3,32              PIPE
+0x00000210: 98830000 stb      r4,0x0(r3)           03 (0000020C) REG LSU
+0x00000214: 4800002C b        0x00000240           08
+0x00000218: 2C1E0000 cmpwi    r30,0x0
+0x0000021C: 40820024 bne      0x00000240           01 (00000218) REG
+0x00000220: 60A30000 mr       r3,r5
+0x00000224: 30A10074 addic    r5,r1,0x74            PIPE
+0x00000228: 28030010 cmplwi   r3,0x10
+0x0000022C: 41800008 blt      0x00000234           01 (00000228) REG
+0x00000230: 80A10074 lwz      r5,0x74(r1)
+0x00000234: 38600000 li       r3,0x0
+0x00000238: 90610084 stw      r3,0x84(r1)          03 (00000234) REG LSU
+0x0000023C: 98650000 stb      r3,0x0(r5)            PIPE
+0x00000240: 2C1E0000 cmpwi    r30,0x0
+0x00000244: 41820060 beq      0x000002A4           01 (00000240) REG
+0x00000248: 30A10074 addic    r5,r1,0x74
+0x0000024C: 80610088 lwz      r3,0x88(r1)
+0x00000250: 60BD0000 mr       r29,r5               01 (00000248) REG
+0x00000254: 28030010 cmplwi   r3,0x10               PIPE
+0x00000258: 41800008 blt      0x00000260
+0x0000025C: 80A10074 lwz      r5,0x74(r1)
+0x00000260: 60A30000 mr       r3,r5                01 (0000025C) REG
+0x00000264: 80C10084 lwz      r6,0x84(r1)          50 (00000238) LHS[10]
+0x00000268: 63440000 mr       r4,r26
+0x0000026C: 7C633014 addc     r3,r3,r6              PIPE
+0x00000270: 63E50000 mr       r5,r31
+0x00000274: 78630020 clrldi   r3,r3,32              PIPE
+0x00000278: 48000001 bl       .memcpy              08
+0x0000027C: 60000000 nop                            PIPE
+0x00000280: 80610088 lwz      r3,0x88(r1)
+0x00000284: 28030010 cmplwi   r3,0x10              02 (00000280) REG
+0x00000288: 41800008 blt      0x00000290
+0x0000028C: 83A10074 lwz      r29,0x74(r1)
+0x00000290: 7C7DF014 addc     r3,r29,r30           01 (0000028C) REG
+0x00000294: 93C10084 stw      r30,0x84(r1)          PIPE
+0x00000298: 38800000 li       r4,0x0
+0x0000029C: 78630020 clrldi   r3,r3,32              PIPE
+0x000002A0: 98830000 stb      r4,0x0(r3)           03 (0000029C) REG LSU
+0x000002A4: 30610070 addic    r3,r1,0x70            PIPE
+0x000002A8: 60640000 mr       r4,r3                01 (000002A4) REG
+0x000002AC: 307B0004 addic    r3,r27,0x4            PIPE
+0x000002B0: 38A00000 li       r5,0x0
+0x000002B4: 78660020 clrldi   r6,r3,32              PIPE
+0x000002B8: 38E0000F li       r7,0xF
+0x000002BC: 63630000 mr       r3,r27                PIPE
+0x000002C0: 90BB0014 stw      r5,0x14(r27)
+0x000002C4: 90FB0018 stw      r7,0x18(r27)          PIPE
+0x000002C8: 98A60000 stb      r5,0x0(r6)
+0x000002CC: 38A00000 li       r5,0x0                PIPE
+0x000002D0: 63260000 mr       r6,r25
+0x000002D4: 48000001 bl       std::basic_string<char, std::char_traits<char>, std::allocator<char>>::assign(std::basic_string<char, std::char_traits<char>, std::allocator<char>> const&, unsigned int, unsigned int) 08
+0x000002D8: 60000000 nop      
+0x000002DC: 80610088 lwz      r3,0x88(r1)
+0x000002E0: 28030010 cmplwi   r3,0x10              01 (000002DC) REG
+0x000002E4: 41800010 blt      0x000002F4           01 (000002E0) REG
+0x000002E8: 80610074 lwz      r3,0x74(r1)
+0x000002EC: 48000001 bl       operator delete(void*) 08
+0x000002F0: 60000000 nop      
+0x000002F4: E80100E0 ld       r0,0xE0(r1)
+0x000002F8: 7C0803A6 mtspr    lr,r0                01 (000002F4) REG
+0x000002FC: EB010090 ld       r24,0x90(r1)
+0x00000300: EB210098 ld       r25,0x98(r1)
+0x00000304: EB4100A0 ld       r26,0xA0(r1)          PIPE
+0x00000308: EB6100A8 ld       r27,0xA8(r1)
+0x0000030C: EB8100B0 ld       r28,0xB0(r1)          PIPE
+0x00000310: EBA100B8 ld       r29,0xB8(r1)
+0x00000314: EBC100C0 ld       r30,0xC0(r1)          PIPE
+0x00000318: EBE100C8 ld       r31,0xC8(r1)
+0x0000031C: 382100D0 addi     r1,r1,0xD0
+0x00000320: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSsD1Ev:
+
+std::basic_string<char, std::char_traits<char>, std::allocator<char>>::~basic_string():
+0x00000000: F821FF81 stdu     r1,-0x80(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F8010090 std      r0,0x90(r1)
+0x0000000C: FBE10078 std      r31,0x78(r1)          PIPE
+0x00000010: 607F0000 mr       r31,r3
+0x00000014: 807F0018 lwz      r3,0x18(r31)         04 (00000010) REG LSU
+0x00000018: 28030010 cmplwi   r3,0x10              01 (00000014) REG
+0x0000001C: 41800010 blt      0x0000002C           01 (00000018) REG
+0x00000020: 807F0004 lwz      r3,0x4(r31)
+0x00000024: 48000001 bl       operator delete(void*) 08
+0x00000028: 60000000 nop      
+0x0000002C: 307F0004 addic    r3,r31,0x4            PIPE
+0x00000030: 3880000F li       r4,0xF
+0x00000034: 38A00000 li       r5,0x0                PIPE
+0x00000038: 78630020 clrldi   r3,r3,32
+0x0000003C: 909F0018 stw      r4,0x18(r31)          PIPE
+0x00000040: 90BF0014 stw      r5,0x14(r31)
+0x00000044: 98A30000 stb      r5,0x0(r3)            PIPE
+0x00000048: E8010090 ld       r0,0x90(r1)
+0x0000004C: 7C0803A6 mtspr    lr,r0                02 (00000048) REG
+0x00000050: EBE10078 ld       r31,0x78(r1)
+0x00000054: 38210080 addi     r1,r1,0x80
+0x00000058: 4E800020 blr                           08
+
+Disassembly of section .text._ZNSbIwSt11char_traitsIwESaIwEED1Ev:
+
+std::basic_string<wchar_t, std::char_traits<wchar_t>, std::allocator<wchar_t>>::~basic_string():
+0x00000000: F821FF81 stdu     r1,-0x80(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F8010090 std      r0,0x90(r1)
+0x0000000C: FBE10078 std      r31,0x78(r1)          PIPE
+0x00000010: 607F0000 mr       r31,r3
+0x00000014: 807F0018 lwz      r3,0x18(r31)         04 (00000010) REG LSU
+0x00000018: 28030008 cmplwi   r3,0x8               01 (00000014) REG
+0x0000001C: 41800010 blt      0x0000002C           01 (00000018) REG
+0x00000020: 807F0004 lwz      r3,0x4(r31)
+0x00000024: 48000001 bl       operator delete(void*) 08
+0x00000028: 60000000 nop      
+0x0000002C: 307F0004 addic    r3,r31,0x4            PIPE
+0x00000030: 38800007 li       r4,0x7
+0x00000034: 38A00000 li       r5,0x0                PIPE
+0x00000038: 78630020 clrldi   r3,r3,32
+0x0000003C: 909F0018 stw      r4,0x18(r31)          PIPE
+0x00000040: 90BF0014 stw      r5,0x14(r31)
+0x00000044: B0A30000 sth      r5,0x0(r3)            PIPE
+0x00000048: E8010090 ld       r0,0x90(r1)
+0x0000004C: 7C0803A6 mtspr    lr,r0                02 (00000048) REG
+0x00000050: EBE10078 ld       r31,0x78(r1)
+0x00000054: 38210080 addi     r1,r1,0x80
+0x00000058: 4E800020 blr                           08
+
+

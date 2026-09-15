@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,7 +14,7 @@
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/LemonScriptProgram.h"
 
-#include <lemon/program/function/Function.h>
+#include <lemon/program/Function.h>
 
 
 namespace
@@ -392,9 +392,10 @@ void ResourceScriptGenerator::generateLevelObjectTableScript(CodeExec& codeExec)
 				const LemonScriptProgram::Hook* hook = codeExec.getLemonScriptProgram().checkForAddressHook(objectAddress);
 				if (nullptr != hook && hook->mFunction)
 				{
-					LemonScriptProgram::ResolvedLocation location;
-					codeExec.getLemonScriptProgram().resolveLocation(location, *hook->mFunction, 0);
-					output << " -- " << location.mScriptFilename;
+					std::string filename;
+					uint32 lineNumber;
+					codeExec.getLemonScriptProgram().resolveLocation(*hook->mFunction, 0, filename, lineNumber);
+					output << " -- " << filename;
 				}
 				output << "\r\n";
 			}

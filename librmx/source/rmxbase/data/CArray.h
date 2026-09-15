@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -18,8 +18,8 @@ public:
 	size_t count;		// Number of elements
 
 public:
-	CArray() : list(nullptr), size(0), count(0)  {}
-	CArray(const TYPE* ptr, size_t cnt) : list(nullptr), count(0), size(0)  { add(ptr, cnt); }
+	CArray() : list(0), size(0), count(0)  {}
+	CArray(TYPE* ptr, size_t cnt) : list(0), count(0), size(0)  { add(ptr, cnt); }
 	~CArray()  { SAFE_DELETE_ARRAY(list); }
 
 	void clear()
@@ -76,7 +76,7 @@ public:
 		list = source.list;
 		size = source.size;
 		count = source.count;
-		source.list = nullptr;
+		source.list = 0;
 		source.size = 0;
 		source.count = 0;
 	}
@@ -93,14 +93,14 @@ public:
 
 	TYPE* get(size_t num)
 	{
-		if (num >= count)
+		if (num < 0 || num >= count)
 			return 0;
 		return &list[num];
 	}
 
 	const TYPE* get(size_t num) const
 	{
-		if (num >= count)
+		if (num < 0 || num >= count)
 			return 0;
 		return &list[num];
 	}
@@ -117,8 +117,6 @@ public:
 	inline TYPE& pop_back()			 { --count; return list[count]; }
 
 	inline bool empty() const		 { return count == 0; }
-	inline bool isEmpty() const		 { return count == 0; }
-	inline bool nonEmpty() const	 { return count != 0; }
 
 	TYPE* add()
 	{

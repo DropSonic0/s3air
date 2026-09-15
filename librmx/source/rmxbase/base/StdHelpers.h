@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,8 +10,8 @@
 
 #include <vector>
 #include <map>
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-#include <unordered_map>
+#if !defined(NO_UNORDERED_CONTAINERS)
+	#include <unordered_map>
 #endif
 
 
@@ -34,18 +34,12 @@ bool containsByPredicate(const T& container, PRED predicate)
 template<typename T>
 T& vectorAdd(std::vector<T>& vec)
 {
+#if defined(PLATFORM_PS3)
 	vec.push_back(T());
+#else
+	vec.emplace_back();
+#endif
 	return vec.back();
-}
-
-// Remove element from an std::vector by swapping with the last one
-template<typename T>
-bool vectorRemoveAt(std::vector<T>& vec, size_t index)
-{
-	if (index >= vec.size())
-		return false;
-	vec.erase(vec.begin() + index);
-	return true;
 }
 
 // Remove element from an std::vector by swapping with the last one
@@ -58,20 +52,6 @@ bool vectorRemoveSwap(std::vector<T>& vec, size_t index)
 		return false;
 	vec.pop_back();
 	return true;
-}
-
-// Remove all instances of an element from an std::vector
-template<typename T, typename S>
-void vectorRemoveAll(std::vector<T>& vec, S value)
-{
-	vec.erase(std::remove(vec.begin(), vec.end(), value), vec.end());
-}
-
-// Remove all elements matching the predicate from an std::vector
-template<typename T, class PRED>
-void vectorRemoveByPredicate(std::vector<T>& vec, PRED predicate)
-{
-	vec.erase(std::remove_if(vec.begin(), vec.end(), predicate), vec.end());
 }
 
 // Check if an std::vector contains a certain element (actually only an alias for "containsElement")
@@ -93,61 +73,36 @@ int vectorIndexOf(const std::vector<T>& vec, T element)
 	return -1;
 }
 
-// Find an element matching the predicate in an std::vector
-template<typename T, class PRED>
-T* vectorFindByPredicate(std::vector<T>& vec, PRED predicate)
-{
-	const auto it = std::find_if(vec.begin(), vec.end(), predicate);
-	return (it == vec.end()) ? nullptr : &*it;
-}
-
-template<typename T, class PRED>
-const T* vectorFindByPredicate(const std::vector<T>& vec, PRED predicate)
-{
-	const auto it = std::find_if(vec.begin(), vec.end(), predicate);
-	return (it == vec.end()) ? nullptr : &*it;
-}
-
 
 // Find an element in an std::map
 template<typename K, typename V>
 V* mapFind(std::map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	typename std::map<K, V>::iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 
 template<typename K, typename V>
 const V* mapFind(const std::map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	typename std::map<K, V>::const_iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
 
-template<typename K, typename V, typename D>
-V mapFindOrDefault(const std::map<K, V>& map, K key, D defaultValue)
-{
-	const auto it = map.find(key);
-	return (it == map.end()) ? defaultValue : it->second;
-}
-
+#if !defined(NO_UNORDERED_CONTAINERS)
 template<typename K, typename V>
 V* mapFind(std::unordered_map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	typename std::unordered_map<K, V>::iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
+#endif
 
+#if !defined(NO_UNORDERED_CONTAINERS)
 template<typename K, typename V>
 const V* mapFind(const std::unordered_map<K, V>& map, K key)
 {
-	const auto it = map.find(key);
+	typename std::unordered_map<K, V>::const_iterator it = map.find(key);
 	return (it == map.end()) ? nullptr : &it->second;
 }
-
-template<typename K, typename V, typename D>
-V mapFindOrDefault(const std::unordered_map<K, V>& map, K key, D defaultValue)
-{
-	const auto it = map.find(key);
-	return (it == map.end()) ? defaultValue : it->second;
-}
+#endif

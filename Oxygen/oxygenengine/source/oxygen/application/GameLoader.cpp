@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -21,9 +21,8 @@
 #include "oxygen/resources/ResourcesCache.h"
 #include "oxygen/simulation/PersistentData.h"
 #if defined(PLATFORM_ANDROID)
-	#include "oxygen/platform/android/AndroidJavaInterface.h"
+	#include "oxygen/platform/AndroidJavaInterface.h"
 #endif
-
 
 GameLoader::UpdateResult GameLoader::updateLoading()
 {
@@ -76,7 +75,7 @@ GameLoader::UpdateResult GameLoader::updateLoading()
 					}
 
 				#elif defined(PLATFORM_ANDROID)
-					javaInterface.openRomFileSelectionDialog(gameProfile.mRomInfos[0].mSteamGameName);
+					javaInterface.openRomFileSelectionDialog();
 					mState = State::WAITING_FOR_ROM;
 					return UpdateResult::CONTINUE;
 
@@ -140,7 +139,7 @@ GameLoader::UpdateResult GameLoader::updateLoading()
 
 			// Load sprites
 			RMX_LOG_INFO("Loading sprites");
-			VideoOut::instance().getRenderResources().loadSprites();
+			VideoOut::instance().getRenderResources().loadSpriteCache();
 
 			// Load resources
 			RMX_LOG_INFO("Resource cache loading...");
@@ -152,7 +151,7 @@ GameLoader::UpdateResult GameLoader::updateLoading()
 
 			// Load persistent data
 			RMX_LOG_INFO("Persistent data loading...");
-			PersistentData::instance().loadFromBasePath(Configuration::instance().mPersistentDataBasePath);
+			PersistentData::instance().loadFromFile(Configuration::instance().mPersistentDataFilename);
 
 			// Load audio definitions
 			EngineMain::instance().getAudioOut().handleGameLoaded();

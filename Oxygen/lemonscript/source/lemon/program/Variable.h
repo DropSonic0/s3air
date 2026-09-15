@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,103 +9,30 @@
 #pragma once
 
 #include "lemon/program/DataType.h"
-#include "lemon/utility/AnyBaseValue.h"
 #include "lemon/utility/FlyweightString.h"
 
 #include <functional>
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-#ifndef _STD_FUNCTION_DEFINED_PS3_
-#define _STD_FUNCTION_DEFINED_PS3_
-namespace std {
-    // minimal C++11 std::function fallback for arity 0 and 1
-    template<typename T>
-    class function;
-
-    template<typename R, typename Arg1>
-    class function<R(Arg1)> {
-    public:
-        struct Invoker {
-            virtual ~Invoker() {}
-            virtual R invoke(Arg1) = 0;
-            virtual Invoker* clone() const = 0;
-        };
-
-        template<typename F>
-        struct FunctorInvoker : public Invoker {
-            F mFunc;
-            FunctorInvoker(const F& f) : mFunc(f) {}
-            virtual R invoke(Arg1 a1) { return mFunc(a1); }
-            virtual Invoker* clone() const { return new FunctorInvoker(mFunc); }
-        };
-
-        function() : mInvoker(nullptr) {}
-        template<typename F>
-        function(const F& f) : mInvoker(new FunctorInvoker<F>(f)) {}
-        function(const function& other) : mInvoker(other.mInvoker ? other.mInvoker->clone() : nullptr) {}
-        ~function() { delete mInvoker; }
-        function& operator=(const function& other) {
-            if (this != &other) {
-                delete mInvoker;
-                mInvoker = other.mInvoker ? other.mInvoker->clone() : nullptr;
-            }
-            return *this;
-        }
-        R operator()(Arg1 a1) const { return mInvoker->invoke(a1); }
-        operator bool() const { return mInvoker != nullptr; }
-
-    private:
-        Invoker* mInvoker;
-    };
-
-    template<typename R>
-    class function<R()> {
-    public:
-        struct Invoker {
-            virtual ~Invoker() {}
-            virtual R invoke() = 0;
-            virtual Invoker* clone() const = 0;
-        };
-
-        template<typename F>
-        struct FunctorInvoker : public Invoker {
-            F mFunc;
-            FunctorInvoker(const F& f) : mFunc(f) {}
-            virtual R invoke() { return mFunc(); }
-            virtual Invoker* clone() const { return new FunctorInvoker(mFunc); }
-        };
-
-        function() : mInvoker(nullptr) {}
-        template<typename F>
-        function(const F& f) : mInvoker(new FunctorInvoker<F>(f)) {}
-        function(const function& other) : mInvoker(other.mInvoker ? other.mInvoker->clone() : nullptr) {}
-        ~function() { delete mInvoker; }
-        function& operator=(const function& other) {
-            if (this != &other) {
-                delete mInvoker;
-                mInvoker = other.mInvoker ? other.mInvoker->clone() : nullptr;
-            }
-            return *this;
-        }
-        R operator()() const { return mInvoker->invoke(); }
-        operator bool() const { return mInvoker != nullptr; }
-
-    private:
-        Invoker* mInvoker;
-    };
-}
-#endif
-#endif
-
 
 namespace lemon
 {
-	class ControlFlow;
 	class Environment;
+
+#if defined(__CELLOS_LV2__) || defined(__PPU__) || defined(__SN_TARGET_PS3__) || defined(__cell__)
+	typedef int64 (*VariableGetterType)();
+	typedef void (*VariableSetterType)(int64);
+	typedef int64* (*VariableAccessorType)();
+#else
+	 typedef ::std::function<int64()> VariableGetterType;
+	typedef ::std::function<void(int64)> VariableSetterType;
+	typedef ::std::function<int64*()> VariableAccessorType;
+#endif
 
 
 	class API_EXPORT Variable
 	{
+	public: virtual ~Variable() {}
+
 	friend class Module;
 	friend class Runtime;
 	friend class ScriptFunction;
@@ -120,95 +47,86 @@ namespace lemon
 		};
 
 	public:
+		virtual int64 getValue() const = 0;
+		virtual void setValue(int64 value) = 0;
+
 		inline Type getType() const							 { return mType; }
 		inline FlyweightString getName() const				 { return mName; }
 		inline uint32 getID() const							 { return mID; }
 		inline const DataTypeDefinition* getDataType() const { return mDataType; }
-
-		template<typename T> bool isA() const		{ return getType() == T::TYPE; }
-		template<typename T> T& as()				{ return static_cast<T&>(*this); }
-		template<typename T> const T& as() const	{ return static_cast<const T&>(*this); }
-		template<typename T> T* cast()				{ return isA<T>() ? static_cast<T*>(*this) : nullptr; }
-		template<typename T> const T* cast() const	{ return isA<T>() ? static_cast<const T*>(*this) : nullptr; }
+		inline size_t getStaticMemoryOffset() const			 { return mStaticMemoryOffset; }
+		inline size_t getStaticMemorySize() const			 { return mStaticMemorySize; }
 
 	protected:
-		inline Variable(Type type) : mType(type) {}
-		virtual ~Variable() {}
+		inline Variable(Type type) : mType(type), mID(0), mDataType(nullptr), mStaticMemoryOffset(0), mStaticMemorySize(0) {}
 
 	private:
-		const Type mType;
+		Type mType;
 		FlyweightString mName;
-		uint32 mID = 0;
-		const DataTypeDefinition* mDataType = nullptr;
+		uint32 mID;
+		const DataTypeDefinition* mDataType;
+		size_t mStaticMemoryOffset;
+		size_t mStaticMemorySize;
 	};
 
 
 	class API_EXPORT LocalVariable : public Variable
 	{
-	public:
-		static const Type TYPE = Type::LOCAL;
-
+	public: virtual ~LocalVariable() {}
 	public:
 		inline LocalVariable() : Variable(Type::LOCAL) {}
 
-		inline size_t getLocalMemoryOffset() const	{ return mLocalMemoryOffset; }
-		inline size_t getLocalMemorySize() const	{ return mLocalMemorySize; }
-
-		// Local variables get accessed via the current state's variables stack
-
-	public:
-		size_t mLocalMemoryOffset = 0;
-		size_t mLocalMemorySize = 0;
+		// Do not use these for variables, instead look it up in the current state's variables stack
+		int64 getValue() const override		 { return 0; }
+		void setValue(int64 value) override  {}
 	};
 
 
 	class API_EXPORT GlobalVariable : public Variable
 	{
+	public: virtual ~GlobalVariable() {}
 	public:
-		static const Type TYPE = Type::GLOBAL;
+		inline GlobalVariable() : Variable(Type::GLOBAL), mInitialValue(0) {}
 
-	public:
-		inline GlobalVariable() : Variable(Type::GLOBAL) {}
-
-		inline size_t getStaticMemoryOffset() const	{ return mStaticMemoryOffset; }
-		inline size_t getStaticMemorySize() const	{ return mStaticMemorySize; }
-
-		// Global variables get accessed via the runtime's global variables list
+		// Do not use these for variables, instead look it up in the runtime's global variables list
+		int64 getValue() const override		 { return 0; }
+		void setValue(int64 value) override  {}
 
 	public:
-		AnyBaseValue mInitialValue;
-		size_t mStaticMemoryOffset = 0;
-		size_t mStaticMemorySize = 0;
+		int64 mInitialValue;
 	};
 
 
 	class API_EXPORT UserDefinedVariable : public Variable
 	{
 	public:
-		static const Type TYPE = Type::USER;
-
-	public:
+		virtual ~UserDefinedVariable() {}
 		inline UserDefinedVariable() : Variable(Type::USER) {}
 
+		int64 getValue() const override;
+		void setValue(int64 value) override;
+
 	public:
-		// User defined variables get accessed using their getter and setter methods
-		//  -> Note that these need to read from / write to the value stack, using the given runtime opcode context
-		std::function<void(ControlFlow&)> mGetter;
-		std::function<void(ControlFlow&)> mSetter;
+		VariableGetterType mGetter;
+		VariableSetterType mSetter;
 	};
 
 
 	class API_EXPORT ExternalVariable : public Variable
 	{
 	public:
-		static const Type TYPE = Type::EXTERNAL;
-
-	public:
+		virtual ~ExternalVariable() {}
 		inline ExternalVariable() : Variable(Type::EXTERNAL) {}
 
+		// Do not use these for variables, instead directly access the pointer with the right data type
+		int64 getValue() const override		 { return 0; }
+		void setValue(int64 value) override  {}
+
 	public:
-		// External variables get accessed directly via the accessor the pointer, using the right data type
-		std::function<int64*()> mAccessor;
+		VariableAccessorType mAccessor;
 	};
+
+	inline int64 UserDefinedVariable::getValue() const { return (this->mGetter) ? this->mGetter() : 0; }
+	inline void UserDefinedVariable::setValue(int64 value) { if (this->mSetter) this->mSetter(value); }
 
 }

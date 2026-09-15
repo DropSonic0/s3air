@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -12,32 +12,6 @@
 
 namespace lemon
 {
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-	const VoidDataType PredefinedDataTypes::VOID				= VoidDataType();
-	const AnyDataType PredefinedDataTypes::ANY				= AnyDataType();
-	const IntegerDataType PredefinedDataTypes::BOOL			= IntegerDataType("bool", 2, 1, IntegerDataType::Semantics::BOOLEAN, false, BaseType::UINT_8);
-	const IntegerDataType PredefinedDataTypes::UINT_8		= IntegerDataType("u8",   2, 1, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_8);
-	const IntegerDataType PredefinedDataTypes::UINT_16		= IntegerDataType("u16",  3, 2, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_16);
-	const IntegerDataType PredefinedDataTypes::UINT_32		= IntegerDataType("u32",  4, 4, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_32);
-	const IntegerDataType PredefinedDataTypes::UINT_64		= IntegerDataType("u64",  5, 8, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_64);
-	const IntegerDataType PredefinedDataTypes::INT_8		= IntegerDataType("s8",   6, 1, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_8);
-	const IntegerDataType PredefinedDataTypes::INT_16		= IntegerDataType("s16",  7, 2, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_16);
-	const IntegerDataType PredefinedDataTypes::INT_32		= IntegerDataType("s32",  8, 4, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_32);
-	const IntegerDataType PredefinedDataTypes::INT_64		= IntegerDataType("s64",  9, 8, IntegerDataType::Semantics::DEFAULT, true,  BaseType::INT_64);
-	const IntegerDataType PredefinedDataTypes::CONST_INT	= IntegerDataType("const_int", 10, 8, IntegerDataType::Semantics::CONSTANT, true, BaseType::INT_CONST);
-	const FloatDataType PredefinedDataTypes::FLOAT			= FloatDataType("float", 11, 4);
-	const FloatDataType PredefinedDataTypes::DOUBLE			= FloatDataType("double", 12, 8);
-	const StringDataType PredefinedDataTypes::STRING		= StringDataType(13);
-	const CustomDataType PredefinedDataTypes::ARRAY_BASE	= CustomDataType("$array_base", 14, BaseType::INT_32);
-#endif
-
-	inline DataTypeDefinition::DataTypeDefinition(std::string_view name, uint16 id, Class class_, size_t bytes, BaseType baseType) :
-		mNameString(name),
-		mID(id),
-		mClass(class_),
-		mBytes(bytes),
-		mBaseType(baseType)
-	{}
 
 	FlyweightString DataTypeDefinition::getName() const
 	{
@@ -46,52 +20,6 @@ namespace lemon
 		return mName;
 	}
 
-	const std::vector<FunctionReference>& DataTypeDefinition::getMethodsByName(uint64 methodNameHash) const
-	{
-		static const std::vector<FunctionReference> EMPTY_FUNCTIONS;
-		const auto it = mMethodsByName.find(methodNameHash);
-		return (it == mMethodsByName.end()) ? EMPTY_FUNCTIONS : it->second;
-	}
-
-	void DataTypeDefinition::addMethod(uint64 nameHash, Function& func)
-	{
-		FunctionReference& ref = vectorAdd(mMethodsByName[nameHash]);
-		ref.mFunction = &func;
-		ref.mIsDeprecated = false;
-	}
-
-
-	VoidDataType::VoidDataType() :
-		DataTypeDefinition("void", 0, Class::VOID, 0, BaseType::VOID)
-	{}
-
-
-	AnyDataType::AnyDataType() :
-		DataTypeDefinition("any", 1, Class::ANY, 16, BaseType::UINT_64)
-	{}
-
-
-	IntegerDataType::IntegerDataType(const char* name, uint16 id, size_t bytes, Semantics semantics, bool isSigned, BaseType baseType) :
-		DataTypeDefinition(name, id, Class::INTEGER, bytes, baseType),
-		mSemantics(semantics),
-		mSizeBits((bytes == 1) ? 0 : (bytes == 2) ? 1 : (bytes == 4) ? 2 : 3),
-		mIsSigned(isSigned)
-	{}
-
-
-	FloatDataType::FloatDataType(const char* name, uint16 id, size_t bytes) :
-		DataTypeDefinition(name, id, Class::FLOAT, bytes, (bytes == 4) ? BaseType::FLOAT : BaseType::DOUBLE)
-	{}
-
-
-	StringDataType::StringDataType(uint16 id) :
-		DataTypeDefinition("string", id, Class::STRING, 8, BaseType::UINT_64)
-	{
-		mBracketOperator.mGetter = nullptr;	// This gets filled in later
-		mBracketOperator.mSetter = nullptr;
-		mBracketOperator.mParameterType = &PredefinedDataTypes::INT_32;
-		mBracketOperator.mValueType = &PredefinedDataTypes::INT_32;
-	}
 
 	uint16 StringDataType::getDataTypeHash() const
 	{
@@ -99,27 +27,31 @@ namespace lemon
 	}
 
 
-	ArrayDataType::ArrayDataType(uint16 id, const DataTypeDefinition& elementType, size_t arraySize) :
-		DataTypeDefinition(buildArrayDataTypeName(elementType, arraySize).getString(), id, Class::ARRAY, elementType.getBytes() * arraySize, BaseType::UINT_32),
-		mElementType(elementType),
-		mArraySize(arraySize)
+	CustomDataType::CustomDataType(const char* name, uint16 id, BaseType baseType) :
+		DataTypeDefinition(name, id, Class::CUSTOM, DataTypeHelper::getSizeOfBaseType(baseType), baseType)
 	{}
 
-	FlyweightString ArrayDataType::buildArrayDataTypeName(const DataTypeDefinition& elementType, size_t arraySize)
+
+	size_t DataTypeHelper::getSizeOfBaseType(BaseType baseType)
 	{
-		char buffer[32];
-		sprintf(buffer, "%u", (unsigned int)arraySize);
-		const std::string str = std::string(elementType.getName().getString()) + '[' + buffer + ']';
-		return FlyweightString(str);
+		switch (baseType)
+		{
+			case BaseType::UINT_8:		return 1;
+			case BaseType::UINT_16:		return 2;
+			case BaseType::UINT_32:		return 4;
+			case BaseType::UINT_64:		return 8;
+			case BaseType::INT_8:		return 1;
+			case BaseType::INT_16:		return 2;
+			case BaseType::INT_32:		return 4;
+			case BaseType::INT_64:		return 8;
+			case BaseType::INT_CONST:	return 8;
+			case BaseType::FLOAT:		return 4;
+			case BaseType::DOUBLE:		return 8;
+			default:					return 0;
+		}
 	}
 
-
-	CustomDataType::CustomDataType(const char* name, uint16 id, BaseType baseType) :
-		DataTypeDefinition(name, id, Class::CUSTOM, BaseTypeHelper::getSizeOfBaseType(baseType), baseType)
-	{}
-
-
-	const DataTypeDefinition* PredefinedDataTypes::getDataTypeDefinitionForBaseType(BaseType baseType)
+	const DataTypeDefinition* DataTypeHelper::getDataTypeDefinitionForBaseType(BaseType baseType)
 	{
 		switch (baseType)
 		{
@@ -163,4 +95,28 @@ namespace lemon
 	#endif
 	}
 
+	bool DataTypeHelper::isPureIntegerBaseCast(BaseCastType baseCastType)
+	{
+		const uint8 value = (uint8)baseCastType;
+		return (value > 0 && value < 0x20);
+	}
+
+}
+
+namespace lemon {
+	const VoidDataType PredefinedDataTypes::VOID;
+	const AnyDataType PredefinedDataTypes::ANY;
+	const IntegerDataType PredefinedDataTypes::BOOL("bool", 2, 1, IntegerDataType::Semantics::BOOLEAN, false, BaseType::UINT_8);
+	const IntegerDataType PredefinedDataTypes::UINT_8("u8", 2, 1, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_8);
+	const IntegerDataType PredefinedDataTypes::UINT_16("u16", 3, 2, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_16);
+	const IntegerDataType PredefinedDataTypes::UINT_32("u32", 4, 4, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_32);
+	const IntegerDataType PredefinedDataTypes::UINT_64("u64", 5, 8, IntegerDataType::Semantics::DEFAULT, false, BaseType::UINT_64);
+	const IntegerDataType PredefinedDataTypes::INT_8("s8", 6, 1, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_8);
+	const IntegerDataType PredefinedDataTypes::INT_16("s16", 7, 2, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_16);
+	const IntegerDataType PredefinedDataTypes::INT_32("s32", 8, 4, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_32);
+	const IntegerDataType PredefinedDataTypes::INT_64("s64", 9, 8, IntegerDataType::Semantics::DEFAULT, true, BaseType::INT_64);
+	const IntegerDataType PredefinedDataTypes::CONST_INT("const_int", 10, 8, IntegerDataType::Semantics::CONSTANT, true, BaseType::INT_CONST);
+	const FloatDataType PredefinedDataTypes::FLOAT("float", 11, 4);
+	const FloatDataType PredefinedDataTypes::DOUBLE("double", 12, 8);
+	const StringDataType PredefinedDataTypes::STRING(13);
 }

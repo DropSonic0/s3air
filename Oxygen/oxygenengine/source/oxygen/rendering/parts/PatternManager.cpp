@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -33,9 +33,7 @@ void PatternManager::refresh()
 
 					// Check for actual changes
 					//  -> This code is slightly optimized compared to a memcmp
-					const uint64* cache = (uint64*)cacheItem.mOriginalDataBackup;
-					const uint64* source = (uint64*)src;
-					const bool changed = ((cache[0] != source[0]) | (cache[1] != source[1]) | (cache[2] != source[2]) | (cache[3] != source[3])) != 0;
+					const bool changed = memcmp(cacheItem.mOriginalDataBackup, src, 0x20) != 0;
 
 					if (changed)
 					{
@@ -89,7 +87,7 @@ void PatternManager::dumpAsPaletteBitmap(PaletteBitmap& output) const
 		for (int x = 0; x < 512; ++x)
 		{
 			const int patternIndex = (x/8) + (y/8) * 64;
-			output[x+y*512] = mPatternCache[patternIndex].mFlipVariation[0].mPixels[(x%8) + (y%8) * 8] + getLastUsedAtex((uint16)patternIndex);
+			output.mData[x+y*512] = mPatternCache[patternIndex].mFlipVariation[0].mPixels[(x%8) + (y%8) * 8] + getLastUsedAtex((uint16)patternIndex);
 		}
 	}
 }

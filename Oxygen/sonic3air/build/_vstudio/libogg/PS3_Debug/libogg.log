@@ -1,0 +1,21 @@
+﻿Build started 4/9/2026 14:44:58.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\libogg\libogg.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         bitwise.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\bitwise.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libogg\src\bitwise.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libogg\src\bitwise.c)
+         framing.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\framing.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libogg\src\framing.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libogg\src\framing.c)
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\libogg.a
+         addmod PS3_Debug\bitwise.o
+         addmod PS3_Debug\framing.o
+         save
+         end
+         libogg.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\libogg.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\libogg\libogg.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.60

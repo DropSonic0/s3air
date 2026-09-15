@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -248,7 +248,7 @@ namespace sha1
 
 namespace Base64
 {
-	static const constexpr char ENCODER_LOOKUP[64] =
+	static constexpr char ENCODER_LOOKUP[64] =
 	{
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
 		'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
@@ -274,7 +274,9 @@ bool Crypto::decodeBase64(std::string_view encodedString, std::vector<uint8>& ou
 	}
 
 	outData.clear();
+#if !defined(PLATFORM_PS3)
 	outData.reserve(encodedString.length() / 4 * 3);
+#endif
 	for (size_t k = 0; k < encodedString.length() - 3; k += 4)
 	{
 		const uint8 bits0 = Base64::DECODER_LOOKUP[encodedString[k]];
@@ -297,7 +299,9 @@ std::string Crypto::encodeBase64(const uint8* data, size_t length)
 	const size_t numOutputBytesMinimal = (length * 4 + 2) / 3;
 	const size_t numOutputBytesTotal = (length + 2) / 3 * 4;
 	std::string output;
+#if !defined(PLATFORM_PS3)
 	output.reserve(numOutputBytesTotal);
+#endif
 
 	size_t offset = 0;
 	while (offset < length)

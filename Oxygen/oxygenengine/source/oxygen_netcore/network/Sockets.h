@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,30 +14,23 @@
 class Sockets
 {
 public:
-	enum class ProtocolFamily
-	{
-		IPv4,
-		IPv6,
-		DualStack	// IPv6 socket that also supports IPv4
-	};
-
-public:
 	static void startupSockets();
 	static void shutdownSockets();
 
-	static bool resolveToIP(const std::string& hostName, std::string& outIP, bool useIPv6);
+	static bool resolveToIP(const std::string& hostName, std::string& outIP);
 
 public:
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	static inline rmx::ErrorHandling::LoggerInterface* mLogger = nullptr;
-
-private:
-	static inline bool mIsInitialized = false;
-#else
+#if defined(PLATFORM_PS3)
 	static rmx::ErrorHandling::LoggerInterface* mLogger;
+#else
+	static inline rmx::ErrorHandling::LoggerInterface* mLogger = nullptr;
+#endif
 
 private:
+#if defined(PLATFORM_PS3)
 	static bool mIsInitialized;
+#else
+	static inline bool mIsInitialized = false;
 #endif
 };
 
@@ -45,10 +38,10 @@ private:
 struct SocketAddress
 {
 public:
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	static inline bool mPreventIPLogging = false;
-#else
+#if defined(PLATFORM_PS3)
 	static bool mPreventIPLogging;
+#else
+	static inline bool mPreventIPLogging = false;
 #endif
 
 public:
@@ -58,7 +51,7 @@ public:
 		mPort(0)
 	{}
 
-	inline SocketAddress(std::string_view ip, uint16 port) :
+	inline SocketAddress(const std::string& ip, uint16 port) :
 		mHasSockAddr(false),
 		mHasIpPort(true),
 		mIP(ip),
@@ -73,9 +66,11 @@ public:
 	inline std::string toString() const
 	{
 		assureIpPort();
-		char buf[32];
-		sprintf(buf, "%d", (int)mPort);
-		return mIP + ':' + buf;
+#if defined(PLATFORM_PS3)
+		return mIP + ':' + std::string(*String(0, "%u", mPort));
+#else
+		return mIP + ':' + std::to_string(mPort);
+#endif
 	}
 	std::string toLoggedString() const;
 
@@ -87,7 +82,7 @@ public:
 		mHasIpPort = false;
 	}
 
-	inline void set(std::string_view ip, uint16 port)
+	inline void set(const std::string& ip, uint16 port)
 	{
 		mHasSockAddr = false;
 		mHasIpPort = true;
@@ -154,10 +149,10 @@ public:
 	const SocketAddress& getRemoteAddress();
 	void swapWith(TCPSocket& other);
 
-	bool setupServer(uint16 serverPort, Sockets::ProtocolFamily protocolFamily = Sockets::ProtocolFamily::IPv4);
+	bool setupServer(uint16 serverPort);
 	bool acceptConnection(TCPSocket& outSocket);
 
-	bool connectTo(const std::string& serverAddress, uint16 serverPort, Sockets::ProtocolFamily protocolFamily = Sockets::ProtocolFamily::IPv4);
+	bool connectTo(const std::string& serverAddress, uint16 serverPort);
 
 	bool sendData(const uint8* data, size_t length);
 	bool sendData(const std::vector<uint8>& data);
@@ -177,7 +172,7 @@ private:
 class UDPSocket
 {
 public:
-	static const constexpr size_t MAX_DATAGRAM_SIZE = 0x8000;	// That's 32 KB (the actual limit is somewhat close to 64 KB, but let's play safe here)
+	static constexpr size_t MAX_DATAGRAM_SIZE = 0x8000;	// That's 32 KB (the actual limit is somewhat close to 64 KB, but let's play safe here)
 
 	struct ReceiveResult
 	{
@@ -191,8 +186,8 @@ public:
 	bool isValid() const;
 	void close();
 
-	bool bindToPort(uint16 port, Sockets::ProtocolFamily protocolFamily = Sockets::ProtocolFamily::IPv4);
-	bool bindToAnyPort(Sockets::ProtocolFamily protocolFamily = Sockets::ProtocolFamily::IPv4);
+	bool bindToPort(uint16 port);
+	bool bindToAnyPort();
 
 	bool sendData(const uint8* data, size_t length, const SocketAddress& destinationAddress);
 	bool sendData(const std::vector<uint8>& data, const SocketAddress& destinationAddress);

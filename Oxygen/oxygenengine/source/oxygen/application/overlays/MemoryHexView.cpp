@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -23,11 +23,15 @@ MemoryHexView::~MemoryHexView()
 
 void MemoryHexView::initialize()
 {
-	setRect(Recti(5, 480, 720, 100));
+	setRect(5, 480, 720, 100);
 
 	// Debug output font
 	mFont.setSize(15.0f);
-	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f)));
+#if defined(PLATFORM_PS3)
+	mFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f, 1.0f)));
+#else
+	mFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
+#endif
 }
 
 void MemoryHexView::deinitialize()
@@ -38,14 +42,14 @@ void MemoryHexView::keyboard(const rmx::KeyboardEvent& ev)
 {
 	GuiBase::keyboard(ev);
 
-	if (ev.state && !FTX::System->wasEventConsumed())
+	if (ev.state)
 	{
 		switch (ev.key)
 		{
 			case 'i':
 			{
 				mLines = (mLines == 0) ? 2 : (mLines < 16) ? (mLines * 2) : 0;
-				mRect.height = 20 + 20 * mLines;
+				mRect.height = (float)(20 + 20 * mLines);
 				break;
 			}
 
@@ -78,7 +82,7 @@ void MemoryHexView::render()
 
 		drawer.drawRect(mRect, Color(0.0f, 0.0f, 0.0f, 0.6f));
 
-		Recti rect = getRect();
+		Rectf rect = getRect();
 		rect.y += 10;
 		for (uint32 y = 0; y < mLines; ++y)
 		{

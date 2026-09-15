@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -22,14 +22,14 @@ namespace rmx
 	class Mutex
 	{
 	public:
-		inline Mutex()		 { mMutex = SDL_CreateMutex(); }
+		inline Mutex() : mMutex(SDL_CreateMutex()) {}
 		inline ~Mutex()		 { SDL_DestroyMutex(mMutex); }
 
 		inline void lock()	 { SDL_LockMutex(mMutex); }
 		inline void unlock() { SDL_UnlockMutex(mMutex); }
 
 	private:
-		SDL_mutex* mMutex = nullptr;
+		SDL_mutex* mMutex;
 	};
 
 
@@ -69,12 +69,12 @@ namespace rmx
 		void runThreadInternal();
 
 	protected:
-		bool mShouldBeRunning = false;		// If set to false, the thread should stop itself; this has to be implemented in the sub-class
+		bool mShouldBeRunning;		// If set to false, the thread should stop itself; this has to be implemented in the sub-class
 
 	private:
-		SDL_Thread* mSDLThread = nullptr;
+		SDL_Thread* mSDLThread;
 		std::string mName;
-		bool mIsThreadRunning = false;		// Set as long as the actual thread is running
+		bool mIsThreadRunning;		// Set as long as the actual thread is running
 		SinglePtr<ThreadManager> mManager;
 	};
 

@@ -1,0 +1,120 @@
+﻿Build started 4/9/2026 14:45:03.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\rmxbase\rmxbase.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         Basics.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\Basics.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\base\Basics.cpp
+         ErrorHandler.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\ErrorHandler.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\base\ErrorHandler.cpp
+         Bitmap.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\Bitmap.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\Bitmap.cpp
+         BitmapCodecBMP.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\BitmapCodecBMP.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\BitmapCodecBMP.cpp
+         BitmapCodecICO.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\BitmapCodecICO.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\BitmapCodecICO.cpp
+         BitmapCodecJPG.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\BitmapCodecJPG.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\BitmapCodecJPG.cpp
+     1>C:\s3air\librmx\source\rmxbase\bitmap\BitmapCodecJPG.cpp(507,5): warning 112: statement is unreachable
+         
+         BitmapCodecPNG.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\BitmapCodecPNG.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\BitmapCodecPNG.cpp
+         Color.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\Color.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\Color.cpp
+         PaletteBitmap.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\PaletteBitmap.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\bitmap\PaletteBitmap.cpp
+         WeakPtr.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\WeakPtr.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\data\WeakPtr.cpp
+         FileCrawler.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\FileCrawler.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\FileCrawler.cpp
+         FileHandle.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\FileHandle.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\FileHandle.cpp
+         FileIO.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\FileIO.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\FileIO.cpp
+         FileProvider.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\FileProvider.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\FileProvider.cpp
+         FileSystem.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\FileSystem.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\FileSystem.cpp
+         JsonHelper.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\JsonHelper.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\JsonHelper.cpp
+         RealFileProvider.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\RealFileProvider.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\file\RealFileProvider.cpp
+         Math.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\Math.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\math\Math.cpp
+         BinarySerializer.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\BinarySerializer.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\BinarySerializer.cpp
+         InputStream.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\InputStream.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\InputStream.cpp
+         OneTimeAllocPool.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\OneTimeAllocPool.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\OneTimeAllocPool.cpp
+         OutputStream.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\OutputStream.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\OutputStream.cpp
+         RC4Encryption.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\RC4Encryption.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\RC4Encryption.cpp
+         RmxDeflate.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\RmxDeflate.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\RmxDeflate.cpp
+         String.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\String.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\String.cpp
+         UnalignedMemory.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\UnalignedMemory.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\UnalignedMemory.cpp
+         UTF8Conversion.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\UTF8Conversion.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\UTF8Conversion.cpp
+         VectorBinarySerializer.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\VectorBinarySerializer.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\VectorBinarySerializer.cpp
+         ZlibDeflate.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\ZlibDeflate.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\memory\ZlibDeflate.cpp
+         rmxbase.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\rmxbase.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\rmxbase.cpp
+         Logging.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\Logging.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\tools\Logging.cpp
+         Tools.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\Tools.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\tools\Tools.cpp
+         json_reader.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\json_reader.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\_jsoncpp\json_reader.cpp
+         json_value.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\json_value.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\_jsoncpp\json_value.cpp
+         json_writer.cpp
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\json_writer.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\librmx\source\rmxbase\_jsoncpp\json_writer.cpp
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\rmxbase.a
+         addmod PS3_Debug\Basics.o
+         addmod PS3_Debug\ErrorHandler.o
+         addmod PS3_Debug\Bitmap.o
+         addmod PS3_Debug\BitmapCodecBMP.o
+         addmod PS3_Debug\BitmapCodecICO.o
+         addmod PS3_Debug\BitmapCodecJPG.o
+         addmod PS3_Debug\BitmapCodecPNG.o
+         addmod PS3_Debug\Color.o
+         addmod PS3_Debug\PaletteBitmap.o
+         addmod PS3_Debug\WeakPtr.o
+         addmod PS3_Debug\FileCrawler.o
+         addmod PS3_Debug\FileHandle.o
+         addmod PS3_Debug\FileIO.o
+         addmod PS3_Debug\FileProvider.o
+         addmod PS3_Debug\FileSystem.o
+         addmod PS3_Debug\JsonHelper.o
+         addmod PS3_Debug\RealFileProvider.o
+         addmod PS3_Debug\Math.o
+         addmod PS3_Debug\BinarySerializer.o
+         addmod PS3_Debug\InputStream.o
+         addmod PS3_Debug\OneTimeAllocPool.o
+         addmod PS3_Debug\OutputStream.o
+         addmod PS3_Debug\RC4Encryption.o
+         addmod PS3_Debug\RmxDeflate.o
+         addmod PS3_Debug\String.o
+         addmod PS3_Debug\UnalignedMemory.o
+         addmod PS3_Debug\UTF8Conversion.o
+         addmod PS3_Debug\VectorBinarySerializer.o
+         addmod PS3_Debug\ZlibDeflate.o
+         addmod PS3_Debug\rmxbase.o
+         addmod PS3_Debug\Logging.o
+         addmod PS3_Debug\Tools.o
+         addmod PS3_Debug\json_reader.o
+         addmod PS3_Debug\json_value.o
+         addmod PS3_Debug\json_writer.o
+         save
+         end
+         rmxbase.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\rmxbase.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\rmxbase\rmxbase.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:21.93

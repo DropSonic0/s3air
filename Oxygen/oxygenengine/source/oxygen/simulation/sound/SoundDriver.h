@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,7 +17,7 @@ class SoundDriver
 {
 public:
 	// M-Cycles per frame: 262 lines with 3420 cycles each (NTSC console)
-	static const constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
+	static constexpr uint32 MCYCLES_PER_FRAME = 3420 * 262;
 
 	enum class UpdateResult
 	{

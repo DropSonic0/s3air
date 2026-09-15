@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -24,22 +24,32 @@ public:
 		struct { TYPE x, y; };
 	};
 
+#if defined(PLATFORM_PS3)
+	enum Initialization_t { Initialization_NONE };
+	struct Initialization { enum { NONE = Initialization_NONE }; };
+	static const Initialization_t Uninitialized = (Initialization_t)Initialization_NONE;
+#else
 	enum class Initialization { NONE };
-	static const Initialization Uninitialized = Initialization::NONE;
+	using Initialization_t = Initialization;
+	static const Initialization_t Uninitialized = Initialization::NONE;
+#endif
 
 public:
 	Vec2() : x(0), y(0)				{}
-	explicit Vec2(Initialization)	{}
+#if defined(PLATFORM_PS3)
+	Vec2(Initialization_t)			{}
+#else
+	explicit Vec2(Initialization_t)	{}
+#endif
 	explicit Vec2(TYPE value)		{ FORi(data[i] = value); }
 	explicit Vec2(const TYPE* vec)	{ FORi(data[i] = vec[i]); }
 
 	Vec2(const Vec2& source) : x(source.x), y(source.y) {}
 	Vec2(TYPE x_, TYPE y_) : x(x_), y(y_) {}
 
-	template<typename T> explicit Vec2(const Vec2<T>& source)
+	template<typename T> Vec2(const Vec2<T>& source)
 	{
-		for (int i = 0; i < 2; ++i)
-			data[i] = rmx::convertType<T, TYPE>(source.data[i]);
+		FORi(data[i] = TYPE(source.data[i]));
 	}
 
 	void clear()	{ FORi(data[i] = 0); }
@@ -94,43 +104,17 @@ public:
 		return sum;
 	}
 
-	static float distance(const Vec2& source1, const Vec2& source2)
-	{
-		TYPE sum = 0;
-		FORi(sum += (source1.data[i] - source2.data[i]) * (source1.data[i] - source2.data[i]));
-		return sqrtf((float)sum);
-	}
-
 	float distance(const Vec2& other) const
 	{
-		return distance(*this, other);
-	}
-
-	static TYPE sqrDist(const Vec2& source1, const Vec2& source2)
-	{
 		TYPE sum = 0;
-		FORi(sum += (source1.data[i] - source2.data[i]) * (source1.data[i] - source2.data[i]));
-		return sum;
+		FORi(sum += (data[i] - other.data[i]) * (data[i] - other.data[i]));
+		return sqrtf((float)sum);
 	}
 
 	TYPE sqrDist(const Vec2& other) const
 	{
-		return sqrDist(*this, other);
-	}
-
-	static float getDirectionAndDistance(Vec2& outDirection, const Vec2& start, const Vec2& end)
-	{
-		const Vec2 difference = end - start;
-		const float length = difference.length();
-		outDirection = difference / length;
-		return length;
-	}
-
-	static TYPE dot(const Vec2& source1, const Vec2& source2)
-	{
-		// Dot product
 		TYPE sum = 0;
-		FORi(sum += (source1.data[i] * source2.data[i]));
+		FORi(sum += (data[i] - other.data[i]) * (data[i] - other.data[i]));
 		return sum;
 	}
 
@@ -150,11 +134,14 @@ public:
 		set(_cos * x - _sin * y, _sin * x + _cos * y);
 	}
 
-	static Vec2 interpolate(const Vec2& source1, const Vec2& source2, TYPE factor)
+	void interpolate(const Vec2& other, float factor)
 	{
-		Vec2 result(Uninitialized);
-		FORi(result.data[i] = source1.data[i] * (1 - factor) + source2.data[i] * factor);
-		return result;
+		interpolate(*this, other, factor);
+	}
+
+	void interpolate(const Vec2& source1, const Vec2& source2, float factor)
+	{
+		FORi(data[i] = roundForInt<TYPE>((float)source1.data[i] * (1.0f - factor) + (float)source2.data[i] * factor));
 	}
 
 	bool operator==(const Vec2& vec) const	{ FORi( if (data[i] != vec.data[i]) return false; ); return true;  }
@@ -225,9 +212,11 @@ public:
 };
 
 
+#if !defined(PLATFORM_PS3)
 template<typename TYPE> const Vec2<TYPE> Vec2<TYPE>::ZERO(0, 0);
 template<typename TYPE> const Vec2<TYPE> Vec2<TYPE>::UNIT_X(1, 0);
 template<typename TYPE> const Vec2<TYPE> Vec2<TYPE>::UNIT_Y(0, 1);
+#endif
 
 #undef FORi
 

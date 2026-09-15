@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -60,15 +60,15 @@ void FileCrawler::addFiles(const WString& filemask, bool recursive)
 	addFilesInternal(input, recursive);
 }
 
-void FileCrawler::sort(SortMode mode)
+void FileCrawler::sort(SortMode_t mode)
 {
 	bool(*compareFunc)(const FileEntry&, const FileEntry&) = nullptr;
 	switch (mode)
 	{
-		case SortMode::BY_FILENAME:	 compareFunc = &compareFilenames;  break;
-		case SortMode::BY_EXTENSION: compareFunc = &compareFilenames;  break;	// TODO!
-		case SortMode::BY_TIME:		 compareFunc = &compareTimes;	   break;
-		case SortMode::BY_SIZE:		 compareFunc = &compareSizes;	   break;
+		case (SortMode_t)SortMode::BY_FILENAME:	 compareFunc = &compareFilenames;  break;
+		case (SortMode_t)SortMode::BY_EXTENSION: compareFunc = &compareFilenames;  break;	// TODO!
+		case (SortMode_t)SortMode::BY_TIME:		 compareFunc = &compareTimes;	   break;
+		case (SortMode_t)SortMode::BY_SIZE:		 compareFunc = &compareSizes;	   break;
 	}
 
 	if (nullptr != compareFunc)

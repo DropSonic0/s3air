@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -18,26 +18,6 @@ namespace rmx
 	template<> uint32 swapBytes(uint32 value) { return swapBytes32(value); }
 	template<> int64  swapBytes(int64 value)  { return swapBytes64(value); }
 	template<> uint64 swapBytes(uint64 value) { return swapBytes64(value); }
-	template<> float swapBytes(float value)
-	{
-		uint32 tmp;
-		std::memcpy(&tmp, &value, sizeof(float));
-		tmp = swapBytes32(tmp);
-		float res;
-		std::memcpy(&res, &tmp, sizeof(float));
-		return res;
-	}
-	template<> double swapBytes(double value)
-	{
-		uint64 tmp;
-		std::memcpy(&tmp, &value, sizeof(double));
-		tmp = swapBytes64(tmp);
-		double res;
-		std::memcpy(&res, &tmp, sizeof(double));
-		return res;
-	}
-
-	template<> int convertType(float value)   { return roundToInt(value); }
 }
 
 

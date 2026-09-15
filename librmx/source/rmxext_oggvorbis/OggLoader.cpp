@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -23,10 +23,10 @@ bool OggLoader::staticLoadVorbis(AudioBuffer* buffer, const String& source, cons
 
 OggLoader::OggLoader()
 {
-	mIsStreaming = false;
+	mIsStreaming = false; mInputStream = nullptr; mAudioBuffer = nullptr; mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 	mInputStream = nullptr;
 	mAudioBuffer = nullptr;
-	mError = OggLoaderError::OK;
+	mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 	ogg_sync_init(&mSyncState);
 }
 
@@ -49,10 +49,10 @@ void OggLoader::reset()
 		vorbis_info_clear(&mVorbisInfo);
 	}
 
-	mIsStreaming = false;
+	mIsStreaming = false; mInputStream = nullptr; mAudioBuffer = nullptr; mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 	mInputStream = nullptr;
 	mAudioBuffer = nullptr;
-	mError = OggLoaderError::OK;
+	mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 
 	ogg_sync_reset(&mSyncState);
 }
@@ -162,7 +162,7 @@ bool OggLoader::openStreams(InputStream* istream)
 	{
 		vorbis_synthesis_init(&mVorbisDspState, &mVorbisInfo);
 		vorbis_block_init(&mVorbisDspState, &mVorbisBlock);
-		mVorbisGranulePos = 0;
+		mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 		mAudioBuffer->clear(mVorbisInfo.rate, 2);
 		mAudioState = OggLoaderState::STREAMING;
 	}
@@ -175,13 +175,13 @@ bool OggLoader::openStreams(InputStream* istream)
 	}
 
 	// Did we get usable headers now?
-	if (nullptr == mAudioBuffer)
+	if (0 == mAudioBuffer)
 	{
 		mError = OggLoaderError::HEADERS_NOT_FOUND;
 		return false;
 	}
 
-	mError = OggLoaderError::OK;
+	mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 	return true;
 }
 
@@ -189,7 +189,7 @@ bool OggLoader::startVorbisStreaming(AudioBuffer* audiobuffer, InputStream* istr
 {
 	// Read from Ogg Vorbis input stream
 	reset();
-	if (nullptr == audiobuffer)
+	if (0 == audiobuffer)
 		return false;
 	mAudioBuffer = audiobuffer;
 	mAudioBuffer->clear();
@@ -277,7 +277,7 @@ bool OggLoader::updateStreaming()
 
 	// Input stream read complete and decoded everything, word here is done
 	mAudioState = OggLoaderState::COMPLETE;
-	mIsStreaming = false;
+	mIsStreaming = false; mInputStream = nullptr; mAudioBuffer = nullptr; mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
 
 	mAudioBuffer->setCompleted();
 	return false;
@@ -291,7 +291,7 @@ void OggLoader::precache(float time)
 
 	while (true)
 	{
-		const bool audioReady = (nullptr == mAudioBuffer || mAudioBuffer->getLengthInSec() >= time);
+		const bool audioReady = (0 == mAudioBuffer || mAudioBuffer->getLengthInSec() >= time);
 		if (!audioReady)
 		{
 			if (!updateStreaming())
@@ -407,7 +407,11 @@ int OggLoader::seekInternal(float targetTime, std::streamsize& rangeMin, std::st
 					if (phase == 1)
 					{
 						// Phase 1: Check if we're roughly at the right position, and find out what's the granule position just before the target time
+#if defined(PLATFORM_PS3)
+						const float foundTime = (float)oggPacket.granulepos / (float)mVorbisInfo.rate;
+#else
 						const float foundTime = (float)vorbis_granule_time(&mVorbisDspState, oggPacket.granulepos);
+#endif
 						if (granulePosFormer == -1)
 						{
 							// Too early?
@@ -468,7 +472,11 @@ float OggLoader::getVorbisPosition()
 {
 	if (!mIsStreaming)
 		return 0.0f;
+#if defined(PLATFORM_PS3)
+	return (float)mVorbisGranulePos / (float)mVorbisInfo.rate;
+#else
 	return (float)vorbis_granule_time(&mVorbisDspState, mVorbisGranulePos);
+#endif
 }
 
 float OggLoader::getFilePosition()

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,9 +8,8 @@
 
 #include "lemon/pch.h"
 #include "lemon/compiler/frontend/CompilerFrontend.h"
-#include "lemon/compiler/frontend/BlockNodeStack.h"
-#include "lemon/compiler/frontend/NodesIterator.h"
 #include "lemon/compiler/LineNumberTranslation.h"
+#include "lemon/compiler/Node.h"
 #include "lemon/compiler/TokenHelper.h"
 #include "lemon/compiler/TokenTypes.h"
 #include "lemon/compiler/Utility.h"
@@ -18,19 +17,63 @@
 #include "lemon/compiler/parser/ParserTokens.h"
 #include "lemon/program/GlobalsLookup.h"
 #include "lemon/program/Module.h"
-#include "lemon/utility/DataTypeHelper.h"
-#include "lemon/utility/PragmaSplitter.h"
 
 
 namespace lemon
 {
+	namespace
+	{
+		template<typename T>
+		T& addNode(std::vector<BlockNode*>& blockStack, uint32 lineNumber)
+		{
+			T& node = blockStack.back()->mNodes.createBack<T>();
+			node.setLineNumber(lineNumber);
+			return node;
+		}
+	}
 
-	CompilerFrontend::CompilerFrontend(Module& module, GlobalsLookup& globalsLookup, CompileOptions& compileOptions, const LineNumberTranslation& lineNumberTranslation, TokenProcessing& tokenProcessing, std::vector<FunctionNode*>& functionNodes) :
+
+	struct CompilerFrontend::NodesIterator
+	{
+		BlockNode& mBlockNode;
+		size_t mCurrentIndex = 0;
+		std::vector<size_t> mIndicesToErase;
+
+		inline NodesIterator(BlockNode& blockNode) :
+			mBlockNode(blockNode)
+		{}
+
+		inline ~NodesIterator()
+		{
+			mBlockNode.mNodes.erase(mIndicesToErase);
+		}
+
+		inline void operator++()		{ ++mCurrentIndex; }
+		inline Node& operator*() const	{ return mBlockNode.mNodes[mCurrentIndex]; }
+		inline Node* operator->() const	{ return &mBlockNode.mNodes[mCurrentIndex]; }
+		inline bool valid() const		{ return (mCurrentIndex < mBlockNode.mNodes.size()); }
+		inline Node* get() const		{ return (mCurrentIndex < mBlockNode.mNodes.size()) ? &mBlockNode.mNodes[mCurrentIndex] : nullptr; }
+		inline Node* peek() const		{ return (mCurrentIndex + 1 < mBlockNode.mNodes.size()) ? &mBlockNode.mNodes[mCurrentIndex + 1] : nullptr; }
+
+		template<typename T> inline T* getSpecific() const   { Node* node = get();  return (nullptr != node && node->isA<T>()) ? static_cast<T*>(node) : nullptr; }
+		template<typename T> inline T* peekSpecific() const  { Node* node = peek(); return (nullptr != node && node->isA<T>()) ? static_cast<T*>(node) : nullptr; }
+
+		inline void eraseCurrent()
+		{
+			// For performance reasons, don't erase it here already, but all of these in one go later on
+			if (mIndicesToErase.empty())
+				mIndicesToErase.reserve(mBlockNode.mNodes.size() / 2);
+			mIndicesToErase.push_back(mCurrentIndex);
+		}
+	};
+
+
+	CompilerFrontend::CompilerFrontend(Module& module, GlobalsLookup& globalsLookup, CompileOptions& compileOptions, const LineNumberTranslation& lineNumberTranslation, std::vector<FunctionNode*>& functionNodes) :
 		mModule(module),
 		mGlobalsLookup(globalsLookup),
 		mCompileOptions(compileOptions),
 		mLineNumberTranslation(lineNumberTranslation),
-		mTokenProcessing(tokenProcessing),
+		mTokenProcessing(globalsLookup, compileOptions),
 		mFunctionNodes(functionNodes)
 	{
 	}
@@ -56,7 +99,8 @@ namespace lemon
 		Parser parser;
 		ParserTokenList parserTokens;
 
-		BlockNodeStack blockNodeStack(rootNode);
+		std::vector<BlockNode*> blockStack;
+		blockStack.push_back(&rootNode);
 		uint32 lineNumber = 0;
 
 		for (const std::string_view line : lines)
@@ -81,7 +125,8 @@ namespace lemon
 						CHECK_ERROR(parserTokens.size() == 1, "Curly brace must use its own line", lineNumber);
 
 						// Start new block
-						blockNodeStack.pushBlockNode(lineNumber);
+						BlockNode& node = addNode<BlockNode>(blockStack, lineNumber);
+						blockStack.push_back(&node);
 
 						isUndefined = false;
 						break;
@@ -92,7 +137,9 @@ namespace lemon
 						CHECK_ERROR(parserTokens.size() == 1, "Curly brace must use its own line", lineNumber);
 
 						// Close block
-						blockNodeStack.popBlockNode(lineNumber);
+						blockStack.pop_back();
+
+						CHECK_ERROR(!blockStack.empty(), "Closed too many blocks", lineNumber);
 
 						isUndefined = false;
 						break;
@@ -109,7 +156,7 @@ namespace lemon
 				std::string& content = parserTokens[0].as<PragmaParserToken>().mContent;
 				if (!processGlobalPragma(content))
 				{
-					PragmaNode& node = blockNodeStack.appendNode<PragmaNode>(lineNumber);
+					PragmaNode& node = addNode<PragmaNode>(blockStack, lineNumber);
 					node.mContent.swap(content);
 				}
 				isUndefined = false;
@@ -118,7 +165,7 @@ namespace lemon
 			if (isUndefined)
 			{
 				// Add undefined node containing the token list, translated from parser token to (compiler) tokens
-				UndefinedNode& node = blockNodeStack.appendNode<UndefinedNode>(lineNumber);
+				UndefinedNode& node = addNode<UndefinedNode>(blockStack, lineNumber);
 				node.mTokenList.reserve(parserTokens.size());
 				for (size_t i = 0; i < parserTokens.size(); ++i)
 				{
@@ -160,8 +207,8 @@ namespace lemon
 							const ConstantParserToken& input = parserToken.as<ConstantParserToken>();
 							ConstantToken& constantToken = node.mTokenList.createBack<ConstantToken>();
 							constantToken.mValue = input.mValue;
-							constantToken.mDataType = (input.mBaseType == BaseType::FLOAT)  ? &PredefinedDataTypes::FLOAT.as<DataTypeDefinition>() :
-													  (input.mBaseType == BaseType::DOUBLE) ? &PredefinedDataTypes::DOUBLE.as<DataTypeDefinition>() : &PredefinedDataTypes::CONST_INT.as<DataTypeDefinition>();
+							constantToken.mDataType = (input.mBaseType == BaseType::FLOAT)  ? static_cast<const DataTypeDefinition*>(&PredefinedDataTypes::FLOAT) :
+													  (input.mBaseType == BaseType::DOUBLE) ? static_cast<const DataTypeDefinition*>(&PredefinedDataTypes::DOUBLE) : static_cast<const DataTypeDefinition*>(&PredefinedDataTypes::CONST_INT);
 							break;
 						}
 
@@ -191,7 +238,7 @@ namespace lemon
 			}
 		}
 
-		CHECK_ERROR(blockNodeStack.mStack.size() == 1, "More blocks opened than closed", lineNumber);
+		CHECK_ERROR(blockStack.size() == 1, "More blocks opened than closed", lineNumber);
 	}
 
 	void CompilerFrontend::processGlobalDefinitions(BlockNode& rootNode)
@@ -214,16 +261,14 @@ namespace lemon
 				// Check for keywords
 				if (tokens[0].isA<KeywordToken>())
 				{
-					const uint32 lineNumber = node.getLineNumber();
-
 					switch (tokens[0].as<KeywordToken>().mKeyword)
 					{
 						case Keyword::FUNCTION:
 						{
 							// Next node must be a block node
 							const size_t nodeIndex = nodesIterator.mCurrentIndex;
-							CHECK_ERROR(nodeIndex+1 < nodes.size(), "Function definition as last node is not allowed", lineNumber);
-							CHECK_ERROR(nodes[nodeIndex+1].isA<BlockNode>(), "Expected block node after function header", lineNumber);
+							CHECK_ERROR(nodeIndex+1 < nodes.size(), "Function definition as last node is not allowed", node.getLineNumber());
+							CHECK_ERROR(nodes[nodeIndex+1].isA<BlockNode>(), "Expected block node after function header", node.getLineNumber());
 
 							// Process tokens
 							ScriptFunction& function = processFunctionHeader(node, tokens);
@@ -232,7 +277,7 @@ namespace lemon
 							FunctionNode& newNode = nodes.createReplaceAt<FunctionNode>(nodeIndex);
 							newNode.mFunction = &function;
 							newNode.mContent = nodes[nodeIndex+1].as<BlockNode>();
-							newNode.setLineNumber(lineNumber);
+							newNode.setLineNumber(node.getLineNumber());
 
 							mFunctionNodes.push_back(&newNode);
 
@@ -254,42 +299,22 @@ namespace lemon
 						case Keyword::GLOBAL:
 						{
 							size_t offset = 1;
-							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<VarTypeToken>(), "Expected a typename after 'global' keyword", lineNumber);
+							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<VarTypeToken>(), "Expected a typename after 'global' keyword", node.getLineNumber());
 							const DataTypeDefinition* dataType = tokens[offset].as<VarTypeToken>().mDataType;
 							++offset;
 
-							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier in global variable definition", lineNumber);
+							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier in global variable definition", node.getLineNumber());
 							const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
 							++offset;
 
-							// Check for array definition
-							if (offset+3 <= tokens.size() && isOperator(tokens[offset], Operator::BRACKET_LEFT) &&
-								tokens[offset+1].isA<ConstantToken>() && isOperator(tokens[offset+2], Operator::BRACKET_RIGHT))
+							// Create global variable
+							GlobalVariable& variable = mModule.addGlobalVariable(identifier, dataType);
+							mGlobalsLookup.registerGlobalVariable(variable);
+
+							if (offset+2 <= tokens.size() && isOperator(tokens[offset], Operator::ASSIGN))
 							{
-								CHECK_ERROR(tokens[offset+1].as<ConstantToken>().mDataType == &PredefinedDataTypes::CONST_INT, "Expected an integer as array size", lineNumber);
-								const int arraySize = tokens[offset+1].as<ConstantToken>().mValue.get<int32>();
-								CHECK_ERROR(arraySize >= 1, "Invalid array size of " << arraySize, lineNumber);
-								CHECK_ERROR(arraySize <= 0x10000, "Too large array size of " << arraySize, lineNumber);
-								CHECK_ERROR(offset+3 == tokens.size(), "Syntax error after array definition", lineNumber);
-
-								// Get or create array data type
-								const DataTypeDefinition& arrayDataType = mTokenProcessing.getArrayDataType(*dataType, arraySize);
-
-								// Create global variable
-								GlobalVariable& variable = mModule.addGlobalVariable(identifier, &arrayDataType);
-								mGlobalsLookup.registerGlobalVariable(variable);
-							}
-							else
-							{
-								// Create global variable
-								GlobalVariable& variable = mModule.addGlobalVariable(identifier, dataType);
-								mGlobalsLookup.registerGlobalVariable(variable);
-
-								if (offset+2 <= tokens.size() && isOperator(tokens[offset], Operator::ASSIGN))
-								{
-									++offset;
-									variable.mInitialValue = readConstantExpression(tokens, offset, tokens.size(), dataType, lineNumber);
-								}
+								CHECK_ERROR(offset+2 == tokens.size() && tokens[offset+1].isA<ConstantToken>(), "Expected a constant value for initializing the global variable", node.getLineNumber());
+								variable.mInitialValue = tokens[offset+1].as<ConstantToken>().mValue.get<int64>();
 							}
 							break;
 						}
@@ -302,113 +327,45 @@ namespace lemon
 
 						case Keyword::DEFINE:
 						{
-							// Check for copy(...) to(...) variant
-							CHECK_ERROR(tokens.size() >= 2, "Expected anything after define", lineNumber);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-							constexpr uint64 COPY_HASH = rmx::constMurmur2_64("copy");
-							constexpr uint64 TO_HASH = rmx::constMurmur2_64("to");
-#else
-							constexpr uint64 COPY_HASH = 2037411643ULL;
-							constexpr uint64 TO_HASH = 28532ULL;
-#endif
-							if (isIdentifier(tokens[1], COPY_HASH))
+							size_t offset = 1;
+							const DataTypeDefinition* dataType = nullptr;	// Not specified
+
+							// Typename is optional
+							if (offset < tokens.size() && tokens[offset].isA<VarTypeToken>())
 							{
-								CHECK_ERROR(tokens.size() == 13, "Syntax error after define copy", lineNumber);
-								CHECK_ERROR(isOperator(tokens[2], Operator::PARENTHESIS_LEFT), "Expected parenthesis after 'copy' in define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[3].isA<IdentifierToken>(), "Expected identifier as first argument of 'copy' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[4], Operator::COMMA_SEPARATOR), "Expected comma between arguments in 'copy' part of define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[5].isA<IdentifierToken>(), "Expected identifier as second argument of 'copy' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[6], Operator::PARENTHESIS_RIGHT), "Expected parenthesis after 'copy' in define copy() to()", lineNumber);
-
-								CHECK_ERROR(isIdentifier(tokens[7], TO_HASH), "Expected 'to' in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[8], Operator::PARENTHESIS_LEFT), "Expected parenthesis after 'to' in define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[9].isA<IdentifierToken>(), "Expected identifier as first argument of 'to' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[10], Operator::COMMA_SEPARATOR), "Expected comma between arguments in 'to' part of define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[11].isA<IdentifierToken>(), "Expected identifier as second argument of 'to' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[12], Operator::PARENTHESIS_RIGHT), "Expected parenthesis after 'to' in define copy() to()", lineNumber);
-
-								const FlyweightString prefixBefore = tokens[3].as<IdentifierToken>().mName;
-								const FlyweightString identifierBefore = tokens[5].as<IdentifierToken>().mName;
-								const FlyweightString prefixAfter = tokens[9].as<IdentifierToken>().mName;
-								const FlyweightString identifierAfter = tokens[11].as<IdentifierToken>().mName;
-
-								std::vector<const Define*> definesToCopy;
-								for (const Define* existingDefine : mModule.getDefines())
-								{
-									if (rmx::startsWith(existingDefine->getName().getString(), prefixBefore.getString()))
-									{
-										definesToCopy.push_back(existingDefine);
-									}
-								}
-
-								for (const Define* existingDefine : definesToCopy)
-								{
-									// Copy that define into a new one
-									std::string newDefineName(prefixAfter.getString());
-									newDefineName += existingDefine->getName().getString().substr(prefixBefore.getString().length());
-
-									Define& newDefine = mModule.addDefine(newDefineName, existingDefine->getDataType());
-									newDefine.mContent.copyFrom(existingDefine->mContent);		// Note that this is only a shallow copy, still pointing to the same token instances
-
-									// Deep copy and replace
-									for (size_t k = 0; k < newDefine.mContent.size(); ++k)
-									{
-										const IdentifierToken* identifierToken = newDefine.mContent[k].cast<IdentifierToken>();
-										if (nullptr != identifierToken && identifierToken->mName == identifierBefore)
-										{
-											// Replace token with a new one
-											//  -> Don't just change the existing one because it's still shared with the define that it was copied from
-											IdentifierToken& newToken = newDefine.mContent.createReplaceAt<IdentifierToken>(k);
-											newToken.mName = identifierAfter;
-											newToken.mDataType = identifierToken->mDataType;
-										}
-									}
-
-									mGlobalsLookup.registerDefine(newDefine);
-								}
+								dataType = tokens[offset].as<VarTypeToken>().mDataType;
+								++offset;
 							}
-							else
-							{
-								size_t offset = 1;
-								const DataTypeDefinition* dataType = nullptr;	// Not specified
 
-								// Typename is optional
-								if (offset < tokens.size() && tokens[offset].isA<VarTypeToken>())
+							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier for define", node.getLineNumber());
+							const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
+							++offset;
+
+							CHECK_ERROR(offset < tokens.size() && isOperator(tokens[offset], Operator::ASSIGN), "Expected '=' in define", node.getLineNumber());
+							++offset;
+
+							// Rest is define content
+							CHECK_ERROR(offset < tokens.size(), "Missing define content", node.getLineNumber());
+
+							// Find out the data type if not specified yet
+							if (nullptr == dataType)
+							{
+								if (tokens[offset].isA<VarTypeToken>())
 								{
 									dataType = tokens[offset].as<VarTypeToken>().mDataType;
-									++offset;
 								}
-
-								CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier for define", lineNumber);
-								const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
-								++offset;
-
-								CHECK_ERROR(offset < tokens.size() && isOperator(tokens[offset], Operator::ASSIGN), "Expected '=' in define", lineNumber);
-								++offset;
-
-								// Rest is define content
-								CHECK_ERROR(offset < tokens.size(), "Missing define content", lineNumber);
-
-								// Find out the data type if not specified yet
-								if (nullptr == dataType)
+								else
 								{
-									if (tokens[offset].isA<VarTypeToken>())
-									{
-										dataType = tokens[offset].as<VarTypeToken>().mDataType;
-									}
-									else
-									{
-										CHECK_ERROR(false, "Data type of define could not be determined", lineNumber);
-									}
+									CHECK_ERROR(false, "Data type of define could not be determined", node.getLineNumber());
 								}
+							}
 
-								// Create define
-								Define& define = mModule.addDefine(identifier, dataType);
-								for (size_t i = offset; i < tokens.size(); ++i)
-								{
-									define.mContent.add(tokens[i]);
-								}
-								mGlobalsLookup.registerDefine(define);
+							// Create define
+							Define& define = mModule.addDefine(identifier, dataType);
+							mGlobalsLookup.registerDefine(define);
+							for (size_t i = offset; i < tokens.size(); ++i)
+							{
+								define.mContent.add(tokens[i]);
 							}
 							break;
 						}
@@ -471,7 +428,7 @@ namespace lemon
 			{
 				// Must be a type and identifier as next tokens, then a comma or closing parentheses
 				CHECK_ERROR(offset + 2 < tokens.size(), "Expected function parameter definition", lineNumber);
-				parameters.push_back(Function::Parameter());
+				vectorAdd(parameters);
 
 				CHECK_ERROR(tokens[offset].isA<VarTypeToken>(), "Expected type in function parameter definition", lineNumber);
 				parameters.back().mDataType = tokens[offset].as<VarTypeToken>().mDataType;
@@ -539,18 +496,11 @@ namespace lemon
 		{
 			Node& node = *nodesIterator;
 			const size_t nodeIndex = nodesIterator.mCurrentIndex;
-
 			switch (node.getType())
 			{
 				case Node::Type::BLOCK:
 				{
 					processUndefinedNodesInBlock(node.as<BlockNode>(), function, scopeContext);
-					break;
-				}
-
-				case Node::Type::PRAGMA:
-				{
-					mCurrentPragmas.push_back(&node.as<PragmaNode>());
 					break;
 				}
 
@@ -565,7 +515,6 @@ namespace lemon
 						// Replace undefined node
 						blockNode.mNodes.replace(*newNode, nodeIndex);
 					}
-					mCurrentPragmas.clear();
 					break;
 				}
 
@@ -576,7 +525,6 @@ namespace lemon
 
 		// Block end: Close scope
 		scopeContext.endScope();
-		mCurrentPragmas.clear();
 	}
 
 	Node* CompilerFrontend::processUndefinedNode(UndefinedNode& undefinedNode, ScriptFunction& function, ScopeContext& scopeContext, NodesIterator& nodesIterator)
@@ -804,34 +752,8 @@ namespace lemon
 			CHECK_ERROR(isOperator(tokens[1], Operator::COLON), "Expected a colon operator after label", lineNumber);
 
 			LabelNode& node = NodeFactory::create<LabelNode>();
-			node.mLabel = tokens[0].as<LabelToken>().mName;		// Note that the label includes the '@' character
+			node.mLabel = tokens[0].as<LabelToken>().mName;
 			node.setLineNumber(lineNumber);
-
-			// Evaluate pragmas for address hooks
-			for (const PragmaNode* pragmaNode : mCurrentPragmas)
-			{
-				PragmaSplitter pragmaSplitter(pragmaNode->mContent);
-				ScriptFunction::AddressHook* lastAddressHook = nullptr;
-				for (const lemon::PragmaSplitter::Entry& entry : pragmaSplitter.mEntries)
-				{
-					if (entry.mArgument == "address-hook")
-					{
-						// Create address hook
-						RMX_CHECK(!entry.mValue.empty(), "Address hook must have a value", continue);
-						ScriptFunction::AddressHook& addressHook = vectorAdd(node.mAddressHooks);
-						addressHook.mAddress = (uint32)rmx::parseInteger(entry.mValue);
-						lastAddressHook = &addressHook;
-					}
-					else if (entry.mArgument == "off")
-					{
-						// Mark address hook as disabled
-						if (nullptr != lastAddressHook)
-						{
-							lastAddressHook->mDisabled = true;
-						}
-					}
-				}
-			}
 			return &node;
 		}
 		else
@@ -907,11 +829,7 @@ namespace lemon
 		const uint32 lineNumber = nodesIterator->getLineNumber();
 		const bool isGlobalDefinition = (nullptr == scopeContext);
 		CHECK_ERROR(tokens.size() >= 5, "Syntax error in constant definition", lineNumber);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-		constexpr uint64 ARRAY_NAME_HASH = rmx::constMurmur2_64("array");
-#else
-		constexpr uint64 ARRAY_NAME_HASH = 526084931169ULL;
-#endif
+		static const uint64 ARRAY_NAME_HASH = rmx::getMurmur2_64(std::string_view("array"));
 
 		// Check for "constant array"
 		if (isIdentifier(tokens[1], ARRAY_NAME_HASH))
@@ -923,32 +841,9 @@ namespace lemon
 			CHECK_ERROR(tokens[5].isA<IdentifierToken>(), "Expected identifier in constant array definition", lineNumber);
 			CHECK_ERROR(isOperator(tokens[6], Operator::ASSIGN), "Expected assignment at the end of constant array definition", lineNumber);
 
-			const DataTypeDefinition* arrayDataType = tokens[3].as<VarTypeToken>().mDataType;
-
-			static std::vector<AnyBaseValue> values;
+			static std::vector<uint64> values;
 			values.clear();
 			values.reserve(0x20);
-
-			bool expectingComma = false;
-			const auto parseContentTokens = [this, arrayDataType, &expectingComma](TokenList& tokens, size_t firstIndex, size_t endIndex, uint32 lineNumber, std::vector<AnyBaseValue>& values)
-			{
-				for (size_t i = firstIndex; i < endIndex; ++i)
-				{
-					Token* token = &tokens[i];
-					if (expectingComma)
-					{
-						CHECK_ERROR(isOperator(*token, Operator::COMMA_SEPARATOR), "Expected a comma-separated list of constants inside constant array list of values", lineNumber);
-						expectingComma = false;
-					}
-					else
-					{
-						const AnyBaseValue value = readConstantExpression(tokens, i, endIndex, arrayDataType, lineNumber);
-						values.push_back(value);
-						--i;		// Undo last increase of i, as the for-loop will increase it once more
-						expectingComma = true;
-					}
-				}
-			};
 
 			bool removeNextNode = false;
 			if (tokens.size() >= 8)
@@ -958,7 +853,22 @@ namespace lemon
 				CHECK_ERROR(isKeyword(tokens.back(), Keyword::BLOCK_END), "Expected } at the end of constant array definition", lineNumber);
 
 				// Handle one-liner definition of constant array
-				parseContentTokens(tokens, 8, tokens.size() - 1, lineNumber, values);
+				bool expectingComma = false;
+				for (size_t i = 8; i < tokens.size() - 1; ++i)
+				{
+					Token& token = tokens[i];
+					if (expectingComma)
+					{
+						CHECK_ERROR(isOperator(token, Operator::COMMA_SEPARATOR), "Expected a comma-separated list of constants inside constant array list of values", lineNumber);
+						expectingComma = false;
+					}
+					else
+					{
+						CHECK_ERROR(token.isA<ConstantToken>(), "Expected a comma-separated list of constants inside constant array list of values", lineNumber);
+						values.push_back(token.as<ConstantToken>().mValue.get<uint64>());
+						expectingComma = true;
+					}
+				}
 			}
 			else
 			{
@@ -968,17 +878,32 @@ namespace lemon
 
 				// Go through the block node and collect the values
 				BlockNode& content = nextNode->as<BlockNode>();
+				bool expectingComma = false;
 				for (size_t n = 0; n < content.mNodes.size(); ++n)
 				{
 					CHECK_ERROR(content.mNodes[n].isA<UndefinedNode>(), "Syntax error inside constant array list of values", content.mNodes[n].getLineNumber());
 					UndefinedNode& listNode = content.mNodes[n].as<UndefinedNode>();
-					parseContentTokens(listNode.mTokenList, 0, listNode.mTokenList.size(), listNode.getLineNumber(), values);
+					for (size_t i = 0; i < listNode.mTokenList.size(); ++i)
+					{
+						Token& token = listNode.mTokenList[i];
+						if (expectingComma)
+						{
+							CHECK_ERROR(isOperator(token, Operator::COMMA_SEPARATOR), "Expected a comma-separated list of constants inside constant array list of values", listNode.getLineNumber());
+							expectingComma = false;
+						}
+						else
+						{
+							CHECK_ERROR(token.isA<ConstantToken>(), "Expected a comma-separated list of constants inside constant array list of values", listNode.getLineNumber());
+							values.push_back(token.as<ConstantToken>().mValue.get<uint64>());
+							expectingComma = true;
+						}
+					}
 				}
 
 				removeNextNode = true;
 			}
 
-			ConstantArray& constantArray = mModule.addConstantArray(tokens[5].as<IdentifierToken>().mName.getString(), arrayDataType, &values[0], values.size(), isGlobalDefinition);
+			ConstantArray& constantArray = mModule.addConstantArray(tokens[5].as<IdentifierToken>().mName.getString(), tokens[3].as<VarTypeToken>().mDataType, &values[0], values.size(), isGlobalDefinition);
 			if (isGlobalDefinition)
 			{
 				mGlobalsLookup.registerConstantArray(constantArray);
@@ -1001,15 +926,16 @@ namespace lemon
 			CHECK_ERROR(tokens[2].isA<IdentifierToken>(), "Expected an identifier for constant definition", lineNumber);
 			CHECK_ERROR(isOperator(tokens[3], Operator::ASSIGN), "Missing assignment in constant definition", lineNumber);
 
+			// TODO: Support all statements that result in a compile-time constant
+			CHECK_ERROR(tokens[4].isA<ConstantToken>(), "", lineNumber);
+
 			const DataTypeDefinition* dataType = tokens[1].as<VarTypeToken>().mDataType;
 			const FlyweightString identifier = tokens[2].as<IdentifierToken>().mName;
-
-			size_t pos = 4;
-			const AnyBaseValue value = readConstantExpression(tokens, pos, tokens.size(), dataType, lineNumber);
+			const AnyBaseValue constantValue = tokens[4].as<ConstantToken>().mValue;
 
 			if (isGlobalDefinition)
 			{
-				Constant& constant = mModule.addConstant(identifier, dataType, value);
+				Constant& constant = mModule.addConstant(identifier, dataType, constantValue);
 				mGlobalsLookup.registerConstant(constant);
 			}
 			else
@@ -1017,7 +943,7 @@ namespace lemon
 				Constant& constant = vectorAdd(scopeContext->mLocalConstants);
 				constant.mName = identifier;
 				constant.mDataType = dataType;
-				constant.mValue = value;
+				constant.mValue = constantValue;
 			}
 		}
 	}
@@ -1145,83 +1071,16 @@ namespace lemon
 			if (value > 0)
 			{
 				// Don't allow a higher script feature level than actually supported
-				if (value > CompileOptions::MAX_SCRIPT_FEATURE_LEVEL)
+				static constexpr uint32 MAX_SCRIPT_FEATURE_LEVEL = 2;
+				if (value > MAX_SCRIPT_FEATURE_LEVEL)
 				{
-					REPORT_ERROR_CODE(CompilerError::Code::SCRIPT_FEATURE_LEVEL_TOO_HIGH, value, CompileOptions::MAX_SCRIPT_FEATURE_LEVEL, "Script uses feature level " << value << ", but the highest supported level is " << CompileOptions::MAX_SCRIPT_FEATURE_LEVEL);
+					REPORT_ERROR_CODE(CompilerError::Code::SCRIPT_FEATURE_LEVEL_TOO_HIGH, value, MAX_SCRIPT_FEATURE_LEVEL, "Script uses feature level " << value << ", but the highest supported level is " << MAX_SCRIPT_FEATURE_LEVEL);
 				}
 				mCompileOptions.mScriptFeatureLevel = (uint32)value;
-				mModule.setScriptFeatureLevel((uint32)value);
 			}
 			return true;
 		}
 		return false;
-	}
-
-	AnyBaseValue CompilerFrontend::readConstantExpression(TokenList& tokens, size_t& pos, size_t endPos, const DataTypeDefinition* dataType, uint32 lineNumber)
-	{
-		// TODO: Support all statements that result in a compile-time constant
-		CHECK_ERROR(pos < endPos, "Expected constant value", lineNumber);
-
-		bool negative = false;
-		if (isOperator(tokens[pos], Operator::BINARY_MINUS) || isOperator(tokens[pos], Operator::BINARY_PLUS))
-		{
-			negative = isOperator(tokens[pos], Operator::BINARY_MINUS);
-			++pos;
-			CHECK_ERROR(pos < endPos, "Expected constant value after minus sign", lineNumber);
-		}
-
-		AnyBaseValue constantValue;
-		const DataTypeDefinition* constantDataType = nullptr;
-
-		if (tokens[pos].isA<IdentifierToken>())
-		{
-			if (!mTokenProcessing.processConstant(tokens, pos))
-			{
-				IdentifierToken* identifierToken = tokens[pos].cast<IdentifierToken>();
-				CHECK_ERROR(nullptr != identifierToken, "Expected constant value, but got an invalid identifier", lineNumber);
-				CHECK_ERROR(nullptr != identifierToken->mResolved, "Expected constant value, but got unknown identifier " << identifierToken->mName, lineNumber);
-				CHECK_ERROR(false, "Expected constant value, but got non-constant identifier " << identifierToken->mName, lineNumber);
-			}
-		}
-
-		switch (tokens[pos].getType())
-		{
-			case ConstantToken::TYPE:
-			{
-				const ConstantToken& constantToken = tokens[pos].as<ConstantToken>();
-				constantValue = constantToken.mValue;
-				constantDataType = constantToken.mDataType;
-				break;
-			}
-
-			default:
-				CHECK_ERROR(tokens[pos].isA<ConstantToken>(), "Expected constant value", lineNumber);
-				break;
-		}
-
-		++pos;
-
-		// Negate value if needed
-		if (negative)
-		{
-			if (!DataTypeHelper::negateBaseTypeValue(constantValue, *constantDataType))
-				CHECK_ERROR(false, "Can't apply negative sign to constant value of type " << dataType->getName(), lineNumber);
-		}
-
-		// For integers, check if data gets lost by the cast
-		if (constantDataType->isA<IntegerDataType>() && dataType->isA<IntegerDataType>())
-		{
-			if (!DataTypeHelper::isInsideIntegerRange(constantValue.get<int64>(), dataType->as<IntegerDataType>()))
-				CHECK_ERROR(false, "Constant " << constantValue.get<int64>() << " (" << rmx::hexString(constantValue.get<int64>()) << ") can't fit into data type " << dataType->getName().getString() << ", data would get lost", lineNumber);
-		}
-
-		// Cast the value as needed, because the constant might have a different type than the constant array
-		AnyBaseValue finalValue;
-		const TypeCasting::CastHandling castHandling = TypeCasting(mCompileOptions).castBaseValue(constantValue, constantDataType, finalValue, dataType);
-		const bool castSuccessful = (castHandling.mResult == TypeCasting::CastHandling::Result::NO_CAST || castHandling.mResult == TypeCasting::CastHandling::Result::BASE_CAST);
-		CHECK_ERROR(castSuccessful, "Unable to cast constant from type " << constantDataType->getName().getString() << " to type " << dataType->getName().getString(), lineNumber);
-
-		return finalValue;
 	}
 
 }

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -25,7 +25,11 @@ struct OptionsMenuRenderContext : public GameMenuEntry::RenderContext
 class TitleMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("TitleMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0x2d921dc3;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("TitleMenuEntry");
+#endif
 
 public:
 	TitleMenuEntry();
@@ -38,7 +42,11 @@ public:
 class ModTitleMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("ModTitleMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0x9bb222bf;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("ModTitleMenuEntry");
+#endif
 
 public:
 	ModTitleMenuEntry();
@@ -57,7 +65,11 @@ private:
 class LabelMenuEntry : public GameMenuEntry
 {
 public:
-	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("LabelMenuEntry");
+#if defined(PLATFORM_PS3)
+	static constexpr uint32 MENU_ENTRY_TYPE = 0xc308bfd3;
+#else
+	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("LabelMenuEntry");
+#endif
 
 public:
 	LabelMenuEntry();
@@ -124,13 +136,4 @@ public:
 	void renderEntry(RenderContext& renderContext) override;
 	void triggerButton() override;
 	bool shouldBeShown() override;
-};
-
-
-class DevModeMenuEntry : public OptionsMenuEntry
-{
-public:
-	DevModeMenuEntry();
-
-	void renderEntry(RenderContext& renderContext) override;
 };

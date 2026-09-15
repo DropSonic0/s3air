@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,15 +10,19 @@
 #include "oxygen/rendering/parts/ScrollOffsetsManager.h"
 #include "oxygen/rendering/parts/PlaneManager.h"
 #include "oxygen/simulation/EmulatorInterface.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 // This bitmask is applied to reduce the necessary precision in "render_plane.shader"
 //  -> That's needed because on some Android devices, we don't even get full 16-bit integers
-static const constexpr uint16 SCROLL_OFFSET_VALUE_BITMASK = 0x0fff;
+static constexpr uint16 SCROLL_OFFSET_VALUE_BITMASK = 0x0fff;
 
 
 ScrollOffsetsManager::ScrollOffsetsManager(PlaneManager& planeManager) :
-	mPlaneManager(planeManager)
+	mPlaneManager(planeManager),
+	mVerticalScrolling(false),
+	mHorizontalScrollMask(0xff),
+	mHorizontalScrollTableBase(0xf000),
+	mVerticalScrollOffsetBias(0)
 {
 	reset();
 }
@@ -27,12 +31,39 @@ void ScrollOffsetsManager::reset()
 {
 	mVerticalScrolling = false;
 	mHorizontalScrollMask = 0xff;
+	mHorizontalScrollTableBase = 0xf000;
 	mVerticalScrollOffsetBias = 0;
 
 	for (int index = 0; index < 4; ++index)
 	{
-		memset(&mSets[index], 0, sizeof(mSets[index]));
-		memset(&mInterpolatedSets[index], 0, sizeof(mInterpolatedSets[index]));
+		ScrollOffsetSet& set = mSets[index];
+		for (int i = 0; i < 0x100; ++i)
+		{
+			set.mScrollOffsetsH[i] = 0;
+			set.mExplicitOverwriteH[i] = false;
+		}
+		for (int i = 0; i < 0x20; ++i)
+		{
+			set.mScrollOffsetsV[i] = 0;
+			set.mExplicitOverwriteV[i] = false;
+		}
+		set.mHorizontalScrollNoRepeat = false;
+
+		InterpolatedScrollOffsetSet& interpSet = mInterpolatedSets[index];
+		interpSet.mValid = false;
+		interpSet.mHasLastScrollOffsets = false;
+		for (int i = 0; i < 0x100; ++i)
+		{
+			interpSet.mInterpolatedScrollOffsetsH[i] = 0;
+			interpSet.mLastScrollOffsetsH[i] = 0;
+			interpSet.mDifferenceScrollOffsetsH[i] = 0;
+		}
+		for (int i = 0; i < 0x20; ++i)
+		{
+			interpSet.mInterpolatedScrollOffsetsV[i] = 0;
+			interpSet.mLastScrollOffsetsV[i] = 0;
+			interpSet.mDifferenceScrollOffsetsV[i] = 0;
+		}
 	}
 }
 
@@ -47,13 +78,13 @@ void ScrollOffsetsManager::refresh(const RefreshParameters& refreshParameters)
 			bool* overwriteFlags = mSets[index].mExplicitOverwriteH;
 			if (index < 2)
 			{
-				const uint16* src = (uint16*)&EmulatorInterface::instance().getVRam()[mHorizontalScrollTableBase + (1 - index) * 2];
+				const uint8* src = &EmulatorInterface::instance().getVRam()[mHorizontalScrollTableBase + (1 - index) * 2];
 				for (int k = 0; k < 0x100; ++k)
 				{
 					if (!overwriteFlags[k])
 					{
 						const int srcIndex = k & mHorizontalScrollMask;
-						buffer[k] = (-src[srcIndex*2]) & SCROLL_OFFSET_VALUE_BITMASK;
+						buffer[k] = (-rmx::readMemoryUnalignedBE<uint16>(src + srcIndex * 4)) & SCROLL_OFFSET_VALUE_BITMASK;
 					}
 				}
 			}
@@ -68,6 +99,12 @@ void ScrollOffsetsManager::refresh(const RefreshParameters& refreshParameters)
 					}
 				}
 			}
+
+			// Reset overwrite flags
+			for (int k = 0; k < 0x100; ++k)
+			{
+				overwriteFlags[k] = false;
+			}
 		}
 
 		// Vertical scrolling
@@ -79,12 +116,12 @@ void ScrollOffsetsManager::refresh(const RefreshParameters& refreshParameters)
 			if (index < 2)
 			{
 				// One entry in VSRAM for each pattern column
-				const uint16* src = &EmulatorInterface::instance().getVSRam()[1 - index];
+				const uint16* src = EmulatorInterface::instance().getVSRam();
 				for (int k = 0; k < 0x20; ++k)
 				{
 					if (!overwriteFlags[k])
 					{
-						buffer[k] = src[k*2] & SCROLL_OFFSET_VALUE_BITMASK;
+						buffer[k] = rmx::readMemoryUnalignedBE<uint16>((const uint8*)src + ((1 - index) + k * 2) * 2) & SCROLL_OFFSET_VALUE_BITMASK;
 					}
 				}
 			}
@@ -98,6 +135,12 @@ void ScrollOffsetsManager::refresh(const RefreshParameters& refreshParameters)
 						buffer[k] = mSets[index - 2].mScrollOffsetsV[k];
 					}
 				}
+			}
+
+			// Reset overwrite flags
+			for (int k = 0; k < 0x20; ++k)
+			{
+				overwriteFlags[k] = false;
 			}
 		}
 
@@ -178,26 +221,6 @@ void ScrollOffsetsManager::preFrameUpdate()
 
 void ScrollOffsetsManager::postFrameUpdate()
 {
-}
-
-void ScrollOffsetsManager::resetOverwriteFlags()
-{
-	for (int index = 0; index < 4; ++index)
-	{
-		// Horizontal scrolling
-		bool* overwriteFlags = mSets[index].mExplicitOverwriteH;
-		for (int k = 0; k < 0x100; ++k)
-		{
-			overwriteFlags[k] = false;
-		}
-
-		// Vertical scrolling
-		overwriteFlags = mSets[index].mExplicitOverwriteV;
-		for (int k = 0; k < 0x20; ++k)
-		{
-			overwriteFlags[k] = false;
-		}
-	}
 }
 
 bool ScrollOffsetsManager::getHorizontalScrollNoRepeat(int setIndex) const

@@ -1,0 +1,883 @@
+[PS3] log.txt initialized at /dev_hdd0/game/SONIC3AIR/USRDIR (target: /dev_hdd0/game/SONIC3AIR/USRDIR/log.txt)
+[PS3] main() entered
+[PS3] main() entered
+[PS3] main() entered
+[PS3] main() entered
+[PS3] main() entered
+[PS3] main() entered
+[PS3] earlySetup() completed
+[PS3] earlySetup() completed
+[PS3] earlySetup() completed
+[PS3] earlySetup() completed
+[PS3] earlySetup() completed
+[PS3] earlySetup() completed
+[PS3] platformStartup() completed
+[PS3] platformStartup() completed
+[PS3] platformStartup() completed
+[PS3] platformStartup() completed
+[PS3] platformStartup() completed
+[PS3] platformStartup() completed
+[PS3] Creating EngineDelegate & EngineMain
+[PS3] Creating EngineDelegate & EngineMain
+[PS3] Creating EngineDelegate & EngineMain
+[PS3] Creating EngineDelegate & EngineMain
+[PS3] Creating EngineDelegate & EngineMain
+[PS3] Creating EngineDelegate & EngineMain
+[PS3] Calling myMain.execute()
+[PS3] Calling myMain.execute()
+[PS3] Calling myMain.execute()
+[PS3] Calling myMain.execute()
+[PS3] Calling myMain.execute()
+[PS3] Calling myMain.execute()
+[PS3] startupEngine() started
+[PS3] startupEngine() started
+[PS3] startupEngine() started
+[PS3] startupEngine() started
+[PS3] startupEngine() started
+[PS3] startupEngine() started
+[PS3] initDirectories()
+[PS3] initDirectories()
+[PS3] initDirectories()
+[PS3] initDirectories()
+[PS3] initDirectories()
+[PS3] initDirectories()
+--- STARTUP ---
+--- STARTUP ---
+--- STARTUP ---
+--- STARTUP ---
+--- STARTUP ---
+--- STARTUP ---
+Logging started
+Logging started
+Logging started
+Logging started
+Logging started
+Logging started
+Application version: 26.03.28.0
+Application version: 26.03.28.0
+Application version: 26.03.28.0
+Application version: 26.03.28.0
+Application version: 26.03.28.0
+Application version: 26.03.28.0
+Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+[PS3] initConfigAndSettings()
+[PS3] initConfigAndSettings()
+[PS3] initConfigAndSettings()
+[PS3] initConfigAndSettings()
+[PS3] initConfigAndSettings()
+[PS3] initConfigAndSettings()
+Initializing configuration
+Initializing configuration
+Initializing configuration
+Initializing configuration
+Initializing configuration
+Initializing configuration
+Loading configuration
+Loading configuration
+Loading configuration
+Loading configuration
+Loading configuration
+Loading configuration
+Loading settings
+Loading settings
+Loading settings
+Loading settings
+Loading settings
+Loading settings
+Using opengl-soft renderer
+Using opengl-soft renderer
+Using opengl-soft renderer
+Using opengl-soft renderer
+Using opengl-soft renderer
+Using opengl-soft renderer
+[PS3] initFileSystem()
+[PS3] initFileSystem()
+[PS3] initFileSystem()
+[PS3] initFileSystem()
+[PS3] initFileSystem()
+[PS3] initFileSystem()
+File system setup
+File system setup
+File system setup
+File system setup
+File system setup
+File system setup
+Loaded file package 'data/enginedata.bin' with 48 entries
+Loaded file package 'data/enginedata.bin' with 48 entries
+Loaded file package 'data/enginedata.bin' with 48 entries
+Loaded file package 'data/enginedata.bin' with 48 entries
+Loaded file package 'data/enginedata.bin' with 48 entries
+Loaded file package 'data/enginedata.bin' with 48 entries
+Loaded file package 'data/gamedata.bin' with 186 entries
+Loaded file package 'data/gamedata.bin' with 186 entries
+Loaded file package 'data/gamedata.bin' with 186 entries
+Loaded file package 'data/gamedata.bin' with 186 entries
+Loaded file package 'data/gamedata.bin' with 186 entries
+Loaded file package 'data/gamedata.bin' with 186 entries
+Loaded file package 'data/audiodata.bin' with 21 entries
+Loaded file package 'data/audiodata.bin' with 21 entries
+Loaded file package 'data/audiodata.bin' with 21 entries
+Loaded file package 'data/audiodata.bin' with 21 entries
+Loaded file package 'data/audiodata.bin' with 21 entries
+Loaded file package 'data/audiodata.bin' with 21 entries
+[PS3] FTX::System->initialize()
+[PS3] FTX::System->initialize()
+[PS3] FTX::System->initialize()
+[PS3] FTX::System->initialize()
+[PS3] FTX::System->initialize()
+[PS3] FTX::System->initialize()
+System initialization...
+System initialization...
+System initialization...
+System initialization...
+System initialization...
+System initialization...
+[PS3] createWindow()
+[PS3] createWindow()
+[PS3] createWindow()
+[PS3] createWindow()
+[PS3] createWindow()
+[PS3] createWindow()
+Video initialization...
+Video initialization...
+Video initialization...
+Video initialization...
+Video initialization...
+Video initialization...
+Setup of OpenGL attributes...
+Setup of OpenGL attributes...
+Setup of OpenGL attributes...
+Setup of OpenGL attributes...
+Setup of OpenGL attributes...
+Setup of OpenGL attributes...
+Using OpenGL 3.1
+Using OpenGL 3.1
+Using OpenGL 3.1
+Using OpenGL 3.1
+Using OpenGL 3.1
+Using OpenGL 3.1
+Creating window...
+Creating window...
+Creating window...
+Creating window...
+Creating window...
+Creating window...
+Retrieving actual window size...
+Retrieving actual window size...
+Retrieving actual window size...
+Retrieving actual window size...
+Retrieving actual window size...
+Retrieving actual window size...
+Creating OpenGL context...
+Creating OpenGL context...
+Creating OpenGL context...
+Creating OpenGL context...
+Creating OpenGL context...
+Creating OpenGL context...
+Vsync setup...
+Vsync setup...
+Vsync setup...
+Vsync setup...
+Vsync setup...
+Vsync setup...
+OpenGL drawer resources startup
+OpenGL drawer resources startup
+OpenGL drawer resources startup
+OpenGL drawer resources startup
+OpenGL drawer resources startup
+OpenGL drawer resources startup
+Shader loading failed for 'data/shader/simple_rect_colored.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_colored.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_colored.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_colored.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_colored.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_colored.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_vertexcolor.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_vertexcolor.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_vertexcolor.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_vertexcolor.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_vertexcolor.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_vertexcolor.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_textured_uv.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/simple_rect_indexed.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_soft.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass0.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass0.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass0.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass0.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass0.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass0.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass1.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass1.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass1.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass1.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass1.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_xbrz-freescale-pass1.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Shader loading failed for 'data/shader/upscaler_hqx.shader':
+Error(s) compiling vertex shader:
+
+Setting OpenGL defaults...
+Setting OpenGL defaults...
+Setting OpenGL defaults...
+Setting OpenGL defaults...
+Setting OpenGL defaults...
+Setting OpenGL defaults...
+[PS3] mVideoOut.startup()
+[PS3] mVideoOut.startup()
+[PS3] mVideoOut.startup()
+[PS3] mVideoOut.startup()
+[PS3] mVideoOut.startup()
+[PS3] mVideoOut.startup()
+Startup of VideoOut
+Startup of VideoOut
+Startup of VideoOut
+Startup of VideoOut
+Startup of VideoOut
+Startup of VideoOut
+VideoOut: Setup of game screen
+VideoOut: Setup of game screen
+VideoOut: Setup of game screen
+VideoOut: Setup of game screen
+VideoOut: Setup of game screen
+VideoOut: Setup of game screen
+VideoOut: Creating render parts
+VideoOut: Creating render parts
+VideoOut: Creating render parts
+VideoOut: Creating render parts
+VideoOut: Creating render parts
+VideoOut: Creating render parts
+VideoOut: Creating software renderer
+VideoOut: Creating software renderer
+VideoOut: Creating software renderer
+VideoOut: Creating software renderer
+VideoOut: Creating software renderer
+VideoOut: Creating software renderer
+VideoOut: Renderer initialization
+VideoOut: Renderer initialization
+VideoOut: Renderer initialization
+VideoOut: Renderer initialization
+VideoOut: Renderer initialization
+VideoOut: Renderer initialization
+[PS3] InputManager::startup()
+[PS3] InputManager::startup()
+[PS3] InputManager::startup()
+[PS3] InputManager::startup()
+[PS3] InputManager::startup()
+[PS3] InputManager::startup()
+Input initialization...
+Input initialization...
+Input initialization...
+Input initialization...
+Input initialization...
+Input initialization...
+[PS3] InputManager - Initializing CellPad...
+[PS3] InputManager - Initializing CellPad...
+[PS3] InputManager - Initializing CellPad...
+[PS3] InputManager - Initializing CellPad...
+[PS3] InputManager - Initializing CellPad...
+[PS3] InputManager - Initializing CellPad...
+[PS3] InputManager - CellPad initialized successfully (7 ports)
+[PS3] InputManager - CellPad initialized successfully (7 ports)
+[PS3] InputManager - CellPad initialized successfully (7 ports)
+[PS3] InputManager - CellPad initialized successfully (7 ports)
+[PS3] InputManager - CellPad initialized successfully (7 ports)
+[PS3] InputManager - CellPad initialized successfully (7 ports)
+[PS3] InputManager - Initializing CellKb...
+[PS3] InputManager - Initializing CellKb...
+[PS3] InputManager - Initializing CellKb...
+[PS3] InputManager - Initializing CellKb...
+[PS3] InputManager - Initializing CellKb...
+[PS3] InputManager - Initializing CellKb...
+[PS3] InputManager - CellKb initialized successfully (2 ports)
+[PS3] InputManager - CellKb initialized successfully (2 ports)
+[PS3] InputManager - CellKb initialized successfully (2 ports)
+[PS3] InputManager - CellKb initialized successfully (2 ports)
+[PS3] InputManager - CellKb initialized successfully (2 ports)
+[PS3] InputManager - CellKb initialized successfully (2 ports)
+[PS3] FTX::Audio->initialize()
+[PS3] FTX::Audio->initialize()
+[PS3] FTX::Audio->initialize()
+[PS3] FTX::Audio->initialize()
+[PS3] FTX::Audio->initialize()
+[PS3] FTX::Audio->initialize()
+Audio initialization...
+Audio initialization...
+Audio initialization...
+Audio initialization...
+Audio initialization...
+Audio initialization...
+[PS3] AudioManager::initialize - Initializing CellAudio...
+[PS3] AudioManager::initialize - Initializing CellAudio...
+[PS3] AudioManager::initialize - Initializing CellAudio...
+[PS3] AudioManager::initialize - Initializing CellAudio...
+[PS3] AudioManager::initialize - Initializing CellAudio...
+[PS3] AudioManager::initialize - Initializing CellAudio...
+[PS3] AudioManager::initialize - CellAudio port opened and thread started
+[PS3] AudioManager::initialize - CellAudio port opened and thread started
+[PS3] AudioManager::initialize - CellAudio port opened and thread started
+[PS3] AudioManager::initialize - CellAudio port opened and thread started
+[PS3] AudioManager::initialize - CellAudio port opened and thread started
+[PS3] AudioManager::initialize - CellAudio port opened and thread started
+[PS3] AudioOut::startup()
+[PS3] AudioOut::startup()
+[PS3] AudioOut::startup()
+[PS3] AudioOut::startup()
+[PS3] AudioOut::startup()
+[PS3] AudioOut::startup()
+Startup of AudioOut
+Startup of AudioOut
+Startup of AudioOut
+Startup of AudioOut
+Startup of AudioOut
+Startup of AudioOut
+Networking initialization...
+Networking initialization...
+Networking initialization...
+Networking initialization...
+Networking initialization...
+Networking initialization...
+Socket bind to any port failed
+Socket bind to any port failed
+Socket bind to any port failed
+Socket bind to any port failed
+Socket bind to any port failed
+Socket bind to any port failed
+[PS3] Engine startup successful
+[PS3] Engine startup successful
+[PS3] Engine startup successful
+[PS3] Engine startup successful
+[PS3] Engine startup successful
+[PS3] Engine startup successful
+Engine startup successful
+Engine startup successful
+Engine startup successful
+Engine startup successful
+Engine startup successful
+Engine startup successful
+
+
+
+
+
+
+--- MAIN LOOP ---
+--- MAIN LOOP ---
+--- MAIN LOOP ---
+--- MAIN LOOP ---
+--- MAIN LOOP ---
+--- MAIN LOOP ---
+Starting main application loop
+Starting main application loop
+Starting main application loop
+Starting main application loop
+Starting main application loop
+Starting main application loop
+[PS3] Application::initialize() started
+[PS3] Application::initialize() started
+[PS3] Application::initialize() started
+[PS3] Application::initialize() started
+[PS3] Application::initialize() started
+[PS3] Application::initialize() started
+Adding game view
+Adding game view
+Adding game view
+Adding game view
+Adding game view
+Adding game view
+Creating game screen texture
+Creating game screen texture
+Creating game screen texture
+Creating game screen texture
+Creating game screen texture
+Creating game screen texture
+Application initialization complete
+Application initialization complete
+Application initialization complete
+Application initialization complete
+Application initialization complete
+Application initialization complete
+[PS3] Application::initialize() complete
+[PS3] Application::initialize() complete
+[PS3] Application::initialize() complete
+[PS3] Application::initialize() complete
+[PS3] Application::initialize() complete
+[PS3] Application::initialize() complete
+Start of first application update call
+Start of first application update call
+Start of first application update call
+Start of first application update call
+Start of first application update call
+Start of first application update call
+Loading ROM...
+Loading ROM...
+Loading ROM...
+Loading ROM...
+Loading ROM...
+Loading ROM...
+ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+ROM found at: /dev_hdd0/game/SONIC3AIR/USRDIR/Sonic_Knuckles_wSonic3.bin
+Mod manager initialization...
+Mod manager initialization...
+Mod manager initialization...
+Mod manager initialization...
+Mod manager initialization...
+Mod manager initialization...
+Loading sprites
+Loading sprites
+Loading sprites
+Loading sprites
+Loading sprites
+Loading sprites
+Resource cache loading...
+Resource cache loading...
+Resource cache loading...
+Resource cache loading...
+Resource cache loading...
+Resource cache loading...
+Font loading...
+Font loading...
+Font loading...
+Font loading...
+Font loading...
+Font loading...
+Persistent data loading...
+Persistent data loading...
+Persistent data loading...
+Persistent data loading...
+Persistent data loading...
+Persistent data loading...
+Simulation startup
+Simulation startup
+Simulation startup
+Simulation startup
+Simulation startup
+Simulation startup
+Setup of EmulatorInterface
+Setup of EmulatorInterface
+Setup of EmulatorInterface
+Setup of EmulatorInterface
+Setup of EmulatorInterface
+Setup of EmulatorInterface
+Loading scripts
+Loading scripts
+Loading scripts
+Loading scripts
+Loading scripts
+Loading scripts
+Runtime environment ready
+Runtime environment ready
+Runtime environment ready
+Runtime environment ready
+Runtime environment ready
+Runtime environment ready
+[PS3] Simulation startup succeeded
+[PS3] Simulation startup succeeded
+[PS3] Simulation startup succeeded
+[PS3] Simulation startup succeeded
+[PS3] Simulation startup succeeded
+[PS3] Simulation startup succeeded
+Adding game app instance
+Adding game app instance
+Adding game app instance
+Adding game app instance
+Adding game app instance
+Adding game app instance
+[PS3] Game app instance added
+[PS3] Game app instance added
+[PS3] Game app instance added
+[PS3] Game app instance added
+[PS3] Game app instance added
+[PS3] Game app instance added
+End of first application render call
+End of first application render call
+End of first application render call
+End of first application render call
+End of first application render call
+End of first application render call
+Start of first application render call
+Start of first application render call
+Start of first application render call
+Start of first application render call
+Start of first application render call
+Start of first application render call
+First present screen call
+First present screen call
+First present screen call
+First present screen call
+First present screen call
+First present screen call
+End of first application render call
+End of first application render call
+End of first application render call
+End of first application render call
+End of first application render call
+End of first application render call
+Ready to go
+Ready to go
+Ready to go
+Ready to go
+Ready to go
+Ready to go

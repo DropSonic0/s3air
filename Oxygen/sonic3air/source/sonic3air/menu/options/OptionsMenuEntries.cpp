@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -323,7 +323,6 @@ void UpdateCheckMenuEntry::renderEntry(RenderContext& renderContext_)
 	OptionsMenuEntry::renderEntry(renderContext);
 }
 
-
 void SoundtrackMenuEntry::renderEntry(RenderContext& renderContext_)
 {
 	renderInternal(renderContext_, Color::WHITE, Color::YELLOW);
@@ -347,7 +346,6 @@ void SoundtrackMenuEntry::renderEntry(RenderContext& renderContext_)
 		}
 	#endif
 }
-
 
 void SoundtrackDownloadMenuEntry::renderEntry(RenderContext& renderContext_)
 {
@@ -376,7 +374,11 @@ void SoundtrackDownloadMenuEntry::renderEntry(RenderContext& renderContext_)
 				break;
 
 			case RemasteredMusicDownload::State::DOWNLOAD_RUNNING:
+			#if defined(PLATFORM_PS3)
+				text = "Downloading... " + std::string(*String(0, "%u", download.getBytesDownloaded() / (1024*1024))) + " MB";
+			#else
 				text = "Downloading... " + std::to_string(download.getBytesDownloaded() / (1024*1024)) + " MB";
+			#endif
 				mText = "Stop download";
 				break;
 
@@ -431,26 +433,4 @@ void SoundtrackDownloadMenuEntry::triggerButton()
 bool SoundtrackDownloadMenuEntry::shouldBeShown()
 {
 	return (ConfigurationImpl::instance().mActiveSoundtrack == 1 && Downloader::isDownloaderSupported() && !AudioOut::instance().hasLoadedRemasteredSoundtrack());
-}
-
-
-DevModeMenuEntry::DevModeMenuEntry()
-{
-	setUseSmallFont(true);
-}
-
-void DevModeMenuEntry::renderEntry(RenderContext& renderContext_)
-{
-	OptionsMenuRenderContext& renderContext = renderContext_.as<OptionsMenuRenderContext>();
-	Drawer& drawer = *renderContext.mDrawer;
-
-	renderInternal(renderContext_, Color::WHITE, Color::YELLOW);
-
-	if ((mOptions[mSelectedIndex].mValue != 0) != Configuration::instance().mDevMode.mEnabled)
-	{
-		const int baseX = renderContext.mCurrentPosition.x;
-		int& py = renderContext.mCurrentPosition.y;
-		py += 14;
-		drawer.printText(global::mOxyfontSmall, Recti(baseX, py, 0, 10), "App restart required to switch Dev Mode on or off!", 5, Color(1.0f, 0.8f, 0.6f, renderContext.mTabAlpha));
-	}
 }

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,17 +8,17 @@
 
 #include "lemon/pch.h"
 #include "lemon/program/ModuleSerializer.h"
-#include "lemon/program/GlobalsLookup.h"
 #include "lemon/program/Module.h"
-#include "lemon/program/Opcode.h"
-#include "lemon/program/function/ScriptFunction.h"
+#include "lemon/program/GlobalsLookup.h"
 
 
 namespace lemon
 {
 	namespace
 	{
-		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO = SourceFileInfo();
+		static const SourceFileInfo EMPTY_SOURCE_FILE_INFO;
+
+		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36, "Opcode::Type count must be 36");
 
 		static const BaseType DEFAULT_OPCODE_BASETYPES[(size_t)Opcode::Type::_NUM_TYPES] =
 		{
@@ -58,34 +58,14 @@ namespace lemon
 			BaseType::VOID,			// RETURN
 			BaseType::VOID,			// EXTERNAL_CALL
 			BaseType::VOID,			// EXTERNAL_JUMP
-			BaseType::VOID,			// DUPLICATE
 		};
-
-		void readAddressHooks(VectorBinarySerializer& serializer, std::vector<ScriptFunction::AddressHook>& addressHook)
-		{
-			const size_t hooksCount = (size_t)serializer.read<uint8>();
-			addressHook.resize(hooksCount);
-			for (size_t j = 0; j < hooksCount; ++j)
-			{
-				serializer.serialize(addressHook[j].mAddress);
-				serializer.serialize(addressHook[j].mDisabled);
-			}
-		}
-
-		void writeAddressHooks(VectorBinarySerializer& serializer, const std::vector<ScriptFunction::AddressHook>& addressHook)
-		{
-			serializer.writeAs<uint8>(addressHook.size());
-			for (const ScriptFunction::AddressHook& addressHook : addressHook)
-			{
-				serializer.write(addressHook.mAddress);
-				serializer.write(addressHook.mDisabled);
-			}
-		}
 	}
 
 
 	bool ModuleSerializer::serialize(Module& module, VectorBinarySerializer& outerSerializer, const GlobalsLookup& globalsLookup, uint32 dependencyHash, uint32 appVersion)
 	{
+		RMX_LOG_INFO("ModuleSerializer::serialize - " << (outerSerializer.isReading() ? "Reading" : "Writing") << " module (depHash=" << dependencyHash << ", appVer=" << appVersion << ")");
+
 		// Format version history:
 		//  - 0x00 = First version, no signature yet
 		//  - 0x01 = Added signature and version number + serialize global variable initial values
@@ -104,19 +84,11 @@ namespace lemon
 		//  - 0x0e = Change in serialization of std::wstring in rmx
 		//  - 0x0f = Smaller optimizations in serialization
 		//  - 0x10 = Opcode JUMP_SWITCH added
-		//  - 0x11 = Serialization of callable function addresses
-		//  - 0x12 = Support for deprecation flags in function alias names
-		//  - 0x13 = Source file info with local paths
-		//  - 0x14 = Label address hooks and disabled address hooks
-		//  - 0x15 = Script feature level of module
-		//  - 0x16 = Data type differentiation between arrays and custom types
-
-		static_assert((size_t)Opcode::Type::_NUM_TYPES == 37, "DEFAULT_OPCODE_BASETYPES needs to get updated");
 
 		// Signature and version number
 		const uint32 SIGNATURE = *(uint32*)"LMD|";	// "Lemonscript Module"
-		const uint16 MINIMUM_VERSION = 0x16;
-		uint16 version = 0x16;
+		const uint16 MINIMUM_VERSION = 0x10;
+		uint16 version = 0x10;
 
 		if (outerSerializer.isReading())
 		{
@@ -149,19 +121,21 @@ namespace lemon
 		std::vector<uint8> uncompressed;
 		if (outerSerializer.isReading())
 		{
+			RMX_LOG_INFO("Zlib decoding module...");
 			if (!ZlibDeflate::decode(uncompressed, outerSerializer.peek(), outerSerializer.getRemaining()))
 				return false;
 			outerSerializer.skip(outerSerializer.getRemaining());
+			RMX_LOG_INFO("Zlib decoding done, size=" << (uint32)uncompressed.size());
 		}
 		VectorBinarySerializer serializer(outerSerializer.isReading(), uncompressed);
 
 		// Serialize module
 		serializer & module.mFirstFunctionID;
 		serializer & module.mFirstVariableID;
-		if (version >= 0x15)
-			serializer & module.mScriptFeatureLevel;
+		RMX_LOG_INFO("Module IDs: firstFunction=" << module.mFirstFunctionID << ", firstVariable=" << module.mFirstVariableID);
 
 		// Serialize source file info
+		RMX_LOG_INFO("ModuleSerializer: Source file info...");
 		{
 			size_t numberOfSourceFiles = module.mAllSourceFiles.size();
 			serializer.serializeAs<uint16>(numberOfSourceFiles);
@@ -169,25 +143,23 @@ namespace lemon
 			if (serializer.isReading())
 			{
 				std::wstring filename;
-				std::wstring localPath;
 				for (size_t i = 0; i < numberOfSourceFiles; ++i)
 				{
-					serializer.serialize(filename, 255);
-					serializer.serialize(localPath, 255);
-					module.addSourceFileInfo(localPath, filename);
+					serializer.serialize(filename, 1024);
+					module.addSourceFileInfo(L"", filename);
 				}
 			}
 			else
 			{
 				for (const SourceFileInfo* sourceFileInfo : module.mAllSourceFiles)
 				{
-					serializer.write(sourceFileInfo->mFilename, 255);
-					serializer.write(sourceFileInfo->mLocalPath, 255);
+					serializer.write(sourceFileInfo->mFilename, 1024);
 				}
 			}
 		}
 
 		// Serialize preprocessor definitions
+		RMX_LOG_INFO("ModuleSerializer: Preprocessor definitions...");
 		{
 			size_t numberOfConstants = module.mPreprocessorDefinitions.size();
 			serializer.serializeAs<uint16>(numberOfConstants);
@@ -213,36 +185,11 @@ namespace lemon
 		}
 
 		// Serialize functions
+		RMX_LOG_INFO("ModuleSerializer: Functions...");
 		serializeFunctions(module, serializer, globalsLookup);
 
-		// Serialize callable function addresses
-		if (version >= 0x11)
-		{
-			if (serializer.isReading())
-			{
-				const size_t count = (size_t)serializer.read<uint16>();
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-				module.mCallableFunctions.reserve(count);
-#endif
-				for (size_t i = 0; i < count; ++i)
-				{
-					const uint32 address = serializer.read<uint32>();
-					const uint64 nameHash = serializer.read<uint64>();
-					module.mCallableFunctions[address] = nameHash;
-				}
-			}
-			else
-			{
-				serializer.writeAs<uint16>(module.mCallableFunctions.size());
-				for (const auto& pair : module.mCallableFunctions)
-				{
-					serializer.write(pair.first);
-					serializer.write(pair.second);
-				}
-			}
-		}
-
 		// Serialize global variables
+		RMX_LOG_INFO("ModuleSerializer: Global variables...");
 		if (serializer.isReading())
 		{
 			const uint32 numberOfUserDefined = serializer.read<uint32>();
@@ -256,7 +203,7 @@ namespace lemon
 				const DataTypeDefinition* dataType = globalsLookup.readDataType(serializer);
 				const int64 initialValue = serializer.read<int64>();
 				GlobalVariable& globalVariable = module.addGlobalVariable(name, dataType);
-				globalVariable.mInitialValue.set(initialValue);
+				globalVariable.mInitialValue = initialValue;
 			}
 		}
 		else
@@ -265,7 +212,7 @@ namespace lemon
 			size_t i = 0;
 			for (; i < module.mGlobalVariables.size(); ++i)
 			{
-				if (module.mGlobalVariables[i]->isA<lemon::GlobalVariable>())
+				if (module.mGlobalVariables[i]->getType() == Variable::Type::GLOBAL)
 					break;
 			}
 			serializer.writeAs<uint32>(i);		// Number of user-defined variables
@@ -276,16 +223,17 @@ namespace lemon
 			for (; i < module.mGlobalVariables.size(); ++i)
 			{
 				const Variable& variable = *module.mGlobalVariables[i];
-				RMX_CHECK(variable.isA<GlobalVariable>(), "Mix of global variables and others", return false);
-				const GlobalVariable& globalVariable = variable.as<GlobalVariable>();
+				RMX_CHECK(variable.getType() == Variable::Type::GLOBAL, "Mix of global variables and others", return false);
+				const GlobalVariable& globalVariable = static_cast<const GlobalVariable&>(variable);
 
 				variable.getName().serialize(serializer);
 				serializer.write(variable.getDataType()->getID());
-				serializer.write(globalVariable.mInitialValue.get<int64>());
+				serializer.writeAs<int64>(globalVariable.mInitialValue);
 			}
 		}
 
 		// Serialize constants
+		RMX_LOG_INFO("ModuleSerializer: Constants...");
 		{
 			size_t numberOfConstants = module.mConstants.size();
 			serializer.serializeAs<uint16>(numberOfConstants);
@@ -313,6 +261,7 @@ namespace lemon
 		}
 
 		// Serialize constant arrays
+		RMX_LOG_INFO("ModuleSerializer: Constant arrays...");
 		{
 			size_t numberOfConstantArrays = module.mConstantArrays.size();
 			serializer.serializeAs<uint16>(numberOfConstantArrays);
@@ -342,6 +291,7 @@ namespace lemon
 		}
 
 		// Serialize defines
+		RMX_LOG_INFO("ModuleSerializer: Defines...");
 		{
 			size_t numberOfDefines = module.mDefines.size();
 			serializer.serializeAs<uint16>(numberOfDefines);
@@ -370,6 +320,7 @@ namespace lemon
 		}
 
 		// Serialize string literals
+		RMX_LOG_INFO("ModuleSerializer: String literals...");
 		{
 			serializer.serializeArraySize(module.mStringLiterals);
 			for (FlyweightString& str : module.mStringLiterals)
@@ -379,6 +330,7 @@ namespace lemon
 		}
 
 		// Serialize data types
+		RMX_LOG_INFO("ModuleSerializer: Data types...");
 		{
 			size_t numberOfDataTypes = module.mDataTypes.size();
 			serializer.serializeAs<uint16>(numberOfDataTypes);
@@ -389,56 +341,16 @@ namespace lemon
 				{
 					FlyweightString name;
 					name.serialize(serializer);
-					const DataTypeDefinition::Class dataTypeClass = (DataTypeDefinition::Class)serializer.read<uint8>();
-					switch (dataTypeClass)
-					{
-						case DataTypeDefinition::Class::ARRAY:
-						{
-							const DataTypeDefinition* elementType = nullptr;
-							globalsLookup.serializeDataType(serializer, elementType);
-							const uint32 arraySize = serializer.read<uint32>();
-							module.addArrayDataType(*elementType, arraySize);
-							break;
-						}
-
-						case DataTypeDefinition::Class::CUSTOM:
-						{
-							const BaseType baseType = (BaseType)serializer.read<uint8>();
-							module.addCustomDataType(name.getString().data(), baseType);
-							break;
-						}
-
-						default:
-							break;
-					}
+					const BaseType baseType = (BaseType)serializer.read<uint8>();
+					module.addDataType(name.getString().data(), baseType);
 				}
 			}
 			else
 			{
-				for (const DataTypeDefinition* dataType : module.mDataTypes)
+				for (const CustomDataType* dataType : module.mDataTypes)
 				{
 					dataType->getName().serialize(serializer);
-					serializer.writeAs<uint8>(dataType->getClass());
-
-					switch (dataType->getClass())
-					{
-						case DataTypeDefinition::Class::ARRAY:
-						{
-							const DataTypeDefinition* elementType = &dataType->as<ArrayDataType>().mElementType;
-							globalsLookup.serializeDataType(serializer, elementType);
-							serializer.writeAs<uint32>(dataType->as<ArrayDataType>().mArraySize);
-							break;
-						}
-
-						case DataTypeDefinition::Class::CUSTOM:
-						{
-							serializer.writeAs<uint8>(dataType->getBaseType());
-							break;
-						}
-
-						default:
-							break;
-					}
+					serializer.writeAs<uint8>(dataType->getBaseType());
 				}
 			}
 		}
@@ -451,6 +363,8 @@ namespace lemon
 			outerSerializer.write(&compressed[0], compressed.size());
 		}
 
+		RMX_LOG_INFO("ModuleSerializer::serialize - Done");
+
 		return true;
 	}
 
@@ -458,6 +372,7 @@ namespace lemon
 	{
 		uint32 numberOfFunctions = (uint32)module.mFunctions.size();
 		serializer & numberOfFunctions;
+		RMX_LOG_INFO("ModuleSerializer::serializeFunctions - count=" << (uint32)numberOfFunctions);
 
 		enum FunctionSerializationFlags
 		{
@@ -471,12 +386,14 @@ namespace lemon
 		};
 
 		uint32 lastLineNumber = 0;
-		std::vector<Function::AliasName> aliasNames;
+		std::vector<FlyweightString> aliasNames;
 		Function::ParameterList parameters;
 		for (uint32 i = 0; i < numberOfFunctions; ++i)
 		{
 			if (serializer.isReading())
 			{
+				if (i % 500 == 0) RMX_LOG_INFO(" - Reading function #" << (uint32)i);
+
 				const uint8 flags = serializer.read<uint8>();
 				const Function::Type type = (flags & FLAG_NATIVE_FUNCTION) ? Function::Type::NATIVE : Function::Type::SCRIPT;
 
@@ -487,11 +404,8 @@ namespace lemon
 				if (flags & FLAG_HAS_ALIAS_NAMES)
 				{
 					aliasNames.resize((size_t)serializer.read<uint8>());
-					for (Function::AliasName& aliasName : aliasNames)
-					{
-						aliasName.mName.serialize(serializer);
-						serializer.serialize(aliasName.mIsDeprecated);
-					}
+					for (FlyweightString& aliasName : aliasNames)
+						aliasName.serialize(serializer);
 				}
 
 				const DataTypeDefinition* returnType = (flags & FLAG_HAS_RETURN_TYPE) ? globalsLookup.readDataType(serializer) : &PredefinedDataTypes::VOID;
@@ -570,6 +484,8 @@ namespace lemon
 
 						opcode.mLineNumber = (lineNumberBits == 31) ? serializer.read<uint32>() : (lastLineNumber + lineNumberBits);
 						lastLineNumber = opcode.mLineNumber;
+
+						if (k % 2000 == 0 && count > 2000) RMX_LOG_INFO("   - Opcode " << (uint32)k << " / " << (uint32)count);
 					}
 
 					// Local variables
@@ -585,25 +501,24 @@ namespace lemon
 					// Labels
 					if (flags & FLAG_HAS_LABELS)
 					{
-						std::vector<ScriptFunction::AddressHook> labelAddressHooks;
 						count = (size_t)serializer.read<uint32>();
 						for (size_t k = 0; k < count; ++k)
 						{
 							FlyweightString name;
 							name.serialize(serializer);
 							const uint32 offset = serializer.read<uint32>();
-							if (offset & 0x80000000)
-							{
-								readAddressHooks(serializer, labelAddressHooks);
-							}
-							scriptFunc.addLabel(name, (size_t)(offset & 0x7fffffff), labelAddressHooks);
+							scriptFunc.addLabel(name, (size_t)offset);
 						}
 					}
 
 					// Address hooks
 					if (flags & FLAG_HAS_ADDRESS_HOOKS)
 					{
-						readAddressHooks(serializer, scriptFunc.mAddressHooks);
+						count = (size_t)serializer.read<uint32>();
+						for (size_t k = 0; k < count; ++k)
+						{
+							scriptFunc.mAddressHooks.push_back(serializer.read<uint32>());
+						}
 					}
 
 					// Pragmas
@@ -622,13 +537,13 @@ namespace lemon
 				const Function& function = *module.mFunctions[i];
 
 				uint8 flags = 0;
-				flags |= FLAG_NATIVE_FUNCTION * (function.isA<NativeFunction>());
+				flags |= FLAG_NATIVE_FUNCTION * (function.getType() == Function::Type::NATIVE);
 				flags |= FLAG_HAS_ALIAS_NAMES * (!function.mAliasNames.empty());
 				flags |= FLAG_HAS_RETURN_TYPE * (function.mReturnType != &PredefinedDataTypes::VOID);
 				flags |= FLAG_HAS_PARAMETERS  * (!function.mParameters.empty());
-				if (function.isA<ScriptFunction>())
+				if (function.getType() == Function::Type::SCRIPT)
 				{
-					const ScriptFunction& scriptFunc = function.as<ScriptFunction>();
+					const ScriptFunction& scriptFunc = static_cast<const ScriptFunction&>(function);
 					flags |= FLAG_HAS_LABELS		* (!scriptFunc.mLabels.empty());
 					flags |= FLAG_HAS_ADDRESS_HOOKS * (!scriptFunc.mAddressHooks.empty());
 					flags |= FLAG_HAS_PRAGMAS		* (!scriptFunc.mPragmas.empty());
@@ -640,11 +555,8 @@ namespace lemon
 				if (flags & FLAG_HAS_ALIAS_NAMES)
 				{
 					serializer.writeAs<uint8>(function.mAliasNames.size());
-					for (const Function::AliasName& aliasName : function.mAliasNames)
-					{
-						aliasName.mName.write(serializer);
-						serializer.write(aliasName.mIsDeprecated);
-					}
+					for (const FlyweightString& aliasName : function.mAliasNames)
+						aliasName.write(serializer);
 				}
 
 				if (flags & FLAG_HAS_RETURN_TYPE)
@@ -663,10 +575,10 @@ namespace lemon
 					}
 				}
 
-				if (function.isA<ScriptFunction>())
+				if (function.getType() == Function::Type::SCRIPT)
 				{
 					// Load script function
-					const ScriptFunction& scriptFunc = function.as<ScriptFunction>();
+					const ScriptFunction& scriptFunc = static_cast<const ScriptFunction&>(function);
 
 					// Source information
 					serializer.writeAs<uint16>(scriptFunc.mSourceFileInfo->mIndex);
@@ -676,7 +588,7 @@ namespace lemon
 					serializer.writeAs<uint32>(scriptFunc.mOpcodes.size());
 					for (const Opcode& opcode : scriptFunc.mOpcodes)
 					{
-						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64, "Opcode type count must be <= 64");
+						static_assert((size_t)Opcode::Type::_NUM_TYPES <= 64, "Opcode::Type count exceeds 64");
 
 						const uint8 parameterBits = (opcode.mParameter == 0)  ? 0 :
 							(opcode.mParameter == 1)  ? 1 :
@@ -724,22 +636,18 @@ namespace lemon
 						for (const ScriptFunction::Label& label : scriptFunc.mLabels)
 						{
 							label.mName.write(serializer);
-							uint32 offset = (uint32)label.mOffset;
-							if (!label.mLabelAddressHooks.empty())
-								offset |= 0x80000000;
-							serializer.write(offset);
-							if (!label.mLabelAddressHooks.empty())
-							{
-								writeAddressHooks(serializer, label.mLabelAddressHooks);
-							}
-
+							serializer.write(label.mOffset);
 						}
 					}
 
 					// Address hooks
 					if (flags & FLAG_HAS_ADDRESS_HOOKS)
 					{
-						writeAddressHooks(serializer, scriptFunc.mAddressHooks);
+						serializer.writeAs<uint32>(scriptFunc.mAddressHooks.size());
+						for (uint32 addressHook : scriptFunc.mAddressHooks)
+						{
+							serializer.write(addressHook);
+						}
 					}
 
 					// Pragmas

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -33,7 +33,10 @@ namespace lemon
 			case BaseType::FLOAT:		runtimeOpcode.mExecFunc = &_function_<float>;	break; \
 			case BaseType::DOUBLE:		runtimeOpcode.mExecFunc = &_function_<double>;	break; \
 			default: \
-				RMX_ERROR("Invalid opcode data type", ); \
+			{ \
+				RMX_CHECK(false, "Invalid opcode data type", RMX_REACT_THROW); \
+				break; \
+			} \
 		} \
 	}
 
@@ -51,7 +54,10 @@ namespace lemon
 			case BaseType::UINT_64:		runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			case BaseType::INT_CONST:	runtimeOpcode.mExecFunc = &_function_<uint64>;	break; \
 			default: \
-				RMX_ERROR("Invalid opcode data type", ); \
+			{ \
+				RMX_CHECK(false, "Invalid opcode data type", RMX_REACT_THROW); \
+				break; \
+			} \
 		} \
 	}
 
@@ -63,16 +69,17 @@ namespace lemon
 		{
 			--context.mControlFlow->mValueStackPtr;
 			const int64 value = *context.mControlFlow->mValueStackPtr;
-			const uint32 variableOffset = context.getParameter<uint32>();
-			context.writeLocalVariable<int64>(variableOffset, value);
+			const uint32 variableId = context.getParameter<uint32>();
+			context.writeLocalVariable<int64>(variableId, value);
 		}
 
 		static void exec_OPT_SET_VARIABLE_VALUE_USER_DISCARD(const RuntimeOpcodeContext context)
 		{
-			const uint32 variableId = context.getParameter<uint32>();
-			UserDefinedVariable& variable = context.mControlFlow->getProgram().getGlobalVariableByID(variableId).as<UserDefinedVariable>();
-			variable.mSetter(*context.mControlFlow);	// This is supposed to read the value to set from the value stack (but also leave it there)
 			--context.mControlFlow->mValueStackPtr;
+			const int64 value = *context.mControlFlow->mValueStackPtr;
+			const uint32 variableId = context.getParameter<uint32>();
+			GlobalVariable& variable = static_cast<GlobalVariable&>(context.mControlFlow->getProgram().getGlobalVariableByID(variableId));
+			variable.setValue(value);
 		}
 
 		template<typename T>
@@ -86,6 +93,14 @@ namespace lemon
 
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_DISCARD(const RuntimeOpcodeContext context)
+		{
+			context.mControlFlow->mValueStackPtr -= 2;
+			const uint64 address = *(context.mControlFlow->mValueStackPtr+1);
+			OpcodeExecUtils::writeMemory<T>(*context.mControlFlow, address, (T)(*(context.mControlFlow->mValueStackPtr)));
+		}
+
+		template<typename T>
+		static void exec_OPT_WRITE_MEMORY_EXCHANGED_DISCARD(const RuntimeOpcodeContext context)
 		{
 			context.mControlFlow->mValueStackPtr -= 2;
 			const uint64 address = *(context.mControlFlow->mValueStackPtr);
@@ -116,8 +131,6 @@ namespace lemon
 			++context.mControlFlow->mValueStackPtr;
 		}
 
-		// Currently unused
-	/*
 		template<typename T>
 		static void exec_OPT_WRITE_MEMORY_FIXED_ADDR(const RuntimeOpcodeContext context)
 		{
@@ -138,7 +151,6 @@ namespace lemon
 			uint8* pointer = context.getParameter<uint8*>();
 			*(T*)pointer = rmx::swapBytes((T)(*(context.mControlFlow->mValueStackPtr-1)));
 		}
-	*/
 
 		template<typename T>
 		static void exec_OPT_ADD_CONSTANT(const RuntimeOpcodeContext context)
@@ -245,7 +257,7 @@ namespace lemon
 	};
 
 
-	bool OptimizedOpcodeProvider::buildRuntimeOpcodeStatic(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime, const ScriptFunction& function)
+	bool OptimizedOpcodeProvider::buildRuntimeOpcodeStatic(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime)
 	{
 		if (numOpcodesAvailable >= 2)
 		{
@@ -260,7 +272,7 @@ namespace lemon
 						SELECT_EXEC_FUNC_BY_DATATYPE(OptimizedOpcodeExec::exec_OPT_EXTERNAL_ADD_CONSTANT, opcodes[0].mDataType);
 
 						const uint32 variableId = (uint32)opcodes[0].mParameter;
-						const ExternalVariable& variable = runtime.getProgram().getGlobalVariableByID(variableId).as<ExternalVariable>();
+						const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
 						runtimeOpcode.setParameter(variable.mAccessor());
 						runtimeOpcode.setParameter(opcodes[1].mParameter, 8);
 						outNumOpcodesConsumed = 3;
@@ -315,31 +327,19 @@ namespace lemon
 					const Variable::Type type = (Variable::Type)(variableId >> 28);
 
 					RuntimeOpcode& runtimeOpcode = buffer.addOpcode(8);
+					runtimeOpcode.setParameter(variableId);
 
 					switch (type)
 					{
-						case Variable::Type::LOCAL:
-						{
-							const LocalVariable& variable = function.getLocalVariableByID(variableId);
-							runtimeOpcode.setParameter(variable.getLocalMemoryOffset());
-							runtimeOpcode.mExecFunc = &OptimizedOpcodeExec::exec_OPT_SET_VARIABLE_VALUE_LOCAL_DISCARD;
-							break;
-						}
-
-						case Variable::Type::USER:
-						{
-							runtimeOpcode.setParameter(variableId);
-							runtimeOpcode.mExecFunc = &OptimizedOpcodeExec::exec_OPT_SET_VARIABLE_VALUE_USER_DISCARD;
-							break;
-						}
+						case Variable::Type::LOCAL:		runtimeOpcode.mExecFunc = &OptimizedOpcodeExec::exec_OPT_SET_VARIABLE_VALUE_LOCAL_DISCARD;	break;
+						case Variable::Type::USER:		runtimeOpcode.mExecFunc = &OptimizedOpcodeExec::exec_OPT_SET_VARIABLE_VALUE_USER_DISCARD;	break;
 
 						case Variable::Type::GLOBAL:
 						{
-							const GlobalVariable& variable = runtime.getProgram().getGlobalVariableByID(variableId).as<GlobalVariable>();
-							int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(variable);
+							int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(runtime.getProgram().getGlobalVariableByID(variableId));
 							runtimeOpcode.setParameter(value);
 
-							switch (BaseTypeHelper::getSizeOfBaseType(opcodes[0].mDataType))
+							switch (DataTypeHelper::getSizeOfBaseType(opcodes[0].mDataType))
 							{
 								case 1:  runtimeOpcode.mExecFunc = &OptimizedOpcodeExec::exec_OPT_SET_VARIABLE_VALUE_EXTERNAL_DISCARD<uint8>;   break;
 								case 2:  runtimeOpcode.mExecFunc = &OptimizedOpcodeExec::exec_OPT_SET_VARIABLE_VALUE_EXTERNAL_DISCARD<uint16>;  break;
@@ -351,7 +351,7 @@ namespace lemon
 
 						case Variable::Type::EXTERNAL:
 						{
-							const ExternalVariable& variable = runtime.getProgram().getGlobalVariableByID(variableId).as<ExternalVariable>();
+							const ExternalVariable& variable = static_cast<ExternalVariable&>(runtime.getProgram().getGlobalVariableByID(variableId));
 							runtimeOpcode.setParameter(variable.mAccessor());
 
 							switch (variable.getDataType()->getBytes())
@@ -370,12 +370,19 @@ namespace lemon
 			}
 
 			// Merge: Write memory and discard its result
-			if (opcodes[0].mType == Opcode::Type::WRITE_MEMORY)
+			if (opcodes[0].mType == Opcode::Type::WRITE_MEMORY && opcodes[0].mParameter == 0)
 			{
 				if (opcodes[1].mType == Opcode::Type::MOVE_STACK && opcodes[1].mParameter == -1)
 				{
 					RuntimeOpcode& runtimeOpcode = buffer.addOpcode(8);
-					SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_WRITE_MEMORY_DISCARD, opcodes[0].mDataType);
+					if (opcodes[0].mParameter == 0)
+					{
+						SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_WRITE_MEMORY_DISCARD, opcodes[0].mDataType);
+					}
+					else
+					{
+						SELECT_EXEC_FUNC_BY_DATATYPE_INT(OptimizedOpcodeExec::exec_OPT_WRITE_MEMORY_EXCHANGED_DISCARD, opcodes[0].mDataType);
+					}
 					outNumOpcodesConsumed = 2;
 					return true;
 				}
@@ -388,7 +395,7 @@ namespace lemon
 				{
 					uint64 address = opcodes[0].mParameter;
 					MemoryAccessHandler::SpecializationResult result;
-					runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, BaseTypeHelper::getSizeOfBaseType(opcodes[1].mDataType), false);
+					runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(opcodes[1].mDataType), false);
 					if (result.mResult == MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION)
 					{
 						RuntimeOpcode& runtimeOpcode = buffer.addOpcode(8);
@@ -414,15 +421,13 @@ namespace lemon
 			}
 
 			// Merge: Write memory at a fixed address
-			//  -> TODO: This only works with a WRITE_MEMORY variant that has exchanged parameters
-		/*
 			if (opcodes[0].mType == Opcode::Type::PUSH_CONSTANT)
 			{
-				if (opcodes[1].mType == Opcode::Type::WRITE_MEMORY)
+				if (opcodes[1].mType == Opcode::Type::WRITE_MEMORY && opcodes[1].mParameter == 0)
 				{
 					uint64 address = opcodes[0].mParameter;
 					MemoryAccessHandler::SpecializationResult result;
-					runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, BaseTypeHelper::getSizeOfBaseType(opcodes[1].mDataType), true);
+					runtime.getMemoryAccessHandler()->getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(opcodes[1].mDataType), true);
 					if (result.mResult == MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION)
 					{
 						RuntimeOpcode& runtimeOpcode = buffer.addOpcode(8);
@@ -446,15 +451,14 @@ namespace lemon
 					return true;
 				}
 			}
-		*/
 		}
 
 		return false;
 	}
 
-	bool OptimizedOpcodeProvider::buildRuntimeOpcode(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime, const ScriptFunction& function)
+	bool OptimizedOpcodeProvider::buildRuntimeOpcode(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime)
 	{
-		return buildRuntimeOpcodeStatic(buffer, opcodes, numOpcodesAvailable, firstOpcodeIndex, outNumOpcodesConsumed, runtime, function);
+		return buildRuntimeOpcodeStatic(buffer, opcodes, numOpcodesAvailable, firstOpcodeIndex, outNumOpcodesConsumed, runtime);
 	}
 
 	#undef SELECT_EXEC_FUNC_BY_DATATYPE

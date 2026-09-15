@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2026 by Eukaryot
+	Copyright (C) 2017-2024 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -345,9 +345,6 @@ function void fn06b1a8()
 function void fn06b1ce()
 {
 	setupObjectAttributesBasic(0x06bd32)
-#if STANDALONE
-	objA0.box_size.y = 10
-#endif
 }
 
 
@@ -751,7 +748,7 @@ function void fn06b5c4()
 	//  - 0x06b734	-> objA0.base_state = 0x0c
 	call tableLookupAddress(0x06b5d8, objA0.base_state)
 
-	Child.DrawSprite_DynObj()
+	fn084934()
 }
 
 
@@ -818,8 +815,8 @@ function void fn06b694()
 	objA0.base_state = 0x02
 	if (objA0.subtype2c == 0)
 	{
-		// "spawnChildObjectsStd(0x06bdaa)" replaced by:
-		spawnChildObjectsStd(0x06b5c4, 0x00, 19, 10)
+		A2 = 0x06bdaa
+		fn084258()
 		if (_equal())
 		{
 			u16[A1 + 0x46] = u16[A0 + 0x46]
@@ -1152,7 +1149,7 @@ function void fn06ba06()
 		return
 	}
 
-	if (u8[A2 + 0x05] < base_state.DIED && u8[A2 + 0x34] == 0)
+	if (u8[A2 + 0x05] < 0x06 && u8[A2 + 0x34] == 0)
 	{
 		if (u8[A2 + 0x2e] == 0 || u8[A0 + D4.s16] == 0)
 		{
@@ -1280,7 +1277,7 @@ function void fn06bb5c()
 
 #if STANDALONE
 	// Ignore if character is not in normal state, but e.g. in got hurt state
-	if (u8[A2 + 0x05] != base_state.NORMAL)
+	if (u8[A2 + 0x05] != 0x02)
 		return
 #endif
 

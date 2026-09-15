@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -66,7 +66,7 @@ namespace lemon
 		{
 			registerDefine(*define);
 		}
-		for (const DataTypeDefinition* dataType : module.mDataTypes)
+		for (const CustomDataType* dataType : module.mDataTypes)
 		{
 			registerDataType(dataType);
 		}
@@ -84,38 +84,16 @@ namespace lemon
 		return mapFind(mAllIdentifiers, nameHash);
 	}
 
-	const std::vector<FunctionReference>& GlobalsLookup::getFunctionsByName(uint64 nameHash) const
+	const std::vector<Function*>& GlobalsLookup::getFunctionsByName(uint64 nameHash) const
 	{
-		static const std::vector<FunctionReference> EMPTY_FUNCTIONS;
+		static const std::vector<Function*> EMPTY_FUNCTIONS;
 		const auto it = mFunctionsByName.find(nameHash);
 		return (it == mFunctionsByName.end()) ? EMPTY_FUNCTIONS : it->second;
 	}
 
-	const FunctionReference* GlobalsLookup::getFunctionByNameAndSignature(uint64 nameHash, uint32 signatureHash, bool* outAnyFound) const
+	const std::vector<Function*>& GlobalsLookup::getMethodsByName(uint64 contextNameHash) const
 	{
-		const std::vector<FunctionReference>& candidateFunctions = getFunctionsByName(nameHash);
-		if (candidateFunctions.empty())
-		{
-			if (nullptr != outAnyFound)
-				*outAnyFound = false;
-		}
-		else
-		{
-			if (nullptr != outAnyFound)
-				*outAnyFound = true;
-
-			for (const FunctionReference& func : candidateFunctions)
-			{
-				if (func.mFunction->getSignatureHash() == signatureHash)
-					return &func;
-			}
-		}
-		return nullptr;
-	}
-
-	const std::vector<FunctionReference>& GlobalsLookup::getMethodsByName(uint64 contextNameHash) const
-	{
-		static const std::vector<FunctionReference> EMPTY_FUNCTIONS;
+		static const std::vector<Function*> EMPTY_FUNCTIONS;
 		const auto it = mMethodsByName.find(contextNameHash);
 		return (it == mMethodsByName.end()) ? EMPTY_FUNCTIONS : it->second;
 	}
@@ -125,30 +103,19 @@ namespace lemon
 		const uint64 nameHash = function.getName().getHash();
 		if (function.getContext().isEmpty())
 		{
-			FunctionReference& ref = vectorAdd(mFunctionsByName[nameHash]);
-			ref.mFunction = &function;
-			ref.mIsDeprecated = function.getFlags().isSet(Function::Flag::DEPRECATED);
-
-			for (const Function::AliasName& aliasName : function.getAliasNames())
+			mFunctionsByName[nameHash].push_back(&function);
+			for (const FlyweightString& str : function.getAliasNames())
 			{
-				FunctionReference& ref = vectorAdd(mFunctionsByName[aliasName.mName.getHash()]);
-				ref.mFunction = &function;
-				ref.mIsDeprecated = aliasName.mIsDeprecated;
+				mFunctionsByName[str.getHash()].push_back(&function);
 			}
 		}
 		else
 		{
 			const uint64 contextHash = function.getContext().getHash();
-
-			FunctionReference& ref = vectorAdd(mMethodsByName[contextHash + nameHash]);
-			ref.mFunction = &function;
-			ref.mIsDeprecated = function.getFlags().isSet(Function::Flag::DEPRECATED);
-
-			for (const Function::AliasName& aliasName : function.getAliasNames())
+			mMethodsByName[contextHash + nameHash].push_back(&function);
+			for (const FlyweightString& str : function.getAliasNames())
 			{
-				FunctionReference& ref = vectorAdd(mMethodsByName[contextHash + aliasName.mName.getHash()]);
-				ref.mFunction = &function;
-				ref.mIsDeprecated = aliasName.mIsDeprecated;
+				mMethodsByName[contextHash + str.getHash()].push_back(&function);
 			}
 		}
 	}
@@ -185,32 +152,11 @@ namespace lemon
 		return mStringLiterals.getStringByHash(hash);
 	}
 
-	const DataTypeDefinition* GlobalsLookup::findDataTypeByName(uint64 nameHash) const
+	void GlobalsLookup::registerDataType(const CustomDataType* dataTypeDefinition)
 	{
-		// TODO: Optimize this by using a map
-		for (const DataTypeDefinition* existingDataType : mDataTypes)
-		{
-			if (existingDataType->getName().getHash() == nameHash)
-				return existingDataType;
-		}
-		return nullptr;
-	}
-
-	void GlobalsLookup::registerDataType(const DataTypeDefinition* dataTypeDefinition)
-	{
-		// Check if data type was already added (which happens for data types added during compilation, like arrays)
-		const uint64 nameHash = dataTypeDefinition->getName().getHash();
-		const Identifier* existing = mapFind(mAllIdentifiers, nameHash);
-		if (nullptr != existing)
-		{
-			RMX_CHECK(existing->getType() == Identifier::Type::DATA_TYPE, "Data type name '" << dataTypeDefinition->getName() << "' was already used for a different global identifier", );
-		}
-		else
-		{
-			RMX_ASSERT(dataTypeDefinition->getID() == mDataTypes.size(), "Wrong data type ID");
-			mDataTypes.push_back(dataTypeDefinition);
-			mAllIdentifiers[nameHash].set(dataTypeDefinition);
-		}
+		RMX_ASSERT(dataTypeDefinition->getID() == mDataTypes.size(), "Wrong data type ID");
+		mDataTypes.push_back(dataTypeDefinition);
+		mAllIdentifiers[dataTypeDefinition->getName().getHash()].set(dataTypeDefinition);
 	}
 
 	const DataTypeDefinition* GlobalsLookup::readDataType(VectorBinarySerializer& serializer) const

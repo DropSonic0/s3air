@@ -1,0 +1,101 @@
+﻿Build started 4/9/2026 14:44:58.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\zlib\zlib.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         adler32.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\adler32.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\adler32.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\adler32.c)
+         compress.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\compress.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\compress.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\compress.c)
+         ioapi.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\ioapi.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\contrib\minizip\ioapi.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\contrib\minizip\ioapi.c)
+         unzip.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\unzip.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\contrib\minizip\unzip.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\contrib\minizip\unzip.c)
+         crc32.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\crc32.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\crc32.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\crc32.c)
+         deflate.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\deflate.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\deflate.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\deflate.c)
+         gzclose.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\gzclose.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\gzclose.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\gzclose.c)
+         gzlib.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\gzlib.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\gzlib.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\gzlib.c)
+     1>C:\s3air\framework\external\zlib\zlib\gzlib.c(242,8): warning 224: function "lseek" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzlib.c(248,23): warning 224: function "lseek" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzlib.c(332,8): warning 224: function "lseek" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzlib.c(369,14): warning 224: function "lseek" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzlib.c(455,13): warning 224: function "lseek" declared implicitly
+         
+         gzread.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\gzread.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\gzread.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\gzread.c)
+     1>C:\s3air\framework\external\zlib\zlib\gzread.c(22,14): warning 224: function "read" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzread.c(599,10): warning 224: function "close" declared implicitly
+         
+         gzwrite.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\gzwrite.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\gzwrite.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\gzwrite.c)
+     1>C:\s3air\framework\external\zlib\zlib\gzwrite.c(78,19): warning 224: function "write" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzwrite.c(108,23): warning 224: function "write" declared implicitly
+         
+     1>C:\s3air\framework\external\zlib\zlib\gzwrite.c(627,8): warning 224: function "close" declared implicitly
+         
+         infback.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\infback.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\infback.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\infback.c)
+         inffast.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\inffast.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\inffast.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\inffast.c)
+         inflate.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\inflate.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\inflate.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\inflate.c)
+         inftrees.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\inftrees.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\inftrees.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\inftrees.c)
+         trees.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\trees.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\trees.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\trees.c)
+         uncompr.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\uncompr.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\uncompr.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\uncompr.c)
+         zutil.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\zutil.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\zlib\zlib\zutil.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\zlib\zlib\zutil.c)
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\zlib.a
+         addmod PS3_Debug\adler32.o
+         addmod PS3_Debug\compress.o
+         addmod PS3_Debug\ioapi.o
+         addmod PS3_Debug\unzip.o
+         addmod PS3_Debug\crc32.o
+         addmod PS3_Debug\deflate.o
+         addmod PS3_Debug\gzclose.o
+         addmod PS3_Debug\gzlib.o
+         addmod PS3_Debug\gzread.o
+         addmod PS3_Debug\gzwrite.o
+         addmod PS3_Debug\infback.o
+         addmod PS3_Debug\inffast.o
+         addmod PS3_Debug\inflate.o
+         addmod PS3_Debug\inftrees.o
+         addmod PS3_Debug\trees.o
+         addmod PS3_Debug\uncompr.o
+         addmod PS3_Debug\zutil.o
+         save
+         end
+         zlib.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\zlib.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\zlib\zlib.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:04.06

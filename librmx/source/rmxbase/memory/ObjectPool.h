@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -64,7 +64,7 @@ public:
 		mFreeItems.clear();
 	}
 
-	inline bool isEmpty() const
+	inline bool empty() const
 	{
 		// Get total number of reserved objects
 		size_t totalNumberOfObjects = 0;
@@ -117,28 +117,38 @@ public:
 
 protected:
 	// An item is our little management struct that includes an object and some additional info needed
-#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3)
 	struct __attribute__((aligned(16))) Item
 #else
 	struct Item
 #endif
 	{
+#if defined(PLATFORM_PS3)
+		char mObjectBuffer[sizeof(T)] __attribute__((aligned(16)));
+#else
 		T mObject;
-		bool mIsUsed = false;			// Set if object is currently used
-		bool mIsConstructed = false;	// Set if constructor was called in the object
+#endif
+		bool mIsUsed;			// Set if object is currently used
+		bool mIsConstructed;	// Set if constructor was called in the object
+
+		Item() : mIsUsed(false), mIsConstructed(false) {}
 	};
 
 	// A page is basically an array of items that all get allocated as one chunk of memory
 	struct Page
 	{
-		size_t mSize = 0;
-		Item* mItems = nullptr;
+		size_t mSize;
+		Item* mItems;
 	};
 
 protected:
 	inline T& allocObject()
 	{
+#if defined(PLATFORM_PS3)
+		return *(T*)allocItem().mObjectBuffer;
+#else
 		return allocItem().mObject;
+#endif
 	}
 
 	inline Item& allocItem()
@@ -149,21 +159,22 @@ protected:
 			// Create a new page
 			Page page;
 			page.mSize = mPageSize;
+				page.mItems = nullptr;
 
 			const size_t memorySize = sizeof(Item) * page.mSize;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 			page.mItems = static_cast<Item*>(malloc(memorySize));
-#else
-			page.mItems = static_cast<Item*>(memalign(128, memorySize));
-#endif
 
 			// Initialize items
 			for (size_t i = 0; i < page.mSize; ++i)
 			{
-				Item& item = page.mItems[i];
+				Item& item = *new (&page.mItems[i]) Item();
 				item.mIsUsed = false;
 				item.mIsConstructed = AUTOCONSTRUCT;
+#if defined(PLATFORM_PS3)
+				rmx::detail::AutoConstruct<AUTOCONSTRUCT>::template construct<T>(static_cast<void*>(item.mObjectBuffer));
+#else
 				rmx::detail::AutoConstruct<AUTOCONSTRUCT>::template construct<T>(static_cast<void*>(&item.mObject));
+#endif
 			}
 
 			// Store page
@@ -193,7 +204,11 @@ protected:
 
 	inline void freeObject(T& object)
 	{
+#if defined(PLATFORM_PS3)
+		Item& item = *(Item*)((char*)&object - offsetof(Item, mObjectBuffer));
+#else
 		Item& item = reinterpret_cast<Item&>(object);
+#endif
 
 		// Free an object by simply adding it to the array of free objects
 		mFreeItems.push_back(&item);
@@ -211,156 +226,132 @@ protected:
 		Item& item = allocItem();
 
 		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T();
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
-
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	template<typename A>
-	T& createObject(A&& a)
-	{
-		// Get an unused item
-		Item& item = allocItem();
-
-		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T(a);
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
-
-	template<typename A, typename B>
-	T& createObject(A&& a, B&& b)
-	{
-		// Get an unused item
-		Item& item = allocItem();
-
-		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T(a, b);
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
-
-	template<typename A, typename B, typename C>
-	T& createObject(A&& a, B&& b, C&& c)
-	{
-		// Get an unused item
-		Item& item = allocItem();
-
-		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T(a, b, c);
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
-
-	template<typename A, typename B, typename C, typename D>
-	T& createObject(A&& a, B&& b, C&& c, D&& d)
-	{
-		// Get an unused item
-		Item& item = allocItem();
-
-		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T(a, b, c, d);
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
-
-	template<typename A, typename B, typename C, typename D, typename E>
-	T& createObject(A&& a, B&& b, C&& c, D&& d, E&& e)
-	{
-		// Get an unused item
-		Item& item = allocItem();
-
-		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e);
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
-
-	template<typename A, typename B, typename C, typename D, typename E, typename F>
-	T& createObject(A&& a, B&& b, C&& c, D&& d, E&& e, F&& f)
-	{
-		// Get an unused item
-		Item& item = allocItem();
-
-		// Call its constructor
-		new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e, f);
-		item.mIsConstructed = true;
-
-		// Done
-		return item.mObject;
-	}
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T;
 #else
+		T* object = new (static_cast<void*>(&item.mObject)) T;
+#endif
+		item.mIsConstructed = true;
+
+		// Done
+		return *object;
+	}
+
 	template<typename A>
 	T& createObject(const A& a)
 	{
+		// Get an unused item
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a));
+
+		// Call its constructor
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T(a);
+#else
+		T* object = new (static_cast<void*>(&item.mObject)) T(a);
+#endif
 		item.mIsConstructed = true;
-		return item.mObject;
+
+		// Done
+		return *object;
 	}
 
 	template<typename A, typename B>
 	T& createObject(const A& a, const B& b)
 	{
+		// Get an unused item
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b));
+
+		// Call its constructor
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T(a, b);
+#else
+		T* object = new (static_cast<void*>(&item.mObject)) T(a, b);
+#endif
 		item.mIsConstructed = true;
-		return item.mObject;
+
+		// Done
+		return *object;
 	}
 
 	template<typename A, typename B, typename C>
 	T& createObject(const A& a, const B& b, const C& c)
 	{
+		// Get an unused item
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c));
+
+		// Call its constructor
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T(a, b, c);
+#else
+		T* object = new (static_cast<void*>(&item.mObject)) T(a, b, c);
+#endif
 		item.mIsConstructed = true;
-		return item.mObject;
+
+		// Done
+		return *object;
 	}
 
 	template<typename A, typename B, typename C, typename D>
 	T& createObject(const A& a, const B& b, const C& c, const D& d)
 	{
+		// Get an unused item
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c), const_cast<D&>(d));
+
+		// Call its constructor
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T(a, b, c, d);
+#else
+		T* object = new (static_cast<void*>(&item.mObject)) T(a, b, c, d);
+#endif
 		item.mIsConstructed = true;
-		return item.mObject;
+
+		// Done
+		return *object;
 	}
 
 	template<typename A, typename B, typename C, typename D, typename E>
 	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e)
 	{
+		// Get an unused item
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c), const_cast<D&>(d), const_cast<E&>(e));
+
+		// Call its constructor
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T(a, b, c, d, e);
+#else
+		T* object = new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e);
+#endif
 		item.mIsConstructed = true;
-		return item.mObject;
+
+		// Done
+		return *object;
 	}
 
 	template<typename A, typename B, typename C, typename D, typename E, typename F>
 	T& createObject(const A& a, const B& b, const C& c, const D& d, const E& e, const F& f)
 	{
+		// Get an unused item
 		Item& item = allocItem();
-		new (static_cast<void*>(&item.mObject)) T(const_cast<A&>(a), const_cast<B&>(b), const_cast<C&>(c), const_cast<D&>(d), const_cast<E&>(e), const_cast<F&>(f));
-		item.mIsConstructed = true;
-		return item.mObject;
-	}
+
+		// Call its constructor
+#if defined(PLATFORM_PS3)
+		T* object = new (static_cast<void*>(item.mObjectBuffer)) T(a, b, c, d, e, f);
+#else
+		T* object = new (static_cast<void*>(&item.mObject)) T(a, b, c, d, e, f);
 #endif
+		item.mIsConstructed = true;
+
+		// Done
+		return *object;
+	}
 
 	inline void destroyObject(T& object)
 	{
+#if defined(PLATFORM_PS3)
+		Item& item = *(Item*)((char*)&object - offsetof(Item, mObjectBuffer));
+#else
 		Item& item = reinterpret_cast<Item&>(object);
+#endif
 
 		// Call object's destructor
 		object.~T();
@@ -379,7 +370,11 @@ private:
 			if (item.mIsConstructed)
 			{
 				// Call object's destructor
+#if defined(PLATFORM_PS3)
+				((T*)item.mObjectBuffer)->~T();
+#else
 				item.mObject.~T();
+#endif
 			}
 		}
 		free(page.mItems);

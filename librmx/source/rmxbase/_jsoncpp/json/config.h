@@ -5,39 +5,34 @@
 
 #ifndef JSON_CONFIG_H_INCLUDED
 #define JSON_CONFIG_H_INCLUDED
+
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+	#include "../../../PlatformDefinitions.h"
+#endif
+
 #include <cstddef>
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-#include <stdint.h>
-namespace std {
-    template<typename T>
-    T& move(T& x) { return x; }
-    template<typename T>
-    const T& move(const T& x) { return x; }
-}
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+	#include <stdint.h>
 #else
-#include <cstdint>
+	#include <cstdint>
 #endif
 #include <istream>
 #include <memory>
 #include <ostream>
 #include <sstream>
 #include <string>
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-namespace std {
-    template<bool B, class T, class F>
-    struct conditional { typedef T type; };
-
-    template<class T, class F>
-    struct conditional<false, T, F> { typedef F type; };
-}
-#else
-#include <type_traits>
+#if !defined(__CELLOS_LV2__) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
+	#include <type_traits>
 #endif
 
 // If non-zero, the library uses exceptions to report bad input instead of C
 // assertion macros. The default is to use exceptions.
 #ifndef JSON_USE_EXCEPTION
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+#define JSON_USE_EXCEPTION 0
+#else
 #define JSON_USE_EXCEPTION 1
+#endif
 #endif
 
 // Temporary, tracked for removal with issue #982.
@@ -70,7 +65,7 @@ namespace std {
 #define JSON_API
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER < 1800
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__CELLOS_LV2__) && !defined(__PS3__) && !defined(__SN_TARGET_PS3__)
 #error                                                                         \
     "ERROR:  Visual Studio 12 (2013) with _MSC_VER=1800 is the oldest supported compiler with sufficient C++11 capabilities"
 #endif
@@ -125,30 +120,83 @@ extern JSON_API int msvc_pre1900_c99_snprintf(char* outBuf, size_t size,
 #endif // if !defined(JSON_IS_AMALGAMATION)
 
 namespace Json {
+#if defined(PLATFORM_PS3)
+typedef int Int;
+typedef unsigned int UInt;
+#else
 using Int = int;
 using UInt = unsigned int;
+#endif
+
 #if defined(JSON_NO_INT64)
+#if defined(PLATFORM_PS3)
+typedef int LargestInt;
+typedef unsigned int LargestUInt;
+#else
 using LargestInt = int;
 using LargestUInt = unsigned int;
+#endif
 #undef JSON_HAS_INT64
 #else                 // if defined(JSON_NO_INT64)
 // For Microsoft Visual use specific types as long long is not supported
 #if defined(_MSC_VER) // Microsoft Visual Studio
+#if defined(PLATFORM_PS3)
+typedef __int64 Int64;
+typedef unsigned __int64 UInt64;
+#else
 using Int64 = __int64;
 using UInt64 = unsigned __int64;
+#endif
 #else                 // if defined(_MSC_VER) // Other platforms, use long long
+#if defined(PLATFORM_PS3)
+typedef int64_t Int64;
+typedef uint64_t UInt64;
+#else
 using Int64 = int64_t;
 using UInt64 = uint64_t;
+#endif
 #endif                // if defined(_MSC_VER)
+#if defined(PLATFORM_PS3)
+typedef Int64 LargestInt;
+typedef UInt64 LargestUInt;
+#else
 using LargestInt = Int64;
 using LargestUInt = UInt64;
+#endif
 #define JSON_HAS_INT64
 #endif // if defined(JSON_NO_INT64)
 
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+template <typename T>
+class Allocator : public std::allocator<T> {
+public:
+	typedef size_t size_type;
+	typedef ptrdiff_t difference_type;
+	typedef T* pointer;
+	typedef const T* const_pointer;
+	typedef T& reference;
+	typedef const T& const_reference;
+	typedef T value_type;
+	template <class U> struct rebind { typedef Allocator<U> other; };
+	Allocator() throw() {}
+	Allocator(const Allocator&) throw() {}
+	template <class U> Allocator(const Allocator<U>&) throw() {}
+	~Allocator() throw() {}
+};
+#else
 template <typename T>
 using Allocator =
     typename std::conditional<JSONCPP_USING_SECURE_MEMORY, SecureAllocator<T>,
                               std::allocator<T>>::type;
+#endif
+
+#if defined(PLATFORM_PS3)
+typedef std::basic_string<char, std::char_traits<char>, Allocator<char> > String;
+typedef std::basic_istringstream<char, std::char_traits<char>, Allocator<char> > IStringStream;
+typedef std::basic_ostringstream<char, std::char_traits<char>, Allocator<char> > OStringStream;
+typedef std::istream IStream;
+typedef std::ostream OStream;
+#else
 using String = std::basic_string<char, std::char_traits<char>, Allocator<char>>;
 using IStringStream =
     std::basic_istringstream<String::value_type, String::traits_type,
@@ -158,13 +206,22 @@ using OStringStream =
                              String::allocator_type>;
 using IStream = std::istream;
 using OStream = std::ostream;
+#endif
 } // namespace Json
 
 // Legacy names (formerly macros).
+#if defined(PLATFORM_PS3)
+typedef Json::String JSONCPP_STRING;
+typedef Json::IStringStream JSONCPP_ISTRINGSTREAM;
+typedef Json::OStringStream JSONCPP_OSTRINGSTREAM;
+typedef Json::IStream JSONCPP_ISTREAM;
+typedef Json::OStream JSONCPP_OSTREAM;
+#else
 using JSONCPP_STRING = Json::String;
 using JSONCPP_ISTRINGSTREAM = Json::IStringStream;
 using JSONCPP_OSTRINGSTREAM = Json::OStringStream;
 using JSONCPP_ISTREAM = Json::IStream;
 using JSONCPP_OSTREAM = Json::OStream;
+#endif
 
 #endif // JSON_CONFIG_H_INCLUDED

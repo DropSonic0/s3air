@@ -1,0 +1,13 @@
+﻿Build started 14/9/2026 18:08:21.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\oxygen_netcore-ps3\oxygen_netcore-ps3.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         ConnectionManager.cpp
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Release\ConnectionManager.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\librmx\source -IC:\s3air\Oxygen\oxygenengine\source -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xstd=cpp11 -Xc-=rtti C:\s3air\Oxygen\oxygenengine\source\oxygen_netcore\network\ConnectionManager.cpp
+     1>SNCCL : error 1852: cannot open source file "C:\s3air\Oxygen\oxygenengine\source\oxygen_netcore\network\ConnectionManager.cpp"
+         
+         Compilation terminated.
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\oxygen_netcore-ps3\oxygen_netcore-ps3.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.14

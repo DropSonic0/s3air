@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,13 +8,14 @@
 
 #include "oxygen_netcore/pch.h"
 #include "oxygen_netcore/network/internal/WebSocketWrapper.h"
+#include "Endian/S3AIREndian.hpp"
 #include "oxygen_netcore/network/internal/CryptoFunctions.h"
 #include "oxygen_netcore/network/NetConnection.h"
 
 
 bool WebSocketWrapper::handleWebSocketHttpHeader(const std::vector<uint8>& receivedData, String& outWebSocketKey)
 {
-	if (receivedData.size() < 0x80 || *(uint32*)&receivedData[0] != *(uint32*)"GET ")
+	if (receivedData.size() < 0x80 || memcmp(&receivedData[0], "GET ", 4) != 0)
 		return false;
 
 	// Parse WebSocket handshake header
@@ -50,9 +51,10 @@ void WebSocketWrapper::getWebSocketHttpResponse(const String& webSocketKey, Stri
 	static const std::string GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 	uint32 sha1[5];
 	Crypto::buildSHA1(webSocketKey.toStdString() + GUID, sha1);
+	uint8 sha1Bytes[20];
 	for (int k = 0; k < 5; ++k)
-		sha1[k] = swapBytes32(sha1[k]);
-	const std::string acceptString = Crypto::encodeBase64((const uint8*)sha1, sizeof(uint32) * 5);
+		rmx::writeMemoryUnalignedBE(&sha1Bytes[k * 4], sha1[k]);
+	const std::string acceptString = Crypto::encodeBase64(sha1Bytes, 20);
 
 	outResponse.clear();
 	outResponse << "HTTP/1.1 101 Switching Protocols\r\n";
@@ -80,7 +82,9 @@ bool WebSocketWrapper::processReceivedClientPacket(std::vector<uint8>& data)
 		// Error: Unsupported format
 		return false;
 	}
+#if !defined(PLATFORM_PS3)
 	const uint8 opcode = (byte & 0x0f);
+#endif
 	// TODO: Handle the different kinds of opcodes (at least 0, 1, 2, 8)
 
 	// Second byte
@@ -96,12 +100,12 @@ bool WebSocketWrapper::processReceivedClientPacket(std::vector<uint8>& data)
 	{
 		if (payloadLength == 126)
 		{
-			payloadLength = swapBytes16(*(uint16*)&data[offset]);
+			payloadLength = rmx::readMemoryUnalignedBE<uint16>(&data[offset]);
 			offset += 2;
 		}
 		else
 		{
-			payloadLength = swapBytes64(*(uint64*)&data[offset]);
+			payloadLength = rmx::readMemoryUnalignedBE<uint64>(&data[offset]);
 			offset += 8;
 			// TODO: Limit length to some reasonable value
 		}
@@ -137,13 +141,13 @@ void WebSocketWrapper::wrapDataToSendToClient(const std::vector<uint8>& data, st
 	else if (data.size() <= 0xffff)
 	{
 		headerContent[1] += 126;
-		*(uint16*)&headerContent[2] = (uint16)data.size();
+		rmx::writeMemoryUnalignedBE<uint16>(&headerContent[2], (uint16)data.size());
 		headerSize += 2;
 	}
 	else
 	{
 		headerContent[1] += 127;
-		*(uint64*)&headerContent[2] = (uint64)data.size();
+		rmx::writeMemoryUnalignedBE<uint64>(&headerContent[2], (uint64)data.size());
 		headerSize += 8;
 	}
 

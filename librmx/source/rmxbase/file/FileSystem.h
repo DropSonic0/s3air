@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -24,16 +24,7 @@ namespace rmx
 		FileSystem();
 		~FileSystem();
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__)
-		inline int getLastErrorCode() const  { return mLastErrorCode; }
-#else
-		inline const std::error_code& getLastErrorCode() const  { return mLastErrorCode; }
-#endif
-
 		bool exists(std::wstring_view filename);
-		bool isFile(std::wstring_view path);
-		bool isDirectory(std::wstring_view path);
-
 		uint64 getFileSize(std::wstring_view filename);
 		time_t getFileTime(std::wstring_view filename);
 
@@ -41,16 +32,13 @@ namespace rmx
 		bool saveFile(std::wstring_view filename, const void* data, size_t size);
 		InputStream* createInputStream(std::wstring_view filename);
 
-		bool createDirectory(std::wstring_view path);
+		void createDirectory(std::wstring_view path);
 		void listFiles(std::wstring_view path, bool recursive, std::vector<FileIO::FileEntry>& outFileEntries);
 		void listFilesByMask(std::wstring_view filemask, bool recursive, std::vector<FileIO::FileEntry>& outFileEntries);
 		void listDirectories(std::wstring_view path, std::vector<std::wstring>& outDirectories);
 
 		bool renameFile(std::wstring_view oldFilename, std::wstring_view newFilename);
-		bool renameDirectory(std::wstring_view oldPath, std::wstring_view newPath);
-
 		bool removeFile(std::wstring_view path);
-		bool removeDirectory(std::wstring_view path);
 
 		// Wrapper functions
 		bool exists(std::string_view path);
@@ -82,11 +70,13 @@ namespace rmx
 	private:
 		struct MountPoint
 		{
-			FileProvider* mFileProvider = nullptr;
-			int mPriority = 0;
+				FileProvider* mFileProvider;
+				int mPriority;
 			std::wstring mMountPoint;
 			std::wstring mPrefixReplacement;
-			bool mNeedsPrefixConversion = false;	// Set if mount point and prefix replacement are different
+				bool mNeedsPrefixConversion;	// Set if mount point and prefix replacement are different
+
+				MountPoint() : mFileProvider(nullptr), mPriority(0), mNeedsPrefixConversion(false) {}
 		};
 
 	private:
@@ -102,12 +92,6 @@ namespace rmx
 
 		mutable std::wstring mTempPath;		// Only for temporary internal use
 		mutable std::wstring mTempPath2;	// Only for temporary internal use
-
-#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__)
-		int mLastErrorCode = 0;
-#else
-		std::error_code mLastErrorCode;
-#endif
 	};
 
 }

@@ -6,7 +6,6 @@
 #ifndef JSON_ASSERTIONS_H_INCLUDED
 #define JSON_ASSERTIONS_H_INCLUDED
 
-#include <cstdlib>
 #include <stdlib.h>
 #include <sstream>
 
@@ -30,10 +29,10 @@
 
 #define JSON_FAIL_MESSAGE(message)                                             \
   do {                                                                         \
-    OStringStream oss;                                                         \
+    Json::OStringStream oss;                                                         \
     oss << message;                                                            \
     Json::throwLogicError(oss.str());                                          \
-    std::abort();                                                              \
+    abort();                                                                   \
   } while (0)
 
 #else // JSON_USE_EXCEPTION
@@ -44,10 +43,10 @@
 // release builds we abort, for a core-dump or debugger.
 #define JSON_FAIL_MESSAGE(message)                                             \
   {                                                                            \
-    OStringStream oss;                                                         \
+    Json::OStringStream oss;                                                         \
     oss << message;                                                            \
     assert(false && oss.str().c_str());                                        \
-    std::abort();                                                              \
+    abort();                                                                   \
   }
 
 #endif

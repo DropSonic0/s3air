@@ -1,0 +1,15 @@
+[2026-09-04 16:41:49] --- STARTUP ---
+[2026-09-04 16:41:50] Logging started
+[2026-09-04 16:41:50] Application version: 26.03.28.0
+[2026-09-04 16:41:50] Executable path:     /dev_hdd0/game/SONIC3AIR/USRDIR/EBOOT.BIN
+[2026-09-04 16:41:50] App data path:       /dev_hdd0/game/SONIC3AIR/USRDIR/
+[2026-09-04 16:41:50] Initializing configuration
+[2026-09-04 16:41:50] Loading configuration
+[2026-09-04 16:41:50] Loading settings
+[2026-09-04 16:41:50] Using opengl-full renderer
+[2026-09-04 16:41:50] File system setup
+[2026-09-04 16:41:50] Could not find engine data.
+This can mean your game installation is broken and needs to be downloaded and installed again.
+
+In case you manually replaced your data folder with the source data files, please make sure to also copy over the files from 'oxygenengine/data' as well.
+[2026-09-04 16:41:50] System shutdown

@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -25,21 +25,31 @@ public:
 	static const Color MAGENTA;
 	static const Color TRANSPARENT;
 
+#if defined(PLATFORM_PS3)
+	struct Encoding
+	{
+		enum Enum
+		{
+			RGBA_32,
+			ARGB_32,
+			ABGR_32
+		};
+	};
+	typedef Encoding::Enum Encoding_t;
+#else
 	enum class Encoding
 	{
 		RGBA_32,
 		ARGB_32,
 		ABGR_32
 	};
+	typedef Encoding Encoding_t;
+#endif
 
 public:
-	inline static Color fromRGBA32(uint32 colorRGBA)  { return Color(colorRGBA, Encoding::RGBA_32); }
-	inline static Color fromARGB32(uint32 colorARGB)  { return Color(colorARGB, Encoding::ARGB_32); }
-	inline static Color fromABGR32(uint32 colorABGR)  { return Color(colorABGR, Encoding::ABGR_32); }
-
-	inline static Color fromHSL(const Vec3f& hsl)	  { Color color;  color.setFromHSL(hsl);  color.a = 1.0f;  return color; }
-	inline static Color fromHSV(const Vec3f& hsv)	  { Color color;  color.setFromHSV(hsv);  color.a = 1.0f;  return color; }
-	inline static Color fromYUV(const Vec3f& yuv)	  { Color color;  color.setFromYUV(yuv);  color.a = 1.0f;  return color; }
+	inline static Color fromRGBA32(uint32 colorRGBA)  { return Color(colorRGBA, (Encoding_t)Encoding::RGBA_32); }
+	inline static Color fromARGB32(uint32 colorARGB)  { return Color(colorARGB, (Encoding_t)Encoding::ARGB_32); }
+	inline static Color fromABGR32(uint32 colorABGR)  { return Color(colorABGR, (Encoding_t)Encoding::ABGR_32); }
 
 	static Color interpolateColor(const Color& c0, const Color& c1, float factor);
 
@@ -47,7 +57,7 @@ public:
 	inline Color() {}
 	inline Color(const Vec4f& vec) : Vec4f(vec) {}
 	inline Color(float r_, float g_, float b_, float a_ = 1.0f) : Vec4f(r_, g_, b_, a_) {}
-	Color(uint32 color, Encoding encoding) : Vec4f(true)  { setByEncoding(color, encoding); }
+		Color(uint32 color, Encoding_t encoding);
 
 	inline void set(const Color& color) { r = color.r; g = color.g; b = color.b; a = color.a; }
 	inline void set(float r_, float g_, float b_, float a_ = 1.0f) { r = r_; g = g_; b = b_; a = a_; }
@@ -56,7 +66,7 @@ public:
 	uint32 getARGB32() const;			// A is the highest 8 bits, G is the lowest 8 bits
 	uint32 getABGR32() const;			// A is the highest 8 bits, R is the lowest 8 bits
 
-	void setByEncoding(uint32 color, Encoding encoding);
+		void setByEncoding(uint32 color, Encoding_t encoding);
 	void setRGBA32(uint32 colorRGBA);	// R is the highest 8 bits, A is the lowest 8 bits
 	void setARGB32(uint32 colorARGB);	// A is the highest 8 bits, B is the lowest 8 bits
 	void setABGR32(uint32 colorABGR);	// A is the highest 8 bits, R is the lowest 8 bits

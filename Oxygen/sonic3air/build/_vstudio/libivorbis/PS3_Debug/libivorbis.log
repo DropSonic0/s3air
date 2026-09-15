@@ -1,0 +1,267 @@
+﻿Build started 4/9/2026 14:44:50.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\libivorbis\libivorbis.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         analysis.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\analysis.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\analysis.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\analysis.c)
+         bitrate.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\bitrate.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\bitrate.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\bitrate.c)
+         block.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\block.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c(419,13): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c(419,13): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c(420,14): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c(467,15): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\block.c(467,15): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+         codebook.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\codebook.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\codebook.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\codebook.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\codebook.c(379,18): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\codebook.c(379,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "long *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\codebook.c(380,16): warning 145: a value of type "int" cannot be used to initialize an entity of type "float **"
+         
+         envelope.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\envelope.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\envelope.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\envelope.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\envelope.c(104,13): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\envelope.c(104,13): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+         floor0.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\floor0.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\floor0.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\floor0.c)
+         floor1.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\floor1.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\floor1.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\floor1.c)
+         info.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\info.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\info.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\info.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\info.c(442,8): warning 112: statement is unreachable
+         
+         lookup.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\lookup.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lookup.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lookup.c)
+         lpc.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\lpc.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c(61,14): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c(61,14): warning 145: a value of type "int" cannot be used to initialize an entity of type "double *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c(62,14): warning 145: a value of type "int" cannot be used to initialize an entity of type "double *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c(141,14): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lpc.c(141,14): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+         lsp.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\lsp.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(312,15): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(312,15): warning 145: a value of type "int" cannot be used to initialize an entity of type "double *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(367,15): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(367,15): warning 145: a value of type "int" cannot be used to initialize an entity of type "double *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(406,12): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(406,12): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(407,12): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(408,13): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\lsp.c(409,13): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+         mapping0.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\mapping0.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(239,23): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(239,23): warning 145: a value of type "int" cannot be used to initialize an entity of type "int *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(245,22): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(593,24): warning 145: a value of type "int" cannot be used to initialize an entity of type "int **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(594,20): warning 145: a value of type "int" cannot be used to initialize an entity of type "int *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(708,20): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(708,20): warning 145: a value of type "int" cannot be used to initialize an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(709,21): warning 145: a value of type "int" cannot be used to initialize an entity of type "int *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(711,19): warning 145: a value of type "int" cannot be used to initialize an entity of type "int *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mapping0.c(712,19): warning 145: a value of type "int" cannot be used to initialize an entity of type "void **"
+         
+         mdct.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\mdct.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mdct.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mdct.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mdct.c(497,15): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\mdct.c(497,15): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+         psy.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\psy.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(91,22): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(91,22): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(451,18): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(451,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "long *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(452,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(549,11): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(549,11): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(550,11): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(551,12): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(552,11): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(553,12): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(707,14): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(707,14): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(758,14): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(758,14): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(940,17): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(940,17): warning 145: a value of type "int" cannot be used to initialize an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1034,16): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1034,16): warning 145: a value of type "int" cannot be used to initialize an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1037,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1040,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1043,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "int **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1046,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "int *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1049,18): warning 145: a value of type "int" cannot be used to initialize an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1055,11): warning 515: a value of type "int" cannot be assigned to an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1056,11): warning 515: a value of type "int" cannot be assigned to an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1057,11): warning 515: a value of type "int" cannot be assigned to an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\psy.c(1058,11): warning 515: a value of type "int" cannot be assigned to an entity of type "int *"
+         
+         registry.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\registry.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\registry.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\registry.c)
+         res0.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\res0.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\res0.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\res0.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\res0.c(662,20): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\res0.c(662,20): warning 145: a value of type "int" cannot be used to initialize an entity of type "int ***"
+         
+         sharedbook.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\sharedbook.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\sharedbook.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\sharedbook.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\sharedbook.c(355,25): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\sharedbook.c(355,25): warning 145: a value of type "int" cannot be used to initialize an entity of type "ogg_uint32_t **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\sharedbook.c(366,13): warning 515: a value of type "int" cannot be assigned to an entity of type "int *"
+         
+         smallft.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\smallft.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\smallft.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\smallft.c)
+         synthesis.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\synthesis.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\synthesis.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\synthesis.c)
+         vorbisenc.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\vorbisenc.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisenc.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisenc.c)
+         vorbisfile.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\vorbisfile.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c)
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(258,29): warning 1628: argument of type "ogg_int64_t" is incompatible with parameter (1 of _lookup_serialno) of type "long"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(770,18): warning 552: variable "ret" was set but never used
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(877,17): warning 1628: argument of type "ogg_int64_t" is incompatible with parameter (2 of fseek) of type "long"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(1992,23): warning 178: variable "fpu" was declared but never referenced
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2283,9): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2283,8): warning 515: a value of type "int" cannot be assigned to an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2290,13): warning 515: a value of type "int" cannot be assigned to an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2333,9): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2333,8): warning 515: a value of type "int" cannot be assigned to an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2335,13): warning 515: a value of type "int" cannot be assigned to an entity of type "float *"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2394,9): warning 224: function "alloca" declared implicitly
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2394,8): warning 515: a value of type "int" cannot be assigned to an entity of type "float **"
+         
+     1>C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\vorbisfile.c(2396,13): warning 515: a value of type "int" cannot be assigned to an entity of type "float *"
+         
+         window.c
+         ps3ppusnc.exe -D_DEBUG -D__CELL_ASSERT__ -D__CELLOS_LV2__ -D__ppc__ -D__PPU__ -DRMX_PLATFORM_PS3 -DRMX_NO_GLEW -DRMX_NO_IMGUI -DUSE_GLES -DIMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS -DJSONCPP_NO_LOCALE_SUPPORT -DJSON_USE_EXCEPTION=0 -D__PS3__ -o PS3_Debug\window.o -c -Xdepmode=1 -MD -Xmserrors -I"C:\s3air\framework\external\ogg-vorbis\libogg\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\include" -I"C:\s3air\framework\external\ogg-vorbis\libvorbis\lib" -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -g -O0 -Xstd=cpp11 -Xc-=rtti C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\window.c
+     1>SNCCL : Command line warning 2259: -Xstd=cpp11 is only valid for C++ (ignored for C:\s3air\framework\external\ogg-vorbis\libvorbis\lib\window.c)
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\libivorbis.a
+         addmod PS3_Debug\analysis.o
+         addmod PS3_Debug\bitrate.o
+         addmod PS3_Debug\block.o
+         addmod PS3_Debug\codebook.o
+         addmod PS3_Debug\envelope.o
+         addmod PS3_Debug\floor0.o
+         addmod PS3_Debug\floor1.o
+         addmod PS3_Debug\info.o
+         addmod PS3_Debug\lookup.o
+         addmod PS3_Debug\lpc.o
+         addmod PS3_Debug\lsp.o
+         addmod PS3_Debug\mapping0.o
+         addmod PS3_Debug\mdct.o
+         addmod PS3_Debug\psy.o
+         addmod PS3_Debug\registry.o
+         addmod PS3_Debug\res0.o
+         addmod PS3_Debug\sharedbook.o
+         addmod PS3_Debug\smallft.o
+         addmod PS3_Debug\synthesis.o
+         addmod PS3_Debug\vorbisenc.o
+         addmod PS3_Debug\vorbisfile.o
+         addmod PS3_Debug\window.o
+         save
+         end
+         libivorbis.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Debug\libivorbis.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\libivorbis\libivorbis.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:08.22

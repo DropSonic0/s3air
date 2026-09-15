@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,131 +8,38 @@
 
 #pragma once
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-#ifndef _STD_FUNCTION_DEFINED_PS3_
-#define _STD_FUNCTION_DEFINED_PS3_
-namespace std {
-    // minimal C++11 std::function fallback for arity 0 and 1
-    template<typename T>
-    class function;
-
-    template<typename R, typename Arg1>
-    class function<R(Arg1)> {
-    public:
-        struct Invoker {
-            virtual ~Invoker() {}
-            virtual R invoke(Arg1) = 0;
-            virtual Invoker* clone() const = 0;
-        };
-
-        template<typename F>
-        struct FunctorInvoker : public Invoker {
-            F mFunc;
-            FunctorInvoker(const F& f) : mFunc(f) {}
-            virtual R invoke(Arg1 a1) { return mFunc(a1); }
-            virtual Invoker* clone() const { return new FunctorInvoker(mFunc); }
-        };
-
-        function() : mInvoker(nullptr) {}
-        template<typename F>
-        function(const F& f) : mInvoker(new FunctorInvoker<F>(f)) {}
-        function(const function& other) : mInvoker(other.mInvoker ? other.mInvoker->clone() : nullptr) {}
-        ~function() { delete mInvoker; }
-        function& operator=(const function& other) {
-            if (this != &other) {
-                delete mInvoker;
-                mInvoker = other.mInvoker ? other.mInvoker->clone() : nullptr;
-            }
-            return *this;
-        }
-        R operator()(Arg1 a1) const { return mInvoker->invoke(a1); }
-        operator bool() const { return mInvoker != nullptr; }
-
-    private:
-        Invoker* mInvoker;
-    };
-
-    template<typename R>
-    class function<R()> {
-    public:
-        struct Invoker {
-            virtual ~Invoker() {}
-            virtual R invoke() = 0;
-            virtual Invoker* clone() const = 0;
-        };
-
-        template<typename F>
-        struct FunctorInvoker : public Invoker {
-            F mFunc;
-            FunctorInvoker(const F& f) : mFunc(f) {}
-            virtual R invoke() { return mFunc(); }
-            virtual Invoker* clone() const { return new FunctorInvoker(mFunc); }
-        };
-
-        function() : mInvoker(nullptr) {}
-        template<typename F>
-        function(const F& f) : mInvoker(new FunctorInvoker<F>(f)) {}
-        function(const function& other) : mInvoker(other.mInvoker ? other.mInvoker->clone() : nullptr) {}
-        ~function() { delete mInvoker; }
-        function& operator=(const function& other) {
-            if (this != &other) {
-                delete mInvoker;
-                mInvoker = other.mInvoker ? other.mInvoker->clone() : nullptr;
-            }
-            return *this;
-        }
-        R operator()() const { return mInvoker->invoke(); }
-        operator bool() const { return mInvoker != nullptr; }
-
-    private:
-        Invoker* mInvoker;
-    };
-}
-#endif
-#endif
-
-#include "lemon/compiler/Errors.h"
 #include "lemon/program/Constant.h"
 #include "lemon/program/ConstantArray.h"
 #include "lemon/program/Define.h"
-#include "lemon/program/function/NativeFunction.h"
+#include "lemon/program/Function.h"
+#include "lemon/program/Variable.h"
 #include "lemon/program/SourceFileInfo.h"
 #include "lemon/program/StringRef.h"
-#include "lemon/program/Variable.h"
+#if !defined(PLATFORM_PS3)
+#include <unordered_map>
+#else
+#include <map>
+#endif
 
 
 namespace lemon
 {
 	class GlobalsLookup;
 	class PreprocessorDefinitionMap;
-	class ScriptFunction;
-
 
 	class API_EXPORT Module
 	{
-	friend class Compiler;
-	friend class GlobalsLookup;
-	friend class ModuleSerializer;
 	friend class Program;
+	friend class GlobalsLookup;
 	friend class ScriptFunction;
+	friend class ModuleSerializer;
 
 	public:
-		struct AppendedInfo
-		{
-			virtual ~AppendedInfo() {}
-		};
-
-	public:
-		explicit Module(const std::string& name, AppendedInfo* appendedInfo = nullptr);
+		explicit Module(const std::string& name);
 		~Module();
 
-		inline const std::string& getModuleName() const  { return mModuleName; }
-		inline uint64 getModuleId() const  { return mModuleId; }
-
-		inline uint32 getScriptFeatureLevel() const  { return mScriptFeatureLevel; }
-		inline void setScriptFeatureLevel(uint32 scriptFeatureLevel)  { mScriptFeatureLevel = scriptFeatureLevel; }
-
-		inline AppendedInfo* getAppendedInfo() const  { return mAppendedInfo; }
+		inline const std::string& getModuleName() const { return mModuleName; }
+		inline uint64 getModuleId() const { return mModuleId; }
 
 		void clear();
 
@@ -140,36 +47,34 @@ namespace lemon
 
 		void dumpDefinitionsToScriptFile(const std::wstring& filename, bool append = false);
 
-		inline const std::wstring& getScriptBasePath() const	{ return mScriptBasePath; }
-		inline void setScriptBasePath(std::wstring_view path)	{ mScriptBasePath = path; }
-		const SourceFileInfo& addSourceFileInfo(const std::wstring& localPath, const std::wstring& filename);
+		const SourceFileInfo& addSourceFileInfo(const std::wstring& basepath, const std::wstring& filename);
 
 		// Preprocessor definitions
 		void registerNewPreprocessorDefinitions(PreprocessorDefinitionMap& preprocessorDefinitions);
 		Constant& addPreprocessorDefinition(FlyweightString name, int64 value);
 
 		// Functions
-		inline const std::vector<Function*>& getAllFunctions() const		  { return mFunctions; }
+		inline const std::vector<Function*>& getFunctions() const { return mFunctions; }
 		inline const std::vector<ScriptFunction*>& getScriptFunctions() const { return mScriptFunctions; }
 		const Function* getFunctionByUniqueId(uint64 uniqueId) const;
 
-		ScriptFunction& addScriptFunction(FlyweightString name, const DataTypeDefinition* returnType, const Function::ParameterList& parameters, std::vector<Function::AliasName>* aliasNames = nullptr);
+		ScriptFunction& addScriptFunction(FlyweightString name, const DataTypeDefinition* returnType, const Function::ParameterList& parameters, std::vector<FlyweightString>* aliasNames = nullptr);
 		NativeFunction& addNativeFunction(FlyweightString name, const NativeFunction::FunctionWrapper& functionWrapper, BitFlagSet<Function::Flag> flags = BitFlagSet<Function::Flag>());
 		NativeFunction& addNativeMethod(FlyweightString context, FlyweightString name, const NativeFunction::FunctionWrapper& functionWrapper, BitFlagSet<Function::Flag> flags = BitFlagSet<Function::Flag>());
-
-		uint32 addOrFindCallableFunctionAddress(const Function& function);
 
 		// Variables
 		inline const std::vector<Variable*>& getGlobalVariables() const  { return mGlobalVariables; }
 		GlobalVariable& addGlobalVariable(FlyweightString name, const DataTypeDefinition* dataType);
 		UserDefinedVariable& addUserDefinedVariable(FlyweightString name, const DataTypeDefinition* dataType);
-		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor);
+		ExternalVariable& addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, VariableAccessorType&& accessor);
 
 		// Constants
+		inline const std::vector<Constant*>& getConstants() const { return mConstants; }
 		Constant& addConstant(FlyweightString name, const DataTypeDefinition* dataType, AnyBaseValue value);
 
 		// Constant arrays
-		ConstantArray& addConstantArray(FlyweightString name, const DataTypeDefinition* elementDataType, const AnyBaseValue* values, size_t size, bool isGlobalDefinition);
+		inline const std::vector<ConstantArray*>& getConstantArrays() const { return mConstantArrays; }
+		ConstantArray& addConstantArray(FlyweightString name, const DataTypeDefinition* elementDataType, const uint64* values, size_t size, bool isGlobalDefinition);
 
 		// Defines
 		const std::vector<Define*>& getDefines() const { return mDefines; }
@@ -180,9 +85,8 @@ namespace lemon
 		void addStringLiteral(FlyweightString str);
 
 		// Data types
-		const std::vector<const DataTypeDefinition*>& getDataTypes() const  { return mDataTypes; }
-		ArrayDataType& addArrayDataType(const DataTypeDefinition& elementType, size_t arraySize);
-		const CustomDataType* addCustomDataType(const char* name, BaseType baseType);
+		const std::vector<const CustomDataType*>& getDataTypes() const  { return mDataTypes; }
+		const CustomDataType* addDataType(const char* name, BaseType baseType);
 
 		// Serialization
 		uint32 buildDependencyHash() const;
@@ -190,8 +94,6 @@ namespace lemon
 
 		inline uint64 getCompiledCodeHash() const     { return mCompiledCodeHash; }
 		inline void setCompiledCodeHash(uint64 hash)  { mCompiledCodeHash = hash; }
-
-		inline const std::vector<CompilerWarning>& getWarnings() const  { return mWarnings; }
 
 	private:
 		void addFunctionInternal(Function& func);
@@ -202,9 +104,6 @@ namespace lemon
 	private:
 		std::string mModuleName;
 		uint64 mModuleId = 0;
-		uint32 mScriptFeatureLevel = 2;
-
-		AppendedInfo* mAppendedInfo = nullptr;
 
 		// Preprocessor definitions
 		std::vector<Constant*> mPreprocessorDefinitions;	// Re-using the Constant class here, and also mConstantPool
@@ -215,9 +114,6 @@ namespace lemon
 		std::vector<ScriptFunction*> mScriptFunctions;
 		ObjectPool<ScriptFunction, 64> mScriptFunctionPool;
 		ObjectPool<NativeFunction, 32> mNativeFunctionPool;
-
-		// Callable function addresses
-		std::unordered_map<uint32, uint64> mCallableFunctions;
 
 		// Variables
 		uint32 mFirstVariableID = 0;
@@ -243,14 +139,12 @@ namespace lemon
 
 		// Data types
 		uint16 mFirstDataTypeID = 0;
-		std::vector<const DataTypeDefinition*> mDataTypes;
+		std::vector<const CustomDataType*> mDataTypes;
 
 		// Misc
 		uint64 mCompiledCodeHash = 0;
-		std::wstring mScriptBasePath;
 		ObjectPool<SourceFileInfo> mSourceFileInfoPool;
 		std::vector<SourceFileInfo*> mAllSourceFiles;
-		std::vector<CompilerWarning> mWarnings;
 	};
 
 }

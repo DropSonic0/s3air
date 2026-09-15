@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -55,7 +55,6 @@ namespace lemon
 			RETURN,
 			EXTERNAL_CALL,
 			EXTERNAL_JUMP,
-			DUPLICATE,
 
 			_NUM_TYPES
 		};
@@ -71,14 +70,16 @@ namespace lemon
 			TEMP_FLAG	= 0x80		// Only used temporarily during optimization
 		};
 
-		Type mType = Type::NOP;
-		BaseType mDataType = BaseType::VOID;
+		inline Opcode() : mType(Type::NOP), mDataType(BaseType::VOID), mLineNumber(0), mParameter(0) {}
+
+		Type mType;
+		BaseType mDataType;
 		BitFlagSet<Flag> mFlags;
-		uint32 mLineNumber = 0;
-		int64 mParameter = 0;	// For constants, or ID in case of variables and calls
+		uint32 mLineNumber;
+		int64 mParameter;	// For constants, or ID in case of variables and calls
 
 	public:
-		static const char* getTypeString(Type type);
+		static const char* GetTypeString(Type type);
 	};
 
 }

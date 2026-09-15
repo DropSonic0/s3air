@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,7 +9,7 @@
 #include "oxygen/pch.h"
 #include "oxygen/simulation/sound/SoundDriver.h"
 #include "oxygen/simulation/EmulatorInterface.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 // General note:
 //  This is heavily based on the S&K sound driver disassembly by MarkeyJester, Linncaki and Flamewing.
@@ -17,13 +17,13 @@
 //  You can find it in the skdisasm project on Github: https://github.com/sonicretro/skdisasm/blob/master/Sound/Z80%20Sound%20Driver.asm
 
 
-static const uint8 DACBanksData[0x47] =		// Originally only 0x45 bytes, but extended to allow for a fix for the S3A mini-boss and Knuckles themes
+static const uint8 DACBanksData[0x45] =
 {
 	0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e,
 	0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x1e, 0x5d, 0x5d, 0x5d, 0x5d,
 	0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5d, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e,
 	0x5e, 0x5e, 0x1e, 0x1e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e,
-	0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e, 0x5e
+	0x5e, 0x5e, 0x5e, 0x5e, 0x5e
 };
 
 static const uint8 zFMInstrumentRegTableData[0x1d] =
@@ -69,7 +69,7 @@ static const uint8 DecTableData[0x10] =
 	0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0xff, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0
 };
 
-static const uint8 z80_SoundDriverPointersData[0x843] =
+static const uint8 z80_SoundDriverPointersData[0x900] =
 {
 	0x18, 0x16, 0xd8, 0x17, 0x18, 0x16, 0x7e, 0x16, 0x0e, 0x13, 0x87, 0x13, 0x33, 0x00, 0x1f, 0x13, 0x1e, 0x13, 0x2b, 0x13, 0x38, 0x13, 0x46, 0x13, 0x52, 0x13, 0x64, 0x13, 0x75, 0x13, 0x00, 0x01,
 	0x02, 0x01, 0x00, 0xff, 0xfe, 0xfd, 0xfc, 0xfd, 0xfe, 0xff, 0x83, 0x00, 0x00, 0x00, 0x00, 0x13, 0x26, 0x39, 0x4c, 0x5f, 0x72, 0x7f, 0x72, 0x83, 0x01, 0x02, 0x03, 0x02, 0x01, 0x00, 0xff, 0xfe,
@@ -137,13 +137,18 @@ static const uint8 z80_SoundDriverPointersData[0x843] =
 	0x71, 0x72, 0x3f, 0x34, 0x8d, 0x52, 0x9f, 0x1f, 0x09, 0x00, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x23, 0x08, 0x02, 0xf7, 0x15, 0x85, 0x1d, 0x8a, 0x3e, 0x77, 0x71, 0x32, 0x31, 0x1f, 0x1f, 0x1f,
 	0x1f, 0x0d, 0x06, 0x00, 0x00, 0x08, 0x06, 0x00, 0x00, 0x15, 0x0a, 0x0a, 0x0a, 0x1b, 0x8f, 0x8f, 0x8f, 0x07, 0x34, 0x74, 0x32, 0x71, 0x1f, 0x1f, 0x1f, 0x1f, 0x0a, 0x0a, 0x05, 0x03, 0x00, 0x00,
 	0x00, 0x00, 0x3f, 0x3f, 0x2f, 0x2f, 0x8a, 0x8a, 0x8a, 0x8a, 0x20, 0x36, 0x35, 0x30, 0x31, 0xdf, 0xdf, 0x9f, 0x9f, 0x07, 0x06, 0x09, 0x06, 0x07, 0x06, 0x06, 0x08, 0x20, 0x10, 0x10, 0xf8, 0x19,
-	0x37, 0x13, 0x80
+	0x37, 0x13, 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
 
 
 // 32500 is the "gap" when Z80 is blocked, at least it's this long in S3&K level select; the rest is just a guess
-static const constexpr uint32 CYCLES_PER_FRAME = SoundDriver::MCYCLES_PER_FRAME - 32500 - 3000;
+static constexpr uint32 CYCLES_PER_FRAME = SoundDriver::MCYCLES_PER_FRAME - 32500 - 3000;
 
 
 //#define VERIFY_AGAINST_DUMPS		// Enable verification against dumped data from Gensx
@@ -188,10 +193,12 @@ const uint16 zFMFrequencies			 = 0x0b4d;
 const uint16 z80_MusicBanks			 = 0x0b65;
 const uint16 zPSGInitBytes			 = 0x06a3;
 const uint16 z80_SoundDriverPointers = 0x1300 + 4;		// Modified to be compatible with original RAM dump
+#if !defined(PLATFORM_PS3)
 const uint16 z80_MusicPointers		 = 0x1618;
 const uint16 z80_SFXPointers		 = 0x167e;
 const uint16 z80_ModEnvPointers		 = 0x130e;
 const uint16 z80_VolEnvPointers		 = 0x1387;
+#endif
 const uint16 zSpecFM3Freqs			 = 0x1bf0;
 const uint16 zSpecFM3FreqsSFX		 = 0x1bf8;
 const uint16 zTempVariablesStart	 = 0x1c0d;
@@ -204,7 +211,9 @@ const uint16 zSongPSG2				 = zTracksStart + 7 * 0x30;
 const uint16 zSongPSG3				 = zTracksStart + 8 * 0x30;
 const uint16 zTracksSFXStart		 = 0x1df0;
 const uint16 zTracksSaveStart		 = 0x1df0;
+#if !defined(PLATFORM_PS3)
 const uint16 zTracksSaveEnd			 = 0x1fa0;
+#endif
 
 
 class Internal
@@ -227,13 +236,13 @@ public:
 	void reset()
 	{
 		memset(mRam, 0, 0x2000);
-		memcpy(mRam + 0x00d6, DACBanksData, sizeof(DACBanksData));
-		memcpy(mRam + 0x049c, zFMInstrumentRegTableData, sizeof(zFMInstrumentRegTableData));
-		memcpy(mRam + 0x0695, zFMDACInitBytesData, sizeof(zFMDACInitBytesData));
-		memcpy(mRam + 0x07df, zSFXChannelDataData, sizeof(zSFXChannelDataData));
-		memcpy(mRam + 0x0aa5, zPSGFrequenciesData, sizeof(zPSGFrequenciesData));
-		memcpy(mRam + 0x1116, DecTableData, sizeof(DecTableData));
-		memcpy(mRam + 0x1300, z80_SoundDriverPointersData, sizeof(z80_SoundDriverPointersData));
+		memcpy(mRam + 0x00d6, DACBanksData, 0x45);
+		memcpy(mRam + 0x049c, zFMInstrumentRegTableData, 0x1d);
+		memcpy(mRam + 0x0695, zFMDACInitBytesData, 0x14);
+		memcpy(mRam + 0x07df, zSFXChannelDataData, 0x20);
+		memcpy(mRam + 0x0aa5, zPSGFrequenciesData, 0xf3);
+		memcpy(mRam + 0x1116, DecTableData, 0x10);
+		memcpy(mRam + 0x1300, z80_SoundDriverPointersData, 0x843);
 
 		zRingSpeaker = 1;		// 0x33 should be the right (not left) ring sound, as 0x34 is the right one already
 		zSpindashRev = 0;
@@ -480,12 +489,13 @@ private:
 		}
 		else
 		{
-			RMX_ERROR("Invalid address", return 0);
+			return 0;
 		}
 	}
 
 	uint16 read16(uint16 address)
 	{
+		// Z80 is Little-Endian
 		return read8(address) + ((uint16)read8(address + 1) << 8);
 	}
 
@@ -1256,7 +1266,7 @@ private:
 		d = track.ModulationPtrHigh;
 		hl = ix + 0x24;		// Pointer to track.ModulationWait
 
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 		mRam[de]   = read8(hl);
 		mRam[de+1] = read8(hl+1);
 		mRam[de+2] = read8(hl+2);
@@ -1333,7 +1343,7 @@ private:
 		{
 			// zDoModEnvelope:
 			--a;
-			std::swap(hl, de);
+			{ uint16 tmp = hl; hl = de; de = tmp; }
 			c = zID_ModEnvPointers;
 			GetPointerTable();
 			PointerTableOffset();
@@ -1407,7 +1417,7 @@ private:
 
 		l = a;
 		b = track.ModEnvSens + 1;
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 
 		hl += de * b;
 		++track.ModEnvIndex;
@@ -1679,7 +1689,7 @@ private:
 		a = read8(hl);
 
 	#ifdef VERIFY_AGAINST_DUMPS
-		*(uint16*)&mRam[0x05ec] = hl;	// Actually only needed for verification (thanks to self-modifying code in the original)
+		setRam16(0x05ec, hl);	// Actually only needed for verification (thanks to self-modifying code in the original)
 	#endif
 
 		zSongBank = a;
@@ -2511,7 +2521,7 @@ private:
 
 		a = track.AMSFMSPan & 0x3f;
 		const uint16 backup_de = de;
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 		a |= read8(hl);
 		track.AMSFMSPan = a;
 
@@ -2980,7 +2990,7 @@ private:
 	// Locations 0x0e61 - ?
 	void cfJumpTo()
 	{
-		std::swap(de, hl);
+		{ uint16 tmp = de; de = hl; hl = tmp; }
 		e = read8(hl);
 		++hl;
 		d = read8(hl);
@@ -3569,28 +3579,49 @@ private:
 		// ---------------------------------
 		uint8 ModulationDelta;		// S&K: 26h
 		uint8 ModulationSteps;		// S&K: 27h
-		uint16 LoopCounters;		// S&K: 28h		; Might overflow into the following data
+		LE<uint16> LoopCounters;	// S&K: 28h		; Might overflow into the following data
 		uint8 VoicesLow;			// S&K: 2Ah		; Low byte of pointer to track's voices, used only if zUpdatingSFX is set
 		uint8 VoicesHigh;			// S&K: 2Bh		; High byte of pointer to track's voices, used only if zUpdatingSFX is set
-		uint32 Stack_top;			// S&K: 2Ch-2Fh	; Track stack; can be used by LoopCounters
+		LE<uint32> Stack_top;		// S&K: 2Ch-2Fh	; Track stack; can be used by LoopCounters
 	};
 
 private:
 	uint8 mRegisters[0x20] = { 0 };
+	// Z80 Registers: f, a, c, b, e, d, l, h (each 1 byte)
+	// In Skdisasm, the order of pairs in Z80 is usually AF, BC, DE, HL, IX, IY.
+	// Z80 is Little-Endian, but the register pairs are often thought as [High][Low].
+	// For AF, A is High, F is Low. For BC, B is High, C is Low.
+	// So BC = (B << 8) | C.
+	
 	uint8& f = mRegisters[0];
 	uint8& a = mRegisters[1];
-	uint16& af = *(uint16*)&mRegisters[0];
 	uint8& c = mRegisters[2];
 	uint8& b = mRegisters[3];
-	uint16& bc = *(uint16*)&mRegisters[2];
 	uint8& e = mRegisters[4];
 	uint8& d = mRegisters[5];
-	uint16& de = *(uint16*)&mRegisters[4];
 	uint8& l = mRegisters[6];
 	uint8& h = mRegisters[7];
-	uint16& hl = *(uint16*)&mRegisters[6];
-	uint16& ix = *(uint16*)&mRegisters[8];
-	uint16& iy = *(uint16*)&mRegisters[10];
+
+	struct Reg16 {
+		uint8& low; uint8& high;
+		inline operator uint16() const { return low | (uint16(high) << 8); }
+		inline uint16 operator=(uint16 val) { low = val & 0xff; high = (val >> 8) & 0xff; return val; }
+		inline uint16 operator=(const Reg16& other) { return *this = uint16(other); }
+		inline uint16 operator+=(uint16 val) { uint16 r = uint16(*this) + val; *this = r; return r; }
+		inline uint16 operator-=(uint16 val) { uint16 r = uint16(*this) - val; *this = r; return r; }
+		inline uint16 operator++() { uint16 r = uint16(*this) + 1; *this = r; return r; }
+		inline uint16 operator--() { uint16 r = uint16(*this) - 1; *this = r; return r; }
+		inline uint16 operator++(int) { uint16 r = *this; ++(*this); return r; }
+		inline uint16 operator--(int) { uint16 r = *this; --(*this); return r; }
+	};
+
+	Reg16 af = { f, a };
+	Reg16 bc = { c, b };
+	Reg16 de = { e, d };
+	Reg16 hl = { l, h };
+
+	Reg16 ix = { mRegisters[8], mRegisters[9] };
+	Reg16 iy = { mRegisters[10], mRegisters[11] };
 
 	const uint8* mFixedContentData = nullptr;
 	uint32 mFixedContentSize = 0;
@@ -3626,7 +3657,25 @@ private:
 	uint8& zSpindashRev		  = mRam[0x1c27];
 	uint8& zRingSpeaker		  = mRam[0x1c28];
 	uint8& zFadeInTimeout	  = mRam[0x1c29];
-	uint16& zVoiceTblPtrSave  = *(uint16*)&mRam[0x1c2a];
+	// Note: The following are references to uint16 in mRam, which is Z80 RAM (Little-Endian)
+	// On a Big-Endian host, accessing these as uint16& would be wrong.
+	// But SoundDriver seems to use them for direct access.
+	// Let's check how they are used.
+	inline uint16 getRam16(uint16 addr) const { return mRam[addr] | (uint16(mRam[addr + 1]) << 8); }
+	inline void setRam16(uint16 addr, uint16 val) { mRam[addr] = val & 0xff; mRam[addr + 1] = (val >> 8) & 0xff; }
+
+#define ZRAM_PTR16(name, addr) \
+	struct name##_t { \
+		Internal* p; \
+		inline operator uint16() const { return p->getRam16(addr); } \
+		inline uint16 operator=(uint16 val) { p->setRam16(addr, val); return val; } \
+		inline uint16 operator+=(uint16 val) { uint16 r = p->getRam16(addr) + val; p->setRam16(addr, r); return r; } \
+		inline uint16 operator-=(uint16 val) { uint16 r = p->getRam16(addr) - val; p->setRam16(addr, r); return r; } \
+		inline uint16 operator++() { uint16 r = p->getRam16(addr) + 1; p->setRam16(addr, r); return r; } \
+		inline uint16 operator--() { uint16 r = p->getRam16(addr) - 1; p->setRam16(addr, r); return r; } \
+	} z##name = { this };
+
+	ZRAM_PTR16(VoiceTblPtrSave, 0x1c2a)
 	uint8& zCurrentTempoSave  = mRam[0x1c2c];
 	uint8& zSongBankSave	  = mRam[0x1c2d];
 	uint8& zTempoSpeedupSave  = mRam[0x1c2e];
@@ -3634,10 +3683,10 @@ private:
 	uint8& zDACIndex		  = mRam[0x1c30];
 	uint8& zContSFXLoopCnt	  = mRam[0x1c31];
 	uint8& zSFXSaveIndex	  = mRam[0x1c32];
-	uint16& zSongPosition	  = *(uint16*)&mRam[0x1c33];
-	uint16& zTrackInitPos	  = *(uint16*)&mRam[0x1c35];
-	uint16& zVoiceTblPtr	  = *(uint16*)&mRam[0x1c37];
-	uint16& zSFXVoiceTblPtr	  = *(uint16*)&mRam[0x1c39];
+	ZRAM_PTR16(SongPosition, 0x1c33)
+	ZRAM_PTR16(TrackInitPos, 0x1c35)
+	ZRAM_PTR16(VoiceTblPtr, 0x1c37)
+	ZRAM_PTR16(SFXVoiceTblPtr, 0x1c39)
 	uint8& zSFXTempoDivider	  = mRam[0x1c3b];
 	uint8& zSongBank		  = mRam[0x1c3e];	//mRam[0x1c3f];			// Bits 15 to 22 of M68K bank address
 	uint8 zFadeToPrevFlag = 0;

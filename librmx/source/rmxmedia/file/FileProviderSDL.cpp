@@ -1,12 +1,13 @@
+#include "rmxmedia.h"
+
+#if !defined(PLATFORM_PS3)
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
 */
-
-#include "rmxmedia.h"
 
 #if defined(PLATFORM_ANDROID)
 	#include <jni.h>
@@ -39,23 +40,12 @@ namespace rmx
 	bool FileProviderSDL::exists(const std::wstring& path)
 	{
 		// Note that this works only for files, not directories
-		return isFile(path);
-	}
-
-	bool FileProviderSDL::isFile(const std::wstring& path)
-	{
 		SDL_RWops* context = openFileWithRWops(path);
 		if (nullptr != context)
 		{
 			SDL_RWclose(context);
 			return true;
 		}
-		return false;
-	}
-
-	bool FileProviderSDL::isDirectory(const std::wstring& path)
-	{
-		// TODO: Not implemented
 		return false;
 	}
 
@@ -91,7 +81,7 @@ namespace rmx
 			outData.reserve((size_t)totalSize);
 		}
 
-		const constexpr size_t BUFFER_SIZE = 0x1000;
+		constexpr size_t BUFFER_SIZE = 0x1000;
 		char data[BUFFER_SIZE];
 		while (true)
 		{
@@ -182,3 +172,4 @@ namespace rmx
 	}
 
 }
+#endif

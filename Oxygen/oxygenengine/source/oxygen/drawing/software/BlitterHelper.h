@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -328,7 +328,7 @@ struct BlitterHelper
 
 	static inline uint32 pointSampling(const BitmapView<uint32>& bitmap, int px, int py)
 	{
-		if ((unsigned)px < (unsigned)bitmap.getSize().x && (unsigned)py < (unsigned)bitmap.getSize().y)		// Comparing unsigned ints, as this implicitly checks for >= 0 as well
+		if (px >= 0 && px < bitmap.getSize().x && py >= 0 && py < bitmap.getSize().y)
 		{
 			return bitmap.getPixel(px, py);
 		}
@@ -340,7 +340,7 @@ struct BlitterHelper
 
 	static inline uint32 pointSampling(const BitmapView<uint8>& bitmap, const Blitter::PaletteWrapper& palette, int px, int py)
 	{
-		if ((unsigned)px < (unsigned)bitmap.getSize().x && (unsigned)py < (unsigned)bitmap.getSize().y)		// Comparing unsigned ints, as this implicitly checks for >= 0 as well
+		if (px >= 0 && px < bitmap.getSize().x && py >= 0 && py < bitmap.getSize().y)
 		{
 			const uint8 index = bitmap.getPixel(px, py);
 			return (index < palette.mNumEntries) ? palette.mPalette[index] : 0;
@@ -562,7 +562,7 @@ struct BlitterHelper
 
 				if (USE_TINT_COLOR)
 				{
-					const constexpr int BUFFER_SIZE = 2048;
+					constexpr int BUFFER_SIZE = 2048;
 					RMX_ASSERT(sourceRect.width <= BUFFER_SIZE, "Buffer supports only widths of " << BUFFER_SIZE << " pixels at maximum");
 					sourceRect.width = std::min(sourceRect.width, BUFFER_SIZE);
 					uint32 buffer[BUFFER_SIZE];

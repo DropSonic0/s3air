@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -23,16 +23,13 @@ namespace lemon
 	class BlockNode;
 	class UndefinedNode;
 	class FunctionNode;
-	class PragmaNode;
 	class TokenList;
 	struct LineNumberTranslation;
-	struct NodesIterator;
-
 
 	class CompilerFrontend
 	{
 	public:
-		CompilerFrontend(Module& module, GlobalsLookup& globalsLookup, CompileOptions& compileOptions, const LineNumberTranslation& lineNumberTranslation, TokenProcessing& tokenProcessing, std::vector<FunctionNode*>& functionNodes);
+		CompilerFrontend(Module& module, GlobalsLookup& globalsLookup, CompileOptions& compileOptions, const LineNumberTranslation& lineNumberTranslation, std::vector<FunctionNode*>& functionNodes);
 
 		void runCompilerFrontend(BlockNode& outRootNode, const std::vector<std::string_view>& lines);
 
@@ -74,6 +71,8 @@ namespace lemon
 			}
 		};
 
+		struct NodesIterator;
+
 	private:
 		// Node building
 		void buildNodesFromCodeLines(BlockNode& blockNode, const std::vector<std::string_view>& lines);
@@ -91,16 +90,14 @@ namespace lemon
 
 		// Misc
 		bool processGlobalPragma(const std::string& content);
-		AnyBaseValue readConstantExpression(TokenList& tokens, size_t& pos, size_t endPos, const DataTypeDefinition* dataType, uint32 lineNumber);
 
 	private:
 		Module& mModule;
 		GlobalsLookup& mGlobalsLookup;
 		const LineNumberTranslation& mLineNumberTranslation;
 		CompileOptions& mCompileOptions;
-		TokenProcessing& mTokenProcessing;
+		TokenProcessing mTokenProcessing;
 		std::vector<FunctionNode*>& mFunctionNodes;
-		std::vector<const PragmaNode*> mCurrentPragmas;
 	};
 
 }

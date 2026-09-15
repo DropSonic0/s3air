@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -55,7 +55,6 @@ public:
 
 	void startIntoTitleScreen();
 	void startIntoDataSelect();
-	void startIntoActSelect();
 	void startIntoLevel(Mode mode, uint32 submode, uint16 zoneAndAct, uint8 characters);
 	void restartLevel();
 	void restartAtCheckpoint();
@@ -114,7 +113,6 @@ private:
 	uint16 onFadedOutLoadingZone(uint16 zoneAndAct);
 	bool onCharacterDied(uint8 playerIndex);
 	void returnToMainMenu();
-	void openOptionsMenu();
 
 	inline bool isNormalGame()	{ return isInNormalGameMode(); }
 	inline bool isTimeAttack()	{ return isInTimeAttackMode(); }
@@ -127,7 +125,6 @@ private:
 
 	void startSkippableCutscene();
 	void endSkippableCutscene();
-	bool isInSkippableCutscene();
 
 private:
 	EmulatorInterface* mEmulatorInterface = nullptr;

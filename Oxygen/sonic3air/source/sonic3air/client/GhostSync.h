@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -44,7 +44,7 @@ public:
 	bool isActive() const;
 
 	void performUpdate();
-	void evaluateServerFeaturesResponse(const network::GetServerFeaturesRequest::Response& response);
+	void evaluateServerFeaturesResponse(const network::GetServerFeaturesRequest& request);
 	bool onReceivedPacket(ReceivedPacketEvaluation& evaluation);
 
 	void onPostUpdateFrame();

@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -25,58 +25,71 @@ public:
 	GuiBase();
 	virtual ~GuiBase();
 
-	inline bool hasParent() const		{ return nullptr != mParent; }
-	inline GuiBase* getParent() const	{ return mParent; }
-	inline const std::vector<GuiBase*>& getChildren() const  { return mChildren; }
+	inline GuiBase* getParent() const  { return mParent; }
+	inline const std::list<GuiBase*>& getChildren() const  { return mChildren; }
 
-	void addChild(GuiBase& child);
-	void removeChild(GuiBase& child);
-	void deleteChild(GuiBase& child);
-
-	void removeAllChildren();
+	void addChild(GuiBase* child);
+	void removeChild(GuiBase* child);
+	void deleteChild(GuiBase* child);
 	void deleteAllChildren();
 
-	template<typename T> T& createChild()
+	template<typename T> T* createChild()
 	{
-		T& child = *new T();
+		T* child = new T();
 		addChild(child);
 		return child;
 	}
 
-	void moveToFront(GuiBase& child);
-	void moveToBack(GuiBase& child);
+	void moveToFront(GuiBase* child);
+	void moveToBack(GuiBase* child);
 
-	void removeFromParent();
+	void setRect(const Rectf& rect)		{ mRect = rect; }
+	void setRect(float x, float y, float w, float h) { setRect(Rectf(x, y, w, h)); }
+	const Rectf& getRect() const		{ return mRect; }
 
-	inline const Recti& getRect() const		{ return mRect; }
-	inline void setRect(const Recti& rect)	{ mRect = rect; }
+	void setName(const String& value)	{ mName = value; }
+	const String& getName() const		{ return mName; }
+
+	virtual void setEnabled(bool value)	{ mEnabled = value; }
+	bool isEnabled() const				{ return mEnabled && (nullptr != mParent); }
+
+	virtual void setVisible(bool value)	{ mVisible = value; }
+	bool isVisible() const				{ return mVisible && (nullptr != mParent); }
+
+	void setAlpha(float alpha);
+	float getAlpha() const  { return mAlpha; }
 
 	virtual void initialize();
-	virtual void deinitialize();
-
-	virtual void beginFrame();
-	virtual void endFrame();
+	virtual void deinitialize() {}
 
 	virtual void sdlEvent(const SDL_Event& ev);
 	virtual void mouse(const rmx::MouseEvent& ev);
 	virtual void keyboard(const rmx::KeyboardEvent& ev);
 	virtual void textinput(const rmx::TextInputEvent& ev);
-	virtual void update(float deltaSeconds);
+	virtual void update(float timeElapsed);
 	virtual void render();
+
+protected:
+	void updateRealAlpha();
 
 private:
 	void internalRemoveChild(GuiBase& child);
-
-	void beginIteratingChildren();
-	void endIteratingChildren();
+	void onIteratingChildrenDone();
 
 protected:
-	Recti mRect;
+	std::list<GuiBase*> mChildren;
+	GuiBase* mParent;
+
+	Rectf mRect;
+	String mName;
+
+	bool mEnabled;
+	bool mVisible;
+
+	float mAlpha;
+	float mRealAlpha;
 
 private:
-	std::vector<GuiBase*> mChildren;	// Front children get rendered first, but updated last
-	GuiBase* mParent = nullptr;
-
 	std::vector<GuiBase*> mChildrenToRemove;
-	bool mIteratingChildren = false;
+	bool mIteratingChildren;
 };

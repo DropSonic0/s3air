@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -74,27 +74,20 @@ namespace rmx
 		const uint64* data64 = (const uint64_t*)data;
 		const uint64* end = data64 + (bytes / 8);
 
-	#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
-		while (data64 != end)
-		{
-			uint64 k = rmx::readMemoryUnalignedSwapped<uint64>(data64);
-			++data64;
-			k *= m;
-			k ^= k >> r;
-			k *= m;
-			h ^= k;
-			h *= m;
-		}
-	#elif defined(__arm__) || defined(__vita__)
+	#if defined(__arm__) || defined(PLATFORM_PS3)
+	#if defined(PLATFORM_PS3)
+		if (true)
+	#else
 		const bool isAligned64 = ((size_t)data & 7) == 0;
 		if (!isAligned64)
+	#endif
 		{
 			uint64 k;
 			while (data64 != end)
 			{
 				// Do not access memory directly, but byte-wise to avoid "SIGBUS illegal alignment" issues (this happened on Android Release builds, but not in Debug for some reason)
-				//  -> This somewhat defeats the purpose of the whole optimization by using Murmur2...
-				k = rmx::readMemoryUnaligned<uint64>(data64);
+				//  -> On PS3, we also need to ensure that the data is always read as Little-Endian to maintain consistent hash results
+				k = rmx::readMemoryUnalignedLE<uint64>(data64);
 				++data64;
 				k *= m;
 				k ^= k >> r;
@@ -104,6 +97,7 @@ namespace rmx
 			}
 		}
 		else
+	#endif
 		{
 			while (data64 != end)
 			{
@@ -115,17 +109,6 @@ namespace rmx
 				h *= m;
 			}
 		}
-	#else
-		while (data64 != end)
-		{
-			uint64 k = *data64++;
-			k *= m;
-			k ^= k >> r;
-			k *= m;
-			h ^= k;
-			h *= m;
-		}
-	#endif
 
 		const uint8* data8 = (const uint8*)data64;
 		switch (bytes & 0x07)
@@ -229,15 +212,8 @@ namespace rmx
 	}
 
 
-	int64 parseInteger(const String& input, size_t& pos)
+	uint64 parseInteger(const String& input, size_t& pos)
 	{
-		bool negative = false;
-		if (input[0] == '-')
-		{
-			++pos;
-			negative = true;
-		}
-
 		uint64 result = 0;
 		uint64 base = 10;
 		if ((int)pos+1 < input.length() && input[pos] == '0' && input[pos+1] == 'x')
@@ -262,10 +238,10 @@ namespace rmx
 
 			result = result * base + nextDigit;
 		}
-		return negative ? -(int64)result : result;
+		return result;
 	}
 
-	int64 parseInteger(const String& input)
+	uint64 parseInteger(const String& input)
 	{
 		size_t pos = 0;
 		return parseInteger(input, pos);
@@ -286,122 +262,65 @@ namespace rmx
 	}
 
 
-	template<bool CASE_SENSITIVE, typename STRING>
-	bool stringEquals(const STRING& strA, const STRING& strB)
-	{
-		if (strA.length() != strB.length())
-			return false;
-
-		if (CASE_SENSITIVE)
-		{
-			if (strA.empty())
-				return true;
-			if (memcmp((void*)&strA[0], (void*)&strB[0], strA.length() * sizeof(strA[0])) != 0)
-				return false;
-		}
-		else
-		{
-			for (size_t k = 0; k < strA.length(); ++k)
-			{
-				if (std::tolower(strA[k]) != std::tolower(strB[k]))
-					return false;
-			}
-		}
-		return true;
-	}
-
-	template<bool CASE_SENSITIVE, typename STRING>
+	template<typename STRING>
 	bool stringStartsWith(const STRING& fullString, const STRING& prefix)
 	{
 		if (fullString.length() < prefix.length())
 			return false;
-		return stringEquals<CASE_SENSITIVE, STRING>(fullString.substr(0, prefix.length()), prefix);
+		if (memcmp((void*)&fullString[0], (void*)&prefix[0], prefix.length() * sizeof(fullString[0])) != 0)
+			return false;
+		return true;
 	}
 
-	template<bool CASE_SENSITIVE, typename STRING>
+	template<typename STRING>
 	bool stringEndsWith(const STRING& fullString, const STRING& suffix)
 	{
 		if (fullString.length() < suffix.length())
 			return false;
 		const size_t offset = fullString.length() - suffix.length();
-		return stringEquals<CASE_SENSITIVE, STRING>(fullString.substr(offset, suffix.length()), suffix);
+		if (memcmp((void*)&fullString[offset], (void*)&suffix[0], suffix.length() * sizeof(fullString[0])) != 0)
+			return false;
+		return true;
+	}
+
+	bool startsWith(const std::string& fullString, const std::string& prefix)
+	{
+		return stringStartsWith<std::string>(fullString, prefix);
+	}
+
+	bool startsWith(const std::wstring& fullString, const std::wstring& prefix)
+	{
+		return stringStartsWith<std::wstring>(fullString, prefix);
 	}
 
 	bool startsWith(std::string_view fullString, std::string_view prefix)
 	{
-		return stringStartsWith<true, std::string_view>(fullString, prefix);
+		return stringStartsWith<std::string_view>(fullString, prefix);
 	}
 
 	bool startsWith(std::wstring_view fullString, std::wstring_view prefix)
 	{
-		return stringStartsWith<true, std::wstring_view>(fullString, prefix);
+		return stringStartsWith<std::wstring_view>(fullString, prefix);
 	}
 
-	bool startsWithCaseInsensitive(std::string_view fullString, std::string_view prefix)
+	bool endsWith(const std::string& fullString, const std::string& prefix)
 	{
-		return stringStartsWith<false, std::string_view>(fullString, prefix);
+		return stringEndsWith<std::string>(fullString, prefix);
 	}
 
-	bool startsWithCaseInsensitive(std::wstring_view fullString, std::wstring_view prefix)
+	bool endsWith(const std::wstring& fullString, const std::wstring& prefix)
 	{
-		return stringStartsWith<false, std::wstring_view>(fullString, prefix);
+		return stringEndsWith<std::wstring>(fullString, prefix);
 	}
 
-	bool endsWith(std::string_view fullString, std::string_view suffix)
+	bool endsWith(std::string_view fullString, std::string_view prefix)
 	{
-		return stringEndsWith<true, std::string_view>(fullString, suffix);
+		return stringEndsWith<std::string_view>(fullString, prefix);
 	}
 
-	bool endsWith(std::wstring_view fullString, std::wstring_view suffix)
+	bool endsWith(std::wstring_view fullString, std::wstring_view prefix)
 	{
-		return stringEndsWith<true, std::wstring_view>(fullString, suffix);
-	}
-
-	bool endsWithCaseInsensitive(std::string_view fullString, std::string_view suffix)
-	{
-		return stringEndsWith<false, std::string_view>(fullString, suffix);
-	}
-
-	bool endsWithCaseInsensitive(std::wstring_view fullString, std::wstring_view suffix)
-	{
-		return stringEndsWith<false, std::wstring_view>(fullString, suffix);
-	}
-
-	bool containsCaseInsensitive(std::string_view fullString, std::string_view substring)
-	{
-		const auto it = std::search(fullString.begin(), fullString.end(), substring.begin(), substring.end(),
-			[](char a, char b) { return std::toupper(a) == std::toupper(b); }
-		);
-		return (it != fullString.end());
-	}
-
-	std::wstring convertFromUTF8(std::string_view str)
-	{
-		std::wstring output;
-		UTF8Conversion::convertFromUTF8(str, output);
-		return output;
-	}
-
-	std::string convertToUTF8(std::wstring_view str)
-	{
-		std::string output;
-		UTF8Conversion::convertToUTF8(str, output);
-		return output;
-	}
-
-	std::string getTimestampStringForFilename()
-	{
-		time_t now = time(0);
-		struct tm tstruct;
-		char buf[80];
-	#if defined(PLATFORM_WINDOWS)
-		localtime_s(&tstruct, &now);
-	#else
-		tstruct = *localtime(&now);
-	#endif
-		// Format example: "2022-06-29_11-42-48"
-		std::strftime(buf, sizeof(buf), "%Y-%m-%d_%H-%M-%S", &tstruct);
-		return buf;
+		return stringEndsWith<std::wstring_view>(fullString, prefix);
 	}
 
 }

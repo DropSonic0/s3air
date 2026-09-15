@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,34 +10,34 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
-Texture::Texture()
+#if defined(PLATFORM_PS3)
+static void swizzleRGBAtoARGB(uint32_t* data, int count)
+{
+	for (int i = 0; i < count; ++i)
+	{
+		uint32_t rgba = data[i];
+		// Input (RGBA): 0xRRGGBBAA
+		// Output (ARGB): 0xAARRGGBB
+		data[i] = (rgba >> 8) | (rgba << 24);
+	}
+}
+#endif
+
+Texture::Texture() : mHandle(0), mType(0), mFormat(0), mWidth(0), mHeight(0), mFilterLinear(true), mHasMipmaps(false)
 {
 	initialize();
 }
 
-Texture::Texture(const Bitmap& bitmap)
+Texture::Texture(const Bitmap& bitmap) : mHandle(0), mType(0), mFormat(0), mWidth(0), mHeight(0), mFilterLinear(true), mHasMipmaps(false)
 {
 	initialize();
 	load(bitmap);
 }
 
-Texture::Texture(const String& filename)
+Texture::Texture(const String& filename) : mHandle(0), mType(0), mFormat(0), mWidth(0), mHeight(0), mFilterLinear(true), mHasMipmaps(false)
 {
 	initialize();
 	load(filename);
-}
-
-Texture::Texture(Texture&& other)
-{
-	mHandle = other.mHandle;
-	other.mHandle = 0;
-
-	mType = other.mType;
-	mFormat = other.mFormat;
-	mWidth = other.mWidth;
-	mHeight = other.mHeight;
-	mFilterLinear = other.mFilterLinear;
-	mHasMipmaps = other.mHasMipmaps;
 }
 
 Texture::~Texture()
@@ -50,242 +50,175 @@ Texture::~Texture()
 
 void Texture::initialize()
 {
-	mHandle = 0;
-	mType = 0;
-	mFormat = 0;
+	mType = GL_TEXTURE_2D;
+	mFormat = rmx::OpenGLHelper::FORMAT_RGBA;
 	mWidth = 0;
 	mHeight = 0;
 	mFilterLinear = true;
 	mHasMipmaps = false;
 }
 
-bool Texture::checkHandle() const
+void Texture::generate() const
 {
-#ifdef DEBUG
-	if (mHandle != 0 && !glIsTexture(mHandle))
+	if (mHandle == 0)
 	{
-		RMX_ASSERT(false, "Texture handle is not a texture");
-		mHandle = 0;
-	}
-#endif
-	return (mHandle != 0);
-}
-
-GLenum Texture::getDefaultDataFormat(GLint internalFormat)
-{
-	if (internalFormat == GL_DEPTH_COMPONENT)
-		return GL_DEPTH_COMPONENT;
-#ifdef ALLOW_LEGACY_OPENGL
-	if (internalFormat >= GL_DEPTH_COMPONENT16 && internalFormat <= GL_DEPTH_COMPONENT32)
-		return GL_DEPTH_COMPONENT;
-	if (internalFormat == GL_R8)	// TODO: Translate others as well
-		return GL_RED;
-#endif
-
-	return GL_RGBA;
-}
-
-void Texture::generate()
-{
-	glGenTextures(1, &mHandle);
-}
-
-void Texture::create(GLenum type)
-{
-	if (!checkHandle())
 		glGenTextures(1, &mHandle);
-
-	mType = type;
-	mFormat = rmx::OpenGLHelper::FORMAT_RGBA;
-	mFilterLinear = false;
-	mHasMipmaps = false;
-
-	glBindTexture(mType, mHandle);
-	setFilterNearest();
-	setWrapRepeat();
-}
-
-void Texture::create(GLint format)
-{
-	if (!checkHandle())
-		glGenTextures(1, &mHandle);
-
-	mType = GL_TEXTURE_2D;
-	mFormat = format;
-	mFilterLinear = true;
-	mHasMipmaps = false;
-
-	glBindTexture(mType, mHandle);
-	setFilterLinear();
-	setWrapRepeat();
-}
-
-void Texture::create(int width, int height, GLint format)
-{
-	if (!checkHandle())
-		glGenTextures(1, &mHandle);
-
-	mType = GL_TEXTURE_2D;
-	mFormat = format;
-	mWidth = width;
-	mHeight = height;
-	mFilterLinear = true;
-	mHasMipmaps = false;
-
-	glBindTexture(mType, mHandle);
-	setFilterLinear();
-	setWrapClamp();
-
-	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, nullptr);
-}
-
-void Texture::create(const Vec2i& size, GLint format)
-{
-	create(size.x, size.y, format);
-}
-
-void Texture::createCubemap(GLint format)
-{
-	if (!checkHandle())
-		glGenTextures(1, &mHandle);
-
-	mType = GL_TEXTURE_CUBE_MAP;
-	mFormat = format;
-	mFilterLinear = true;
-	mHasMipmaps = false;
-
-	glBindTexture(mType, mHandle);
-	setFilterLinear();
-	setWrapClamp();
-}
-
-void Texture::createCubemap(int width, int height, GLint format)
-{
-	if (!checkHandle())
-		glGenTextures(1, &mHandle);
-
-	mType = GL_TEXTURE_CUBE_MAP;
-	mFormat = format;
-	mWidth = width;
-	mHeight = height;
-	mFilterLinear = true;
-	mHasMipmaps = false;
-
-	glBindTexture(mType, mHandle);
-	setFilterLinear();
-	setWrapClamp();
-
-	for (int side = 0; side < 6; ++side)
-	{
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, nullptr);
 	}
 }
 
-void Texture::createCubemap(const Vec2i& size, GLint format)
+void Texture::create(int type)
 {
-	createCubemap(size.x, size.y, format);
+	generate();
+	if (type != 0)
+		mType = type;
+}
+
+void Texture::create_format(int format)
+{
+	create();
+	mFormat = format;
+}
+
+void Texture::create(int width, int height, int format)
+{
+	create();
+	mWidth = width;
+	mHeight = height;
+	mFormat = format;
+
+	bind();
+#if defined(PLATFORM_PS3)
+	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
+#else
+	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+#endif
+	setFilterLinear();
+	setWrapClamp();
+}
+
+void Texture::createCubemap(int format)
+{
+	create(GL_TEXTURE_CUBE_MAP);
+	mFormat = format;
+}
+
+void Texture::createCubemap(int width, int height, int format)
+{
+	createCubemap(format);
+	mWidth = width;
+	mHeight = height;
+
+	bind();
+	for (int i = 0; i < 6; ++i)
+	{
+#if defined(PLATFORM_PS3)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
+#else
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+#endif
+	}
+	setFilterLinear();
+	setWrapClamp();
 }
 
 void Texture::load(const void* data, int width, int height)
 {
-	if (nullptr == data)
-		return;
+	mWidth = width;
+	mHeight = height;
+	generate();
+	bind();
 
-	create(width, height, rmx::OpenGLHelper::FORMAT_RGBA);
-	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, data);
-}
+#if defined(PLATFORM_PS3)
+	if (data != nullptr)
+	{
+		// We need to swizzle the data for PS3's ARGB format
+		std::vector<uint32_t> swizzledData((uint32_t*)data, (uint32_t*)data + (width * height));
+		swizzleRGBAtoARGB(&swizzledData[0], width * height);
+		glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, &swizzledData[0]);
+	}
+	else
+	{
+		glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
+	}
+#else
+	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#endif
 
-void Texture::load(const void* data, const Vec2i& size)
-{
-	load(data, size.x, size.y);
+	setFilterLinear();
+	setWrapClamp();
 }
 
 void Texture::load(const Bitmap& bitmap)
 {
+	if (bitmap.empty())
+		return;
 	load(bitmap.getData(), bitmap.getWidth(), bitmap.getHeight());
 }
 
 void Texture::load(const String& filename)
 {
-	if (filename.includes("??"))
-	{
-		loadCubemap(filename);
-		return;
-	}
-	Bitmap bitmap;
-	if (bitmap.load(filename.toWString()))
-		load(bitmap.getData(), bitmap.getWidth(), bitmap.getHeight());
+	Bitmap bmp(filename);
+	load(bmp);
 }
 
 void Texture::loadCubemap(const String& filename)
 {
-	createCubemap();
-	int pos = -1;
-	if (!filename.includes("??", pos))
-		return;
-
-	String fname(filename);
-	fname.makeDynamic();
-	Bitmap bitmap;
-	for (int i = 0; i < 6; ++i)
-	{
-		fname[pos] = (i%2) ? 'n' : 'p';
-		fname[pos+1] = 'x' + (i/2);
-		if (!bitmap.load(fname.toWString()))
-			continue;
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, mFormat, bitmap.getWidth(), bitmap.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.getData());
-	}
-}
-
-void Texture::updateAll(const void* data)
-{
-	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, data);
+	// Not implemented for now as it requires loading 6 faces
 }
 
 void Texture::updateRect(const void* data, const Recti& rect)
 {
-	if (nullptr == data || rect.empty())
+	if (mHandle == 0)
 		return;
 
-	glBindTexture(mType, mHandle);
-	glTexSubImage2D(mType, 0, rect.x, rect.y, rect.width, rect.height, getDefaultDataFormat(mFormat), GL_UNSIGNED_BYTE, data);
+	bind();
+#if defined(PLATFORM_PS3)
+	if (data != nullptr)
+	{
+		std::vector<uint32_t> swizzledData((uint32_t*)data, (uint32_t*)data + (rect.width * rect.height));
+		swizzleRGBAtoARGB(&swizzledData[0], rect.width * rect.height);
+		glTexSubImage2D(mType, 0, rect.x, rect.y, rect.width, rect.height, GL_ARGB_SCE, GL_UNSIGNED_BYTE, &swizzledData[0]);
+	}
+#else
+	glTexSubImage2D(mType, 0, rect.x, rect.y, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+#endif
 }
 
 void Texture::updateRect(const Bitmap& bitmap, int px, int py)
 {
+	if (bitmap.empty())
+		return;
 	updateRect(bitmap.getData(), Recti(px, py, bitmap.getWidth(), bitmap.getHeight()));
 }
 
 void Texture::copyFramebuffer(const Recti& rect)
 {
+	if (mHandle == 0)
+		return;
 	bind();
-	glCopyTexImage2D(mType, 0, mFormat, rect.left, rect.top, rect.left+rect.width, rect.top+rect.height, 0);
+	glCopyTexSubImage2D(mType, 0, 0, 0, rect.x, rect.y, rect.width, rect.height);
 }
 
 void Texture::copyFramebufferCubemap(const Recti& rect, int side)
 {
+	if (mHandle == 0)
+		return;
 	bind();
-	glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, mFormat, rect.left, rect.top, rect.left+rect.width, rect.top+rect.height, 0);
+	glCopyTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, 0, 0, rect.x, rect.y, rect.width, rect.height);
 }
 
 void Texture::buildMipmaps()
 {
-	if (mHandle == 0 || mType == 0)
+	if (mHandle == 0)
 		return;
-
 	bind();
-	glTexParameteri(mType, GL_TEXTURE_MIN_FILTER, mFilterLinear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_NEAREST);
 	glGenerateMipmap(mType);
 	mHasMipmaps = true;
 }
 
 void Texture::bind() const
 {
-	if (!checkHandle())
-		return;
-#ifdef PLATFORM_WINDOWS
-	glEnable(mType);
-#endif
+	generate();
 	glBindTexture(mType, mHandle);
 }
 
@@ -296,41 +229,55 @@ void Texture::unbind() const
 
 void Texture::setFilterNearest()
 {
-	glTexParameteri(mType, GL_TEXTURE_MIN_FILTER, mHasMipmaps ? GL_NEAREST_MIPMAP_NEAREST : GL_NEAREST);
+	bind();
+	glTexParameteri(mType, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(mType, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	mFilterLinear = false;
 }
 
 void Texture::setFilterLinear()
 {
+	bind();
 	glTexParameteri(mType, GL_TEXTURE_MIN_FILTER, mHasMipmaps ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 	glTexParameteri(mType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	mFilterLinear = true;
 }
 
 void Texture::setWrapClamp()
 {
+	bind();
 	glTexParameteri(mType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(mType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-#ifdef ALLOW_LEGACY_OPENGL
-	glTexParameteri(mType, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-#endif
 }
 
 void Texture::setWrapRepeat()
 {
+	bind();
 	glTexParameteri(mType, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(mType, GL_TEXTURE_WRAP_T, GL_REPEAT);
-#ifdef ALLOW_LEGACY_OPENGL
-	glTexParameteri(mType, GL_TEXTURE_WRAP_R, GL_REPEAT);
-#endif
 }
 
 void Texture::setWrapRepeatMirror()
 {
+	bind();
+#if defined(GL_MIRRORED_REPEAT)
 	glTexParameteri(mType, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
 	glTexParameteri(mType, GL_TEXTURE_WRAP_T, GL_MIRRORED_REPEAT);
-#ifdef ALLOW_LEGACY_OPENGL
-	glTexParameteri(mType, GL_TEXTURE_WRAP_R, GL_MIRRORED_REPEAT);
 #endif
+}
+
+int Texture::getDefaultDataFormat(int internalFormat)
+{
+#if defined(PLATFORM_PS3)
+	return GL_ARGB_SCE;
+#else
+	return GL_RGBA;
+#endif
+}
+
+bool Texture::checkHandle() const
+{
+	return mHandle != 0;
 }
 
 #endif

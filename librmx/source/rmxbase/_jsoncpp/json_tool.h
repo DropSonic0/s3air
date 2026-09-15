@@ -6,6 +6,12 @@
 #ifndef LIB_JSONCPP_JSON_TOOL_H_INCLUDED
 #define LIB_JSONCPP_JSON_TOOL_H_INCLUDED
 
+#if defined(__CELLOS_LV2__) || defined(__PS3__) || defined(__SN_TARGET_PS3__)
+	#ifndef JSONCPP_NO_LOCALE_SUPPORT
+		#define JSONCPP_NO_LOCALE_SUPPORT
+	#endif
+#endif
+
 #if !defined(JSON_IS_AMALGAMATION)
 #include "json/config.h"
 #endif

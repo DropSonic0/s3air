@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,7 +10,7 @@
 
 #include <rmxbase.h>
 #include <functional>
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 #include <optional>
 #endif
 
@@ -45,11 +45,7 @@ public:
 		TextLine& addLine(std::string_view text, const Color& color = Color::WHITE, int intend = 0, uint64 key = INVALID_KEY, int lineSpacing = 12);
 		TextLine& addOption(std::string_view text, bool value, const Color& color = Color::WHITE, int intend = 0, uint64 key = INVALID_KEY, int lineSpacing = 12);
 		void addSpacing(int lineSpacing);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		void addCallStack(DebugTracking& debugTracking, int callFrameIndex, std::optional<size_t> firstProgramCounter);
-#else
-		void addCallStack(DebugTracking& debugTracking, int callFrameIndex, size_t firstProgramCounter = 0);
-#endif
 
 	private:
 		std::vector<TextLine> mTextLines;
@@ -66,7 +62,13 @@ public:
 	virtual void update(float timeElapsed) override;
 	virtual void render() override;
 
-	inline const std::vector<CustomDebugSidePanelCategory*>& getCustomCategories() const  { return mCustomCategories; }
+#if defined(PLATFORM_PS3)
+	typedef void (*CategoryCallback)(DebugSidePanelCategory&, Builder&, uint64);
+#else
+	typedef std::function<void(DebugSidePanelCategory&, Builder&, uint64)> CategoryCallback;
+#endif
+
+	DebugSidePanelCategory& createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const CategoryCallback& callback);
 
 	bool setupCustomCategory(std::string_view header, char shortCharacter);
 	bool addOption(std::string_view text, bool defaultValue);
@@ -81,8 +83,7 @@ private:
 private:
 	Font mSmallFont;
 
-	std::vector<DebugSidePanelCategory*> mCategories;			// All categories, including the custom ones
-	std::vector<CustomDebugSidePanelCategory*> mCustomCategories;
+	std::vector<DebugSidePanelCategory*> mCategories;
 	size_t mActiveCategoryIndex = 0;
 
 	CustomDebugSidePanelCategory* mSetupCustomCategory = nullptr;

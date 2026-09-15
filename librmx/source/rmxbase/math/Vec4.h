@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -25,23 +25,37 @@ public:
 		struct { TYPE r, g, b, a; };
 	};
 
+#if defined(PLATFORM_PS3)
+	enum Initialization_t { Initialization_NONE };
+	struct Initialization { enum { NONE = Initialization_NONE }; };
+	static const Initialization_t Uninitialized = (Initialization_t)Initialization_NONE;
+#else
 	enum class Initialization { NONE };
-	static const Initialization Uninitialized = Initialization::NONE;
+	using Initialization_t = Initialization;
+	static const Initialization_t Uninitialized = Initialization::NONE;
+#endif
 
 public:
 	Vec4() : x(0), y(0), z(0), w(0)	{}
-	explicit Vec4(Initialization)	{}
+#if defined(PLATFORM_PS3)
+	Vec4(Initialization_t)			{}
+#else
+	explicit Vec4(Initialization_t)	{}
+#endif
 	explicit Vec4(TYPE value)		{ FORi(data[i] = value); }
 	explicit Vec4(const TYPE* vec)	{ FORi(data[i] = vec[i]); }
 
 	Vec4(const Vec4& source) : x(source.x), y(source.y), z(source.z), w(source.w) {}
-	Vec4(const Vec3<TYPE>& source, TYPE w_) : x(source.x), y(source.y), z(source.z), w(w_) {}
 	Vec4(TYPE x_, TYPE y_, TYPE z_, TYPE w_) : x(x_), y(y_), z(z_), w(w_) {}
 
-	template<typename T> explicit Vec4(const Vec4<T>& source)
+	Vec4(const Vec3<TYPE>& source, TYPE w_)
 	{
-		for (int i = 0; i < 3; ++i)
-			data[i] = rmx::convertType<T, TYPE>(source.data[i]);
+		FORi(data[i] = source.data[i]); w = w_;
+	}
+
+	template<typename T> Vec4(const Vec4<T>& source)
+	{
+		FORi(data[i] = TYPE(source.data[i]));
 	}
 
 	void clear()	{ FORi(data[i] = 0); }
@@ -96,35 +110,17 @@ public:
 		return sum;
 	}
 
-	static float distance(const Vec4& source1, const Vec4& source2)
+	TYPE distance(const Vec4& other) const
 	{
 		TYPE sum = 0;
-		FORi(sum += (source1.data[i] - source2.data[i]) * (source1.data[i] - source2.data[i]));
-		return sqrtf((float)sum);
-	}
-
-	float distance(const Vec4& other) const
-	{
-		return distance(*this, other);
-	}
-
-	static TYPE sqrDist(const Vec4& source1, const Vec4& source2)
-	{
-		TYPE sum = 0;
-		FORi(sum += (source1.data[i] - source2.data[i]) * (source1.data[i] - source2.data[i]));
-		return sum;
+		FORi(sum += (data[i] - other.data[i]) * (data[i] - other.data[i]));
+		return sqrt(sum);
 	}
 
 	TYPE sqrDist(const Vec4& other) const
 	{
-		return sqrDist(*this, other);
-	}
-
-	static TYPE dot(const Vec4& source1, const Vec4& source2)
-	{
-		// Dot product
 		TYPE sum = 0;
-		FORi(sum += (source1.data[i] * source2.data[i]));
+		FORi(sum += (data[i] - other.data[i]) * (data[i] - other.data[i]));
 		return sum;
 	}
 
@@ -136,23 +132,26 @@ public:
 		return sum;
 	}
 
-	static Vec4 crossProduct(const Vec4& source1, const Vec4& source2)
+	void cross(const Vec4& source1, const Vec4& source2)
 	{
 		// Cross product
-		Vec4 result(Uninitialized);
 		const TYPE* src1 = source1.data;
 		const TYPE* src2 = source2.data;
-		result.x = (src1[1] * src2[2] - src1[2] * src2[1]);
-		result.y = (src1[2] * src2[0] - src1[0] * src2[2]);
-		result.z = (src1[0] * src2[1] - src1[1] * src2[0]);
-		result.w = 0;
-		return result;
+		x = (src1[1] * src2[2] - src1[2] * src2[1]);
+		y = (src1[2] * src2[0] - src1[0] * src2[2]);
+		z = (src1[0] * src2[1] - src1[1] * src2[0]);
 	}
 
-	static Vec4 crossProduct(const Vec4& source0, const Vec4& source1, const Vec4& source2)
+	void cross(const Vec4& source0, const Vec4& source1, const Vec4& source2)
 	{
 		// Cross product for triangles
-		return crossProduct(source1 - source0, source2 - source1);
+		TYPE src1[3];
+		TYPE src2[3];
+		FORi(src1[i] = source1.data[i] - source0.data[i]);
+		FORi(src2[i] = source2.data[i] - source0.data[i]);
+		x = (src1[1] * src2[2] - src1[2] * src2[1]);
+		y = (src1[2] * src2[0] - src1[0] * src2[2]);
+		z = (src1[0] * src2[1] - src1[1] * src2[0]);
 	}
 
 	void mirror(const Vec4& axis)
@@ -183,8 +182,7 @@ public:
 				}
 			}
 		}
-		for (int i = 0; i < 3; ++i)
-			data[i] = tmp[i];
+		FORi(data[i] = tmp[i]);
 	}
 
 	void rotate(TYPE angle, int axis)
@@ -215,11 +213,14 @@ public:
 		FORi(data[i] = tmp[i]);
 	}
 
-	static Vec4 interpolate(const Vec4& source1, const Vec4& source2, TYPE factor)
+	void interpolate(const Vec4& other, TYPE factor)
 	{
-		Vec4 result(Uninitialized);
-		FORi(result.data[i] = source1.data[i] * (1 - factor) + source2.data[i] * factor);
-		return result;
+		FORi(data[i] = data[i] * (1 - factor) + other.data[i] * factor);
+	}
+
+	void interpolate(const Vec4& source1, const Vec4& source2, TYPE factor)
+	{
+		FORi(data[i] = source1.data[i] * (1 - factor) + source2.data[i] * factor);
 	}
 
 	bool operator==(const Vec4& vec) const	{ FORi( if (data[i] != vec.data[i]) return false; ); return true;  }
@@ -292,11 +293,13 @@ public:
 };
 
 
+#if !defined(PLATFORM_PS3)
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::ZERO(0, 0, 0, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_X(1, 0, 0, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_Y(0, 1, 0, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_Z(0, 0, 1, 0);
 template<typename TYPE> const Vec4<TYPE> Vec4<TYPE>::UNIT_W(0, 0, 0, 1);
+#endif
 
 #undef FORi
 

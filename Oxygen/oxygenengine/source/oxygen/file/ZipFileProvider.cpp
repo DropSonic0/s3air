@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,13 +17,12 @@
 	#pragma comment(lib, "minizip.lib")
 #endif
 
-#if defined(PLATFORM_VITA)
-	#include <zlib.h>
-	#include <mz_compat.h>
+#if !defined(PLATFORM_PS3)
+#include "unzip.h"
 #endif
 
-#include "unzip.h"
 
+#if !defined(PLATFORM_PS3)
 
 namespace detail
 {
@@ -96,7 +95,7 @@ namespace detail
 	private:
 		struct Page
 		{
-			enum { SIZE = 0x10000 };
+			static constexpr size_t SIZE = 0x10000;
 			int mPageLocation = -1;
 			uint8 mData[SIZE];
 			size_t mLoadedSize = 0;
@@ -202,6 +201,8 @@ namespace detail
 	}
 }
 
+#endif
+
 
 struct ZipFileProvDetail
 {
@@ -226,8 +227,10 @@ struct ZipFileProvDetail
 
 struct ZipFileProvider::Internal
 {
-	unzFile mZipFile = nullptr;
+#if !defined(PLATFORM_PS3)
+	unzFile mZipFile;
 	unz_global_info64 mGlobalInfo;
+#endif
 	FileStructureTree mFileStructureTree;
 	std::vector<const FileStructureTree::Entry*> mEntriesBuffer;
 };
@@ -237,6 +240,7 @@ struct ZipFileProvider::Internal
 ZipFileProvider::ZipFileProvider(const std::wstring& zipFilename) :
 	mInternal(*new Internal())
 {
+#if !defined(PLATFORM_PS3)
 	zlib_filefunc64_def filefunc;
 	filefunc.zopen64_file = &detail::openFile;
 	filefunc.zread_file = &detail::readFile;
@@ -259,22 +263,15 @@ ZipFileProvider::ZipFileProvider(const std::wstring& zipFilename) :
 	}
 	else
 	{
-		if (nullptr != mInternal.mZipFile)
-		{
-			unzClose(mInternal.mZipFile);
-			mInternal.mZipFile = nullptr;
-		}
 		RMX_LOG_INFO("Failed to load zip file '" << WString(zipFilename).toStdString() << "'");
 	}
+#else
+	RMX_LOG_INFO("ZIP file support not available on this platform ('" << WString(zipFilename).toStdString() << "')");
+#endif
 }
 
 ZipFileProvider::~ZipFileProvider()
 {
-	if (nullptr != mInternal.mZipFile)
-	{
-		unzClose(mInternal.mZipFile);
-		mInternal.mZipFile = nullptr;
-	}
 	delete &mInternal;
 }
 
@@ -342,6 +339,7 @@ InputStream* ZipFileProvider::createInputStream(const std::wstring& filename)
 
 bool ZipFileProvider::scanZipFile(const std::wstring& zipFilename)
 {
+#if !defined(PLATFORM_PS3)
 	mContainedFiles.clear();
 	mInternal.mFileStructureTree.clear();
 
@@ -367,12 +365,6 @@ bool ZipFileProvider::scanZipFile(const std::wstring& zipFilename)
 			std::wstring name;
 			std::wstring extension;
 			rmx::FileIO::splitPath(localPath, &localBasePath, &name, &extension);
-			rmx::FileIO::normalizePath(localBasePath, false);	// Using parameter isDirectory = false so that no slash gets added here
-			if (rmx::startsWith(localBasePath, L".."))
-			{
-				RMX_ERROR("Local path '" << WString(localPath).toStdString() << "' inside zip file '" << WString(zipFilename).toStdString() << "' contains a path pointing outside of the zip directory", );
-				continue;
-			}
 			localName = extension.empty() ? name : (name + L'.' + extension);
 		}
 
@@ -408,10 +400,14 @@ bool ZipFileProvider::scanZipFile(const std::wstring& zipFilename)
 	}
 	mInternal.mFileStructureTree.sortTreeNodes();
 	return true;
+#else
+	return false;
+#endif
 }
 
 const ZipFileProvider::ContainedFile* ZipFileProvider::readFile(const std::wstring& filename)
 {
+#if !defined(PLATFORM_PS3)
 	ContainedFile* containedFile = findContainedFile(filename);
 	if (nullptr == containedFile)
 		return nullptr;
@@ -423,11 +419,7 @@ const ZipFileProvider::ContainedFile* ZipFileProvider::readFile(const std::wstri
 		return containedFile;
 	}
 
-#if defined(PLATFORM_VITA)
-	int result = unzLocateFile(mInternal.mZipFile, *WString(fileEntry.mPath + fileEntry.mFilename).toString(), (unzFileNameComparer)1);
-#else
 	int result = unzLocateFile(mInternal.mZipFile, *WString(fileEntry.mPath + fileEntry.mFilename).toString(), 1);
-#endif
 	if (result != UNZ_OK)
 		return nullptr;
 
@@ -451,6 +443,9 @@ const ZipFileProvider::ContainedFile* ZipFileProvider::readFile(const std::wstri
 		unzCloseCurrentFile(mInternal.mZipFile);
 	}
 	return nullptr;
+#else
+	return nullptr;
+#endif
 }
 
 ZipFileProvider::ContainedFile* ZipFileProvider::findContainedFile(const std::wstring& filePath)

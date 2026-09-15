@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,6 +8,12 @@
 
 #include "oxygen/pch.h"
 #include "oxygen/simulation/CodeExec.h"
+
+#if defined(PLATFORM_PS3)
+CodeExec* CodeExec::mActiveInstance = nullptr;
+CodeExec* CodeExec::getActiveInstance() { return mActiveInstance; }
+#endif
+
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/LemonScriptProgram.h"
 #include "oxygen/simulation/LogDisplay.h"
@@ -17,17 +23,15 @@
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/application/GameProfile.h"
 #include "oxygen/platform/PlatformFunctions.h"
-#include "oxygen/simulation/GameRecorder.h"
-#include "oxygen/simulation/SaveStateSerializer.h"
+#include <cstdio>
 
-#include <lemon/program/function/Function.h>
+#include <lemon/program/Function.h>
 #include <lemon/runtime/Runtime.h>
-#include <lemon/runtime/RuntimeFunction.h>
 
 
 namespace
 {
-	const std::vector<GameProfile::LemonStackEntry>* getLemonStackByAsmStack(const std::vector<uint32>& asmStack, bool includesPC)
+	const std::vector<GameProfile::LemonStackEntry>* getLemonStackByAsmStack(const std::vector<uint32>& asmStack)
 	{
 		// Try to find the right stack
 		for (const GameProfile::StackLookupEntry& lookup : GameProfile::instance().mStackLookups)
@@ -37,7 +41,7 @@ namespace
 				bool equal = true;
 				for (size_t i = 0; i < asmStack.size(); ++i)
 				{
-					if (asmStack[i] < lookup.mAsmStack[i].first || asmStack[i] > lookup.mAsmStack[i].second)
+					if (lookup.mAsmStack[i] != asmStack[i])
 					{
 						equal = false;
 						break;
@@ -51,15 +55,37 @@ namespace
 			}
 		}
 
-		if (includesPC && !asmStack.empty())
-		{
-			// Try again without the PC at the end of the stack
-			std::vector<uint32> reducedStack = asmStack;
-			reducedStack.pop_back();
-			return getLemonStackByAsmStack(reducedStack, false);
-		}
 		return nullptr;
 	}
+
+#if !defined(PLATFORM_PS3)
+	const std::vector<GameProfile::LemonStackEntry>* findCurrentLemonStack(const std::vector<uint32>& asmStack)
+	{
+		// Try to find the right stack
+		for (const GameProfile::StackLookupEntry& lookup : GameProfile::instance().mStackLookups)
+		{
+			if (lookup.mAsmStack.size() == asmStack.size())
+			{
+				bool equal = true;
+				for (size_t i = 0; i < asmStack.size(); ++i)
+				{
+					if (lookup.mAsmStack[i] != asmStack[i])
+					{
+						equal = false;
+						break;
+					}
+				}
+
+				if (equal)
+				{
+					return &lookup.mLemonStack;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+#endif
 
 	const uint8* getCallingPCAfterCall()
 	{
@@ -76,10 +102,10 @@ namespace
 
 struct RuntimeExecuteConnector : public lemon::Runtime::ExecuteConnector
 {
-public:
+	CodeExec& mCodeExec;
+
 	inline explicit RuntimeExecuteConnector(CodeExec& codeExec) : mCodeExec(codeExec) {}
 
-protected:
 	bool handleCall(const lemon::Function* func, uint64 callTarget) override
 	{
 		if (nullptr == func)
@@ -102,11 +128,8 @@ protected:
 	bool handleExternalCall(uint64 address) override
 	{
 		// Check for address hook at the target address
-		if (!mCodeExec.tryCallAddressHook((uint32)address))
-		{
-			popAddressOnFailedCall();
-			return false;
-		}
+		//  -> If it fails, we will just continue after the call
+		mCodeExec.tryCallAddressHook((uint32)address);
 		return true;
 	}
 
@@ -115,29 +138,13 @@ protected:
 		handleReturn();
 		return handleExternalCall(address);
 	}
-
-protected:
-	void popAddressOnFailedCall()
-	{
-		// When a call fails, pop the return address if the project requires it
-		if (GameProfile::instance().mPushPopAddressOnCall)
-		{
-			uint32& A7 = mCodeExec.getEmulatorInterface().getRegister(15);
-			A7 += 4;
-		}
-	}
-
-protected:
-	CodeExec& mCodeExec;
 };
 
 
 struct RuntimeExecuteConnectorDev : public RuntimeExecuteConnector
 {
-public:
 	inline explicit RuntimeExecuteConnectorDev(CodeExec& codeExec) : RuntimeExecuteConnector(codeExec) {}
 
-protected:
 	bool handleCall(const lemon::Function* func, uint64 callTarget) override
 	{
 		if (nullptr == func)
@@ -145,7 +152,7 @@ protected:
 			mCodeExec.showErrorWithScriptLocation("Call failed, probably due to invalid function (target = " + rmx::hexString(callTarget, 16) + ").");
 			return false;
 		}
-		if (func->isA<lemon::ScriptFunction>())
+		if (func->getType() == lemon::Function::Type::SCRIPT)
 		{
 			CodeExec::CallFrame& callFrame = mCodeExec.mActiveCallFrameTracking->pushCallFrame(CodeExec::CallFrame::Type::SCRIPT_DIRECT);
 			callFrame.mFunction = func;
@@ -163,11 +170,8 @@ protected:
 	bool handleExternalCall(uint64 address) override
 	{
 		// Check for address hook at the target address
-		if (!mCodeExec.tryCallAddressHookDev((uint32)address))
-		{
-			popAddressOnFailedCall();
-			return false;
-		}
+		//  -> If it fails, we will just continue after the call
+		mCodeExec.tryCallAddressHookDev((uint32)address);
 		return true;
 	}
 
@@ -193,7 +197,7 @@ CodeExec::CallFrame& CodeExec::CallFrameTracking::pushCallFrame(CallFrame::Type 
 
 CodeExec::CallFrame& CodeExec::CallFrameTracking::pushCallFrameFailed(CallFrame::Type type)
 {
-	const int parentIndex = mCallStack.empty() ? -1 : (int)mCallStack.back();
+	const int parentIndex = mCallFrames.empty() ? -1 : (int)mCallStack.back();
 	CallFrame& callFrame = (mCallFrames.size() == CALL_FRAMES_LIMIT) ? mCallFrames.back() : vectorAdd(mCallFrames);
 	callFrame.mType = type;
 	callFrame.mParentIndex = parentIndex;
@@ -234,7 +238,7 @@ void CodeExec::CallFrameTracking::writeCurrentCallStack(std::vector<std::string>
 	for (int i = (int)mCallStack.size() - 1; i >= 0; --i)
 	{
 		const lemon::Function* function = mCallFrames[mCallStack[i]].mFunction;
-		outCallStack.push_back((nullptr != function) ? std::string(function->getName().getString()) : "");
+		outCallStack.push_back((nullptr != function) ? std::string(function->getName().getString().data(), function->getName().getString().length()) : "");
 	}
 }
 
@@ -268,10 +272,6 @@ size_t CodeExec::CallFrameTracking::processCallFramesRecursive(size_t index)
 }
 
 
-
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-CodeExec* CodeExec::mActiveInstance = nullptr;
-#endif
 
 CodeExec::CodeExec() :
 	mLemonScriptProgram(*new LemonScriptProgram()),
@@ -313,9 +313,6 @@ void CodeExec::reset()
 	{
 		mEmulatorInterface.applyRomInjections();
 	}
-
-	// Reset lemon script runtime (especially global variables)
-	mLemonScriptRuntime.getInternalLemonRuntime().resetRuntimeState();
 }
 
 void CodeExec::cleanScriptDebug()
@@ -330,8 +327,6 @@ void CodeExec::cleanScriptDebug()
 
 bool CodeExec::reloadScripts(bool enforceFullReload, bool retainRuntimeState)
 {
-	const Configuration& config = Configuration::instance();
-
 	if (retainRuntimeState)
 	{
 		// If the runtime is already active, save its current state
@@ -351,18 +346,22 @@ bool CodeExec::reloadScripts(bool enforceFullReload, bool retainRuntimeState)
 	}
 	mExecutionState = ExecutionState::INACTIVE;
 
-	// Load scripts
+	const Configuration& config = Configuration::instance();
 	LemonScriptProgram::LoadOptions options;
 	options.mEnforceFullReload = enforceFullReload;
 	options.mModuleSelection = EngineMain::getDelegate().mayLoadScriptMods() ? LemonScriptProgram::LoadOptions::ModuleSelection::ALL_MODS : LemonScriptProgram::LoadOptions::ModuleSelection::BASE_GAME_ONLY;
 	options.mAppVersion = EngineMain::getDelegate().getAppMetaData().mBuildVersionNumber;
-	const std::wstring mainScriptPath = config.mScriptsDir + config.mMainScriptName;
+	const WString mainScriptPath = config.mScriptsDir + config.mMainScriptName;
 
-	const LemonScriptProgram::LoadScriptsResult result = mLemonScriptProgram.loadScripts(mainScriptPath, options);
+	const LemonScriptProgram::LoadScriptsResult result = mLemonScriptProgram.loadScripts(mainScriptPath.toStdString(), options);
 	if (result == LemonScriptProgram::LoadScriptsResult::PROGRAM_CHANGED)
 	{
 		lemon::Runtime::setActiveEnvironment(&mRuntimeEnvironment);
+		RMX_LOG_INFO("CodeExec::reloadScripts: calling onProgramUpdated...");
+		printf("CodeExec::reloadScripts: calling onProgramUpdated...\n"); fflush(stdout);
 		mLemonScriptRuntime.onProgramUpdated();
+		RMX_LOG_INFO("CodeExec::reloadScripts: onProgramUpdated done");
+		printf("CodeExec::reloadScripts: onProgramUpdated done\n"); fflush(stdout);
 	}
 	cleanScriptDebug();
 
@@ -386,6 +385,8 @@ void CodeExec::restoreRuntimeState(bool hasSaveState)
 
 void CodeExec::reinitRuntime(const LemonScriptRuntime::CallStackWithLabels* enforcedCallStack, CallStackInitPolicy callStackInitPolicy, const std::vector<uint8>* serializedRuntimeState)
 {
+	RMX_LOG_INFO("CodeExec::reinitRuntime: start (policy=" << (int)callStackInitPolicy << ")");
+	printf("CodeExec::reinitRuntime: start (policy=%d)\n", (int)callStackInitPolicy); fflush(stdout);
 	cleanScriptDebug();
 
 	if (callStackInitPolicy == CallStackInitPolicy::USE_EXISTING)
@@ -425,14 +426,16 @@ void CodeExec::reinitRuntime(const LemonScriptRuntime::CallStackWithLabels* enfo
 			RMX_CHECK((stackPointer & 0x00ff0000) == 0x00ff0000, "Stack pointer in register A7 is not pointing to a RAM address", );
 			stackPointer |= 0xffff0000;
 			RMX_CHECK(stackPointer >= GameProfile::instance().mAsmStackRange.first && stackPointer <= GameProfile::instance().mAsmStackRange.second, "Stack pointer in register A7 is not inside the ASM stack range", );
-			for (uint32 stackPos = GameProfile::instance().mAsmStackRange.second - 4; stackPos >= stackPointer; stackPos -= 4)
+			while (stackPointer < GameProfile::instance().mAsmStackRange.second)
 			{
-				callstack.push_back(mEmulatorInterface.readMemory32(stackPos));
+				callstack.push_back(mEmulatorInterface.readMemory32(stackPointer));
+				stackPointer += 4;
 			}
-			callstack.push_back(SaveStateSerializer::mLastReadPC);
+
+			std::reverse(callstack.begin(), callstack.end());
 
 			// Build up initial script call stack
-			const std::vector<GameProfile::LemonStackEntry>* lemonStack = getLemonStackByAsmStack(callstack, true);
+			const std::vector<GameProfile::LemonStackEntry>* lemonStack = getLemonStackByAsmStack(callstack);
 			if (nullptr != lemonStack)
 			{
 				for (const GameProfile::LemonStackEntry& entry : *lemonStack)
@@ -454,17 +457,31 @@ void CodeExec::reinitRuntime(const LemonScriptRuntime::CallStackWithLabels* enfo
 		if (!success || mLemonScriptRuntime.getCallStackSize() == 0)
 		{
 			// Start from scratch
+			RMX_LOG_INFO("CodeExec::reinitRuntime: calling scriptMainEntryPoint...");
+			printf("CodeExec::reinitRuntime: calling scriptMainEntryPoint...\n"); fflush(stdout);
 			mLemonScriptRuntime.callFunctionByName("scriptMainEntryPoint", true);
+			RMX_LOG_INFO("CodeExec::reinitRuntime: scriptMainEntryPoint done");
+			printf("CodeExec::reinitRuntime: scriptMainEntryPoint done\n"); fflush(stdout);
 		}
 	}
 
 	// Execute init once
+	RMX_LOG_INFO("CodeExec::reinitRuntime: calling Init...");
+	printf("CodeExec::reinitRuntime: calling Init...\n"); fflush(stdout);
 	mLemonScriptRuntime.callFunctionByName("Init", false);
+	RMX_LOG_INFO("CodeExec::reinitRuntime: Init done");
+	printf("CodeExec::reinitRuntime: Init done\n"); fflush(stdout);
 
+	RMX_LOG_INFO("CodeExec::reinitRuntime: calling onRuntimeInit...");
+	printf("CodeExec::reinitRuntime: calling onRuntimeInit...\n"); fflush(stdout);
 	EngineMain::getDelegate().onRuntimeInit(*this);
+	RMX_LOG_INFO("CodeExec::reinitRuntime: onRuntimeInit done");
+	printf("CodeExec::reinitRuntime: onRuntimeInit done\n"); fflush(stdout);
 
 	mExecutionState = ExecutionState::READY;
 	mAccumulatedStepsOfCurrentFrame = 0;
+	RMX_LOG_INFO("CodeExec::reinitRuntime: end");
+	printf("CodeExec::reinitRuntime: end\n"); fflush(stdout);
 }
 
 bool CodeExec::performFrameUpdate()
@@ -487,21 +504,18 @@ bool CodeExec::performFrameUpdate()
 			// Reset call frame tracking
 			mMainCallFrameTracking.clear();
 
-			// Push content of current call stack as call frames
-			const CArray<lemon::ControlFlow::State>& callStack = mLemonScriptRuntime.getInternalLemonRuntime().getMainControlFlow().getCallStack();
-			for (size_t k = 0; k < callStack.count; ++k)
+			static std::vector<const lemon::Function*> callstack;	// This is static to avoid reallocations
+			mLemonScriptRuntime.getCallStack(callstack);
+			for (const lemon::Function* func : callstack)
 			{
-				const lemon::ControlFlow::State& state = callStack[k];
 				CallFrame& callFrame = mMainCallFrameTracking.pushCallFrame(CallFrame::Type::SCRIPT_STACK);
-				callFrame.mFunction = state.mRuntimeFunction->mFunction;
-				if (k >= 1)
-					callFrame.mCallingPC = callStack[k - 1].mProgramCounter;
+				callFrame.mFunction = func;
 			}
 		}
 
 		// Perform pre-update hook, if there is one
 		//  -> This acts like a call from wherever the last script execution stopped / yielded
-		tryCallUpdateHook(false, &mMainCallFrameTracking);
+		tryCallUpdateHook(false);
 	}
 
 	// Run script
@@ -512,7 +526,7 @@ bool CodeExec::performFrameUpdate()
 	{
 		// Perform post-update hook, if there is one
 		//  -> Note that the hook must yield execution, otherwise parts of the next frame get executed
-		if (canExecute() && tryCallUpdateHook(true, &mMainCallFrameTracking))
+		if (canExecute() && tryCallUpdateHook(true))
 		{
 			runScript(true, &mMainCallFrameTracking);
 		}
@@ -572,7 +586,7 @@ bool CodeExec::executeScriptFunction(const std::string& functionName, bool showE
 			}
 
 			// Evaluate the return value
-			if (nullptr != execData && nullptr != execData->mParams.mReturnType && execData->mParams.mReturnType->getBytes() > 0)
+			if (nullptr != execData && nullptr != execData->mParams.mReturnType)
 			{
 				execData->mReturnValueStorage = mLemonScriptRuntime.getInternalLemonRuntime().getSelectedControlFlowMutable().popValueStack<uint64>();
 			}
@@ -588,7 +602,7 @@ bool CodeExec::executeScriptFunction(const std::string& functionName, bool showE
 
 void CodeExec::setupCallFrame(std::string_view functionName, std::string_view labelName)
 {
-	mCallFramesToAdd.push_back(std::make_pair(std::string(functionName), std::string(labelName)));
+	mCallFramesToAdd.push_back(std::make_pair(std::string(functionName.data(), functionName.length()), std::string(labelName.data(), labelName.length())));
 	mHasCallFramesToAdd = true;
 }
 
@@ -604,7 +618,7 @@ bool CodeExec::canExecute() const
 		case ExecutionState::READY:
 		case ExecutionState::YIELDED:
 		case ExecutionState::INTERRUPTED:
-			return mLemonScriptRuntime.getInternalLemonRuntime().canExecuteSteps();
+			return true;
 
 		case ExecutionState::INACTIVE:
 		case ExecutionState::HALTED:
@@ -654,7 +668,7 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 	{
 		// Execute next runtime steps
 		size_t stepsExecutedThisCall;
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 		try
 #endif
 		{
@@ -688,12 +702,10 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 				break;
 			}
 		}
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(PLATFORM_PS3)
 		catch (const std::exception& e)
 		{
 			RMX_ERROR("Caught exception during script execution: " << e.what(), );
-			mExecutionState = ExecutionState::INTERRUPTED;
-			break;
 		}
 #endif
 
@@ -701,8 +713,11 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 		stepsCounter += stepsExecutedThisCall;
 		if (stepsCounter >= nextCheckSteps)
 		{
+			RMX_LOG_INFO("CodeExec::runScript progress: steps=" << stepsCounter << " (accumulated=" << mAccumulatedStepsOfCurrentFrame << ")");
+			printf("CodeExec::runScript progress: steps=%u (accumulated=%u)\n", (uint32)stepsCounter, (uint32)mAccumulatedStepsOfCurrentFrame); fflush(stdout);
+
 			// Limit execution to this number of steps
-			const constexpr int32 MAX_STEPS = 0x8000000;	// Needed for S3AIR entering special stage in OxygenApp
+			constexpr int32 MAX_STEPS = 0x8000000;	// Needed for S3AIR entering special stage in OxygenApp
 			if (mAccumulatedStepsOfCurrentFrame + stepsCounter >= MAX_STEPS)
 			{
 				mExecutionState = ExecutionState::INTERRUPTED;
@@ -712,7 +727,7 @@ void CodeExec::runScript(bool executeSingleFunction, CallFrameTracking* callFram
 				if (showMessageBox)
 				{
 					bool gameRecordingSaved = false;
-					if (Application::instance().getSimulation().getGameRecorder().isRecording())
+					if (Configuration::instance().mGameRecorder.mIsRecording)
 					{
 						gameRecordingSaved = (Application::instance().getSimulation().saveGameRecording() != 0);
 					}
@@ -800,13 +815,13 @@ bool CodeExec::tryCallAddressHookDev(uint32 address)
 	}
 }
 
-bool CodeExec::tryCallUpdateHook(bool postUpdate, CallFrameTracking* callFrameTracking)
+bool CodeExec::tryCallUpdateHook(bool postUpdate)
 {
 	if (mLemonScriptRuntime.callUpdateHook(postUpdate))
 	{
-		if (nullptr != callFrameTracking)
+		if (nullptr != mActiveCallFrameTracking)
 		{
-			CallFrame& callFrame = callFrameTracking->pushCallFrame(CallFrame::Type::SCRIPT_DIRECT);
+			CallFrame& callFrame = mActiveCallFrameTracking->pushCallFrame(CallFrame::Type::SCRIPT_DIRECT);
 			callFrame.mFunction = mLemonScriptRuntime.getCurrentFunction();
 		}
 		return true;

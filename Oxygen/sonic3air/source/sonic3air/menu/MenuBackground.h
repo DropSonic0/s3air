@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -47,28 +47,15 @@ public:
 	void showPreview(bool show, bool useTransition = true);
 
 	void openMainMenu();
+	void openActSelectMenu();
 	void openTimeAttackMenu();
 	void openOptions(bool enteredInGame = false);
 	void openExtras();
 	void openMods();
-
 	void openGameStartedMenu();
+	void fadeToExit();
+
 	void setGameStartedMenu();
-
-private:
-	struct PreviewKey
-	{
-		uint8 mZone = 0;
-		uint8 mAct = 0;
-		uint8 mImage = 0;
-		inline bool operator<(const PreviewKey& other) const  { return (mZone != other.mZone) ? (mZone < other.mZone) : (mAct != other.mAct) ? (mAct < other.mAct) : (mImage < other.mImage); }
-	};
-
-	struct PreviewSprite
-	{
-		uint64 mSpriteKey = 0;
-		uint64 mPaletteKey = 0;
-	};
 
 private:
 	void openMenu(GameMenuBase& menu);
@@ -83,25 +70,24 @@ private:
 	// Children
 	std::vector<GameMenuBase*> mAllChildren;
 	MainMenu* mMainMenu = nullptr;
+	ActSelectMenu* mActSelectMenu = nullptr;
 	TimeAttackMenu* mTimeAttackMenu = nullptr;
 	OptionsMenu* mOptionsMenu = nullptr;
 	ExtrasMenu* mExtrasMenu = nullptr;
 	ModsMenu* mModsMenu = nullptr;
-
 	GameMenuBase* mLastOpenedMenu = nullptr;
 	GameMenuBase* mGameStartedMenu = nullptr;
 
 	// Background
 	struct PreviewImage
 	{
-		const PreviewSprite* mPreviewSprite = nullptr;
+		DrawerTexture* mTexture = nullptr;
 		int mSubIndex = 0;
 		float mOffset = 0.0f;
 		float mVisibility = 0.0f;
 	};
 	PreviewImage mPreviewImage[2];
-	PreviewKey mPreviewKey;
-	std::map<PreviewKey, PreviewSprite> mPreviewSprites;
+	global::ZoneActPreviewKey mPreviewKey;
 
 	float mCurrentTime = 0.0f;
 	float mAnimationTimer = 0.0f;	// In seconds; loops back to zero after 1 minute

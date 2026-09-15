@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,7 +8,7 @@
 
 #include "oxygen/pch.h"
 #include "oxygen/rendering/utils/RenderUtils.h"
-
+#include "Endian/S3AIREndian.hpp"
 
 namespace
 {
@@ -20,43 +20,43 @@ namespace
 
 
 
-Recti RenderUtils::getLetterBoxRect(const Recti& frameRect, float aspectRatio)
+Rectf RenderUtils::getLetterBoxRect(const Rectf& frameRect, float aspectRatio)
 {
-	Recti rect = frameRect;
+	Rectf rect = frameRect;
 	const float frameRatio = frameRect.getAspectRatio();
 
 	if (frameRatio < aspectRatio)
 	{
-		const int newHeight = roundToInt((float)rect.height * frameRatio / aspectRatio);
+		const int newHeight = (int)((float)rect.height * frameRatio / aspectRatio + 0.5f);
 		rect.y += (rect.height - newHeight) / 2;
-		rect.height = newHeight;
+		rect.height = (float)newHeight;
 	}
 	else
 	{
-		const int newWidth = roundToInt((float)rect.width * aspectRatio / frameRatio);
+		const int newWidth = (int)((float)rect.width * aspectRatio / frameRatio + 0.5f);
 		rect.x += (rect.width - newWidth) / 2;
-		rect.width = newWidth;
+		rect.width = (float)newWidth;
 	}
 	return rect;
 }
 
 
-Recti RenderUtils::getScaleToFillRect(const Recti& frameRect, float aspectRatio)
+Rectf RenderUtils::getScaleToFillRect(const Rectf& frameRect, float aspectRatio)
 {
-	Recti rect = frameRect;
+	Rectf rect = frameRect;
 	const float frameRatio = frameRect.getAspectRatio();
 
 	if (frameRatio > aspectRatio)
 	{
-		const int newHeight = roundToInt((float)rect.height * frameRatio / aspectRatio);
+		const int newHeight = (int)((float)rect.height * frameRatio / aspectRatio + 0.5f);
 		rect.y += (rect.height - newHeight) / 2;
-		rect.height = newHeight;
+		rect.height = (float)newHeight;
 	}
 	else
 	{
-		const int newWidth = roundToInt((float)rect.width * aspectRatio / frameRatio);
+		const int newWidth = (int)((float)rect.width * aspectRatio / frameRatio + 0.5f);
 		rect.x += (rect.width - newWidth) / 2;
-		rect.width = newWidth;
+		rect.width = (float)newWidth;
 	}
 	return rect;
 }
@@ -64,37 +64,39 @@ Recti RenderUtils::getScaleToFillRect(const Recti& frameRect, float aspectRatio)
 
 void RenderUtils::expandPatternDataFromVRAM(uint8* dst, const void* src_)
 {
-	uint32* src = (uint32*)src_;
+	const uint8* src = (const uint8*)src_;
 	for (uint8 y = 0; y < 8; ++y)
 	{
-		const uint32 bp = src[y];
-		dst[0] = (bp >> 12) & 0x0f;
-		dst[1] = (bp >> 8)  & 0x0f;
-		dst[2] = (bp >> 4)  & 0x0f;
-		dst[3] = (bp >> 0)  & 0x0f;
-		dst[4] = (bp >> 28) & 0x0f;
-		dst[5] = (bp >> 24) & 0x0f;
-		dst[6] = (bp >> 20) & 0x0f;
-		dst[7] = (bp >> 16) & 0x0f;
+		const uint32 bp = rmx::readMemoryUnalignedBE<uint32>(src);
+		dst[0] = (bp >> 28) & 0x0f;
+		dst[1] = (bp >> 24) & 0x0f;
+		dst[2] = (bp >> 20) & 0x0f;
+		dst[3] = (bp >> 16) & 0x0f;
+		dst[4] = (bp >> 12) & 0x0f;
+		dst[5] = (bp >> 8)  & 0x0f;
+		dst[6] = (bp >> 4)  & 0x0f;
+		dst[7] = (bp >> 0)  & 0x0f;
 		dst += 8;
+		src += 4;
 	}
 }
 
 void RenderUtils::expandPatternDataFromROM(uint8* dst, const void* src_)
 {
-	uint32* src = (uint32*)src_;
+	const uint8* src = (const uint8*)src_;
 	for (uint8 y = 0; y < 8; ++y)
 	{
-		const uint32 bp = src[y];
-		dst[0] = (bp >> 4)  & 0x0f;
-		dst[1] = (bp >> 0)  & 0x0f;
-		dst[2] = (bp >> 12) & 0x0f;
-		dst[3] = (bp >> 8)  & 0x0f;
-		dst[4] = (bp >> 20) & 0x0f;
-		dst[5] = (bp >> 16) & 0x0f;
-		dst[6] = (bp >> 28) & 0x0f;
-		dst[7] = (bp >> 24) & 0x0f;
+		const uint32 bp = rmx::readMemoryUnalignedBE<uint32>(src);
+		dst[0] = (bp >> 28) & 0x0f;
+		dst[1] = (bp >> 24) & 0x0f;
+		dst[2] = (bp >> 20) & 0x0f;
+		dst[3] = (bp >> 16) & 0x0f;
+		dst[4] = (bp >> 12) & 0x0f;
+		dst[5] = (bp >> 8)  & 0x0f;
+		dst[6] = (bp >> 4)  & 0x0f;
+		dst[7] = (bp >> 0)  & 0x0f;
 		dst += 8;
+		src += 4;
 	}
 }
 
@@ -145,15 +147,15 @@ void RenderUtils::fillPatternsFromSpriteData(std::vector<RenderUtils::SinglePatt
 void RenderUtils::blitSpritePattern(PaletteBitmap& output, int px, int py, const PatternData& patternData, bool flipX, bool flipY)
 {
 	const int32 minX = std::max<int32>(0, -px);
-	const int32 maxX = std::min<int32>(8, output.getWidth() - px);
+	const int32 maxX = std::min<int32>(8, output.mWidth - px);
 	const int32 minY = std::max<int32>(0, -py);
-	const int32 maxY = std::min<int32>(8, output.getHeight() - py);
+	const int32 maxY = std::min<int32>(8, output.mHeight - py);
 
 	for (int32 iy = minY; iy < maxY; ++iy)
 	{
 		const int32 srcY = flipY ? (7 - iy) : iy;
 		const uint8* src = &patternData.mPixels[minX + srcY * 8];
-		uint8* dst = output.getPixelPointer(px + minX, py + iy);
+		uint8* dst = &output.mData[(px + minX) + (py + iy) * output.mWidth];
 
 		if (flipX)
 		{
@@ -188,10 +190,8 @@ void RenderUtils::blitSpritePattern(PaletteBitmap& output, int px, int py, const
 
 void RenderUtils::blitSpritePatterns(PaletteBitmap& output, int px, int py, const std::vector<SinglePattern>& patterns)
 {
-	// Blit the patterns in reverse order (which is relevant in case they're overlapping, like with Tails' run sprites)
-	for (int k = (int)patterns.size() - 1; k >= 0; --k)
+	for (const SinglePattern& pattern : patterns)
 	{
-		const SinglePattern& pattern = patterns[k];
 		RenderUtils::blitSpritePattern(output, px + pattern.mOffsetX, py + pattern.mOffsetY, pattern.mPatternData, pattern.mFlipX, pattern.mFlipY);
 	}
 }

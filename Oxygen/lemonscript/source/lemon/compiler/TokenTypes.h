@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -28,25 +28,13 @@ namespace lemon
 	};
 
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	#define DEFINE_LEMON_TOKEN_TYPE(_class_) \
-		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, Token, _class_, assignType(#_class_, false))
-
-	#define DEFINE_LEMON_STATEMENT_TOKEN_TYPE(_class_) \
-		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, StatementToken, _class_, assignType(#_class_, true))
-#else
-	#define DEFINE_LEMON_TOKEN_TYPE(_class_) \
-		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, Token, _class_, (uint32)(__LINE__))
-
-	#define DEFINE_LEMON_STATEMENT_TOKEN_TYPE(_class_) \
-		DEFINE_GENERIC_MANAGER_ELEMENT_TYPE(Token, StatementToken, _class_, (uint32)(__LINE__) + 0x10000000)
-#endif
-
-
 	class KeywordToken : public Token
 	{
 	public:
-		DEFINE_LEMON_TOKEN_TYPE(KeywordToken)
+		static const Type TYPE = Type::KEYWORD;
+
+	public:
+		inline KeywordToken() : Token(TYPE) {}
 
 	public:
 		Keyword mKeyword = Keyword::_INVALID;
@@ -56,7 +44,10 @@ namespace lemon
 	class VarTypeToken : public Token
 	{
 	public:
-		DEFINE_LEMON_TOKEN_TYPE(VarTypeToken)
+		static const Type TYPE = Type::VARTYPE;
+
+	public:
+		inline VarTypeToken() : Token(TYPE) {}
 
 	public:
 		const DataTypeDefinition* mDataType = nullptr;
@@ -66,7 +57,10 @@ namespace lemon
 	class OperatorToken : public Token
 	{
 	public:
-		DEFINE_LEMON_TOKEN_TYPE(OperatorToken)
+		static const Type TYPE = Type::OPERATOR;
+
+	public:
+		inline OperatorToken() : Token(TYPE) {}
 
 	public:
 		Operator mOperator = Operator::_INVALID;
@@ -76,7 +70,10 @@ namespace lemon
 	class LabelToken : public Token
 	{
 	public:
-		DEFINE_LEMON_TOKEN_TYPE(LabelToken)
+		static const Type TYPE = Type::LABEL;
+
+	public:
+		inline LabelToken() : Token(TYPE) {}
 
 	public:
 		FlyweightString mName;
@@ -89,7 +86,10 @@ namespace lemon
 	class ConstantToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(ConstantToken)
+		static const Type TYPE = Type::CONSTANT;
+
+	public:
+		inline ConstantToken() : StatementToken(TYPE) {}
 
 	public:
 		AnyBaseValue mValue { 0 };
@@ -99,7 +99,10 @@ namespace lemon
 	class IdentifierToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(IdentifierToken)
+		static const Type TYPE = Type::IDENTIFIER;
+
+	public:
+		inline IdentifierToken() : StatementToken(TYPE) {}
 
 	public:
 		FlyweightString mName;
@@ -110,7 +113,10 @@ namespace lemon
 	class ParenthesisToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(ParenthesisToken)
+		static const Type TYPE = Type::PARENTHESIS;
+
+	public:
+		inline ParenthesisToken() : StatementToken(TYPE) {}
 
 	public:
 		ParenthesisType mParenthesisType = ParenthesisType::PARENTHESIS;
@@ -121,7 +127,10 @@ namespace lemon
 	class CommaSeparatedListToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(CommaSeparatedListToken)
+		static const Type TYPE = Type::COMMA_SEPARATED;
+
+	public:
+		inline CommaSeparatedListToken() : StatementToken(TYPE) {}
 
 	public:
 		std::vector<TokenList> mContent;
@@ -131,7 +140,10 @@ namespace lemon
 	class UnaryOperationToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(UnaryOperationToken)
+		static const Type TYPE = Type::UNARY_OPERATION;
+
+	public:
+		inline UnaryOperationToken() : StatementToken(TYPE) {}
 
 	public:
 		Operator mOperator = Operator::_INVALID;
@@ -142,7 +154,10 @@ namespace lemon
 	class BinaryOperationToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(BinaryOperationToken)
+		static const Type TYPE = Type::BINARY_OPERATION;
+
+	public:
+		inline BinaryOperationToken() : StatementToken(TYPE) {}
 
 	public:
 		Operator mOperator = Operator::_INVALID;
@@ -155,7 +170,10 @@ namespace lemon
 	class VariableToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(VariableToken)
+		static const Type TYPE = Type::VARIABLE;
+
+	public:
+		inline VariableToken() : StatementToken(TYPE) {}
 
 	public:
 		const Variable* mVariable = nullptr;
@@ -165,7 +183,10 @@ namespace lemon
 	class FunctionToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(FunctionToken)
+		static const Type TYPE = Type::FUNCTION;
+
+	public:
+		inline FunctionToken() : StatementToken(TYPE) {}
 
 	public:
 		const Function* mFunction = nullptr;
@@ -174,21 +195,13 @@ namespace lemon
 	};
 
 
-	class BracketAccessToken : public StatementToken
-	{
-	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(BracketAccessToken)
-
-	public:
-		const Variable* mVariable = nullptr;
-		TokenPtr<StatementToken> mParameter;
-	};
-
-
 	class MemoryAccessToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(MemoryAccessToken)
+		static const Type TYPE = Type::MEMORY_ACCESS;
+
+	public:
+		inline MemoryAccessToken() : StatementToken(TYPE) {}
 
 	public:
 		TokenPtr<StatementToken> mAddress;
@@ -198,14 +211,13 @@ namespace lemon
 	class ValueCastToken : public StatementToken
 	{
 	public:
-		DEFINE_LEMON_STATEMENT_TOKEN_TYPE(ValueCastToken)
+		static const Type TYPE = Type::VALUE_CAST;
+
+	public:
+		inline ValueCastToken() : StatementToken(TYPE) {}
 
 	public:
 		TokenPtr<StatementToken> mArgument;
 	};
-
-
-	#undef DEFINE_LEMON_TOKEN_TYPE
-	#undef DEFINE_LEMON_STATEMENT_TOKEN_TYPE
 
 }

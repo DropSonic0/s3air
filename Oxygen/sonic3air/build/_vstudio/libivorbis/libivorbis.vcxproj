@@ -1,0 +1,102 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|PS3">
+      <Configuration>Debug</Configuration>
+      <Platform>PS3</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|PS3">
+      <Configuration>Release</Configuration>
+      <Platform>PS3</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\..\libs\tremor\block.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\codebook.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\floor0.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\floor1.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\info.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\mapping0.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\mdct.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\registry.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\res012.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\sharedbook.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\synthesis.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\vorbisfile.c" />
+    <ClCompile Include="..\..\..\..\libs\tremor\window.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\libs\tremor\block.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\codebook.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\codec_internal.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\config_types.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\ivorbiscodec.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\ivorbisfile.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\lsp_lookup.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\mdct.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\mdct_lookup.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\misc.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\os.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\registry.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\window.h" />
+    <ClInclude Include="..\..\..\..\libs\tremor\window_lookup.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCTargetsPath Condition="'$(VCTargetsPath12)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath12)</VCTargetsPath>
+    <ProjectGuid>{366ED5A6-10DA-4F34-95D0-B40616B1A0C9}</ProjectGuid>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>SNC</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>SNC</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <PropertyGroup Condition="'$(DebuggerFlavor)'=='PS3Debugger'" Label="OverrideDebuggerDefaults">
+    <!--LocalDebuggerCommand>$(TargetPath)</LocalDebuggerCommand-->
+    <!--LocalDebuggerCommandArguments></LocalDebuggerCommandArguments-->
+    <!--LocalDebuggerCommandLine>-r -e -m</LocalDebuggerCommandLine-->
+    <!--LocalRunCommandLine>-r</LocalRunCommandLine-->
+    <!--LocalTunerCommandLine></LocalTunerCommandLine-->
+    <!--LocalDebuggerFileServingDirectory>$(ProjectDir)</LocalDebuggerFileServingDirectory-->
+    <!--LocalDebuggerHomeDirectory>$(ProjectDir)</LocalDebuggerHomeDirectory-->
+    <!--LocalDebuggerProjectFile></LocalDebuggerProjectFile-->
+    <!--LocalDebuggerResetType>Soft</LocalDebuggerResetType-->
+    <!--LocalDebuggerClearTty>False</LocalDebuggerClearTty-->
+  </PropertyGroup>
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|PS3'">
+    <ClCompile>
+      <PreprocessorDefinitions>_DEBUG;__CELL_ASSERT__;__CELLOS_LV2__;__ppc__;__PPU__;RMX_PLATFORM_PS3;RMX_NO_GLEW;RMX_NO_IMGUI;USE_GLES;IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS;JSONCPP_NO_LOCALE_SUPPORT;JSON_USE_EXCEPTION=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CppLanguageStd>Cpp11</CppLanguageStd>
+      <AdditionalIncludeDirectories>C:\s3air\framework\external\ogg-vorbis\libogg\include;C:\s3air\framework\external\ogg-vorbis\libvorbis\include;C:\s3air\framework\external\ogg-vorbis\libvorbis\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|PS3'">
+    <ClCompile>
+      <PreprocessorDefinitions>NDEBUG;__CELL_ASSERT__;BIG_ENDIAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <OptimizationLevel>Level2</OptimizationLevel>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <CppLanguageStd>Cpp03</CppLanguageStd>
+      <AdditionalIncludeDirectories>C:\s3air\Oxygen\libs\tremor\include;C:\s3air\Oxygen\libs\libogg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

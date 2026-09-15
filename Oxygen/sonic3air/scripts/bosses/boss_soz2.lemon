@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2026 by Eukaryot
+	Copyright (C) 2017-2024 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -25,10 +25,10 @@ function void fn07764e()
 	u16[0xffffeee0] = objA0.position.y.u16
 	Enemy.DrawDynamicObject()
 
-#if STANDALONE
-	// Mask out sprites below the ground, but except the leftmost part (because of HUD)
-	Renderer.addSpriteMask(200, 192, getScreenWidth()-200, 32, 0xd000, 1)
-#endif
+	#if STANDALONE
+		// Mask out sprites below the ground, but except the leftmost part (because of HUD)
+		Renderer.addSpriteMask(200, 192, getScreenWidth()-200, 32, 0xd000, 1)
+	#endif
 }
 
 
@@ -176,17 +176,7 @@ function void fn0777f0()
 
 	objA0.base_state = u8[A0 + 0x42]
 	u8[A0 + 0x28] = 0
-
-#if STANDALONE
-	// Fixes Robotnik/Egg Robo being stuck on hurt frame if damaged right before the armor flies back on, #contribued by mrgrassman14
-	u8[A0 + 0x20] = 0
-	u8[A0 + 0x2a] &= ~0x40
-
-	// Fix for boss palette damage flash, #contributed by mrgrassman14
-	Boss.updateHitFlashing(5, 0x07826c, 0x078276, 0x078280, 0x01)
-#else
 	Boss.updateHitFlashing(3, 0x07826c, 0x078276, 0x078276, 0x01)
-#endif
 }
 
 
@@ -209,11 +199,6 @@ function void fn077822()
 		objA0.update_address = 0x077848
 		objA0.flags2a &= ~0x80
 		objA0.render_flags |= render_flag.FLIP_X
-
-	#if STANDALONE
-		// Change priority of Egg Mobile so it isn't underneath its own exhaust flame, #contributed by mrgrassman14
-		objA0.sprite_priority = 0x100
-	#endif
 	}
 	DrawObject()
 }
@@ -1003,7 +988,7 @@ function void fn077f94()
 		u8[A0 + 0x43] += u8[A0 + 0x1a]
 
 		MoveWithParent()
-		Child.DrawSprite()
+		fn084920()
 	}
 	else
 	{

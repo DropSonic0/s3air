@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,12 +13,6 @@
 
 namespace
 {
-	FORCE_INLINE int roundToIntFast(float x)
-	{
-		// Avoiding the std::floor in rmxbase's roundToInt, this is a bit cheaper
-		return (int)(x + ((x >= 0.0f) ? 0.5f : -0.5f));
-	}
-
 	void getTransformedLineRange(int& minX, int& maxX, int iy, int width, Vec2i offset, Recti spriteRect, const float* transform)
 	{
 		// Output pixels to render in the given line
@@ -30,8 +24,8 @@ namespace
 			if (std::abs(transform[0]) > 0.001f)
 			{
 				const float A = -dy * transform[1] + spriteRect.x;
-				x1 = offset.x + roundToIntFast((A) / transform[0]);
-				x2 = offset.x + roundToIntFast((A + spriteRect.width) / transform[0]);
+				x1 = offset.x + roundToInt((A) / transform[0]);
+				x2 = offset.x + roundToInt((A + spriteRect.width) / transform[0]);
 			}
 			minX = std::min(x1, x2);
 			maxX = std::max(x1, x2);
@@ -42,8 +36,8 @@ namespace
 			if (std::abs(transform[2]) > 0.001f)
 			{
 				const float A = -dy * transform[3] + spriteRect.y;
-				x1 = offset.x + roundToIntFast((A) / transform[2]);
-				x2 = offset.x + roundToIntFast((A + spriteRect.height) / transform[2]);
+				x1 = offset.x + roundToInt((A) / transform[2]);
+				x2 = offset.x + roundToInt((A + spriteRect.height) / transform[2]);
 			}
 			const int minX2 = std::min(x1, x2);
 			const int maxX2 = std::max(x1, x2);
@@ -178,12 +172,12 @@ void Blitter::blitRectWithScaling(BitmapViewMutable<uint32>& destBitmap, Recti d
 		if (options.mBlendMode != BlendMode::ALPHA)
 		{
 			// No blending
-			BlitterHelper::blitBitmapWithScaling<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+			BlitterHelper::blitBitmapWithScaling<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, options.mTintColor->getABGR32());
 		}
 		else
 		{
 			// Alpha blending
-			BlitterHelper::blitBitmapWithScaling<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+			BlitterHelper::blitBitmapWithScaling<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, options.mTintColor->getABGR32());
 		}
 	}
 }
@@ -211,12 +205,12 @@ void Blitter::blitRectWithUVs(BitmapViewMutable<uint32>& destBitmap, Recti destR
 		if (options.mBlendMode != BlendMode::ALPHA)
 		{
 			// No blending
-			BlitterHelper::blitBitmapWithUVs<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+			BlitterHelper::blitBitmapWithUVs<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, options.mTintColor->getABGR32());
 		}
 		else
 		{
 			// Alpha blending
-			BlitterHelper::blitBitmapWithUVs<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+			BlitterHelper::blitBitmapWithUVs<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, options.mTintColor->getABGR32());
 		}
 	}
 }
@@ -259,28 +253,22 @@ BitmapViewMutable<uint32> Blitter::makeTempBitmapAsCopy(const BitmapView<uint8>&
 BitmapViewMutable<uint32> Blitter::makeTempBitmapAsTransformedCopy(Recti outputBoundingBox, const SpriteWrapper& sprite, Vec2i position, const Options& options)
 {
 	BitmapViewMutable<uint32> result = makeTempBitmap(outputBoundingBox.getSize());
-	const Vec2f floatPivot(sprite.mPivot);
 	switch (options.mSamplingMode)
 	{
 		case SamplingMode::POINT:
 		{
 			for (int iy = 0; iy < outputBoundingBox.height; ++iy)
 			{
-				// Transform into sprite-local coordinates
-				const float dx = (float)(outputBoundingBox.x - position.x) + 0.5f;
-				const float dy = (float)(outputBoundingBox.y - position.y + iy) + 0.5f;
-				float localX = dx * options.mInvTransform[0] + dy * options.mInvTransform[1] + floatPivot.x;
-				float localY = dx * options.mInvTransform[2] + dy * options.mInvTransform[3] + floatPivot.y;
-				const float advanceX = options.mInvTransform[0];
-				const float advanceY = options.mInvTransform[2];
-
 				uint32* dst = result.getPixelPointer(0, iy);
 				for (int ix = 0; ix < outputBoundingBox.width; ++ix)
 				{
-					*dst = BlitterHelper::pointSampling(sprite.mBitmapView, (int)localX, (int)localY);
+					// Transform into sprite-local coordinates
+					const float dx = (float)(outputBoundingBox.x + ix - position.x) + 0.5f;
+					const float dy = (float)(outputBoundingBox.y + iy - position.y) + 0.5f;
+					const int localX = roundToInt(dx * options.mInvTransform[0] + dy * options.mInvTransform[1] - 0.5f) + sprite.mPivot.x;
+					const int localY = roundToInt(dx * options.mInvTransform[2] + dy * options.mInvTransform[3] - 0.5f) + sprite.mPivot.y;
+					*dst = BlitterHelper::pointSampling(sprite.mBitmapView, localX, localY);
 					++dst;
-					localX += advanceX;
-					localY += advanceY;
 				}
 			}
 			break;
@@ -288,23 +276,19 @@ BitmapViewMutable<uint32> Blitter::makeTempBitmapAsTransformedCopy(Recti outputB
 
 		case SamplingMode::BILINEAR:
 		{
+			const Vec2f floatPivot(sprite.mPivot);
 			for (int iy = 0; iy < outputBoundingBox.height; ++iy)
 			{
-				// Transform into sprite-local coordinates
-				const float dx = (float)(outputBoundingBox.x - position.x) + 0.5f;
-				const float dy = (float)(outputBoundingBox.y - position.y + iy) + 0.5f;
-				float localX = dx * options.mInvTransform[0] + dy * options.mInvTransform[1] + floatPivot.x - 0.5f;
-				float localY = dx * options.mInvTransform[2] + dy * options.mInvTransform[3] + floatPivot.y - 0.5f;
-				const float advanceX = options.mInvTransform[0];
-				const float advanceY = options.mInvTransform[2];
-
 				uint32* dst = result.getPixelPointer(0, iy);
 				for (int ix = 0; ix < outputBoundingBox.width; ++ix)
 				{
+					// Transform into sprite-local coordinates
+					const float dx = (float)(outputBoundingBox.x + ix - position.x) + 0.5f;
+					const float dy = (float)(outputBoundingBox.y + iy - position.y) + 0.5f;
+					const float localX = (dx * options.mInvTransform[0] + dy * options.mInvTransform[1] - 0.5f) + floatPivot.x;
+					const float localY = (dx * options.mInvTransform[2] + dy * options.mInvTransform[3] - 0.5f) + floatPivot.y;
 					*dst = BlitterHelper::bilinearSampling(sprite.mBitmapView, localX, localY);
 					++dst;
-					localX += advanceX;
-					localY += advanceY;
 				}
 			}
 			break;
@@ -316,28 +300,22 @@ BitmapViewMutable<uint32> Blitter::makeTempBitmapAsTransformedCopy(Recti outputB
 BitmapViewMutable<uint32> Blitter::makeTempBitmapAsTransformedCopy(Recti outputBoundingBox, const IndexedSpriteWrapper& sprite, const PaletteWrapper& palette, Vec2i position, const Options& options)
 {
 	BitmapViewMutable<uint32> result = makeTempBitmap(outputBoundingBox.getSize());
-	const Vec2f floatPivot(sprite.mPivot);
 	switch (options.mSamplingMode)
 	{
 		case SamplingMode::POINT:
 		{
 			for (int iy = 0; iy < outputBoundingBox.height; ++iy)
 			{
-				// Transform into sprite-local coordinates
-				const float dx = (float)(outputBoundingBox.x - position.x) + 0.5f;
-				const float dy = (float)(outputBoundingBox.y - position.y + iy) + 0.5f;
-				float localX = dx * options.mInvTransform[0] + dy * options.mInvTransform[1] + floatPivot.x;
-				float localY = dx * options.mInvTransform[2] + dy * options.mInvTransform[3] + floatPivot.y;
-				const float advanceX = options.mInvTransform[0];
-				const float advanceY = options.mInvTransform[2];
-
 				uint32* dst = result.getPixelPointer(0, iy);
 				for (int ix = 0; ix < outputBoundingBox.width; ++ix)
 				{
-					*dst = BlitterHelper::pointSampling(sprite.mBitmapView, palette, (int)localX, (int)localY);
+					// Transform into sprite-local coordinates
+					const float dx = (float)(outputBoundingBox.x + ix - position.x) + 0.5f;
+					const float dy = (float)(outputBoundingBox.y + iy - position.y) + 0.5f;
+					const int localX = roundToInt(dx * options.mInvTransform[0] + dy * options.mInvTransform[1] - 0.5f) + sprite.mPivot.x;
+					const int localY = roundToInt(dx * options.mInvTransform[2] + dy * options.mInvTransform[3] - 0.5f) + sprite.mPivot.y;
+					*dst = BlitterHelper::pointSampling(sprite.mBitmapView, palette, localX, localY);
 					++dst;
-					localX += advanceX;
-					localY += advanceY;
 				}
 			}
 			break;
@@ -345,23 +323,19 @@ BitmapViewMutable<uint32> Blitter::makeTempBitmapAsTransformedCopy(Recti outputB
 
 		case SamplingMode::BILINEAR:
 		{
+			const Vec2f floatPivot(sprite.mPivot);
 			for (int iy = 0; iy < outputBoundingBox.height; ++iy)
 			{
-				// Transform into sprite-local coordinates
-				const float dx = (float)(outputBoundingBox.x - position.x) + 0.5f;
-				const float dy = (float)(outputBoundingBox.y - position.y + iy) + 0.5f;
-				float localX = dx * options.mInvTransform[0] + dy * options.mInvTransform[1] + floatPivot.x - 0.5f;
-				float localY = dx * options.mInvTransform[2] + dy * options.mInvTransform[3] + floatPivot.y - 0.5f;
-				const float advanceX = options.mInvTransform[0];
-				const float advanceY = options.mInvTransform[2];
-
 				uint32* dst = result.getPixelPointer(0, iy);
 				for (int ix = 0; ix < outputBoundingBox.width; ++ix)
 				{
+					// Transform into sprite-local coordinates
+					const float dx = (float)(outputBoundingBox.x + ix - position.x) + 0.5f;
+					const float dy = (float)(outputBoundingBox.y + iy - position.y) + 0.5f;
+					const float localX = (dx * options.mInvTransform[0] + dy * options.mInvTransform[1] - 0.5f) + floatPivot.x;
+					const float localY = (dx * options.mInvTransform[2] + dy * options.mInvTransform[3] - 0.5f) + floatPivot.y;
 					*dst = BlitterHelper::bilinearSampling(sprite.mBitmapView, palette, localX, localY);
 					++dst;
-					localX += advanceX;
-					localY += advanceY;
 				}
 			}
 			break;
@@ -450,15 +424,15 @@ bool Blitter::needsIntermediateProcessing(const Options& options)
 
 void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Options& options)
 {
-		if (nullptr != options.mTintColor || nullptr != options.mAddedColor)
+	if (nullptr != options.mTintColor || nullptr != options.mAddedColor)
 	{
 		int mult[4];
 		if (nullptr != options.mTintColor)
 		{
-			mult[0] = clamp((int)(options.mTintColor->r * 0x100 + 0.5f), -0x10000, 0x10000);
-			mult[1] = clamp((int)(options.mTintColor->g * 0x100 + 0.5f), -0x10000, 0x10000);
-			mult[2] = clamp((int)(options.mTintColor->b * 0x100 + 0.5f), -0x10000, 0x10000);
-			mult[3] = clamp((int)(options.mTintColor->a * 0x100 + 0.5f), -0x10000, 0x10000);
+			mult[0] = clamp(roundToInt(options.mTintColor->r * 0x100), -0x10000, 0x10000);
+			mult[1] = clamp(roundToInt(options.mTintColor->g * 0x100), -0x10000, 0x10000);
+			mult[2] = clamp(roundToInt(options.mTintColor->b * 0x100), -0x10000, 0x10000);
+			mult[3] = clamp(roundToInt(options.mTintColor->a * 0x100), -0x10000, 0x10000);
 		}
 		else
 		{
@@ -490,9 +464,9 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 			//  -> Even though tint color may be unused, so that we're just multiplying by 1, but that's expected to be a quite rare case
 			const int add[3] =
 			{
-				(int)(options.mAddedColor->r * 0xff + 0.5f),
-				(int)(options.mAddedColor->g * 0xff + 0.5f),
-				(int)(options.mAddedColor->b * 0xff + 0.5f)
+				roundToInt(options.mAddedColor->r * 0xff),
+				roundToInt(options.mAddedColor->g * 0xff),
+				roundToInt(options.mAddedColor->b * 0xff)
 			};
 			for (int y = 0; y < bitmap.getSize().y; ++y)
 			{
@@ -512,7 +486,7 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 		if (nullptr != options.mTintColor && options.mTintColor->a < 1.0f && options.mBlendMode == BlendMode::ONE_BIT)
 		{
 			options.mBlendMode = BlendMode::ALPHA;
-			const uint8 alphaValue = (uint8)(options.mTintColor->a * 255.0f + 0.5f);
+			const uint8 alphaValue = (uint8)roundToInt(options.mTintColor->a * 255.0f);
 			for (int y = 0; y < bitmap.getSize().y; ++y)
 			{
 				uint8* dst = (uint8*)bitmap.getLinePointer(y);
@@ -533,21 +507,30 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 		{
 			uint32* dst = bitmap.getLinePointer(y);
 			int k = 0;
-			if (sizeof(void*) == 8)
-			{
-				// On 64-bit architectures: Process 2 pixels at once
-				for (; k < numPixels; k += 2)
-				{
-					const uint64 colors = *(uint64*)dst;
-					*(uint64*)dst = ((colors & 0x00ff000000ff0000ull) >> 16) | (colors & 0xff00ff00ff00ff00ull) | ((colors & 0x000000ff000000ffull) << 16);
-					dst += 2;
-				}
-			}
-			// Process single pixels
+#if defined(PLATFORM_PS3)
+			// PS3/BE uses RGBA32 (RRGGBBAA in memory)
+			const uint32 redMask   = 0xff000000;
+			const uint32 greenMask = 0x00ff0000;
+			const uint32 blueMask  = 0x0000ff00;
+			const uint32 alphaMask = 0x000000ff;
+			const int shift = 16;
+#else
+			// Others/LE uses ABGR32 (AABBGGRR in memory)
+			const uint32 redMask   = 0x000000ff;
+			const uint32 greenMask = 0x0000ff00;
+			const uint32 blueMask  = 0x00ff0000;
+			const uint32 alphaMask = 0xff000000;
+			const int shift = 16;
+#endif
+
 			for (; k < numPixels; ++k)
 			{
 				const uint32 color = *dst;
-				*dst = ((color & 0x00ff0000) >> 16) | (color & 0xff00ff00) | ((color & 0x000000ff) << 16);
+#if defined(PLATFORM_PS3)
+				*dst = ((color & redMask) >> shift) | (color & greenMask) | ((color & blueMask) << shift) | (color & alphaMask);
+#else
+				*dst = ((color & redMask) << shift) | (color & greenMask) | ((color & blueMask) >> shift) | (color & alphaMask);
+#endif
 				++dst;
 			}
 		}

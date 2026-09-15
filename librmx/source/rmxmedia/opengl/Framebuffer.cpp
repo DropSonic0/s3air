@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,7 +13,7 @@
 
 /* ----- Renderbuffer ---------------------------------------------------------------------------------------------- */
 
-Renderbuffer::Renderbuffer()
+Renderbuffer::Renderbuffer() : mHandle(0), mFormat(0), mWidth(0), mHeight(0)
 {
 }
 
@@ -72,7 +72,7 @@ void Renderbuffer::destroy()
 
 /* ----- Framebuffer ----------------------------------------------------------------------------------------------- */
 
-Framebuffer::Framebuffer()
+Framebuffer::Framebuffer() : mHandle(0), mWidth(0), mHeight(0)
 {
 }
 
@@ -96,10 +96,8 @@ void Framebuffer::create(int width, int height)
 void Framebuffer::finishCreation()
 {
 	// Just do some final checks
-#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	RMX_CHECK(status == GL_FRAMEBUFFER_COMPLETE, "Failed to create framebuffer with error: " << rmx::hexString(status, 4) << " (OpenGL error: " << getGLErrorDescription(glGetError()) << ")", );
-#endif
 }
 
 void Framebuffer::destroy()
@@ -157,8 +155,13 @@ void Framebuffer::attachRenderbuffer(GLenum attachment, GLuint handle)
 
 void Framebuffer::createRenderbuffer(GLenum attachment, GLenum internalformat)
 {
-	Renderbuffer* renderbuffer = mapFindOrDefault(mRenderbuffers, attachment, nullptr);
-	if (nullptr == renderbuffer)
+	Renderbuffer* renderbuffer = nullptr;
+	Renderbuffer** found = mapFind(mRenderbuffers, attachment);
+	if (nullptr != found)
+	{
+		renderbuffer = *found;
+	}
+	else
 	{
 		renderbuffer = new Renderbuffer();
 		mRenderbuffers.insert(std::make_pair(attachment, renderbuffer));

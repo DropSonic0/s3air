@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2026 by Eukaryot
+	Copyright (C) 2017-2024 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -21,7 +21,7 @@ function void UpdateWater()
 		return
 	}
 
-	if (u8[0xffffee30] == 0 && u8[0xffffb000 + 0x05] < base_state.DIED)
+	if (u8[0xffffee30] == 0 && u8[0xffffb000 + 0x05] < 0x06)
 	{
 		fn006f4a()
 		UpdateWaterSurfaceLevel()
@@ -356,8 +356,8 @@ function void fn00730c()
 
 				objA1.state = char.state.GOT_HURT_PANIC
 				objA1.position.y.u16 += s8(u8[A1 + 0x1e] - 0x0e)
-				objA1.hitbox_extends.x = char.hitbox.x.ROLLING
 				objA1.hitbox_extends.y = char.hitbox.y.ROLLING
+				objA1.hitbox_extends.x = char.hitbox.x.ROLLING
 				objA1.flags2a &= ~(char.flag.ROLLING | char.flag.CONTROL_LOCK)
 				u8[A1 + 0x2b] |= char.bonus.INFINITE_INERTIA
 
@@ -430,7 +430,7 @@ function void fn006f90()
 		D1.u16 = objA1.position.y.u16
 		if (D0.u16 >= u16[A2] && D0.u16 < u16[A2 + 4] && D1.u16 >= u16[A2 + 2] && D1.u16 < u16[A2 + 6])
 		{
-			if (u8[A1 + 0x05] >= base_state.HURT)
+			if (u8[A1 + 0x05] >= 4)
 			{
 				u8[A3] = 0
 				return
@@ -680,26 +680,26 @@ function void UpdateWaterSurfaceLevel.LBZ2()
 			// Special handling for Knuckles on Sonic's route (only before the cutscene starts)
 			if (checkpoint.number == 5 && camera.position.x.u16 < 0x3c00)
 			{
-				// Adjust water height to match Sonic's, as it normally rises a bit too low #contributed by mrgrassman14
-				water.height.current = 0x065e
-				water.height.next = 0x065e
+				water.height.current = 0x0660
+				water.height.next = 0x0660
 				return
 			}
 		#endif
+
 			A1 = 0x006f12
 			fn006f2c()
 		}
 		else
 		{
 		#if STANDALONE
-			if (water.height.next > 0x065e)
+			if (water.height.next > 0x0660)
 			{
 				// Revised handling of rising water:
-				//  -> Do not set the water level to the target level (at 0x065e) too early, as this makes things a bit unfair for slower players
+				//  -> Do not set the water level to the target level (at 0x0660) too early, as this makes things a bit unfair for slower players
 				//  -> But when you're fast, make sure the water can keep up -- this is needed to prevent the water from rising too slow and leaving abroken background at the exit for really fast players
 				if (camera.position.y.u16 >= water.height.next && camera.position.y.u16 < 0x08e0)
 				{
-					water.height.next = 0x065e
+					water.height.next = 0x0660
 				}
 				else if (camera.position.y.u16 + getScreenHeight() < water.height.next)
 				{
@@ -720,16 +720,6 @@ function void UpdateWaterSurfaceLevel.LBZ2()
 //# address-hook(0x006f1a) end(0x006f1a)
 function void UpdateWaterSurfaceLevel.Empty2()
 {
-}
-
-
-//# address-hook(0x006f1c) end(0x006f2a)
-function void UpdateWaterSurfaceLevel.Outro()
-{
-	if (camera.position.x.u16 >= 0x1de0)
-	{
-		water.height.target = 0x0510
-	}
 }
 
 

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "lemon/basics/GenericManager.h"
+#include "lemon/compiler/GenericManager.h"
 #include "lemon/program/DataType.h"
 
 
@@ -21,19 +21,40 @@ namespace lemon
 	class API_EXPORT Token : public genericmanager::Element<Token>
 	{
 	public:
+		enum class Type : uint8		// Keep values under 0x80 for optimizations in "genericmanager::ElementFactoryMap" to work
+		{
+			KEYWORD,
+			VARTYPE,
+			OPERATOR,
+			LABEL,
+
+			// Statements
+			STATEMENT = 0x40,
+			CONSTANT,
+			IDENTIFIER,
+			PARENTHESIS,
+			COMMA_SEPARATED,
+			UNARY_OPERATION,
+			BINARY_OPERATION,
+			VARIABLE,
+			FUNCTION,
+			MEMORY_ACCESS,
+			VALUE_CAST
+		};
+
+	public:
 		virtual ~Token() {}
 
-		inline bool isStatement() const  { return (getType() & 0x10000000) != 0; }
+		inline Type getType() const  { return (Type)genericmanager::Element<Token>::getType(); }
+		inline bool isStatement() const  { return (genericmanager::Element<Token>::getType() & (uint32)Type::STATEMENT) != 0; }
+
+		template<typename T> bool isA() const { return getType() == T::TYPE; }
+
+		template<typename T> const T& as() const  { return *static_cast<const T*>(this); }
+		template<typename T> T& as()  { return *static_cast<T*>(this); }
 
 	protected:
-		inline Token(Type type) : genericmanager::Element<Token>(type) {}
-
-	protected:
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-		static constexpr Type assignType(const char* data, bool isStatement)  { return (rmx::constMurmur2_64(data) & 0x0fffffff) + isStatement * 0x10000000; }
-#else
-		static inline Type assignType(const char* data, bool isStatement)  { return (rmx::constMurmur2_64(data) & 0x0fffffff) + isStatement * 0x10000000; }
-#endif
+		inline Token(Type type) : genericmanager::Element<Token>((uint32)type) {}
 	};
 
 

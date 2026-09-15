@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -50,15 +50,15 @@ namespace lemon
 		}
 
 		template<typename T>
-		FORCE_INLINE T readLocalVariable(size_t offset) const
+		FORCE_INLINE T readLocalVariable(size_t index) const
 		{
-			return mControlFlow->readLocalVariable<T>(offset);
+			return BaseTypeConversion::convert<int64, T>(mControlFlow->mCurrentLocalVariables[index]);
 		}
 
 		template<typename T>
-		FORCE_INLINE void writeLocalVariable(size_t offset, T value) const
+		FORCE_INLINE void writeLocalVariable(size_t index, T value) const
 		{
-			return mControlFlow->writeLocalVariable(offset, value);
+			mControlFlow->mCurrentLocalVariables[index] = BaseTypeConversion::convert<T, int64>(value);
 		}
 	};
 }

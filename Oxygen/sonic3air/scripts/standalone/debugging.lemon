@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2026 by Eukaryot
+	Copyright (C) 2017-2024 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -102,7 +102,7 @@ function void OxygenCallback.setupCustomSidePanelEntries()
 function void setupCharactersSidePanelEntry()
 {
 	// Characters panel
-	if (System.SidePanel.setupCustomCategory("C", "Characters"))
+	if (System.SidePanel.setupCustomCategory("C", "CHARACTERS"))
 	{
 		bool showCharacter1 = System.SidePanel.addOption("Show first character", true)
 		bool showCharacter2 = System.SidePanel.addOption("Show second character", false)
@@ -142,7 +142,7 @@ function void setupCharactersSidePanelEntry()
 function void setupGameObjectsSidePanelEntry()
 {
 	// Game Objects panel
-	if (System.SidePanel.setupCustomCategory("O", "Game Objects"))
+	if (System.SidePanel.setupCustomCategory("O", "GAME OBJECTS"))
 	{
 		bool showEmptySlots    = System.SidePanel.addOption("Show empty object slots", true)
 		bool showUpdateRoutine = System.SidePanel.addOption("Show update routine", true)
@@ -184,9 +184,7 @@ function void setupGameObjectsSidePanelEntry()
 
 			if (System.SidePanel.isEntryHovered(address))
 			{
-				u16 boxSizeX = max(u8[address + 0x07], 1)
-				u16 boxSizeY = max(u8[address + 0x06], 1)
-				debugDrawRect(px - boxSizeX, py - boxSizeY, boxSizeX * 2, boxSizeY * 2, 0xc00080ff)
+				debugDrawRect(px - 15, py - 15, 31, 31, 0xc00080ff)
 			}
 		}
 	}

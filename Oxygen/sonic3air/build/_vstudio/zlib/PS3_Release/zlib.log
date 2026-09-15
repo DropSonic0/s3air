@@ -1,0 +1,55 @@
+﻿Build started 14/9/2026 20:14:06.
+     1>Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\zlib\zlib.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         adler32.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\adler32.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\adler32.c
+         compress.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\compress.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\compress.c
+         crc32.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\crc32.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\crc32.c
+         deflate.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\deflate.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\deflate.c
+         gzio.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\gzio.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\gzio.c
+         infblock.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\infblock.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\infblock.c
+         infcodes.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\infcodes.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\infcodes.c
+         inffast.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\inffast.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\inffast.c
+         inflate.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\inflate.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\inflate.c
+         inftrees.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\inftrees.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\inftrees.c
+         infutil.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\infutil.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\infutil.c
+         trees.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\trees.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\trees.c
+         uncompr.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\uncompr.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\uncompr.c
+         zutil.c
+         ps3ppusnc.exe -DNDEBUG -D__CELL_ASSERT__ -D__PS3__ -o PS3_Release\zutil.o -c -Xdepmode=1 -MD -Xmserrors -IC:\s3air\framework\external\zlib\zlib -I. -IC:/usr/local/cell\target\ppu\include -IC:/usr/local/cell\target\common\include -I"C:/usr/local/cell\host-win32\sn\ppu\include" -O2 -Xc-=rtti C:\s3air\Oxygen\libs\zlib\zutil.c
+       Lib:
+         C:\usr\local\cell\host-win32\sn\bin\ps3snarl.exe create C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Release\zlib.a
+         addmod PS3_Release\adler32.o
+         addmod PS3_Release\compress.o
+         addmod PS3_Release\crc32.o
+         addmod PS3_Release\deflate.o
+         addmod PS3_Release\gzio.o
+         addmod PS3_Release\infblock.o
+         addmod PS3_Release\infcodes.o
+         addmod PS3_Release\inffast.o
+         addmod PS3_Release\inflate.o
+         addmod PS3_Release\inftrees.o
+         addmod PS3_Release\infutil.o
+         addmod PS3_Release\trees.o
+         addmod PS3_Release\uncompr.o
+         addmod PS3_Release\zutil.o
+         save
+         end
+         zlib.vcxproj -> C:\s3air\Oxygen\sonic3air\build\_vstudio\PS3_Release\zlib.a
+     1>Done Building Project "C:\s3air\Oxygen\sonic3air\build\_vstudio\zlib\zlib.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.20

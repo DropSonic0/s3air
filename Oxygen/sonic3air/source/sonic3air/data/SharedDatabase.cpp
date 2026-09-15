@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,12 +8,11 @@
 
 #include "sonic3air/pch.h"
 #include "sonic3air/data/SharedDatabase.h"
-#include "sonic3air/ConfigurationImpl.h"
 
 #include "oxygen/application/Configuration.h"
-#include "oxygen/resources/SpriteCollection.h"
+#include "oxygen/resources/SpriteCache.h"
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
+
 bool SharedDatabase::mIsInitialized = false;
 std::vector<SharedDatabase::Zone> SharedDatabase::mAllZones;
 std::vector<SharedDatabase::Zone> SharedDatabase::mAvailableZones;
@@ -21,7 +20,6 @@ std::unordered_map<uint32, SharedDatabase::Setting> SharedDatabase::mSettings;
 std::vector<SharedDatabase::Achievement> SharedDatabase::mAchievements;
 std::map<uint32, SharedDatabase::Achievement*> SharedDatabase::mAchievementMap;
 std::vector<SharedDatabase::Secret> SharedDatabase::mSecrets;
-#endif
 
 
 void SharedDatabase::initialize()
@@ -83,8 +81,9 @@ void SharedDatabase::initialize()
 		addAchievement(Achievement::ACHIEVEMENT_FBZ_FREE_ANIMALS,		"Squirrels on a plane", "Free 35 animals in Flying Battery Zone Act 1 before the boss.", "", "animals");
 		addAchievement(Achievement::ACHIEVEMENT_SSZ_DECOYS,				"No touchy", "Fight the second boss in Sonic's Sky Sanctuary but pop at most one of the inflatable Mechas.", "", "decoys");
 
-		for (Achievement& achievement : mAchievements)
+		for (size_t i = 0; i < mAchievements.size(); ++i)
 		{
+			Achievement& achievement = mAchievements[i];
 			mAchievementMap[achievement.mType] = &achievement;
 		}
 	}
@@ -124,8 +123,10 @@ void SharedDatabase::initialize()
 
 const SharedDatabase::Zone* SharedDatabase::getZoneByInternalIndex(uint8 index)
 {
-	for (const SharedDatabase::Zone& zone : SharedDatabase::getAllZones())
+	const std::vector<Zone>& allZones = SharedDatabase::getAllZones();
+	for (size_t i = 0; i < allZones.size(); ++i)
 	{
+		const SharedDatabase::Zone& zone = allZones[i];
 		if (zone.mInternalIndex == index)
 		{
 			return &zone;
@@ -150,47 +151,38 @@ uint64 SharedDatabase::setupCharacterSprite(EmulatorInterface& emulatorInterface
 	}
 	else
 	{
-		if (animationSprite >= 0xfb)	// Filter out invalid sprite numbers that might lead to garbage and misbehavior
-			return 0;
-
-		SpriteCollection::ROMSpriteData romSpriteData;
+		uint32 sourceBase;
+		uint32 tableAddress;
+		uint32 mappingOffset;
 		switch (character)
 		{
 			default:
 			case 0:		// Sonic
-				romSpriteData.mPatternsBaseAddress = (animationSprite >= 0xda) ? 0x140060 : 0x100000;
-				romSpriteData.mTableAddress  = (superActive) ? 0x148378 : 0x148182;
-				romSpriteData.mMappingOffset = (superActive) ? 0x146816 : 0x146620;
+				sourceBase    = (animationSprite >= 0xda) ? 0x140060 : 0x100000;
+				tableAddress  = (superActive) ? 0x148378 : 0x148182;
+				mappingOffset = (superActive) ? 0x146816 : 0x146620;
 				break;
 
 			case 1:		// Tails
-				romSpriteData.mPatternsBaseAddress = (animationSprite >= 0xd1) ? 0x143d00 : 0x3200e0;
-				romSpriteData.mTableAddress  = 0x14a08a;
-				romSpriteData.mMappingOffset = 0x148eb8;
+				sourceBase    = (animationSprite >= 0xd1) ? 0x143d00 : 0x3200e0;
+				tableAddress  = 0x14a08a;
+				mappingOffset = 0x148eb8;
 				break;
 
 			case 2:		// Knuckles
-				romSpriteData.mPatternsBaseAddress = 0x1200e0;
-				romSpriteData.mTableAddress  = 0x14bd0a;
-				romSpriteData.mMappingOffset = 0x14a8d6;
+				sourceBase    = 0x1200e0;
+				tableAddress  = 0x14bd0a;
+				mappingOffset = 0x14a8d6;
 				break;
 		}
 
-		romSpriteData.mAnimationSprite = (uint8)animationSprite;
-		romSpriteData.mEncoding = SpriteCollection::ROMSpriteEncoding::CHARACTER;
-		return SpriteCollection::instance().setupSpriteFromROM(emulatorInterface, romSpriteData, 0x00).mKey;
+		return SpriteCache::instance().setupSpriteFromROM(emulatorInterface, sourceBase, tableAddress, mappingOffset, (uint8)animationSprite, 0x00, SpriteCache::ROMSpriteEncoding::CHARACTER);
 	}
 }
 
 uint64 SharedDatabase::setupTailsTailsSprite(EmulatorInterface& emulatorInterface, uint8 animationSprite)
 {
-	SpriteCollection::ROMSpriteData romSpriteData;
-	romSpriteData.mPatternsBaseAddress = 0x336620;
-	romSpriteData.mTableAddress = 0x344d74;
-	romSpriteData.mMappingOffset = 0x344bb8;
-	romSpriteData.mAnimationSprite = animationSprite;
-	romSpriteData.mEncoding = SpriteCollection::ROMSpriteEncoding::CHARACTER;
-	return SpriteCollection::instance().setupSpriteFromROM(emulatorInterface, romSpriteData, 0x00).mKey;
+	return SpriteCache::instance().setupSpriteFromROM(emulatorInterface, 0x336620, 0x344d74, 0x344bb8, animationSprite, 0x00, SpriteCache::ROMSpriteEncoding::CHARACTER);
 }
 
 uint8 SharedDatabase::getTailsTailsAnimationSprite(uint8 characterAnimationSprite, uint32 globalTime)
@@ -229,7 +221,14 @@ const SharedDatabase::Setting* SharedDatabase::getSetting(uint32 settingId)
 
 uint32 SharedDatabase::getSettingValue(uint32 settingId)
 {
-	return ConfigurationImpl::instance().mActiveGameSettings->getValue(settingId);
+	const SharedDatabase::Setting* setting = getSetting(settingId);
+	if (nullptr != setting)
+	{
+		return setting->mCurrentValue;
+	}
+
+	// Use default value
+	return (settingId & 0xff);
 }
 
 SharedDatabase::Achievement* SharedDatabase::getAchievement(uint32 achievementId)
@@ -244,17 +243,18 @@ const std::vector<SharedDatabase::Achievement>& SharedDatabase::getAchievements(
 
 void SharedDatabase::resetAchievementValues()
 {
-	for (Achievement& achievement : mAchievements)
+	for (size_t i = 0; i < mAchievements.size(); ++i)
 	{
-		achievement.mValue = 0;
+		mAchievements[i].mValue = 0;
 	}
 }
 
 SharedDatabase::Secret* SharedDatabase::getSecret(uint32 secretId)
 {
 	// No additional std::map used to optimize this, as the number of secrets is very low
-	for (Secret& secret : mSecrets)
+	for (size_t i = 0; i < mSecrets.size(); ++i)
 	{
+		Secret& secret = mSecrets[i];
 		if (secret.mType == secretId)
 			return &secret;
 	}
@@ -266,6 +266,7 @@ SharedDatabase::Setting& SharedDatabase::addSetting(SharedDatabase::Setting::Typ
 	SharedDatabase::Setting& setting = mSettings[(uint32)id];
 	setting.mSettingId = id;
 	setting.mIdentifier = std::string(identifier).substr(9);
+	setting.mCurrentValue = ((uint32)id & 0xff);
 	setting.mDefaultValue = ((uint32)id & 0xff);
 	setting.mSerializationType = serializationType;
 	setting.mPurelyVisual = ((uint32)id & 0x80000000) != 0;
@@ -284,27 +285,16 @@ void SharedDatabase::setupSettings()
 	addSetting(IDPARAMS(Setting::SETTING_CANCEL_FLIGHT), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_SUPER_CANCEL), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_INSTA_SHIELD), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_LEVELRESULT_SCORE), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_HYPER_TAILS), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_SHIELD_TYPES), Setting::SerializationType::ALWAYS);
 
 	addSetting(IDPARAMS(Setting::SETTING_AIZ_BLIMPSEQUENCE), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_AIZ_INTRO_KNUCKLES), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_HCZ_WATERPIPE), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_LBZ_TUBETRANSPORT), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_LBZ_CUPELEVATOR), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_LBZ_BIGARMS), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_MHZ_ELEVATOR), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_FBZ_ENTERCYLINDER), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_FBZ_SCREWDOORS), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_FASTER_PUSH), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_SOZ_PYRAMID), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_LRZ2_BOSS), Setting::SerializationType::ALWAYS);
 
 	addSetting(IDPARAMS(Setting::SETTING_EXTENDED_HUD), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_SMOOTH_ROTATION), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_SPEEDUP_AFTERIMGS), Setting::SerializationType::ALWAYS);
-	addSetting(IDPARAMS(Setting::SETTING_PLAYER2_OFFSCREEN), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_BS_VISUAL_STYLE), Setting::SerializationType::ALWAYS);
 
 	addSetting(IDPARAMS(Setting::SETTING_INFINITE_LIVES), Setting::SerializationType::ALWAYS);
@@ -318,7 +308,6 @@ void SharedDatabase::setupSettings()
 	addSetting(IDPARAMS(Setting::SETTING_BS_REPEAT_ON_FAIL), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_DISABLE_GHOST_SPAWN), Setting::SerializationType::ALWAYS);
 
-	addSetting(IDPARAMS(Setting::SETTING_HIDDEN_MONITOR_HINT), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_SUPERFAST_RUNANIM), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_MONITOR_STYLE), Setting::SerializationType::ALWAYS);
 	addSetting(IDPARAMS(Setting::SETTING_HYPER_DASH_CONTROLS), Setting::SerializationType::ALWAYS);

@@ -1,23 +1,24 @@
+#include "rmxmedia.h"
+
+#if !defined(PLATFORM_PS3)
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
 */
 
-#include "rmxmedia.h"
-
 
 namespace rmx
 {
 
-	FileInputStreamSDL::FileInputStreamSDL(const String& filename)
+	FileInputStreamSDL::FileInputStreamSDL(const String& filename) : mContext(nullptr), mLastStreamingState(InputStream::StreamingState::COMPLETED)
 	{
 		open(filename);
 	}
 
-	FileInputStreamSDL::FileInputStreamSDL(const WString& filename)
+	FileInputStreamSDL::FileInputStreamSDL(const WString& filename) : mContext(nullptr), mLastStreamingState(InputStream::StreamingState::COMPLETED)
 	{
 		open(filename);
 	}
@@ -31,7 +32,7 @@ namespace rmx
 	{
 		close();
 		mContext = SDL_RWFromFile(*filename, "r");
-		mLastStreamingState = (nullptr != mContext) ? StreamingState::STREAMING : StreamingState::COMPLETED;
+		mLastStreamingState = (nullptr != mContext) ? InputStream::StreamingState::STREAMING : InputStream::StreamingState::COMPLETED;
 		return (nullptr != mContext);
 	}
 
@@ -39,7 +40,7 @@ namespace rmx
 	{
 		close();
 		mContext = SDL_RWFromFile(*filename.toUTF8(), "r");
-		mLastStreamingState = (nullptr != mContext) ? StreamingState::STREAMING : StreamingState::COMPLETED;
+		mLastStreamingState = (nullptr != mContext) ? InputStream::StreamingState::STREAMING : InputStream::StreamingState::COMPLETED;
 		return (nullptr != mContext);
 	}
 
@@ -50,7 +51,7 @@ namespace rmx
 			SDL_RWclose(mContext);
 			mContext = nullptr;
 		}
-		mLastStreamingState = StreamingState::COMPLETED;
+		mLastStreamingState = InputStream::StreamingState::COMPLETED;
 	}
 
 	int64 FileInputStreamSDL::getSize64() const
@@ -69,7 +70,7 @@ namespace rmx
 			return;
 
 		SDL_RWseek(mContext, pos, RW_SEEK_SET);
-		mLastStreamingState = StreamingState::STREAMING;
+		mLastStreamingState = InputStream::StreamingState::STREAMING;
 	}
 
 	size_t FileInputStreamSDL::read(void* dst, size_t len)
@@ -78,7 +79,7 @@ namespace rmx
 			return 0;
 
 		const size_t readBytes = SDL_RWread(mContext, dst, 1, len);
-		mLastStreamingState = (readBytes == 0) ? StreamingState::COMPLETED : StreamingState::STREAMING;
+		mLastStreamingState = (readBytes == 0) ? InputStream::StreamingState::COMPLETED : InputStream::StreamingState::STREAMING;
 		return readBytes;
 	}
 
@@ -102,10 +103,10 @@ namespace rmx
 		return false;
 	}
 
-	InputStream::StreamingState FileInputStreamSDL::getStreamingState()
-	{
-		StreamingState result = StreamingState::BLOCKED;
-		if (mLastStreamingState == StreamingState::BLOCKED)
+    InputStream::StreamingState_t FileInputStreamSDL::getStreamingState()
+    {
+		InputStream::StreamingState_t result = InputStream::StreamingState::BLOCKED;
+		if (mLastStreamingState == InputStream::StreamingState::BLOCKED)
 		{
 			// Getting here means that "getStreamingState" got called multiple times in a row
 			uint8 value = 0;
@@ -113,11 +114,11 @@ namespace rmx
 			if (readBytes > 0)
 			{
 				SDL_RWseek(mContext, SDL_RWtell(mContext) - 1, RW_SEEK_SET);
-				result = StreamingState::STREAMING;
+				result = InputStream::StreamingState::STREAMING;
 			}
 			else
 			{
-				result = StreamingState::COMPLETED;
+				result = InputStream::StreamingState::COMPLETED;
 			}
 		}
 		else
@@ -125,8 +126,9 @@ namespace rmx
 			// Streaming state was set in last "read", so return its result
 			result = mLastStreamingState;
 		}
-		mLastStreamingState = StreamingState::BLOCKED;
+		mLastStreamingState = InputStream::StreamingState::BLOCKED;
 		return result;
-	}
+    }
 
 }
+#endif

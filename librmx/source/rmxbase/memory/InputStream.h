@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -21,12 +21,26 @@ namespace StreamIO
 class API_EXPORT InputStream
 {
 public:
+#if defined(PLATFORM_PS3)
+	struct StreamingState
+	{
+		enum Enum
+		{
+			STREAMING,		// Next read will likely return more data
+			BLOCKED,		// Reading is currently blocked, try again later
+			COMPLETED		// Stream is read completely, reads will not return any more data
+		};
+	};
+	typedef StreamingState::Enum StreamingState_t;
+#else
 	enum class StreamingState
 	{
 		STREAMING,		// Next read will likely return more data
 		BLOCKED,		// Reading is currently blocked, try again later
 		COMPLETED		// Stream is read completely, reads will not return any more data
 	};
+	typedef StreamingState StreamingState_t;
+#endif
 
 public:
 	virtual ~InputStream() {}
@@ -43,7 +57,7 @@ public:
 	virtual size_t read(void* dst, size_t len) = 0;
 	virtual void skip(size_t len) = 0;
 	virtual bool tryRead(const void* data, size_t len) = 0;
-	virtual StreamingState getStreamingState() = 0;
+	virtual StreamingState_t getStreamingState() = 0;
 	virtual void rewind()  { setPosition(0); }
 
 	template<typename T> T read()
@@ -108,30 +122,33 @@ class API_EXPORT MemInputStream : public InputStream
 public:
 	MemInputStream(const void* data, size_t size, bool autoDelete = false);
 	MemInputStream(InputStream& input);
+	MemInputStream();
 	~MemInputStream();
 
-	bool valid() const override { return (nullptr != mBuffer); }
-	void close() override;
-	const char* getType() const override { return "mem"; }
+	bool valid() const  { return (nullptr != mBuffer); }
+	void close() ;
+	const char* getType() const  { return "mem"; }
 
-	void setPosition(size_t pos) override	{ mCursor = mBuffer + pos; assert(mCursor <= mBufferEnd); }
-	size_t getPosition() const override  { return (size_t)(mCursor - mBuffer); }
-	size_t getSize() const override  { return (size_t)(mBufferEnd - mBuffer); }
-	size_t getRemaining() const override  { return (size_t)(mBufferEnd - mCursor); }
+	void setPosition(size_t pos) 	{ mCursor = mBuffer + pos; assert(mCursor <= mBufferEnd); }
+	size_t getPosition() const   { return (size_t)(mCursor - mBuffer); }
+	size_t getSize() const   { return (size_t)(mBufferEnd - mBuffer); }
+	size_t getRemaining() const   { return (size_t)(mBufferEnd - mCursor); }
 
-	using InputStream::read;
-	size_t read(void* dst, size_t len) override;
-	void skip(size_t len) override;
-	bool tryRead(const void* data, size_t len) override;
-	StreamingState getStreamingState() override;
+#if !defined(PLATFORM_PS3)
+	 
+#endif
+	size_t read(void* dst, size_t len) ;
+	void skip(size_t len) ;
+	bool tryRead(const void* data, size_t len) ;
+	StreamingState_t getStreamingState() ;
 
 	const uint8* getCursor()  { return mCursor; }
 
 protected:
-	const uint8* mBuffer = nullptr;
-	const uint8* mBufferEnd = nullptr;
-	const uint8* mCursor = nullptr;
-	bool mAutoDelete = false;
+	const uint8* mBuffer;
+	const uint8* mBufferEnd;
+	const uint8* mCursor;
+	bool mAutoDelete;
 };
 
 
@@ -139,7 +156,7 @@ protected:
 class API_EXPORT FileInputStream : public InputStream
 {
 public:
-	FileInputStream() {}
+	FileInputStream();
 	FileInputStream(const String& filename);
 	FileInputStream(const WString& filename);
 	~FileInputStream();
@@ -147,25 +164,27 @@ public:
 	bool open(const String& filename);
 	bool open(const WString& filename);
 
-	const char* getType() const override { return "file"; }
-	bool valid() const override { return mFile.isOpen(); }
-	void close() override;
+	const char* getType() const  { return "file"; }
+	bool valid() const  { return mFile.isOpen(); }
+	void close() ;
 
 	void  setPosition64(int64 pos);
 	int64 getPosition64() const;
 	int64 getSize64() const;
 
-	void setPosition(size_t pos) override  { setPosition64((int64)pos); }
-	size_t getPosition() const override  { return (size_t)getPosition64(); }
-	size_t getSize() const override  { return (size_t)getSize64(); }
+	void setPosition(size_t pos)   { setPosition64((int64)pos); }
+	size_t getPosition() const   { return (size_t)getPosition64(); }
+	size_t getSize() const   { return (size_t)getSize64(); }
 
-	using InputStream::read;
-	size_t read(void* dst, size_t len) override;
-	void skip(size_t len) override;
-	bool tryRead(const void* data, size_t len) override;
-	StreamingState getStreamingState() override;
+#if !defined(PLATFORM_PS3)
+	 
+#endif
+	size_t read(void* dst, size_t len) ;
+	void skip(size_t len) ;
+	bool tryRead(const void* data, size_t len) ;
+	StreamingState_t getStreamingState() ;
 
 private:
 	FileHandle mFile;
-	StreamingState mLastStreamingState = StreamingState::COMPLETED;
+	StreamingState_t mLastStreamingState;
 };

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2026 by Eukaryot
+*	Copyright (C) 2017-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,14 +13,18 @@
 
 void TextInputHandler::setText(std::wstring_view text, bool moveCursorToEnd)
 {
-	mText = text;
+	mText.assign(text.data(), text.length());
 	setCursorPosition(moveCursorToEnd ? mText.length() : mCursorPosition);
 }
 
 void TextInputHandler::setCursorPosition(size_t position)
 {
 	mCursorPosition = (size_t)clamp((int)position, 0, (int)mText.length());
+#if defined(PLATFORM_PS3)
+	mMarkedRangeStart = std::optional<size_t>();
+#else
 	mMarkedRangeStart.reset();
+#endif
 }
 
 void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
@@ -57,7 +61,7 @@ void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
 
 		case SDLK_BACKSPACE:
 		{
-			if (mMarkedRangeStart.has_value())
+			if ((bool)mMarkedRangeStart)
 			{
 				deleteMarkedRange();
 			}
@@ -71,7 +75,7 @@ void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
 
 		case SDLK_DELETE:
 		{
-			if (mMarkedRangeStart.has_value())
+			if ((bool)mMarkedRangeStart)
 			{
 				deleteMarkedRange();
 			}
@@ -89,12 +93,16 @@ void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
 				if (mText.empty())
 				{
 					mCursorPosition = 0;
+#if defined(PLATFORM_PS3)
+					mMarkedRangeStart = std::optional<size_t>();
+#else
 					mMarkedRangeStart.reset();
+#endif
 				}
 				else
 				{
 					mCursorPosition = mText.length();
-					mMarkedRangeStart = 0;
+					mMarkedRangeStart = std::optional<size_t>(0);
 				}
 			}
 			break;
@@ -105,11 +113,11 @@ void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
 		{
 			if (PlatformFunctions::hasClipboardSupport() && (SDL_GetModState() & KMOD_CTRL) != 0)
 			{
-				if (mMarkedRangeStart.has_value())
+				if ((bool)mMarkedRangeStart)
 				{
-					const size_t rangeStart = std::min(*mMarkedRangeStart, mCursorPosition);
-					const size_t rangeEnd = std::max(*mMarkedRangeStart, mCursorPosition);
-					const std::wstring_view markedText = std::wstring_view(mText).substr(rangeStart, rangeEnd - rangeStart);
+					const size_t rangeStart = std::min(mMarkedRangeStart.value(), mCursorPosition);
+					const size_t rangeEnd = std::max(mMarkedRangeStart.value(), mCursorPosition);
+					const std::wstring markedText = std::wstring(mText).substr(rangeStart, rangeEnd - rangeStart);
 					PlatformFunctions::copyToClipboard(markedText);
 
 					if (ev.key == 'x')
@@ -125,10 +133,10 @@ void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
 		{
 			if (PlatformFunctions::hasClipboardSupport() && (SDL_GetModState() & KMOD_CTRL) != 0)
 			{
-				std::wstring text;
+				WString text;
 				if (PlatformFunctions::pasteFromClipboard(text))
 				{
-					insertText(text);
+					insertText(std::wstring_view(*text, text.length()));
 				}
 			}
 			break;
@@ -138,17 +146,17 @@ void TextInputHandler::keyboard(const rmx::KeyboardEvent& ev)
 
 void TextInputHandler::textinput(const rmx::TextInputEvent& ev)
 {
-	insertText(ev.text);
+	insertText(std::wstring_view(*ev.text, ev.text.length()));
 }
 
 void TextInputHandler::insertText(std::wstring_view text)
 {
-	if (mMarkedRangeStart.has_value())
+	if ((bool)mMarkedRangeStart)
 	{
 		deleteMarkedRange();
 	}
 
-	mText.insert(mCursorPosition, text);
+	mText.insert(mCursorPosition, text.data(), text.length());
 	moveCursorTo(mCursorPosition + text.length(), false);
 }
 
@@ -159,28 +167,40 @@ void TextInputHandler::moveCursorTo(size_t position, bool considerShift)
 
 	if (considerShift && (SDL_GetModState() & KMOD_SHIFT) != 0)
 	{
-		if (mMarkedRangeStart.has_value())
+		if ((bool)mMarkedRangeStart)
 		{
 			// Reset if marked range start is empty
-			if (mCursorPosition == *mMarkedRangeStart)
+			if (mCursorPosition == mMarkedRangeStart.value())
+#if defined(PLATFORM_PS3)
+				mMarkedRangeStart = std::optional<size_t>();
+#else
 				mMarkedRangeStart.reset();
+#endif
 		}
 		else
 		{
-			mMarkedRangeStart = oldCursorPosition;
+			mMarkedRangeStart = std::optional<size_t>(oldCursorPosition);
 		}
 	}
 	else
 	{
+#if defined(PLATFORM_PS3)
+		mMarkedRangeStart = std::optional<size_t>();
+#else
 		mMarkedRangeStart.reset();
+#endif
 	}
 }
 
 void TextInputHandler::deleteMarkedRange()
 {
-	const size_t rangeStart = std::min(*mMarkedRangeStart, mCursorPosition);
-	const size_t rangeEnd = std::max(*mMarkedRangeStart, mCursorPosition);
+	const size_t rangeStart = std::min(mMarkedRangeStart.value(), mCursorPosition);
+	const size_t rangeEnd = std::max(mMarkedRangeStart.value(), mCursorPosition);
 	mText.erase(rangeStart, rangeEnd - rangeStart);
 	mCursorPosition = rangeStart;
+#if defined(PLATFORM_PS3)
+	mMarkedRangeStart = std::optional<size_t>();
+#else
 	mMarkedRangeStart.reset();
+#endif
 }
