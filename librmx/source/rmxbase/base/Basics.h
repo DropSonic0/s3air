@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -23,7 +23,7 @@ FORCE_INLINE static uint16 swapBytes16(uint16 value)
 {
 #ifdef _MSC_VER
 	return _byteswap_ushort(value);
-#elif (defined(__GNUC__) || defined(__clang__)) && !defined(PLATFORM_PS3)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(__SNC__)
 	return __builtin_bswap16(value);
 #else
 	return (value << 8) | (value >> 8);
@@ -34,7 +34,7 @@ FORCE_INLINE static uint32 swapBytes32(uint32 value)
 {
 #ifdef _MSC_VER
 	return _byteswap_ulong(value);
-#elif (defined(__GNUC__) || defined(__clang__)) && !defined(PLATFORM_PS3)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(__SNC__)
 	return __builtin_bswap32(value);
 #else
 	return (value << 24) | ((value & 0x0000ff00) << 8) | ((value & 0x00ff0000) >> 8) | (value >> 24);
@@ -45,7 +45,7 @@ FORCE_INLINE static uint64 swapBytes64(uint64 value)
 {
 #ifdef _MSC_VER
 	return _byteswap_uint64(value);
-#elif (defined(__GNUC__) || defined(__clang__)) && !defined(PLATFORM_PS3)
+#elif (defined(__GNUC__) || defined(__clang__)) && !defined(__SNC__)
 	return __builtin_bswap64(value);
 #else
 	value = ((value >> 8) & 0x00ff00ff00ff00ffULL) | ((value << 8) & 0xff00ff00ff00ff00ULL);
@@ -64,6 +64,8 @@ namespace rmx
 	template<> uint32 swapBytes(uint32 value);
 	template<> int64  swapBytes(int64 value);
 	template<> uint64 swapBytes(uint64 value);
+	template<> float  swapBytes(float value);
+	template<> double swapBytes(double value);
 }
 
 
@@ -85,7 +87,7 @@ inline float wrapToInterval(float value, float a, float b)
 	const float length = b - a;
 	assert(length > 0.0f);
 	const float normalized = (value - a) / length;
-	return a + (normalized - floor(normalized)) * length;
+	return a + (normalized - std::floor(normalized)) * length;
 }
 
 // Range check
@@ -94,19 +96,27 @@ FORCE_INLINE bool inside(float value, float vmin, float vmax)		{ return (value >
 FORCE_INLINE bool inside(double value, double vmin, double vmax)	{ return (value >= vmin && value <= vmax); }
 
 // Round to integer
-FORCE_INLINE int roundToInt(float value)		{ return (int)floor(value + 0.5f); }
-FORCE_INLINE int roundToInt(double value)		{ return (int)floor(value + 0.5); }
-FORCE_INLINE float roundToFloat(float value)	{ return floor(value + 0.5f); }
-FORCE_INLINE double roundToDouble(double value)	{ return floor(value + 0.5); }
+FORCE_INLINE int roundToInt(float value)		{ return (int)std::floor(value + 0.5f); }
+FORCE_INLINE int roundToInt(double value)		{ return (int)std::floor(value + 0.5); }
+FORCE_INLINE float roundToFloat(float value)	{ return std::floor(value + 0.5f); }
+FORCE_INLINE double roundToDouble(double value)	{ return std::floor(value + 0.5); }
 
 // Round for integer, identity for floats
 template<typename T> static T roundForInt(float value)  { return (T)value; }
-template<> FORCE_INLINE int8 roundForInt<int8>(float value)		{ return (int8)floor(value + 0.5f); }
-template<> FORCE_INLINE uint8 roundForInt<uint8>(float value)	{ return (uint8)floor(value + 0.5f); }
-template<> FORCE_INLINE int16 roundForInt<int16>(float value)	{ return (int16)floor(value + 0.5f); }
-template<> FORCE_INLINE uint16 roundForInt<uint16>(float value)	{ return (uint16)floor(value + 0.5f); }
-template<> FORCE_INLINE int32 roundForInt<int32>(float value)	{ return (int32)floor(value + 0.5f); }
-template<> FORCE_INLINE uint32 roundForInt<uint32>(float value)	{ return (uint32)floor(value + 0.5f); }
+
+template<> inline signed char roundForInt(float value)		{ return (signed char)std::floor(value + 0.5f); }
+template<> inline unsigned char roundForInt(float value)	{ return (unsigned char)std::floor(value + 0.5f); }
+template<> inline signed short roundForInt(float value)		{ return (signed short)std::floor(value + 0.5f); }
+template<> inline unsigned short roundForInt(float value)	{ return (unsigned short)std::floor(value + 0.5f); }
+template<> inline signed int roundForInt(float value)		{ return (signed int)std::floor(value + 0.5f); }
+template<> inline unsigned int roundForInt(float value)		{ return (unsigned int)std::floor(value + 0.5f); }
+
+
+namespace rmx
+{
+	template<typename S, typename T> T convertType(S value)  { return (T)value; }
+	template<> int convertType(float value);
+}
 
 
 // Linear interpolation
@@ -174,10 +184,10 @@ FORCE_INLINE void strCpy(wchar_t* dst, int dstSize, const wchar_t* src)	{ wcscpy
 
 
 // Comparisons
-FORCE_INLINE int compare(int first, int second)		{ return (first < second) ? -1 : (first > second) ? +1 : 0; }
-FORCE_INLINE int compare(float first, float second)	{ return (first < second) ? -1 : (first > second) ? +1 : 0; }
-FORCE_INLINE int compare(void* first, void* second)	{ return (first < second) ? -1 : (first > second) ? +1 : 0; }
-FORCE_INLINE int compare(bool first, bool second)	{ return (first == second) ? 0 : second ? +1 : -1; }
+FORCE_INLINE int compare(int first, int second)					{ return (first < second) ? -1 : (first > second) ? +1 : 0; }
+FORCE_INLINE int compare(float first, float second)				{ return (first < second) ? -1 : (first > second) ? +1 : 0; }
+FORCE_INLINE int compare(const void* first, const void* second)	{ return (first < second) ? -1 : (first > second) ? +1 : 0; }
+FORCE_INLINE int compare(bool first, bool second)				{ return (first == second) ? 0 : second ? +1 : -1; }
 
 #define COMPARE_CASCADE(x) \
 { \

@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -43,17 +43,21 @@ void VideoOut::startup()
 {
 	mGameResolution = Configuration::instance().mGameScreen;
 
-	RMX_LOG_INFO("VideoOut: Setup of game screen");
+	RMX_LOG_INFO("VideoOut: Setup of game screen (" << mGameResolution.x << "x" << mGameResolution.y << ")");
 	EngineMain::instance().getDrawer().createTexture(mGameScreenTexture);
 	mGameScreenTexture.setupAsRenderTarget(mGameResolution.x, mGameResolution.y);
+	RMX_LOG_INFO("VideoOut: Finished game screen setup");
 
 	if (nullptr == mRenderParts)
 	{
 		RMX_LOG_INFO("VideoOut: Creating render parts");
 		mRenderParts = new RenderParts();
+		RMX_LOG_INFO("VideoOut: Finished render parts creation");
 	}
 
+	RMX_LOG_INFO("VideoOut: Creating renderer");
 	createRenderer(false);
+	RMX_LOG_INFO("VideoOut: Startup completed successfully");
 }
 
 void VideoOut::shutdown()
@@ -80,8 +84,7 @@ void VideoOut::handleActiveModsChanged()
 
 void VideoOut::createRenderer(bool reset)
 {
-	Configuration& config = Configuration::instance();
-	setActiveRenderer(config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL, reset);
+	setActiveRenderer(Configuration::instance().mRenderMethod == Configuration::RenderMethod::OPENGL_FULL, reset);
 }
 
 void VideoOut::destroyRenderer()
@@ -115,8 +118,9 @@ void VideoOut::setActiveRenderer(bool useOpenGLRenderer, bool reset)
 			RMX_LOG_INFO("VideoOut: Creating software renderer");
 			mSoftwareRenderer = new SoftwareRenderer(*mRenderParts, mGameScreenTexture);
 
-			RMX_LOG_INFO("VideoOut: Renderer initialization");
+			RMX_LOG_INFO("VideoOut: SoftwareRenderer initialization start");
 			mSoftwareRenderer->initialize();
+			RMX_LOG_INFO("VideoOut: SoftwareRenderer initialization finished");
 		}
 		mActiveRenderer = mSoftwareRenderer;
 	}
@@ -273,20 +277,9 @@ void VideoOut::collectGeometries(std::vector<Geometry*>& geometries)
 	{
 		const PlaneManager& pm = mRenderParts->getPlaneManager();
 		const Recti fullscreenRect(0, 0, mGameResolution.x, mGameResolution.y);
-		Recti rectForPlaneB = fullscreenRect;
-		Recti rectForPlaneA = fullscreenRect;
-		Recti rectForPlaneW = fullscreenRect;
-		if (pm.isPlaneUsed(PlaneManager::PLANE_W))
-		{
-			const int splitY = pm.getPlaneAWSplit();
-			rectForPlaneA.height = splitY;
-			rectForPlaneW.y = splitY;
-			rectForPlaneW.height -= splitY;
-		}
-		else
-		{
-			rectForPlaneW.height = 0;
-		}
+		Recti rectForPlaneB = pm.getPlaneRect(PlaneManager::PLANE_B, fullscreenRect);
+		Recti rectForPlaneA = pm.getPlaneRect(PlaneManager::PLANE_A, fullscreenRect);
+		Recti rectForPlaneW = pm.getPlaneRect(PlaneManager::PLANE_W, fullscreenRect);
 
 		// Plane B non-prio
 		if (mRenderParts->mLayerRendering[0] && pm.isDefaultPlaneEnabled(0))
@@ -335,13 +328,13 @@ void VideoOut::collectGeometries(std::vector<Geometry*>& geometries)
 		}
 	}
 
-	// Add sprite geometries
+	// Add render item geometries (sprites, texts, etc.)
 	{
 		SpriteManager& spriteManager = mRenderParts->getSpriteManager();
 		const Vec2i worldSpaceOffset = mRenderParts->getSpacesManager().getWorldSpaceOffset();
 		FontCollection& fontCollection = FontCollection::instance();
 
-		for (int index = 0; index < RenderItem::NUM_CONTEXTS; ++index)
+		for (int index = 0; index < RenderItem::NUM_LIFETIME_CONTEXTS; ++index)
 		{
 			const RenderItem::LifetimeContext lifetimeContext = (RenderItem::LifetimeContext)index;
 			const std::vector<RenderItem*>& renderItems = spriteManager.getRenderItems(lifetimeContext);
@@ -462,6 +455,16 @@ void VideoOut::collectGeometries(std::vector<Geometry*>& geometries)
 						break;
 					}
 
+					case RenderItem::Type::VIEWPORT:
+					{
+						const renderitems::Viewport& viewport = static_cast<const renderitems::Viewport&>(*renderItem);
+
+						Geometry& geometry = mGeometryFactory.createViewportGeometry(Recti(viewport.mPosition, viewport.mSize));
+						geometry.mRenderQueue = viewport.mRenderQueue;
+						geometries.push_back(&geometry);
+						break;
+					}
+
 					default:
 						break;
 				}
@@ -492,14 +495,6 @@ void VideoOut::collectGeometries(std::vector<Geometry*>& geometries)
 			geometry.mRenderQueue = BLUR_RENDER_QUEUE - 1;
 			geometries.push_back(&geometry);
 		}
-	}
-
-	// Insert viewports
-	for (const RenderParts::Viewport& viewport : mRenderParts->getViewports())
-	{
-		Geometry& geometry = mGeometryFactory.createViewportGeometry(viewport.mRect);
-		geometry.mRenderQueue = viewport.mRenderQueue;
-		geometries.push_back(&geometry);
 	}
 
 	// Sort everything by render queue

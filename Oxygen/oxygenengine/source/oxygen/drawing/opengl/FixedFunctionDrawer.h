@@ -17,21 +17,22 @@ namespace fixedfunctiondrawer
 	struct Internal;
 }
 
-
-class FixedFunctionDrawer final : public DrawerInterface
+class FixedFunctionDrawer : public DrawerInterface
 {
 public:
 	FixedFunctionDrawer();
-	~FixedFunctionDrawer();
+	virtual ~FixedFunctionDrawer();
 
-	inline Drawer::Type getType() override  { return Drawer::Type::OPENGL; }
-	bool wasSetupSuccessful() override;
+	virtual Drawer::Type getType() override { return Drawer::Type::OPENGL; }
+	virtual bool wasSetupSuccessful() override;
 
-	void createTexture(DrawerTexture& outTexture) override;
-	void refreshTexture(DrawerTexture& texture) override;
-	void setupRenderWindow(SDL_Window* window) override;
-	void performRendering(const DrawCollection& drawCollection) override;
-	void presentScreen() override;
+	virtual void createTexture(DrawerTexture& outTexture) override;
+	virtual void refreshTexture(DrawerTexture& texture) override;
+
+	virtual void setupRenderWindow(SDL_Window* window) override;
+
+	virtual void performRendering(const DrawCollection& drawCollection) override;
+	virtual void presentScreen() override;
 
 private:
 	fixedfunctiondrawer::Internal& mInternal;

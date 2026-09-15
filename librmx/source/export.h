@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -33,10 +33,6 @@
 
 	// To export functions
 	#define GENERIC_FUNCTION_EXPORT	extern "C" __attribute__ ((visibility("default")))
-
-#elif defined(PLATFORM_PS3)
-	#define GENERIC_API_EXPORT
-	#define GENERIC_FUNCTION_EXPORT
 
 #else
 	#error "Unsupported platform"

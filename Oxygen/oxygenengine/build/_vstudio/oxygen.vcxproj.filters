@@ -88,6 +88,33 @@
     <Filter Include="simulation\debug">
       <UniqueIdentifier>{75bf8c7b-7f6c-4f46-8328-a9f4bf832b4c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="rendering\parts\palette">
+      <UniqueIdentifier>{024aa6e6-0643-4877-a939-04441686575c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network">
+      <UniqueIdentifier>{bda58169-9ff3-4e0f-b925-86b7e05a5bba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="network\netplay">
+      <UniqueIdentifier>{4a237758-a433-4d69-ad33-1a130e7d4ea6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platform\android">
+      <UniqueIdentifier>{b0926db4-e620-4721-bfec-f42ec7cc7efe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="menu">
+      <UniqueIdentifier>{b8bfee64-2d0c-4b99-9e3f-42eef55a2e6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="menu\imgui">
+      <UniqueIdentifier>{c6dd6a86-6a65-4c3c-924e-fa9467aa4666}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="menu\imgui\implementations">
+      <UniqueIdentifier>{f7944f69-d739-44de-84a5-c29581e198bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="menu\devmode">
+      <UniqueIdentifier>{6b3a75e4-c7b3-408f-832b-3b0bf9ca6313}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="menu\devmode\windows">
+      <UniqueIdentifier>{89c3dd34-ae44-4bd5-9227-c171ac17b9c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\source\oxygen\helper\BitStream.cpp">
@@ -111,9 +138,6 @@
     <ClCompile Include="..\..\source\oxygen\rendering\RenderResources.cpp">
       <Filter>rendering</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\oxygen\rendering\parts\PaletteManager.cpp">
-      <Filter>rendering\parts</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\source\oxygen\rendering\parts\PatternManager.cpp">
       <Filter>rendering\parts</Filter>
     </ClCompile>
@@ -132,9 +156,6 @@
     <ClCompile Include="..\..\source\oxygen\rendering\utils\BufferTexture.cpp">
       <Filter>rendering\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\oxygen\rendering\utils\PaletteBitmap.cpp">
-      <Filter>rendering\utils</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\source\oxygen\rendering\utils\RenderUtils.cpp">
       <Filter>rendering\utils</Filter>
     </ClCompile>
@@ -143,9 +164,6 @@
     </ClCompile>
     <ClCompile Include="..\..\source\oxygen\application\Application.cpp">
       <Filter>application</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\oxygen\application\mainview\GameView.cpp">
-      <Filter>application\gameview</Filter>
     </ClCompile>
     <ClCompile Include="..\..\source\oxygen\application\overlays\DebugLogView.cpp">
       <Filter>application\overlays</Filter>
@@ -223,9 +241,6 @@
     <ClCompile Include="..\..\source\oxygen\rendering\utils\Kosinski.cpp">
       <Filter>rendering\utils</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\source\oxygen\resources\SpriteCache.cpp">
-      <Filter>resources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\source\oxygen\resources\ResourcesCache.cpp">
       <Filter>resources</Filter>
     </ClCompile>
@@ -248,9 +263,6 @@
       <Filter>drawing</Filter>
     </ClCompile>
     <ClCompile Include="..\..\source\oxygen\drawing\opengl\OpenGLDrawerTexture.cpp">
-      <Filter>drawing\opengl</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\oxygen\drawing\opengl\Upscaler.cpp">
       <Filter>drawing\opengl</Filter>
     </ClCompile>
     <ClCompile Include="..\..\source\oxygen\drawing\software\SoftwareDrawer.cpp">
@@ -315,9 +327,6 @@
     </ClCompile>
     <ClCompile Include="..\..\source\oxygen\application\GameLoader.cpp">
       <Filter>application</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\source\oxygen\platform\AndroidJavaInterface.cpp">
-      <Filter>platform</Filter>
     </ClCompile>
     <ClCompile Include="..\..\source\oxygen\application\input\InputManager.cpp">
       <Filter>application\input</Filter>
@@ -427,6 +436,162 @@
     <ClCompile Include="..\..\source\oxygen\rendering\parts\RenderItem.cpp">
       <Filter>rendering\parts</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\parts\palette\Palette.cpp">
+      <Filter>rendering\parts\palette</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\parts\palette\PaletteManager.cpp">
+      <Filter>rendering\parts\palette</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\resources\RawDataCollection.cpp">
+      <Filter>resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\resources\PaletteCollection.cpp">
+      <Filter>resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\simulation\SimulationState.cpp">
+      <Filter>simulation</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\helper\RandomNumberGenerator.cpp">
+      <Filter>helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\resources\SpriteCollection.cpp">
+      <Filter>resources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectColoredShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectVertexColorShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectTexturedShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectTexturedUVShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectIndexedShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\PostFXBlurShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectOverdrawShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleCopyScreenShader.cpp">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\helper\JsonSerializer.cpp">
+      <Filter>helper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\network\netplay\NetplayClient.cpp">
+      <Filter>network\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\network\netplay\NetplayHost.cpp">
+      <Filter>network\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\network\netplay\NetplayManager.cpp">
+      <Filter>network\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\network\EngineServerClient.cpp">
+      <Filter>network</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\network\netplay\ExternalAddressQuery.cpp">
+      <Filter>network\netplay</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\rendering\Renderer.cpp">
+      <Filter>rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\application\gameview\GameView.cpp">
+      <Filter>application\gameview</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\drawing\opengl\OpenGLUpscaler.cpp">
+      <Filter>drawing\opengl</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\platform\android\AndroidJavaInterface.cpp">
+      <Filter>platform\android</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\platform\android\AndroidJNIHelper.cpp">
+      <Filter>platform\android</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\imgui\implementations\ImGuiFileBrowser.cpp">
+      <Filter>menu\imgui\implementations</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\imgui\ImGuiHelpers.cpp">
+      <Filter>menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\imgui\ImGuiIntegration.cpp">
+      <Filter>menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\imgui\ImGuiSoftwareRenderer.cpp">
+      <Filter>menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\imgui\ImGuiExtensions.cpp">
+      <Filter>menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\imgui\ImGuiManager.cpp">
+      <Filter>menu\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\DevModeMainWindow.cpp">
+      <Filter>menu\devmode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\DevModeWindowBase.cpp">
+      <Filter>menu\devmode</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\AudioBrowserWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\CallFramesWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\CustomSidePanelWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\DebugLogWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\FileBrowserWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\GameSimWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\GameVisualizationsWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\MemoryHexViewWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\NetworkingWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\PaletteBrowserWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\PaletteViewWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\PersistentDataWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\RenderedGeometryWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\ScriptBuildWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\SettingsWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\SpriteBrowserWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\VRAMWritesWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\source\oxygen\menu\devmode\windows\WatchesWindow.cpp">
+      <Filter>menu\devmode\windows</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\source\oxygen\helper\BitStream.h">
@@ -453,9 +618,6 @@
     <ClInclude Include="..\..\source\oxygen\rendering\RenderResources.h">
       <Filter>rendering</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\oxygen\rendering\parts\PaletteManager.h">
-      <Filter>rendering\parts</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\oxygen\rendering\parts\PatternManager.h">
       <Filter>rendering\parts</Filter>
     </ClInclude>
@@ -474,9 +636,6 @@
     <ClInclude Include="..\..\source\oxygen\rendering\utils\BufferTexture.h">
       <Filter>rendering\utils</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\oxygen\rendering\utils\PaletteBitmap.h">
-      <Filter>rendering\utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\oxygen\rendering\utils\RenderUtils.h">
       <Filter>rendering\utils</Filter>
     </ClInclude>
@@ -485,9 +644,6 @@
     </ClInclude>
     <ClInclude Include="..\..\source\oxygen\application\Application.h">
       <Filter>application</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\oxygen\application\mainview\GameView.h">
-      <Filter>application\gameview</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\oxygen\application\overlays\DebugLogView.h">
       <Filter>application\overlays</Filter>
@@ -574,9 +730,6 @@
     <ClInclude Include="..\..\source\oxygen\application\audio\AudioOutBase.h">
       <Filter>application\audio</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\source\oxygen\resources\SpriteCache.h">
-      <Filter>resources</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\source\oxygen\resources\ResourcesCache.h">
       <Filter>resources</Filter>
     </ClInclude>
@@ -603,9 +756,6 @@
     </ClInclude>
     <ClInclude Include="..\..\source\oxygen\drawing\DrawerInterface.h">
       <Filter>drawing</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\oxygen\drawing\opengl\Upscaler.h">
-      <Filter>drawing\opengl</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\oxygen\drawing\software\SoftwareDrawer.h">
       <Filter>drawing\software</Filter>
@@ -666,9 +816,6 @@
     </ClInclude>
     <ClInclude Include="..\..\source\oxygen\application\GameLoader.h">
       <Filter>application</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\source\oxygen\platform\AndroidJavaInterface.h">
-      <Filter>platform</Filter>
     </ClInclude>
     <ClInclude Include="..\..\source\oxygen\application\input\InputManager.h">
       <Filter>application\input</Filter>
@@ -802,6 +949,174 @@
     <ClInclude Include="..\..\source\oxygen\rendering\parts\RenderItem.h">
       <Filter>rendering\parts</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\parts\palette\Palette.h">
+      <Filter>rendering\parts\palette</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\parts\palette\PaletteManager.h">
+      <Filter>rendering\parts\palette</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\resources\RawDataCollection.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\resources\PaletteCollection.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\simulation\SimulationState.h">
+      <Filter>simulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\helper\RandomNumberGenerator.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\resources\SpriteCollection.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectColoredShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectVertexColorShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectTexturedShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectTexturedUVShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectIndexedShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\PostFXBlurShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleRectOverdrawShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\rendering\opengl\shaders\SimpleCopyScreenShader.h">
+      <Filter>rendering\opengl\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\helper\JsonSerializer.h">
+      <Filter>helper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\network\netplay\ExternalAddressQuery.h">
+      <Filter>network\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\network\netplay\NetplayClient.h">
+      <Filter>network\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\network\netplay\NetplayHost.h">
+      <Filter>network\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\network\netplay\NetplayManager.h">
+      <Filter>network\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\network\netplay\NetplayPackets.h">
+      <Filter>network\netplay</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\network\EngineServerClient.h">
+      <Filter>network</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\application\ArgumentsReader.h">
+      <Filter>application</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\application\gameview\GameView.h">
+      <Filter>application\gameview</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\drawing\opengl\OpenGLUpscaler.h">
+      <Filter>drawing\opengl</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\platform\android\AndroidJavaInterface.h">
+      <Filter>platform\android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\platform\android\AndroidJNIHelper.h">
+      <Filter>platform\android</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\implementations\ImGuiFileBrowser.h">
+      <Filter>menu\imgui\implementations</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiExtensions.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiHelpers.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiIntegration.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiSoftwareRenderer.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiDefinitions.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiManager.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\imgui\ImGuiContentProvider.h">
+      <Filter>menu\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\DevModeMainWindow.h">
+      <Filter>menu\devmode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\DevModeWindowBase.h">
+      <Filter>menu\devmode</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\AudioBrowserWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\CallFramesWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\CustomSidePanelWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\DebugLogWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\FileBrowserWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\GameSimWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\GameVisualizationsWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\MemoryHexViewWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\NetworkingWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\PaletteBrowserWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\PaletteViewWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\PersistentDataWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\RenderedGeometryWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\ScriptBuildWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\SettingsWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\SpriteBrowserWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\VRAMWritesWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\menu\devmode\windows\WatchesWindow.h">
+      <Filter>menu\devmode\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\source\oxygen\platform\PlatformFlags.h">
+      <Filter>platform</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Natvis Include="Oxygen.natvis" />
@@ -831,9 +1146,6 @@
     <None Include="..\..\data\shader\simple_rect_colored.shader">
       <Filter>_shader</Filter>
     </None>
-    <None Include="..\..\data\shader\simple_rect_depthwrite.shader">
-      <Filter>_shader</Filter>
-    </None>
     <None Include="..\..\data\shader\simple_rect_overdraw.shader">
       <Filter>_shader</Filter>
     </None>
@@ -856,6 +1168,9 @@
       <Filter>_shader</Filter>
     </None>
     <None Include="..\..\data\shader\upscaler_xbrz-freescale-pass1.shader">
+      <Filter>_shader</Filter>
+    </None>
+    <None Include="..\..\data\shader\simple_rect_indexed.shader">
       <Filter>_shader</Filter>
     </None>
   </ItemGroup>

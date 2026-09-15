@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -19,8 +19,8 @@ class BitmapViewMutable
 friend class BitmapView<T>;
 
 public:
-	inline BitmapViewMutable() : mData(nullptr), mStride(0) {}
-	inline BitmapViewMutable(const BitmapViewMutable& other) : mData(other.mData), mSize(other.mSize), mStride(other.mStride) {}
+	inline BitmapViewMutable() = default;
+	inline BitmapViewMutable(const BitmapViewMutable& other) = default;
 	inline BitmapViewMutable(const BitmapViewMutable& other, const Recti& innerRect) : mData(other.mData), mSize(other.mSize), mStride(other.mStride) { makePartialRect(innerRect); }
 	inline BitmapViewMutable(Bitmap& bitmap) : mData(bitmap.getData()), mSize(bitmap.getSize()), mStride(bitmap.getWidth()) {}
 	inline BitmapViewMutable(Bitmap& bitmap, const Recti& innerRect) : mData(bitmap.getData()), mSize(bitmap.getSize()), mStride(bitmap.getWidth()) { makePartialRect(innerRect); }
@@ -50,9 +50,9 @@ public:
 	}
 
 private:
-	T* mData;
+	T* mData = nullptr;
 	Vec2i mSize;
-	size_t mStride;		// Difference in pixels (not bytes) between lines
+	size_t mStride = 0;		// Difference in pixels (not bytes) between lines
 };
 
 
@@ -61,8 +61,8 @@ template<typename T>
 class BitmapView
 {
 public:
-	inline BitmapView() : mData(nullptr), mStride(0) {}
-	inline BitmapView(const BitmapView& other) : mData(other.mData), mSize(other.mSize), mStride(other.mStride) {}
+	inline BitmapView() = default;
+	inline BitmapView(const BitmapView& other) = default;
 	inline BitmapView(const BitmapView& other, const Recti& innerRect) : mData(other.mData), mSize(other.mSize), mStride(other.mStride) { makePartialRect(innerRect); }
 	inline BitmapView(const BitmapViewMutable<T>& other) : mData(other.mData), mSize(other.mSize), mStride(other.mStride) {}
 	inline BitmapView(const Bitmap& bitmap) : mData(bitmap.getData()), mSize(bitmap.getSize()), mStride(bitmap.getWidth()) {}
@@ -91,7 +91,7 @@ public:
 	}
 
 private:
-	const T* mData;
+	const T* mData = nullptr;
 	Vec2i mSize;
-	size_t mStride;		// Difference in pixels (not bytes) between lines
+	size_t mStride = 0;		// Difference in pixels (not bytes) between lines
 };

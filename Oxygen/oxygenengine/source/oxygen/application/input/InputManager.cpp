@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,6 +11,7 @@
 #include "oxygen/application/modding/ModManager.h"
 #include "oxygen/application/overlays/TouchControlsOverlay.h"
 #include "oxygen/application/Configuration.h"
+#include "oxygen/menu/imgui/ImGuiIntegration.h"
 #include "oxygen/helper/Logging.h"
 #include "oxygen/rendering/utils/RenderUtils.h"
 #include "oxygen/simulation/LogDisplay.h"
@@ -42,22 +43,23 @@ namespace
 		static std::vector<uint64> blacklistedHashes;
 		if (blacklistedHashes.empty())
 		{
-#if defined(PLATFORM_PS3)
-			blacklistedHashes.push_back(rmx::getMurmur2_64("virtual-search"));
-			blacklistedHashes.push_back(rmx::getMurmur2_64("IPControl_UPnP_RemoteService"));
-			blacklistedHashes.push_back(rmx::getMurmur2_64("shield-ask-remote"));
-			blacklistedHashes.push_back(rmx::getMurmur2_64("uinput-fpc"));
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+			std::vector<std::string> blacklist;
+			blacklist.push_back("virtual-search");
+			blacklist.push_back("IPControl_UPnP_RemoteService");
+			blacklist.push_back("shield-ask-remote");
+			blacklist.push_back("uinput-fpc");
 #else
 			const std::vector<std::string> blacklist =
 			{
 				"virtual-search", "IPControl_UPnP_RemoteService", "shield-ask-remote",	// Dummy controllers that Nvidia Shield seems to create
 				"uinput-fpc"															// Some other device
 			};
+#endif
 			for (const std::string& str : blacklist)
 			{
 				blacklistedHashes.push_back(rmx::getMurmur2_64(str));
 			}
-#endif
 		}
 
 		const uint64 nameHash = rmx::getMurmur2_64(controllerOrJoystickName);
@@ -148,11 +150,10 @@ namespace
 		for (size_t controlIndex = 0; controlIndex < device.mControlMappings.size(); ++controlIndex)
 		{
 			std::vector<InputConfig::Assignment>& assignments = device.mControlMappings[controlIndex].mAssignments;
-			for (size_t i = 0; i < bindings[controlIndex].size(); ++i)
+			for (const SDL_GameControllerButtonBind& binding : bindings[controlIndex])
 			{
-				const SDL_GameControllerButtonBind& binding = bindings[controlIndex][i];
 				InputConfig::Assignment assignment;
-				if (getControlAssignmentBySDLBinding(assignment, binding, (int)(controlIndex % 2)))
+				if (getControlAssignmentBySDLBinding(assignment, binding, controlIndex % 2))
 				{
 					assignments.push_back(assignment);
 				}
@@ -193,7 +194,11 @@ namespace
 		}
 		joystickName.lowerCase();
 		const uint64 nameHashes[2] = { rmx::getMurmur2_64(joystickName), controllerName.empty() ? 0 : rmx::getMurmur2_64(controllerName) };
-		static const uint64 WILDCARD_HASH = rmx::getMurmur2_64(String("*"));
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+		static const uint64 WILDCARD_HASH = rmx::constMurmur2_64("*");
+#else
+		constexpr uint64 WILDCARD_HASH = rmx::constMurmur2_64("*");
+#endif
 
 		for (size_t k = 0; k < definitions.size(); ++k)
 		{
@@ -286,8 +291,19 @@ const char* InputManager::RealDevice::getName() const
 
 
 
+const std::string InputManager::KEYBOARD_DEVICE_NAMES[NUM_PLAYERS] = { "Keyboard1", "Keyboard2", "Keyboard3", "Keyboard4" };
+
 InputManager::InputManager()
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	mPS3PadsInitialized = false;
+	mPS3KbInitialized = false;
+	mPS3KeyboardModifiers = 0;
+	memset(mPS3KbConnected, 0, sizeof(mPS3KbConnected));
+	memset(mPS3KeyboardState, 0, sizeof(mPS3KeyboardState));
+	memset(mPS3CachedPadValid, 0, sizeof(mPS3CachedPadValid));
+#endif
+
 	mKeyboards.reserve(NUM_PLAYERS);
 	mGamepads.reserve(8);	// That's quite a lot, but we have to make sure this is never exceeded by the actual number of devices
 
@@ -304,8 +320,293 @@ InputManager::InputManager()
 	}
 }
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#ifndef CELL_KB_MAX_KEYCODES
+#define CELL_KB_MAX_KEYCODES 62
+#endif
+#ifndef CELL_KB_CODETYPE_RAW
+#define CELL_KB_CODETYPE_RAW 0
+#endif
+#ifndef CELL_KB_RMODE_PACKET
+#define CELL_KB_RMODE_PACKET 1
+#endif
+
+#ifndef CELL_KB_MKEY_L_SHIFT
+#define CELL_KB_MKEY_L_SHIFT  (1<<1)
+#endif
+#ifndef CELL_KB_MKEY_R_SHIFT
+#define CELL_KB_MKEY_R_SHIFT  (1<<5)
+#endif
+#ifndef CELL_KB_MKEY_L_CTRL
+#define CELL_KB_MKEY_L_CTRL   (1<<0)
+#endif
+#ifndef CELL_KB_MKEY_R_CTRL
+#define CELL_KB_MKEY_R_CTRL   (1<<4)
+#endif
+#ifndef CELL_KB_MKEY_L_ALT
+#define CELL_KB_MKEY_L_ALT    (1<<2)
+#endif
+#ifndef CELL_KB_MKEY_R_ALT
+#define CELL_KB_MKEY_R_ALT    (1<<6)
+#endif
+#ifndef CELL_KB_MKEY_L_GUI
+#define CELL_KB_MKEY_L_GUI    (1<<3)
+#endif
+#ifndef CELL_KB_MKEY_R_GUI
+#define CELL_KB_MKEY_R_GUI    (1<<7)
+#endif
+
+extern "C" {
+	extern int cellKbSetCodeType(uint32_t port_no, uint32_t type);
+	extern int cellKbSetReadMode(uint32_t port_no, uint32_t mode);
+}
+
+static struct {
+	uint32_t mask;
+	SDL_Keycode key;
+} ps3_modifiers_map[8] = {
+	{ CELL_KB_MKEY_L_SHIFT, SDLK_LSHIFT },
+	{ CELL_KB_MKEY_R_SHIFT, SDLK_RSHIFT },
+	{ CELL_KB_MKEY_L_CTRL, SDLK_LCTRL },
+	{ CELL_KB_MKEY_R_CTRL, SDLK_RCTRL },
+	{ CELL_KB_MKEY_L_ALT, SDLK_LALT },
+	{ CELL_KB_MKEY_R_ALT, SDLK_RALT },
+	{ CELL_KB_MKEY_L_GUI, SDLK_LGUI },
+	{ CELL_KB_MKEY_R_GUI, SDLK_RGUI }
+};
+
+int32_t InputManager::getPS3Axis(const CellPadData* data, int offset)
+{
+	int val = (int)data->button[offset];
+	int centered = val - 128;
+	if (centered > -20 && centered < 20)
+		return 0;
+	return centered * 256;
+}
+
+int32_t InputManager::convertPS3HIDToKeycode(uint8_t code)
+{
+	if (code >= 0x04 && code <= 0x1D) return 'a' + (code - 0x04);
+	if (code >= 0x1E && code <= 0x26) return '1' + (code - 0x1E);
+	if (code == 0x27) return '0';
+	if (code >= 0x3A && code <= 0x43) return SDLK_F1 + (code - 0x3A);
+	if (code == 0x44) return SDLK_F11;
+	if (code == 0x45) return SDLK_F12;
+
+	switch (code)
+	{
+		case 0x28: return SDLK_RETURN;
+		case 0x29: return SDLK_ESCAPE;
+		case 0x2A: return SDLK_BACKSPACE;
+		case 0x2B: return SDLK_TAB;
+		case 0x2C: return SDLK_SPACE;
+		case 0x2D: return SDLK_MINUS;
+		case 0x2E: return SDLK_EQUALS;
+		case 0x2F: return '[';
+		case 0x30: return ']';
+		case 0x31: return '\\';
+		case 0x33: return ';';
+		case 0x34: return '\'';
+		case 0x35: return '`';
+		case 0x36: return ',';
+		case 0x37: return '.';
+		case 0x38: return '/';
+		case 0x39: return SDLK_CAPSLOCK;
+		case 0x47: return SDLK_SCROLLLOCK;
+		case 0x48: return SDLK_PAUSE;
+		case 0x49: return SDLK_INSERT;
+		case 0x4A: return SDLK_HOME;
+		case 0x4B: return SDLK_PAGEUP;
+		case 0x4C: return SDLK_DELETE;
+		case 0x4D: return SDLK_END;
+		case 0x4E: return SDLK_PAGEDOWN;
+		case 0x4F: return SDLK_RIGHT;
+		case 0x50: return SDLK_LEFT;
+		case 0x51: return SDLK_DOWN;
+		case 0x52: return SDLK_UP;
+		case 0x53: return SDLK_NUMLOCKCLEAR;
+		case 0x54: return SDLK_KP_DIVIDE;
+		case 0x55: return SDLK_KP_MULTIPLY;
+		case 0x56: return SDLK_KP_MINUS;
+		case 0x57: return SDLK_KP_PLUS;
+		case 0x58: return SDLK_KP_ENTER;
+		case 0x59: return SDLK_KP_1;
+		case 0x5A: return SDLK_KP_2;
+		case 0x5B: return SDLK_KP_3;
+		case 0x5C: return SDLK_KP_4;
+		case 0x5D: return SDLK_KP_5;
+		case 0x5E: return SDLK_KP_6;
+		case 0x5F: return SDLK_KP_7;
+		case 0x60: return SDLK_KP_8;
+		case 0x61: return SDLK_KP_9;
+		case 0x62: return SDLK_KP_0;
+		case 0x63: return SDLK_KP_PERIOD;
+		default:   break;
+	}
+	return 0;
+}
+
+void InputManager::initPS3Input()
+{
+	if (!mPS3PadsInitialized)
+	{
+		ps3_log("[PS3] InputManager - Initializing CellPad...");
+		int padRes = cellPadInit(7);
+		if (padRes == CELL_PAD_OK)
+		{
+			mPS3PadsInitialized = true;
+			memset(mPS3CachedPadData, 0, sizeof(mPS3CachedPadData));
+			memset(mPS3CachedPadValid, 0, sizeof(mPS3CachedPadValid));
+			ps3_log("[PS3] InputManager - CellPad initialized successfully (7 ports)");
+		}
+		else
+		{
+			ps3_log("[PS3] InputManager - cellPadInit failed");
+		}
+	}
+	if (!mPS3KbInitialized)
+	{
+		ps3_log("[PS3] InputManager - Initializing CellKb...");
+		int kbRes = cellKbInit(2);
+		if (kbRes == 0)
+		{
+			mPS3KbInitialized = true;
+			memset(mPS3KeyboardState, 0, sizeof(mPS3KeyboardState));
+			mPS3KeyboardModifiers = 0;
+			memset(mPS3KbConnected, 0, sizeof(mPS3KbConnected));
+			memset(mPS3LastKbState, 0, sizeof(mPS3LastKbState));
+			ps3_log("[PS3] InputManager - CellKb initialized successfully (2 ports)");
+		}
+		else
+		{
+			ps3_log("[PS3] InputManager - cellKbInit failed");
+		}
+	}
+}
+
+void InputManager::pollPS3Input()
+{
+	cellSysutilCheckCallback();
+
+	if (mPS3PadsInitialized)
+	{
+		for (int port = 0; port < 7; port++)
+		{
+			CellPadData data;
+			if (cellPadGetData(port, &data) == CELL_PAD_OK && data.len > 0)
+			{
+				mPS3CachedPadData[port] = data;
+				mPS3CachedPadValid[port] = true;
+			}
+			else
+			{
+				mPS3CachedPadValid[port] = false;
+			}
+		}
+	}
+
+	if (mPS3KbInitialized)
+	{
+		CellKbInfo kbInfo;
+		if (cellKbGetInfo(&kbInfo) == 0)
+		{
+			uint8_t currentHeld[256];
+			memset(currentHeld, 0, sizeof(currentHeld));
+			uint32_t currentModifiers = 0;
+
+			for (int i = 0; i < 2; i++)
+			{
+				if (i < (int)kbInfo.max_connect && kbInfo.status[i] != 0)
+				{
+					if (!mPS3KbConnected[i])
+					{
+						cellKbSetCodeType(i, CELL_KB_CODETYPE_RAW);
+						cellKbSetReadMode(i, CELL_KB_RMODE_PACKET);
+						mPS3KbConnected[i] = 1;
+						memset(&mPS3LastKbState[i], 0, sizeof(CellKbData));
+					}
+
+					int safety = 0;
+					CellKbData kbData;
+					while (safety < 64)
+					{
+						kbData.len = 0xFFFFFFFF;
+						kbData.mkey = 0xFFFFFFFF;
+						int readRes = cellKbRead(i, &kbData);
+						if (readRes == CELL_KB_ERROR_NO_DEVICE || readRes == CELL_KB_ERROR_UNINITIALIZED)
+						{
+							memset(&mPS3LastKbState[i], 0, sizeof(CellKbData));
+							mPS3KbConnected[i] = 0;
+							break;
+						}
+						if (readRes != 0 || kbData.len == 0xFFFFFFFF || kbData.mkey == 0xFFFFFFFF)
+						{
+							break;
+						}
+						mPS3LastKbState[i] = kbData;
+						safety++;
+					}
+				}
+				else
+				{
+					if (mPS3KbConnected[i])
+					{
+						memset(&mPS3LastKbState[i], 0, sizeof(CellKbData));
+						mPS3KbConnected[i] = 0;
+					}
+				}
+
+				if (mPS3KbConnected[i])
+				{
+					int len = mPS3LastKbState[i].len;
+					if (len > CELL_KB_MAX_KEYCODES) len = CELL_KB_MAX_KEYCODES;
+					for (int k = 0; k < len; k++)
+					{
+						uint8_t code = mPS3LastKbState[i].keycode[k] & 0xFF;
+						if (code > 0) currentHeld[code] = 1;
+					}
+					if (mPS3LastKbState[i].mkey != 0xFFFFFFFF)
+					{
+						currentModifiers |= mPS3LastKbState[i].mkey;
+					}
+				}
+			}
+
+			for (int i = 0; i < 256; i++)
+			{
+				if (currentHeld[i] && !mPS3KeyboardState[i])
+				{
+					SDL_Keycode sym = convertPS3HIDToKeycode(i);
+					if (sym != 0)
+					{
+						mOneFrameKeyboardInputs.insert(sym);
+						mHasKeyboard = true;
+					}
+				}
+				mPS3KeyboardState[i] = currentHeld[i];
+			}
+
+			for (int m = 0; m < 8; m++)
+			{
+				uint8_t newState = (currentModifiers & ps3_modifiers_map[m].mask) ? 1 : 0;
+				uint8_t oldState = (mPS3KeyboardModifiers & ps3_modifiers_map[m].mask) ? 1 : 0;
+				if (newState && !oldState)
+				{
+					mOneFrameKeyboardInputs.insert(ps3_modifiers_map[m].key);
+					mHasKeyboard = true;
+				}
+			}
+			mPS3KeyboardModifiers = currentModifiers;
+		}
+	}
+}
+#endif
+
 void InputManager::startup()
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	initPS3Input();
+#endif
 	// Initialize gamepad
 	SDL_InitSubSystem(SDL_INIT_JOYSTICK);
 	rescanRealDevices();
@@ -318,6 +619,10 @@ void InputManager::enableTouchInput(bool enable)
 
 void InputManager::updateInput(float timeElapsed)
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	pollPS3Input();
+#endif
+
 #if 0
 	if (!mGamepads.empty())
 	{
@@ -339,7 +644,7 @@ void InputManager::updateInput(float timeElapsed)
 
 	// Update touches
 	mActiveTouches.clear();
-	if (mTouchInputEnabled)
+	if (mTouchInputEnabled && !FTX::System->wasEventConsumed())
 	{
 		const int touchDevices = SDL_GetNumTouchDevices();
 		for (int k = 0; k < touchDevices; ++k)
@@ -357,7 +662,7 @@ void InputManager::updateInput(float timeElapsed)
 		}
 
 		// Also consider left mouse click
-		if (FTX::mouseState(rmx::MouseButton_Left))
+		if (FTX::mouseState(rmx::MouseButton::Left))
 		{
 			vectorAdd(mActiveTouches).mPosition = Vec2f(FTX::mousePos()) / Vec2f(FTX::screenSize());
 		}
@@ -403,7 +708,7 @@ void InputManager::updateInput(float timeElapsed)
 					if (control->mRepeatTimeout <= 0.0f)
 					{
 						control->mRepeat = true;
-						control->mRepeatTimeout = std::max(control->mRepeatTimeout + 0.125f, 0.05f);
+						control->mRepeatTimeout = std::max(control->mRepeatTimeout + 0.1f, 0.04f);
 					}
 				}
 				mAnythingPressed = true;
@@ -558,7 +863,7 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 	if (mKeyboards.empty())
 	{
 		// First-time setup for keyboards
-		//  -> Though only one physical keyboard is supported, these are two "real devices", to allow for two players using one keyboard together
+		//  -> Though only one physical keyboard is supported, these are several "real devices", to allow for multiple players using one keyboard together
 		for (size_t i = 0; i < NUM_PLAYERS; ++i)
 		{
 			RealDevice& device = vectorAdd(mKeyboards);
@@ -567,8 +872,7 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 			device.mSDLGameController = nullptr;
 
 			using Button = InputConfig::DeviceDefinition::Button;
-			static_assert(NUM_PLAYERS == 2, "NUM_PLAYERS must be 2");
-			const std::string key = (i == 0) ? "Keyboard1" : "Keyboard2";
+			const std::string& key = KEYBOARD_DEVICE_NAMES[i];
 			InputConfig::DeviceDefinition* inputDeviceDefinition = getInputDeviceDefinitionByIdentifier(key);
 			if (nullptr == inputDeviceDefinition)
 			{
@@ -749,10 +1053,11 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 void InputManager::updatePlayerGamepadAssignments()
 {
 	// Try to map real devices to players
-	std::vector<RealDevice*> devicesByPlayer[2];
+	RMX_ASSERT(mKeyboards.size() == NUM_PLAYERS, "Wrong number of keyboards");
+	std::vector<RealDevice*> devicesByPlayer[NUM_PLAYERS];
 	for (size_t i = 0; i < mKeyboards.size(); ++i)
 	{
-		devicesByPlayer[i % 2].push_back(&mKeyboards[i]);
+		devicesByPlayer[i].push_back(&mKeyboards[i]);
 		mKeyboards[i].mAssignedPlayer = (int)i;
 	}
 
@@ -760,7 +1065,7 @@ void InputManager::updatePlayerGamepadAssignments()
 	{
 		gamepad.mAssignedPlayer = Configuration::instance().mAutoAssignGamepadPlayerIndex;
 	}
-	for (int playerIndex = 1; playerIndex >= 0; --playerIndex)	// Reverse order to make sure player 1 overwrites player 2
+	for (int playerIndex = NUM_PLAYERS - 1; playerIndex >= 0; --playerIndex)	// Reverse order to make sure player 1 overwrites player 2
 	{
 		RealDevice* gamepad = findGamepadBySDLJoystickInstanceId(mPlayers[playerIndex].mPreferredGamepad.mSDLJoystickInstanceId);
 		if (nullptr != gamepad)
@@ -815,13 +1120,13 @@ const InputManager::RealDevice* InputManager::getGamepadByJoystickInstanceId(int
 
 int32 InputManager::getPreferredGamepadByJoystickInstanceId(int playerIndex) const
 {
-	RMX_ASSERT(playerIndex >= 0 && playerIndex < 2, "Invalid player index " << playerIndex);
+	RMX_ASSERT(playerIndex >= 0 && playerIndex < NUM_PLAYERS, "Invalid player index " << playerIndex);
 	return mPlayers[playerIndex].mPreferredGamepad.mSDLJoystickInstanceId;
 }
 
 void InputManager::setPreferredGamepad(int playerIndex, const RealDevice* gamepad)
 {
-	RMX_ASSERT(playerIndex >= 0 && playerIndex < 2, "Invalid player index " << playerIndex);
+	RMX_ASSERT(playerIndex >= 0 && playerIndex < NUM_PLAYERS, "Invalid player index " << playerIndex);
 	PreferredGamepad& preferredGamepad = mPlayers[playerIndex].mPreferredGamepad;
 	if (nullptr != gamepad)
 	{
@@ -840,9 +1145,16 @@ InputConfig::DeviceDefinition* InputManager::getDeviceDefinition(const RealDevic
 {
 	if (device.mType == InputConfig::DeviceType::KEYBOARD)
 	{
-		static_assert(NUM_PLAYERS == 2, "NUM_PLAYERS must be 2");
-		const int keyboardIndex = (&device == &mKeyboards[1]) ? 1 : 0;
-		const std::string key = (keyboardIndex == 0) ? "Keyboard1" : "Keyboard2";
+		size_t keyboardIndex = 0;
+		for (size_t k = 1; k < NUM_PLAYERS; ++k)
+		{
+			if (&device == &mKeyboards[k])
+			{
+				keyboardIndex = k;
+				break;
+			}
+		}
+		const std::string& key = KEYBOARD_DEVICE_NAMES[keyboardIndex];
 		return getInputDeviceDefinitionByIdentifier(key);
 	}
 	else
@@ -930,7 +1242,7 @@ void InputManager::setControllerLEDsForPlayer(int playerIndex, const Color& colo
 {
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 	// TODO: Remove some of these exclusions where possible
-	#if !defined(PLATFORM_WEB) && !defined(PLATFORM_SWITCH) && !(defined(PLATFORM_WINDOWS) && defined(__GNUC__))
+	#if !defined(PLATFORM_WEB) && !defined(PLATFORM_SWITCH) && !defined(PLATFORM_VITA) && !(defined(PLATFORM_WINDOWS) && defined(__GNUC__))
 		for (size_t i = 0; i < mGamepads.size(); ++i)
 		{
 			if (mGamepads[i].mAssignedPlayer == playerIndex && nullptr != mGamepads[i].mSDLGameController)
@@ -944,7 +1256,11 @@ void InputManager::setControllerLEDsForPlayer(int playerIndex, const Color& colo
 
 void InputManager::handleActiveModsChanged()
 {
-	static const uint64 FEATURE_NAME_HASH = rmx::getMurmur2_64("Controls_LR");
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	static const uint64 FEATURE_NAME_HASH = rmx::constMurmur2_64("Controls_LR");
+#else
+	constexpr uint64 FEATURE_NAME_HASH = rmx::constMurmur2_64("Controls_LR");
+#endif
 	mUsingControlsLR = ModManager::instance().anyActiveModUsesFeature(FEATURE_NAME_HASH);
 
 	if (TouchControlsOverlay::hasInstance())
@@ -968,11 +1284,7 @@ InputConfig::DeviceDefinition* InputManager::getInputDeviceDefinitionByIdentifie
 	Configuration& config = Configuration::instance();
 	for (size_t k = 0; k < config.mInputDeviceDefinitions.size(); ++k)
 	{
-#if defined(PLATFORM_PS3)
-		if (config.mInputDeviceDefinitions[k].mIdentifier == std::string(identifier.data(), identifier.length()))
-#else
 		if (config.mInputDeviceDefinitions[k].mIdentifier == identifier)
-#endif
 		{
 			return &config.mInputDeviceDefinitions[k];
 		}
@@ -1008,7 +1320,10 @@ bool InputManager::isPressed(const ControlInput& input)
 			{
 				// Ignore key presses while Alt is down
 				if (!FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
-					return true;
+				{
+					if (!ImGuiIntegration::instance().isCapturingKeyboard())
+						return true;
+				}
 			}
 			break;
 		}
@@ -1025,6 +1340,64 @@ bool InputManager::isPressed(const ControlInput& input)
 
 bool InputManager::isPressed(SDL_Joystick* joystick, const ControlInput& input)
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	CellPadData padData;
+	int port = (nullptr != input.mDevice) ? input.mDevice->mAssignedPlayer : 0;
+	if (port < 0 || port >= 7) port = 0;
+	if (cellPadGetData(port, &padData) == CELL_PAD_OK && padData.len > 0)
+	{
+		uint16_t buttons = ((uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2] << 8) | (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+		switch (input.mType)
+		{
+			case InputConfig::Assignment::Type::AXIS:
+			{
+				int axisIndex = input.mIndex / 2;
+				int axisVal = 0;
+				if (axisIndex == 0) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X);
+				else if (axisIndex == 1) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y);
+				else if (axisIndex == 2) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X);
+				else if (axisIndex == 3) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y);
+
+				const float value = (float)axisVal / 32767.0f;
+				if ((input.mIndex % 2) == 0)
+					return (value < -0.25f);
+				else
+					return (value > 0.25f);
+			}
+			case InputConfig::Assignment::Type::BUTTON:
+			{
+				uint16_t digital1 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+				uint16_t digital2 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2];
+				switch (input.mIndex)
+				{
+					case 0: return (digital2 & CELL_PAD_CTRL_CROSS) != 0;    // A / Cross
+					case 1: return (digital2 & CELL_PAD_CTRL_CIRCLE) != 0;   // B / Circle
+					case 2: return (digital2 & CELL_PAD_CTRL_SQUARE) != 0;   // X / Square
+					case 3: return (digital2 & CELL_PAD_CTRL_TRIANGLE) != 0; // Y / Triangle
+					case 4: return (digital1 & CELL_PAD_CTRL_START) != 0;    // Start
+					case 5: return (digital1 & CELL_PAD_CTRL_SELECT) != 0;   // Back / Select
+					case 6: return (digital2 & CELL_PAD_CTRL_L1) != 0;       // L1
+					case 7: return (digital2 & CELL_PAD_CTRL_R1) != 0;       // R1
+					case 8: return (digital2 & CELL_PAD_CTRL_L2) != 0;       // L2
+					case 9: return (digital2 & CELL_PAD_CTRL_R2) != 0;       // R2
+					case 10: return (digital1 & CELL_PAD_CTRL_L3) != 0;      // L3
+					case 11: return (digital1 & CELL_PAD_CTRL_R3) != 0;      // R3
+				}
+				return (SDL_JoystickGetButton(joystick, input.mIndex) > 0);
+			}
+			case InputConfig::Assignment::Type::POV:
+			{
+				uint8 hatMask = 0;
+				if (buttons & CELL_PAD_CTRL_UP) hatMask |= 1;
+				if (buttons & CELL_PAD_CTRL_RIGHT) hatMask |= 2;
+				if (buttons & CELL_PAD_CTRL_DOWN) hatMask |= 4;
+				if (buttons & CELL_PAD_CTRL_LEFT) hatMask |= 8;
+				return (hatMask & (input.mIndex & 0xff)) != 0;
+			}
+		}
+	}
+#endif
+
 	if (nullptr != joystick)
 	{
 		switch (input.mType)

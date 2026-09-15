@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -21,9 +21,7 @@
 
 namespace
 {
-#if !defined(PLATFORM_PS3)
-	static constexpr float FASTMUSIC_SPEED_FACTOR = 1.25f;
-#endif
+	static const constexpr float FASTMUSIC_SPEED_FACTOR = 1.25f;
 }
 
 
@@ -61,7 +59,6 @@ void AudioOut::shutdown()
 void AudioOut::reset()
 {
 	mAudioPlayer.stopAllSounds();
-	mPausedContexts.clear();
 	resetGame();
 }
 
@@ -69,32 +66,6 @@ void AudioOut::resetGame()
 {
 	mAudioPlayer.resetChannelOverrides();
 	mAudioPlayer.resetAudioModifiers();
-}
-
-void AudioOut::update(float secondsPassed)
-{
-	// This is an update once per frame -- currently not used
-}
-
-void AudioOut::realtimeUpdate(float secondsPassed)
-{
-	// Sync volumes
-	ConfigurationImpl& config = ConfigurationImpl::instance();
-	if (mMusicVolume != config.mMusicVolume)
-	{
-		mMusicVolume = config.mMusicVolume;
-		FTX::Audio->setAudioMixerVolumeByID((int)AudioMixerId::INGAME_MUSIC, mMusicVolume);
-		FTX::Audio->setAudioMixerVolumeByID((int)AudioMixerId::MENU_MUSIC, mMusicVolume);
-	}
-	if (mSoundVolume != config.mSoundVolume)
-	{
-		mSoundVolume = config.mSoundVolume;
-		FTX::Audio->setAudioMixerVolumeByID((int)AudioMixerId::INGAME_SOUND, mSoundVolume);
-		FTX::Audio->setAudioMixerVolumeByID((int)AudioMixerId::MENU_SOUND, mSoundVolume);
-	}
-
-	// Call base implementation
-	AudioOutBase::realtimeUpdate(secondsPassed);
 }
 
 void AudioOut::playAudioDirect(uint64 sfxId, SoundRegType type, int contextBase, AudioReference* outAudioReference)
@@ -145,13 +116,11 @@ void AudioOut::moveIngameMusicToMenu()
 void AudioOut::pauseSoundContext(int contextId)
 {
 	mAudioPlayer.pauseAllSoundsByContext(contextId);
-	mPausedContexts.insert(contextId);
 }
 
 void AudioOut::resumeSoundContext(int contextId)
 {
 	mAudioPlayer.resumeAllSoundsByContext(contextId);
-	mPausedContexts.erase(contextId);
 }
 
 void AudioOut::stopSoundContext(int contextId)

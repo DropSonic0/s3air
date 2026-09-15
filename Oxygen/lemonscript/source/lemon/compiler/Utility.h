@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -20,8 +20,7 @@
 #endif
 
 
-#if !defined(PLATFORM_PS3)
-
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #define CHECK_ERROR_NOLINE(expression, errorMessage) \
 { \
 	if (!(expression)) \
@@ -29,7 +28,7 @@
 		LEMON_DEBUG_BREAK(errorMessage); \
 		std::ostringstream stream; \
 		stream << errorMessage; \
-		throw CompilerException(stream.str().c_str()); \
+		throw CompilerException(stream.str()); \
 	} \
 }
 
@@ -40,7 +39,7 @@
 		LEMON_DEBUG_BREAK(errorMessage); \
 		std::ostringstream stream; \
 		stream << errorMessage; \
-		throw CompilerException(stream.str().c_str(), lineNumber); \
+		throw CompilerException(stream.str(), lineNumber); \
 	} \
 }
 
@@ -49,16 +48,47 @@
 	LEMON_DEBUG_BREAK(errorMessage); \
 	std::ostringstream stream; \
 	stream << errorMessage; \
-	throw CompilerException(stream.str().c_str(), errorCode, data1, data2); \
+	throw CompilerException(stream.str(), errorCode, data1, data2); \
+}
+#else
+#define CHECK_ERROR_NOLINE(expression, errorMessage) \
+{ \
+	if (!(expression)) \
+	{ \
+		LEMON_DEBUG_BREAK(errorMessage); \
+		std::ostringstream stream; \
+		stream << errorMessage; \
+		RMX_ERROR(stream.str(), ); \
+	} \
 }
 
-#else
+#define CHECK_ERROR(expression, errorMessage, lineNumber) \
+{ \
+	if (!(expression)) \
+	{ \
+		LEMON_DEBUG_BREAK(errorMessage); \
+		std::ostringstream stream; \
+		stream << errorMessage; \
+		RMX_ERROR(stream.str(), ); \
+	} \
+}
 
-#define CHECK_ERROR_NOLINE(expression, errorMessage) { if (!(expression)) { abort(); } }
-#define CHECK_ERROR(expression, errorMessage, lineNumber) { if (!(expression)) { abort(); } }
-#define REPORT_ERROR_CODE(errorCode, data1, data2, errorMessage) { abort(); }
-
+#define REPORT_ERROR_CODE(errorCode, data1, data2, errorMessage) \
+{ \
+	LEMON_DEBUG_BREAK(errorMessage); \
+	std::ostringstream stream; \
+	stream << errorMessage; \
+	RMX_ERROR(stream.str(), ); \
+}
 #endif
+
+#define ADD_WARNING(warningType, warningMessage, lineNumber) \
+{ \
+	std::ostringstream stream; \
+	stream << warningMessage; \
+	Compiler::getActiveInstance()->addWarning(warningType, stream.str(), lineNumber); \
+}
+
 
 
 namespace lemon

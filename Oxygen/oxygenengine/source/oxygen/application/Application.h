@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,6 +10,7 @@
 
 #include "oxygen/application/Configuration.h"
 #include "oxygen/helper/HighResolutionTimer.h"
+#include "oxygen/menu/imgui/ImGuiIntegration.h"
 
 class AudioPlayer;
 class BackdropView;
@@ -37,8 +38,13 @@ public:
 
 	virtual void initialize() override;
 	virtual void deinitialize() override;
+
+	virtual void beginFrame() override;
+	virtual void endFrame() override;
+
 	virtual void sdlEvent(const SDL_Event& ev) override;
 	virtual void keyboard(const rmx::KeyboardEvent& ev) override;
+	virtual void mouse(const rmx::MouseEvent& ev) override;
 	virtual void update(float timeElapsed) override;
 	virtual void render() override;
 
@@ -59,6 +65,8 @@ public:
 	bool hasKeyboard() const;
 	bool hasVirtualGamepad() const;
 
+	void requestActiveTextInput();
+
 private:
 	int updateWindowDisplayIndex();
 	void setUnscaledWindow();
@@ -70,6 +78,7 @@ private:
 	HighResolutionTimer mApplicationTimer;
 	double mNextRefreshTime = 0.0;		// In milliseconds since application start
 	bool mIsVeryFirstFrameForLogging = true;
+	int mLoggedFrameCount = 0;
 	bool mPausedByFocusLoss = false;
 
 	// Simulation
@@ -93,6 +102,9 @@ private:
 	DebugSidePanel* mDebugSidePanel = nullptr;
 	ProfilingView* mProfilingView = nullptr;
 
+	ImGuiIntegration mImGuiIntegration;
+
 	// Input
 	float mMouseHideTimer = 0.0f;
+	bool mRequestActiveTextInput = false;
 };

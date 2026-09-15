@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -54,7 +54,7 @@ namespace lemon
 
 	void Nativizer::LookupDictionary::addEmptyEntries(const uint64* hashes, size_t numHashes)
 	{
-#if !defined(PLATFORM_PS3)
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		mEntries.reserve(mEntries.size() + numHashes);
 #endif
 		for (size_t i = 0; i < numHashes; ++i)
@@ -65,7 +65,7 @@ namespace lemon
 
 	void Nativizer::LookupDictionary::loadFunctions(const CompactFunctionEntry* entries, size_t numEntries)
 	{
-#if !defined(PLATFORM_PS3)
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		mEntries.reserve(mEntries.size() + numEntries);
 #endif
 		for (size_t i = 0; i < numEntries; ++i)
@@ -110,7 +110,7 @@ namespace lemon
 			const BaseType baseType = readMemoryOpcode.mDataType;
 
 			MemoryAccessHandler::SpecializationResult result;
-			memoryAccessHandler.getDirectAccessSpecialization(result, address, DataTypeHelper::getSizeOfBaseType(baseType), false);
+			memoryAccessHandler.getDirectAccessSpecialization(result, address, BaseTypeHelper::getSizeOfBaseType(baseType), false);
 			if (result.mResult == MemoryAccessHandler::SpecializationResult::Result::HAS_SPECIALIZATION)
 			{
 				outInfo.mConsumedOpcodes = 2;
@@ -222,7 +222,7 @@ namespace lemon
 			mBuiltDictionary.mParameterData.resize(1);
 			mBuiltDictionary.mParameterData[0].mOffset = 0;
 			mBuiltDictionary.mParameterData[0].mOpcodeIndex = 0xff;
-			mBuiltDictionary.mParameterData[0].mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
+			mBuiltDictionary.mParameterData[0].mSemantics = LookupEntry::ParameterInfo::Semantics::TERMINATOR;
 		}
 
 		// Start writing
@@ -257,7 +257,9 @@ namespace lemon
 				const size_t chunks = (bytes + 0x7fff) / 0x8000;
 				for (size_t i = 0; i < chunks; ++i)
 				{
-					const std::string identifier = "emptyEntries" + std::string(*((String() << i)));
+					char buf[32];
+					sprintf(buf, "%d", (int)i);
+					const std::string identifier = std::string("emptyEntries") + buf;
 					const size_t restBytes = std::min<size_t>(bytes - i * 0x8000, 0x8000);
 					writeBinaryBlob(writer, identifier, &data[i * 0x8000], restBytes);
 					writer.writeLine("dict.addEmptyEntries(reinterpret_cast<const uint64*>(" + identifier + "), " + rmx::hexString(restBytes / 8, 2) + ");");
@@ -396,7 +398,7 @@ namespace lemon
 				// Add a terminating entry as well
 				parameterPtr->mOffset = (uint16)nativizerInternal.mParameters.mTotalSize;
 				parameterPtr->mOpcodeIndex = 0xff;
-				parameterPtr->mSemantics = LookupEntry::ParameterInfo::Semantics::UNDEFINED;
+				parameterPtr->mSemantics = LookupEntry::ParameterInfo::Semantics::TERMINATOR;
 			}
 		}
 

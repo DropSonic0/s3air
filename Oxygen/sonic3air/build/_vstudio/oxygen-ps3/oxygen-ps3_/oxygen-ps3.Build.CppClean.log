@@ -15,7 +15,6 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\inputconfig.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\inputmanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\inputrecorder.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\rumbleeffectqueue.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\gameview.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\gamesetupscreen.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\menuitems.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\oxygenmenu.o
@@ -75,11 +74,9 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\rendercomponents
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\renderpalettespriteshader.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\renderplaneshader.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\rendervdpspriteshader.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\palettemanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\patternmanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\planemanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\renderitem.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\renderparts.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\scrolloffsetsmanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\spritemanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\softwareblur.o
@@ -106,13 +103,16 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\savestateseriali
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\simulation.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\romdataanalyser.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\lemonscriptbindings.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\rendererbindings.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\debugtracking.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\sounddriver.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\soundemulation.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\blip_buf.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\sn76489.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\ym2612.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\renderparts.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\palettemanager.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\gameview.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\rendererbindings.o
 c:\s3air\oxygen\sonic3air\build\lib\oxygen-ps3.a
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\..\..\lib\\oxygen-ps3.a
 c:\s3air\oxygen\sonic3air\build\_vstudio\oxygen-ps3\oxygen-ps3_\oxygen-ps3.tlog\ps3ppusnc.command.1.tlog

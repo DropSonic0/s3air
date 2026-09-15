@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,10 +10,20 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	Shader::ShaderSourcePostProcessCallbackFn Shader::mShaderSourcePostProcessCallback = nullptr;
+	Shader::ShaderApplyBlendModeCallbackFn Shader::mShaderApplyBlendModeCallback = nullptr;
+#endif
 
 /* ----- Shader -------------------------------------------------------------------------------------------------- */
 
-Shader::Shader() : mVertexShader(0), mFragmentShader(0), mProgram(0), mBlendMode(BlendMode_UNDEFINED), mTextureCount(0)
+void Shader::unbindShader()
+{
+	glUseProgram(0);
+	glActiveTexture(GL_TEXTURE0);
+}
+
+Shader::Shader()
 {
 }
 
@@ -47,7 +57,24 @@ bool Shader::compile(const String& vsSource, const String& fsSource, const std::
 
 GLuint Shader::getUniformLocation(const char* name) const
 {
-	return glGetUniformLocation(mProgram, name);
+	const GLuint loc = glGetUniformLocation(mProgram, name);
+	RMX_ASSERT(loc != 0xffffffff, "Could not resolve uniform name " << name);
+
+	// Just for debugging uniforms if needed
+/*
+	GLint count = 0;
+	glGetObjectParameterivARB(mProgram, GL_OBJECT_ACTIVE_UNIFORMS_ARB, &count);
+	for (GLint k = 0; k < count; ++k)
+	{
+		GLchar buffer[32];
+		GLsizei length = 0;
+		GLint size = 0;
+		GLenum type;
+		glGetActiveUniform(mProgram, k, 32, &length, &size, &type, buffer);
+		_asm nop;
+	}
+*/
+	return loc;
 }
 
 GLuint Shader::getAttribLocation(const char* name) const
@@ -55,101 +82,108 @@ GLuint Shader::getAttribLocation(const char* name) const
 	return glGetAttribLocation(mProgram, name);
 }
 
-void Shader::setParam(const char* name, int param)
+void Shader::setParam(GLuint loc, int param)
 {
-	glUniform1i(getUniformLocation(name), param);
+	glUniform1i(loc, param);
 }
 
-void Shader::setParam(const char* name, const Vec2i& param)
+void Shader::setParam(GLuint loc, const Vec2i& param)
 {
-	glUniform2iv(getUniformLocation(name), 1, *param);
+	glUniform2iv(loc, 1, *param);
 }
 
-void Shader::setParam(const char* name, const Vec3i& param)
+void Shader::setParam(GLuint loc, const Vec3i& param)
 {
-	glUniform3iv(getUniformLocation(name), 1, *param);
+	glUniform3iv(loc, 1, *param);
 }
 
-void Shader::setParam(const char* name, const Vec4i& param)
+void Shader::setParam(GLuint loc, const Vec4i& param)
 {
-	glUniform4iv(getUniformLocation(name), 1, *param);
+	glUniform4iv(loc, 1, *param);
 }
 
-void Shader::setParam(const char* name, float param)
+void Shader::setParam(GLuint loc, const Recti& param)
 {
-	glUniform1f(getUniformLocation(name), param);
+	glUniform4iv(loc, 1, param.mData);
 }
 
-void Shader::setParam(const char* name, const Vec2f& param)
+void Shader::setParam(GLuint loc, float param)
 {
-	glUniform2fv(getUniformLocation(name), 1, *param);
+	glUniform1f(loc, param);
 }
 
-void Shader::setParam(const char* name, const Vec3f& param)
+void Shader::setParam(GLuint loc, const Vec2f& param)
 {
-	glUniform3fv(getUniformLocation(name), 1, *param);
+	glUniform2fv(loc, 1, *param);
 }
 
-void Shader::setParam(const char* name, const Vec4f& param)
+void Shader::setParam(GLuint loc, const Vec3f& param)
 {
-	glUniform4fv(getUniformLocation(name), 1, *param);
+	glUniform3fv(loc, 1, *param);
 }
 
-void Shader::setMatrix(const char* name, const Mat3f& matrix)
+void Shader::setParam(GLuint loc, const Vec4f& param)
 {
-	glUniformMatrix3fv(getUniformLocation(name), 1, true, *matrix);
+	glUniform4fv(loc, 1, *param);
 }
 
-void Shader::setMatrix(const char* name, const Mat4f& matrix)
+void Shader::setParam(GLuint loc, const Rectf& param)
 {
-	glUniformMatrix4fv(getUniformLocation(name), 1, true, *matrix);
+	glUniform4fv(loc, 1, param.mData);
 }
 
-void Shader::setTexture(const char* name, GLuint handle, GLenum target)
+void Shader::setMatrix(GLuint loc, const Mat3f& matrix)
+{
+	glUniformMatrix3fv(loc, 1, true, *matrix);
+}
+
+void Shader::setMatrix(GLuint loc, const Mat4f& matrix)
+{
+	glUniformMatrix4fv(loc, 1, true, *matrix);
+}
+
+void Shader::setTexture(GLuint loc, GLuint handle, GLenum target)
 {
 	int number = mTextureCount;
 	glActiveTexture(GL_TEXTURE0 + number);
 	glBindTexture(target, handle);
-	glUniform1i(getUniformLocation(name), number);
+	glUniform1i(loc, number);
 	++mTextureCount;
 }
 
-void Shader::setTexture(const char* name, const Texture& texture)
+void Shader::setTexture(GLuint loc, const Texture& texture)
 {
-	setTexture(name, texture.getHandle(), texture.getType());
+	setTexture(loc, texture.getHandle(), texture.getType());
 }
 
 void Shader::bind()
 {
-	if (mBlendMode != BlendMode_UNDEFINED)
+	if (mBlendMode != BlendMode::UNDEFINED)
 	{
 		bool handled = false;
-#if !defined(PLATFORM_PS3)
 		if (mShaderApplyBlendModeCallback)
 		{
 			handled = Shader::mShaderApplyBlendModeCallback(mBlendMode);
 		}
-#endif
 
 		if (!handled)
 		{
 			switch (mBlendMode)
 			{
-				case BlendMode_OPAQUE: glBlendFunc(GL_ONE, GL_ZERO);  break;
-				case BlendMode_ALPHA:  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  break;
-				case BlendMode_ADD:    glBlendFunc(GL_ONE, GL_ONE);   break;
+				case BlendMode::OPAQUE:	glBlendFunc(GL_ONE, GL_ZERO);  break;
+				case BlendMode::ALPHA:	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  break;
+				case BlendMode::ADD:	glBlendFunc(GL_ONE, GL_ONE);   break;
 				default:				glBlendFunc(GL_ONE, GL_ZERO);  break;
 			}
 		}
 	}
 	glUseProgram(mProgram);
-	mTextureCount = 0;
+	resetTextureCount();
 }
 
 void Shader::unbind()
 {
-	glUseProgram(0);
-	glActiveTexture(GL_TEXTURE0);
+	unbindShader();
 }
 
 bool Shader::load(const String& filename, const String& techname, const String& additionalDefines)
@@ -212,7 +246,7 @@ bool Shader::linkProgram(const std::map<int, String>* vertexAttribMap)
 	{
 		for (std::map<int, String>::const_iterator it = vertexAttribMap->begin(); it != vertexAttribMap->end(); ++it)
 		{
-			glBindAttribLocation(mProgram, it->first, *it->second);
+			glBindAttribLocation(mProgram, it->first, *(it->second));
 		}
 	}
 
@@ -341,11 +375,11 @@ bool ShaderEffect::getShaderInternal(Shader& shader, TechniqueStruct& tech, cons
 
 	String vsSource;
 	buildSourceFromParts(vsSource, tech.mVertexShaderParts, definitions);
-	preprocessSource(vsSource, Shader::ShaderType_VERTEX);
+	preprocessSource(vsSource, Shader::ShaderType::VERTEX);
 
 	String fsSource;
 	buildSourceFromParts(fsSource, tech.mFragmentShaderParts, definitions);
-	preprocessSource(fsSource, Shader::ShaderType_FRAGMENT);
+	preprocessSource(fsSource, Shader::ShaderType::FRAGMENT);
 
 	if (!shader.compile(vsSource, fsSource, &tech.mVertexAttribMap))
 		return false;
@@ -457,11 +491,11 @@ void ShaderEffect::parseTechniques(String& source)
 			{
 				value.lowerCase();
 				if (value == "alpha")
-					tech.mBlendMode = Shader::BlendMode_ALPHA;
+					tech.mBlendMode = Shader::BlendMode::ALPHA;
 				else if (value == "add")
-					tech.mBlendMode = Shader::BlendMode_ADD;
+					tech.mBlendMode = Shader::BlendMode::ADD;
 				else
-					tech.mBlendMode = Shader::BlendMode_OPAQUE;
+					tech.mBlendMode = Shader::BlendMode::OPAQUE;
 			}
 			else if (identifier == "define" || identifier == "defines")
 			{
@@ -552,7 +586,14 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 			incname.makeSubString(line, a+1, b-a-1);
 			if (incname.empty())
 				continue;
-			incname.insert(mIncludeDir, 0);
+			if (mIncludeDir.nonEmpty())
+			{
+				incname.insert(mIncludeDir, 0);
+			}
+			else if (!incname.startsWith("data/") && !incname.startsWith("data\\"))
+			{
+				incname.insert("data/shader/", 0);
+			}
 
 			String content;
 			if (content.loadFile(*incname) && content.nonEmpty())
@@ -565,12 +606,11 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 		}
 	}
 
-#ifdef RMX_USE_GLES2
-	// GLSL ES 2.0 translation
+#if (defined(RMX_USE_GLES2) && !defined(PLATFORM_VITA)) || defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	// GLSL ES 2.0 / PSGL translation
 	String newSource;
 	for (int pos = 0; pos < source.length(); )
 	{
-		const int start = pos;
 		pos = source.getLine(line, pos);
 
 		if (line.startsWith("#version"))
@@ -582,12 +622,12 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 		{
 			// "in" -> "attribute" or "varying"
 			line.remove(0, 2);
-			line.insert((shaderType == Shader::ShaderType_VERTEX) ? "attribute" : "varying", 0);
+			line.insert((shaderType == Shader::ShaderType::VERTEX) ? "attribute" : "varying", 0);
 		}
 		else if (line.startsWith("out "))
 		{
 			// "out" -> "varying" or remove entirely
-			if (shaderType == Shader::ShaderType_VERTEX)
+			if (shaderType == Shader::ShaderType::VERTEX)
 			{
 				line.remove(0, 3);
 				line.insert("varying", 0);
@@ -631,12 +671,10 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 	source.swap(newSource);
 #endif
 
-#if !defined(PLATFORM_PS3)
 	if (Shader::mShaderSourcePostProcessCallback)
 	{
 		Shader::mShaderSourcePostProcessCallback(source, shaderType);
 	}
-#endif
 }
 
 #endif

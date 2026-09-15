@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -15,8 +15,6 @@ class Font;
 
 namespace utils
 {
-	bool startsWith(const std::wstring& fullString, const std::wstring& prefix);
-
 	void splitTextIntoLines(std::vector<std::string>& outLines, const std::string& text, Font& font, int maxLineWidth);
 	void splitTextIntoLines(std::vector<std::string_view>& outLines, std::string_view text, Font& font, int maxLineWidth);
 	void shortenTextToFit(std::string& text, Font& font, int maxLineWidth);

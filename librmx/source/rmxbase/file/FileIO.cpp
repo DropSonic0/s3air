@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,17 +9,33 @@
 #include "rmxbase.h"
 #include <fstream>
 
-#if defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	#include <dirent.h>
 	#include <sys/stat.h>
 	#include <unistd.h>
-	#include <limits.h>
-	#include <stdio.h>
-	#include <cell/cell_fs.h>
+#endif
 
-	// SNC/PS3 Toolchain missing defines
-	#ifndef PATH_MAX
-		#define PATH_MAX 1024
+#ifndef S_ISDIR
+	#ifdef S_IFDIR
+		#ifdef S_IFMT
+			#define S_ISDIR(m) (((m) & S_IFMT) == S_IFDIR)
+		#else
+			#define S_ISDIR(m) (((m) & 0xF000) == S_IFDIR)
+		#endif
+	#else
+		#define S_ISDIR(m) (((m) & 0170000) == 0040000)
 	#endif
+#endif
+
+#if defined(PLATFORM_PS3)
+extern "C" int stat(const char* path, struct stat* buf);
+
+static inline int rmx_stat(const char* path, struct stat* buf)
+{
+	return stat(path, buf);
+}
+#else
+	#define rmx_stat stat
 #endif
 
 #ifdef PLATFORM_WINDOWS
@@ -30,7 +46,7 @@
 	#include <direct.h>
 	#include <io.h>
 
-#elif defined(PLATFORM_LINUX) || defined(PLATFORM_WEB)
+#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_WEB)
 	#include <filesystem>
 	namespace std_filesystem = std::filesystem;
 	#define USE_STD_FILESYSTEM
@@ -38,22 +54,7 @@
 	#include <dirent.h>
 	#include <sys/stat.h>
 
-#elif defined(PLATFORM_MAC)
-#if TARGET_CPU_X86_64
-	//Older Intel macOS < 10.15 lacks std::filesystem, so we substitute with boost::filesystem
-	#include <boost/filesystem.hpp>
-	namespace std_filesystem = boost::filesystem;
-#else
-	//Newer Macs, specifically arm64, are running macOS 11 or newer which has std::filesystem
-	#include <filesystem>
-	namespace std_filesystem = std::filesystem;
-#endif
-	#define USE_STD_FILESYSTEM
-
-	#include <dirent.h>
-	#include <sys/stat.h>
-
-#elif defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS)
+#elif defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
 	// This requires Android NDK 22
 	#include <filesystem>
 	namespace std_filesystem = std::filesystem;
@@ -62,15 +63,22 @@
 	#include <dirent.h>
 	#include <sys/stat.h>
 #endif
+#if defined(PLATFORM_WEB)
+	#include <emscripten.h>
+#endif
 
 
 namespace rmx
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__)
+	int FileIO::mLastErrorCode = 0;
+#endif
+
 	namespace
 	{
 		bool createDir(const WString& path, bool recursive)
 		{
-		#if defined(USE_STD_FILESYSTEM) || defined(PLATFORM_PS3)
+		#ifdef USE_STD_FILESYSTEM
 			// Create directory or hierarchy of directories (if recursive == true)
 			if (recursive)
 			{
@@ -80,8 +88,10 @@ namespace rmx
 				while (pos < path.length())
 				{
 					pos = path.findChars(L"/\\", pos + 1, +1);
+					if (pos < 0)
+						pos = path.length();
 					subpath.makeSubString(path, 0, pos);
-					if (!FileIO::exists(*subpath))
+					if (!std_filesystem::exists(*subpath))
 					{
 						if (!createDir(subpath, false))
 							return false;
@@ -94,13 +104,37 @@ namespace rmx
 				// Create a single directory
 			#ifdef PLATFORM_WINDOWS
 				return (_wmkdir(*path) == 0);
-			#elif defined(PLATFORM_PS3)
-				return (cellFsMkdir(*path.toUTF8(), CELL_FS_S_IRWXU | CELL_FS_S_IRWXG | CELL_FS_S_IRWXO) == CELL_FS_SUCCEEDED);
 			#elif defined(USE_UTF8_PATHS)
 				return (mkdir(*path.toUTF8(), 0777) == 0);		// Probably the only time I ever used octal notation...
 			#else
 				#error "Unsupported platform"
 			#endif
+			}
+		#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+			if (recursive)
+			{
+				WString subpath;
+				subpath.expand(path.length() + 1);
+				int pos = 0;
+				while (pos < path.length())
+				{
+					pos = path.findChars(L"/\\", pos + 1, +1);
+					if (pos < 0)
+						pos = path.length();
+					subpath.makeSubString(path, 0, pos);
+					const std::string subpathUTF8 = rmx::convertToUTF8(*subpath);
+					struct stat st;
+					if (rmx_stat(subpathUTF8.c_str(), &st) != 0)
+					{
+						if (mkdir(subpathUTF8.c_str(), 0777) != 0)
+							return false;
+					}
+				}
+				return true;
+			}
+			else
+			{
+				return (mkdir(*path.toUTF8(), 0777) == 0);
 			}
 		#else
 			// TODO
@@ -122,9 +156,9 @@ namespace rmx
 
 		void listDirectoryContentInternal(std::vector<FileIO::FileEntry>* outFileEntries, std::vector<std::wstring>* outSubDirectories, std::wstring_view basePath_, std::wstring_view filemask, bool recursive)
 		{
-			const std::wstring basePath(basePath_.data(), basePath_.length());
+			const std::wstring basePath(basePath_);
 			std::vector<std::wstring> subDirectoriesBuffer;
-			std::vector<std::wstring>& subDirectories = (0 != outSubDirectories) ? *outSubDirectories : subDirectoriesBuffer;
+			std::vector<std::wstring>& subDirectories = (nullptr != outSubDirectories) ? *outSubDirectories : subDirectoriesBuffer;
 
 		#ifdef PLATFORM_WINDOWS
 
@@ -135,14 +169,14 @@ namespace rmx
 			while (success)
 			{
 				// Ignore "." and ".." entries
-				const std::wstring name(fileinfo.name);
+				const std::wstring name = fileinfo.name;
 				if (name != L"." && name != L"..")
 				{
 					const bool isDirectory = (fileinfo.attrib & 0x10) != 0;
 					if (isDirectory)
 					{
 						// Directory
-						if (recursive || 0 != outSubDirectories)
+						if (recursive || nullptr != outSubDirectories)
 						{
 							subDirectories.push_back(name);
 						}
@@ -150,7 +184,7 @@ namespace rmx
 					else
 					{
 						// File
-						if (0 != outFileEntries)
+						if (nullptr != outFileEntries)
 						{
 							// Check for wildcard match
 							const WString filename = fileinfo.name;
@@ -170,17 +204,17 @@ namespace rmx
 			}
 			_findclose(handle);
 
-		#elif defined(USE_UTF8_PATHS) && !defined(PLATFORM_PS3)
+		#elif defined(USE_UTF8_PATHS)
 
 			const std::string basePathUTF8 = *WString(basePath).toUTF8();
 			DIR* dp = opendir(basePathUTF8.c_str());
-			if (0 == dp)
+			if (nullptr == dp)
 				return;
 
 			while (true)
 			{
 				struct dirent* dirp = readdir(dp);
-				if (0 == dirp)
+				if (nullptr == dirp)
 					break;
 
 				// Ignore "." and ".." entries
@@ -189,13 +223,13 @@ namespace rmx
 					continue;
 
 				struct stat fileinfo;
-				if (stat((basePathUTF8 + name).c_str(), &fileinfo) != 0)
+				if (rmx_stat((basePathUTF8 + name).c_str(), &fileinfo) != 0)
 					continue;
 
 				if (S_ISDIR(fileinfo.st_mode))
 				{
 					// Directory
-					if (recursive || 0 != outSubDirectories)
+					if (recursive || nullptr != outSubDirectories)
 					{
 						subDirectories.push_back(*String(name).toWString());
 					}
@@ -203,7 +237,7 @@ namespace rmx
 				else
 				{
 					// File
-					if (0 != outFileEntries)
+					if (nullptr != outFileEntries)
 					{
 						// Check for wildcard match
 						const WString filename = String(name).toWString();
@@ -220,51 +254,6 @@ namespace rmx
 			}
 			closedir(dp);
 
-		#elif defined(PLATFORM_PS3)
-			int fd;
-			const std::string basePathUTF8 = *WString(basePath).toUTF8();
-			if (cellFsOpendir(basePathUTF8.c_str(), &fd) == CELL_FS_SUCCEEDED)
-			{
-				static CellFsDirectoryEntry entries[32];
-				uint32_t count;
-				while (cellFsGetDirectoryEntries(fd, entries, sizeof(entries), &count) == CELL_FS_SUCCEEDED && count != 0)
-				{
-					for (uint32_t i = 0; i < count; ++i)
-					{
-						const CellFsDirectoryEntry& entry = entries[i];
-						const std::string name = entry.entry_name.d_name;
-						if (name == "." || name == "..")
-							continue;
-
-						if (entry.attribute.st_mode & CELL_FS_S_IFDIR)
-						{
-							// Directory
-							if (recursive || 0 != outSubDirectories)
-							{
-								subDirectories.push_back(*String(name).toWString());
-							}
-						}
-						else
-						{
-							// File
-							if (0 != outFileEntries)
-							{
-								// Check for wildcard match
-								const WString filename = String(name).toWString();
-								if (filemask.empty() || matchesPattern(*filename, filemask.data()))
-								{
-									FileIO::FileEntry& entry_out = vectorAdd(*outFileEntries);
-									entry_out.mFilename = filename.toStdWString();
-									entry_out.mPath = basePath;
-									entry_out.mTime = entry.attribute.st_mtime;
-									entry_out.mSize = (size_t)entry.attribute.st_size;
-								}
-							}
-						}
-					}
-				}
-				cellFsClosedir(fd);
-			}
 		#else
 			#error "Unsupported platform"
 		#endif
@@ -278,41 +267,118 @@ namespace rmx
 				}
 			}
 		}
+
+		struct FileNameCharacterValidityLookup
+		{
+			explicit FileNameCharacterValidityLookup(bool allowSlash)
+			{
+				for (int k = 32; k < 128; ++k)		// Exclude non-printable ASCII characters
+				{
+					mIsCharacterValid.setBit(k);
+				}
+				const std::wstring invalidCharacters = L"\"<>:|?*";		// Technically not all of these characters are problematic on all platforms, but we treat them all as illegal to avoid cross-platform issues
+				for (wchar_t ch : invalidCharacters)
+				{
+					mIsCharacterValid.clearBit(ch);
+				}
+				if (!allowSlash)
+				{
+					mIsCharacterValid.clearBit(L'/');
+					mIsCharacterValid.clearBit(L'\\');
+				}
+			}
+
+			bool isValid(wchar_t ch) const  { return ch >= 128 || mIsCharacterValid.isBitSet(ch); }
+
+			bool allValid(std::wstring_view str) const
+			{
+				for (wchar_t ch : str)
+				{
+					if (!isValid(ch))
+						return false;
+				}
+				return true;
+			}
+
+			BitArray<128> mIsCharacterValid;
+		};
+
+		static FileNameCharacterValidityLookup mFileNameCharacterValidityLookup(false);
+		static FileNameCharacterValidityLookup mFilePathCharacterValidityLookup(true);
+
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+		inline void clearErrorCode(std::error_code& ec)  { ec.clear(); }
+#endif
+		inline void clearErrorCode(int& ec)               { ec = 0; }
 	}
 
 
 	bool FileIO::exists(std::wstring_view path)
 	{
 	#ifdef USE_STD_FILESYSTEM
-		const std_filesystem::path fspath(WString(path).toStdWString());
+		const std_filesystem::path fspath(path.data());
 		return std_filesystem::exists(fspath);
-	#elif defined(PLATFORM_PS3)
-		CellFsStat st;
-		return (cellFsStat(*WString(path).toUTF8(), &st) == CELL_FS_SUCCEEDED);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		struct stat st;
+		return (rmx_stat(pathUTF8.c_str(), &st) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::exists");
 		return false;
 	#endif
 	}
 
+	bool FileIO::isFile(std::wstring_view path)
+	{
+	#ifdef USE_STD_FILESYSTEM
+		const std_filesystem::path fspath(path.data());
+		return std_filesystem::is_regular_file(fspath);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		struct stat st;
+		if (rmx_stat(pathUTF8.c_str(), &st) == 0)
+		{
+			return !S_ISDIR(st.st_mode);
+		}
+		return false;
+	#else
+		RMX_ASSERT(false, "Not implemented: FileIO::isFile");
+		return false;
+	#endif
+	}
+
+	bool FileIO::isDirectory(std::wstring_view path)
+	{
+	#ifdef USE_STD_FILESYSTEM
+		const std_filesystem::path fspath(path.data());
+		return std_filesystem::is_directory(fspath);
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		struct stat st;
+		if (rmx_stat(pathUTF8.c_str(), &st) == 0)
+		{
+			return S_ISDIR(st.st_mode);
+		}
+		return false;
+	#else
+		RMX_ASSERT(false, "Not implemented: FileIO::isDirectory");
+		return false;
+	#endif
+	}
+
 	bool FileIO::getFileSize(std::wstring_view filename, uint64& outSize)
 	{
-	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC) && !defined(PLATFORM_PS3)
-		const std_filesystem::path fspath(WString(filename).toStdWString());
-		std::error_code errorCode;
-		const std::uintmax_t size = std_filesystem::file_size(fspath, errorCode);
-		if (errorCode)
+		clearErrorCode(mLastErrorCode);
+
+	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
+		const std_filesystem::path fspath(filename.data());
+		const std::uintmax_t size = std_filesystem::file_size(fspath, mLastErrorCode);
+		if (mLastErrorCode)
 			return false;
 		outSize = (uint64)size;
 		return true;
-	#elif defined(PLATFORM_PS3)
-		CellFsStat st;
-		if (cellFsStat(*WString(filename).toUTF8(), &st) != CELL_FS_SUCCEEDED)
-			return false;
-		outSize = (uint64)st.st_size;
-		return true;
 	#else
-		FileHandle file(WString(filename), FILE_ACCESS_READ);
+		FileHandle file(filename, FILE_ACCESS_READ);
 		if (!file.isOpen())
 			return false;
 		outSize = file.getSize();
@@ -322,23 +388,27 @@ namespace rmx
 
 	bool FileIO::getFileTime(std::wstring_view filename, time_t& outTime)
 	{
-	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC) && !defined(PLATFORM_PS3)
-		const std_filesystem::path fspath(WString(filename).toStdWString());
-		std::error_code errorCode;
-		const std::filesystem::file_time_type time = std_filesystem::last_write_time(fspath, errorCode);
-		if (errorCode)
+		clearErrorCode(mLastErrorCode);
+
+	#if defined(USE_STD_FILESYSTEM)
+		const std_filesystem::path fspath(filename.data());
+		const std_filesystem::file_time_type time = std_filesystem::last_write_time(fspath, mLastErrorCode);
+		if (mLastErrorCode)
 			return false;
 
 		// This is the C++17 solution for converting the time -- see https://stackoverflow.com/questions/61030383/how-to-convert-stdfilesystemfile-time-type-to-time-t
-		const std::chrono::system_clock::time_point timePoint = std::chrono::time_point_cast<std::chrono::system_clock::duration>(time - std::filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
+		const std::chrono::system_clock::time_point timePoint = std::chrono::time_point_cast<std::chrono::system_clock::duration>(time - std_filesystem::file_time_type::clock::now() + std::chrono::system_clock::now());
 		outTime = std::chrono::system_clock::to_time_t(timePoint);
 		return true;
-	#elif defined(PLATFORM_PS3)
-		CellFsStat st;
-		if (cellFsStat(*WString(filename).toUTF8(), &st) != CELL_FS_SUCCEEDED)
-			return false;
-		outTime = st.st_mtime;
-		return true;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(filename);
+		struct stat st;
+		if (rmx_stat(pathUTF8.c_str(), &st) == 0)
+		{
+			outTime = st.st_mtime;
+			return true;
+		}
+		return false;
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::getFileTime");
 		return false;
@@ -348,26 +418,8 @@ namespace rmx
 	bool FileIO::readFile(std::wstring_view filename, std::vector<uint8>& outData)
 	{
 		// Read from file system
-	#if defined(PLATFORM_PS3)
-		int fd;
-		if (cellFsOpen(*WString(filename).toUTF8(), CELL_FS_O_RDONLY, &fd, NULL, 0) != CELL_FS_SUCCEEDED)
-			return false;
-
-		CellFsStat st;
-		cellFsFstat(fd, &st);
-		const uint32 fileSize = (uint32)st.st_size;
-
-		outData.resize(fileSize);
-		if (fileSize != 0)
-		{
-			uint64_t nread;
-			cellFsRead(fd, &outData[0], fileSize, &nread);
-		}
-		cellFsClose(fd);
-		return true;
-	#else
 	#ifdef USE_UTF8_PATHS
-		std::ifstream stream(*WString(filename).toUTF8(), std::ios::binary);
+		std::ifstream stream(rmx::convertToUTF8(filename).c_str(), std::ios::binary);
 	#else
 		std::ifstream stream(filename.data(), std::ios::binary);
 	#endif
@@ -384,105 +436,140 @@ namespace rmx
 			stream.read((char*)&outData[0], size);
 		}
 		return true;
-	#endif
 	}
 
 	bool FileIO::saveFile(std::wstring_view filename, const void* data, size_t size)
 	{
 		// Create directory if needed
 		const size_t slashPosition = filename.find_last_of(L"/\\");
-		if (slashPosition != std::wstring_view::npos)
+		if (slashPosition != std::string::npos)
 		{
 			createDirectory(filename.substr(0, slashPosition));
 		}
 
-	#if defined(PLATFORM_PS3)
-		int fd;
-		if (cellFsOpen(*WString(filename).toUTF8(), CELL_FS_O_WRONLY | CELL_FS_O_CREAT | CELL_FS_O_TRUNC, &fd, NULL, 0) != CELL_FS_SUCCEEDED)
-			return false;
-
-		if (size != 0 && 0 != data)
-		{
-			uint64_t nwrite;
-			cellFsWrite(fd, data, size, &nwrite);
-		}
-		cellFsClose(fd);
-		return true;
-	#else
 	#ifdef USE_UTF8_PATHS
-		std::ofstream stream(*WString(filename).toUTF8(), std::ios::binary);
+		std::ofstream stream(rmx::convertToUTF8(filename).c_str(), std::ios::binary);
 	#else
 		std::ofstream stream(filename.data(), std::ios::binary);
 	#endif
 		if (!stream.good())
 			return false;
 
-		if (size != 0 && 0 != data)
+		if (size != 0 && nullptr != data)
 		{
 			stream.write((char*)data, size);
 		}
 		stream.close();
+
+		#if defined(PLATFORM_WEB)
+			EM_ASM({
+				FS.syncfs(false, function(err)
+				{
+					if (err) console.error('FS.syncfs failed:', err);
+				});
+			});
+		#endif
 		return true;
-	#endif
 	}
 
 	InputStream* FileIO::createInputStream(std::wstring_view filename)
 	{
-		InputStream* inputStream = new FileInputStream(WString(filename));
+		InputStream* inputStream = new FileInputStream(filename);
 		if (!inputStream->valid())
 		{
 			delete inputStream;
-			return 0;
+			return nullptr;
 		}
 		return inputStream;
 	}
 
 	bool FileIO::renameFile(const std::wstring& oldFilename, const std::wstring& newFilename)
 	{
-	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
-		const std_filesystem::path fspathOld(oldFilename);
-		const std_filesystem::path fspathNew(newFilename);
-		std::error_code errorCode;
-		std_filesystem::rename(fspathOld, fspathNew, errorCode);
-		return !errorCode;
-	#elif defined(PLATFORM_PS3)
-		return (cellFsRename(*WString(oldFilename).toUTF8(), *WString(newFilename).toUTF8()) == CELL_FS_SUCCEEDED);
+		clearErrorCode(mLastErrorCode);
+
+	#if defined(USE_STD_FILESYSTEM)
+		const std_filesystem::path fspathOld(oldFilename.data());
+		const std_filesystem::path fspathNew(newFilename.data());
+		std_filesystem::rename(fspathOld, fspathNew, mLastErrorCode);
+		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string oldUTF8 = rmx::convertToUTF8(oldFilename);
+		const std::string newUTF8 = rmx::convertToUTF8(newFilename);
+		return (rename(oldUTF8.c_str(), newUTF8.c_str()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::renameFile");
 		return false;
 	#endif
 	}
 
+	bool FileIO::renameDirectory(const std::wstring& oldFilename, const std::wstring& newFilename)
+	{
+		clearErrorCode(mLastErrorCode);
+
+	#if defined(USE_STD_FILESYSTEM)
+		const std_filesystem::path fspathOld(oldFilename.data());
+		const std_filesystem::path fspathNew(newFilename.data());
+		std_filesystem::rename(fspathOld, fspathNew, mLastErrorCode);
+		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string oldUTF8 = rmx::convertToUTF8(oldFilename);
+		const std::string newUTF8 = rmx::convertToUTF8(newFilename);
+		return (rename(oldUTF8.c_str(), newUTF8.c_str()) == 0);
+	#else
+		RMX_ASSERT(false, "Not implemented: FileIO::renameDirectory");
+		return false;
+	#endif
+	}
+
 	bool FileIO::removeFile(std::wstring_view path)
 	{
-	#if defined(USE_STD_FILESYSTEM) && !defined(PLATFORM_MAC)
+		clearErrorCode(mLastErrorCode);
+
+	#if defined(USE_STD_FILESYSTEM)
 		const std_filesystem::path fspath(path);
-		std::error_code errorCode;
-		std_filesystem::remove(fspath, errorCode);
-		return !errorCode;
-	#elif defined(PLATFORM_PS3)
-		return (cellFsUnlink(*WString(path).toUTF8()) == CELL_FS_SUCCEEDED);
+		std_filesystem::remove(fspath, mLastErrorCode);
+		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		return (unlink(pathUTF8.c_str()) == 0);
 	#else
 		RMX_ASSERT(false, "Not implemented: FileIO::removeFile");
 		return false;
 	#endif
 	}
 
-	void FileIO::createDirectory(std::wstring_view path)
+	bool FileIO::removeDirectory(std::wstring_view path)
 	{
-		createDir(path, true);
+		clearErrorCode(mLastErrorCode);
+
+	#if defined(USE_STD_FILESYSTEM)
+		const std_filesystem::path fspath(path);
+		std_filesystem::remove_all(fspath, mLastErrorCode);
+		return !mLastErrorCode;
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		const std::string pathUTF8 = rmx::convertToUTF8(path);
+		return (rmdir(pathUTF8.c_str()) == 0);
+	#else
+		RMX_ASSERT(false, "Not implemented: FileIO::removeDirectory");
+		return false;
+	#endif
+	}
+
+	bool FileIO::createDirectory(std::wstring_view path)
+	{
+		return createDir(path, true);
 	}
 
 	void FileIO::listFiles(std::wstring_view path, bool recursive, std::vector<FileEntry>& outFileEntries)
 	{
-		std::wstring basePath(path.data(), path.length());
+		std::wstring basePath = std::wstring(path);
 		normalizePath(basePath, true);
-		listDirectoryContentInternal(&outFileEntries, 0, basePath, L"", recursive);
+		listDirectoryContentInternal(&outFileEntries, nullptr, basePath, L"", recursive);
 	}
 
 	void FileIO::listFilesByMask(std::wstring_view filemask_, bool recursive, std::vector<FileEntry>& outFileEntries)
 	{
-		std::wstring filemask(filemask_.data(), filemask_.length());
+		std::wstring filemask = std::wstring(filemask_);
 		normalizePath(filemask, false);
 
 		std::wstring basePath;
@@ -502,14 +589,21 @@ namespace rmx
 			}
 		}
 
-		listDirectoryContentInternal(&outFileEntries, 0, basePath, mask, recursive);
+		listDirectoryContentInternal(&outFileEntries, nullptr, basePath, mask, recursive);
 	}
 
 	void FileIO::listDirectories(std::wstring_view path, std::vector<std::wstring>& outDirectories)
 	{
-		std::wstring basePath(path.data(), path.length());
+		std::wstring basePath = std::wstring(path);
 		normalizePath(basePath, true);
-		listDirectoryContentInternal(0, &outDirectories, basePath, L"", false);
+		listDirectoryContentInternal(nullptr, &outDirectories, basePath, L"", false);
+	}
+
+	bool FileIO::isDirectoryPath(std::wstring_view path)
+	{
+		if (path.empty())
+			return false;
+		return (path.back() == L'/' || path.back() == L'\\');
 	}
 
 	void FileIO::normalizePath(std::wstring& path, bool isDirectory)
@@ -518,21 +612,24 @@ namespace rmx
 			return;
 
 		std::wstring tempBuffer;
-		std::wstring_view result = normalizePath(std::wstring_view(path.data(), path.length()), tempBuffer, isDirectory);
-		if (result.data() == tempBuffer.data())
-		{
-			path = tempBuffer;
-		}
-		else
-		{
-			path.assign(result.data(), result.length());
-		}
+		path = normalizePath(path, tempBuffer, isDirectory);
 	}
 
 	std::wstring_view FileIO::normalizePath(std::wstring_view path, std::wstring& tempBuffer, bool isDirectory)
 	{
 		if (path.empty())
 			return path;
+
+	#if defined(PLATFORM_VITA)
+		// Assume that the path is always normal when it begins with ux0:/data
+		const WString t(path);
+		if (t.startsWith(L"ux0:/data/") || t.startsWith(L"ux0:data/"))
+			return path;
+	#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		const WString t(path);
+		if (t.startsWith(L"/dev_hdd0/game/SONIC3AIR/USRDIR/") || t.startsWith(L"/dev_hdd0/"))
+			return path;
+	#endif
 
 		// Split the path into a list of directory / file names
 		std::wstring_view names[32];
@@ -620,16 +717,16 @@ namespace rmx
 			if (numNames > 0)
 			{
 				tempBuffer.reserve(path.length());
-				tempBuffer.append(names[0].data(), names[0].length());
+				tempBuffer += names[0];
 				for (size_t k = 1; k < numNames; ++k)
 				{
-					tempBuffer.append(1, L'/');
-					tempBuffer.append(names[k].data(), names[k].length());
+					tempBuffer += L'/';
+					tempBuffer += names[k];
 				}
 				if (isDirectory)
-					tempBuffer.append(1, L'/');
+					tempBuffer += L'/';
 			}
-			return std::wstring_view(tempBuffer.data(), tempBuffer.length());
+			return tempBuffer;
 		}
 		else
 		{
@@ -638,14 +735,56 @@ namespace rmx
 		}
 	}
 
+	bool FileIO::isValidFileName(std::wstring_view filename)
+	{
+		if (filename.empty())
+			return false;
+		if (!mFileNameCharacterValidityLookup.allValid(filename))
+			return false;
+		if (filename == L"." || rmx::startsWith(filename, L".."))
+			return false;
+		return true;
+	}
+
+	bool FileIO::isValidPathName(std::wstring_view pathname)
+	{
+		if (pathname.empty())
+			return false;
+		if (!mFilePathCharacterValidityLookup.allValid(pathname))
+			return false;
+		return true;
+	}
+
+	void FileIO::sanitizeFileName(std::wstring& filename)
+	{
+		// Replace all characters that are not valid in a file name
+		//  -> Note that this does replace slashes with underscores
+		for (wchar_t& ch : filename)
+		{
+			if (!mFileNameCharacterValidityLookup.isValid(ch))
+				ch = L'_';
+		}
+	}
+
+	void FileIO::sanitizePathName(std::wstring& pathname)
+	{
+		// Replace all characters that are not valid in a path name
+		//  -> Note that this does not replace slashes (though it converts backslashes to forward slashes)
+		for (wchar_t& ch : pathname)
+		{
+			if (!mFileNameCharacterValidityLookup.isValid(ch))
+				ch = L'_';
+			else if (ch == L'\\')
+				ch = L'/';
+		}
+	}
+
 	std::wstring FileIO::getCurrentDirectory()
 	{
 	#ifdef USE_STD_FILESYSTEM
 		return std_filesystem::current_path().wstring();
-	#elif defined(PLATFORM_PS3)
-		// On PS3, we don't have a reliable getcwd/chdir in the standard library.
-		// However, we can use the environment or just return an empty string to trigger fallbacks.
-		return L"";
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		return rmx::convertFromUTF8(ps3_get_usrdir());
 	#else
 		return L"";
 	#endif
@@ -654,37 +793,37 @@ namespace rmx
 	void FileIO::setCurrentDirectory(std::wstring_view path)
 	{
 	#ifdef USE_STD_FILESYSTEM
-		const std_filesystem::path fspath(WString(path).toStdWString());
+		const std_filesystem::path fspath(path.data());
 		std_filesystem::current_path(fspath);
-	#elif defined(PLATFORM_PS3)
-		// Not supported
+	#elif defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		(void)path;
 	#endif
 	}
 
 	void FileIO::splitPath(std::string_view path, std::string* directory, std::string* name, std::string* extension)
 	{
 		const std::size_t slash = path.find_last_of("/\\");
-		if (0 != directory)
+		if (nullptr != directory)
 		{
-			if (slash != std::string_view::npos)
-				*directory = std::string(path.substr(0, slash).data(), path.substr(0, slash).length());
+			if (slash != std::wstring::npos)
+				*directory = path.substr(0, slash);
 			else
 				directory->clear();
 		}
 
-		const std::size_t dot = path.find_last_of(".");
-		if (dot != std::string_view::npos && (dot > slash || slash == std::string_view::npos))
+		const std::size_t dot = path.find_last_of('.');
+		if (dot != std::wstring::npos && dot > slash)
 		{
-			if (0 != name)
-				*name = std::string(path.substr(slash + 1, dot - slash - 1).data(), path.substr(slash + 1, dot - slash - 1).length());
-			if (0 != extension)
-				*extension = std::string(path.substr(dot + 1).data(), path.substr(dot + 1).length());
+			if (nullptr != name)
+				*name = path.substr(slash + 1, dot - slash - 1);
+			if (nullptr != extension)
+				*extension = path.substr(dot + 1);
 		}
 		else
 		{
-			if (0 != name)
-				*name = std::string(path.substr(slash + 1).data(), path.substr(slash + 1).length());
-			if (0 != extension)
+			if (nullptr != name)
+				*name = path.substr(slash + 1);
+			if (nullptr != extension)
 				extension->clear();
 		}
 	}
@@ -692,27 +831,27 @@ namespace rmx
 	void FileIO::splitPath(std::wstring_view path, std::wstring* directory, std::wstring* name, std::wstring* extension)
 	{
 		const std::size_t slash = path.find_last_of(L"/\\");
-		if (0 != directory)
+		if (nullptr != directory)
 		{
-			if (slash != std::wstring_view::npos)
-				*directory = std::wstring(path.substr(0, slash).data(), path.substr(0, slash).length());
+			if (slash != std::wstring::npos)
+				*directory = path.substr(0, slash);
 			else
 				directory->clear();
 		}
 
-		const std::size_t dot = path.find_last_of(L".");
-		if (dot != std::wstring_view::npos && (dot > slash || slash == std::wstring_view::npos))
+		const std::size_t dot = path.find_last_of(L'.');
+		if (dot != std::wstring::npos && (dot > slash || slash == std::wstring::npos))
 		{
-			if (0 != name)
-				*name = std::wstring(path.substr(slash + 1, dot - slash - 1).data(), path.substr(slash + 1, dot - slash - 1).length());
-			if (0 != extension)
-				*extension = std::wstring(path.substr(dot + 1).data(), path.substr(dot + 1).length());
+			if (nullptr != name)
+				*name = path.substr(slash + 1, dot - slash - 1);
+			if (nullptr != extension)
+				*extension = path.substr(dot + 1);
 		}
 		else
 		{
-			if (0 != name)
-				*name = std::wstring(path.substr(slash + 1).data(), path.substr(slash + 1).length());
-			if (0 != extension)
+			if (nullptr != name)
+				*name = path.substr(slash + 1);
+			if (nullptr != extension)
 				extension->clear();
 		}
 	}
@@ -747,8 +886,8 @@ namespace rmx
 		if (fileEntries.empty())
 			return;
 
-		const size_t position = filemask.find_last_of(L"/");
-		const std::wstring_view mask = (position == std::wstring_view::npos) ? filemask : filemask.substr(position + 1);
+		const size_t position = filemask.find_last_of(L'/');
+		const std::wstring_view mask = (position == std::wstring::npos) ? filemask : filemask.substr(position + 1);
 
 		size_t insertionIndex = 0;
 		for (size_t index = 0; index < fileEntries.size(); ++index)

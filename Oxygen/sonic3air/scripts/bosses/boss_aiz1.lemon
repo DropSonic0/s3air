@@ -1,6 +1,6 @@
 /*
 	This script file is part of the Sonic 3 A.I.R. script software distribution.
-	Copyright (C) 2017-2024 by Eukaryot
+	Copyright (C) 2017-2026 by Eukaryot
 
 	Published under the GNU GPLv3 open source software license, see license.txt
 	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -251,7 +251,7 @@ function void fn068bf6()
 //# address-hook(0x068c02) end(0x068c0c)
 function void fn068c02()
 {
-	fn085ba8()
+	SetupAsSignpostSpawner()
 
 	// Spawn boss giblets
 	// "spawnChildObjects(0x06910c)" replaced by:
@@ -559,6 +559,9 @@ function void fn068e8c()
 function void fn068e98()
 {
 	setupObjectAttributesBasic(0x069056)
+#if STANDALONE
+	MoveAndFlipWithParent() // Fix for boss debris facing left even if the boss is facing right, #contributed by mrgrassman14
+#endif
 
 	objA0.update_address = 0x085102
 	objA0.animation.sprite = 14 + (objA0.subtype2c >> 1)
@@ -657,26 +660,6 @@ function void Boss.AIZ1.RegularUpdate()
 		objA0.flags2a &= ~0x40
 		u8[A0 + 0x28] = u8[A0 + 0x25]
 	}
-}
-
-
-
-//# address-hook(0x069482) end(0x06949e)
-function void fn069482()
-{
-	objA0.countdown_callback = 0x0694a4
-	u8[0xfffffaa3] = 0xff
-	objA0.update_address = addressof(Object.CountdownAndTrigger)
-	objA0.flags38 |= 0x10
-
-	// Spawn boss giblets
-	// "spawnChildObjects(0x069d66)" replaced by:
-	spawnChildObject(0x069a3a, 0x00, -16, -16)
-	spawnChildObject(0x069a3a, 0x02, 16, -16)
-	spawnChildObject(0x069a3a, 0x04, -16, 8)
-	spawnChildObject(0x069a3a, 0x06, 16, 8)
-	spawnChildObject(0x069a3a, 0x08, -12, 24)
-	spawnChildObject(0x069a3a, 0x0a, 12, 24)
 }
 
 
@@ -1051,14 +1034,6 @@ function void fn0689f8()
 			dx = -dx
 		objA0.position.x.u16 += dx
 	}
-}
-
-
-
-//# address-hook(0x0757ba) end(0x0757ba)
-function void fn0757ba()
-{
-	fn085ba8()
 }
 
 

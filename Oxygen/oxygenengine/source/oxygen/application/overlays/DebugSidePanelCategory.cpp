@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,28 +17,23 @@ CustomDebugSidePanelCategory::CustomDebugSidePanelCategory()
 
 void CustomDebugSidePanelCategory::onSetup()
 {
-	for (size_t i = 0; i < mOptions.size(); ++i)
+	for (Option& option : mOptions)
 	{
-		mOptions[i].mUpdated = false;
+		option.mUpdated = false;
 	}
-	for (size_t i = 0; i < mEntries.size(); ++i)
+	for (Entry& entry : mEntries)
 	{
-		mEntries[i].mUpdated = false;
-		mEntries[i].mLines.clear();
+		entry.mUpdated = false;
+		entry.mLines.clear();
 	}
 }
 
 bool CustomDebugSidePanelCategory::addOption(std::string_view text, bool defaultValue)
 {
 	// Exists already?
-	for (size_t i = 0; i < mOptions.size(); ++i)
+	for (Option& option : mOptions)
 	{
-		Option& option = mOptions[i];
-#if defined(PLATFORM_PS3)
-		if (option.mText == std::string(text.data(), text.length()))
-#else
 		if (option.mText == text)
-#endif
 		{
 			option.mUpdated = true;
 			return option.mChecked;
@@ -50,11 +45,7 @@ bool CustomDebugSidePanelCategory::addOption(std::string_view text, bool default
 		return false;
 
 	Option& option = vectorAdd(mOptions);
-#if defined(PLATFORM_PS3)
-	option.mText = std::string(text.data(), text.length());
-#else
 	option.mText = text;
-#endif
 	option.mChecked = defaultValue;
 	option.mUpdated = true;
 	option.mKey = 0x074244d9 + (uint64)(0x00502cad * mOptions.size());
@@ -67,9 +58,8 @@ bool CustomDebugSidePanelCategory::addOption(std::string_view text, bool default
 
 void CustomDebugSidePanelCategory::addEntry(uint64 key)
 {
-	for (size_t i = 0; i < mEntries.size(); ++i)
+	for (Entry& entry : mEntries)
 	{
-		Entry& entry = mEntries[i];
 		if (entry.mKey == key)
 		{
 			entry.mUpdated = true;
@@ -90,20 +80,15 @@ void CustomDebugSidePanelCategory::addLine(std::string_view text, int indent, co
 		return;
 
 	Line& line = vectorAdd(mCurrentEntry->mLines);
-#if defined(PLATFORM_PS3)
-	line.mText = std::string(text.data(), text.length());
-#else
 	line.mText = text;
-#endif
 	line.mIndent = indent;
 	line.mColor = color;
 }
 
 bool CustomDebugSidePanelCategory::isEntryHovered(uint64 key)
 {
-	for (size_t i = 0; i < mEntries.size(); ++i)
+	for (Entry& entry : mEntries)
 	{
-		Entry& entry = mEntries[i];
 		if (entry.mKey == key)
 		{
 			entry.mCanBeHovered = true;
@@ -118,13 +103,12 @@ void CustomDebugSidePanelCategory::buildCategoryContent(DebugSidePanel::Builder&
 	// Add checkboxes for the options
 	if (!mOptions.empty())
 	{
-		for (size_t i = 0; i < mOptions.size(); ++i)
+		for (Option& option : mOptions)
 		{
-			Option& option = mOptions[i];
 			if (!option.mUpdated)
 				continue;
 
-			option.mChecked = (mOpenKeys.count(option.mKey) != 0);
+			option.mChecked = mOpenKeys.count(option.mKey);
 			builder.addOption(option.mText, option.mChecked, Color::CYAN, 0, option.mKey);
 		}
 		builder.addSpacing(12);
@@ -138,9 +122,8 @@ void CustomDebugSidePanelCategory::buildCategoryContent(DebugSidePanel::Builder&
 	}
 
 	// Add entries
-	for (size_t i = 0; i < mEntries.size(); ++i)
+	for (Entry& entry : mEntries)
 	{
-		Entry& entry = mEntries[i];
 		if (!entry.mUpdated)
 			continue;
 
@@ -151,9 +134,8 @@ void CustomDebugSidePanelCategory::buildCategoryContent(DebugSidePanel::Builder&
 			entry.mIsHovered = (mouseOverKey == entry.mKey);
 		}
 
-		for (size_t k = 0; k < entry.mLines.size(); ++k)
+		for (Line& line : entry.mLines)
 		{
-			Line& line = entry.mLines[k];
 			builder.addLine(*String(0, "%s", line.mText.c_str()), line.mColor, line.mIndent, key);
 		}
 		builder.addSpacing(4);

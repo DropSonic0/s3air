@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -16,21 +16,21 @@ class API_EXPORT SpriteAtlasBase
 public:
 	struct Page
 	{
-		int mIndex;
+		int mIndex = 0;
 		Vec2i mPageSize;
-		Page() : mIndex(0) {}
 	};
 	struct Sprite
 	{
-		uint32 mKey;
+		uint32 mKey = 0;
 		Page mPage;
 		Recti mRect;
-		Sprite() : mKey(0) {}
 	};
 
 public:
 	SpriteAtlasBase();
-	virtual ~SpriteAtlasBase();
+	~SpriteAtlasBase();
+	SpriteAtlasBase(const SpriteAtlasBase&) = delete;
+	SpriteAtlasBase& operator=(const SpriteAtlasBase&) = delete;
 
 	void clear();
 	bool add(uint32 key, const Vec2i& size);
@@ -52,17 +52,40 @@ private:
 	static bool compareSpriteInfoBySize(const SpriteInfo& first, const SpriteInfo& second);
 
 protected:
-	Vec2i mPageSize;		// That size is a bit small for usual text rendering, but okay for pixelized rendering as used by Oxygen
-	int mPadding;
+	Vec2i mPageSize = Vec2i(512, 128);		// That size is a bit small for usual text rendering, but okay for pixelized rendering as used by Oxygen
+	int mPadding = 1;
 
 	struct Node
 	{
-		Node* mChildNode[2];
+		Node* mChildNode[2] = { nullptr, nullptr };
 		Recti mRect;
-		bool mUsed;
+		bool mUsed = false;
 
-		inline Node() : mUsed(false) { mChildNode[0] = 0; mChildNode[1] = 0; }
-		inline Node(const Recti& rct) : mRect(rct), mUsed(false) { mChildNode[0] = 0; mChildNode[1] = 0; }
+		inline Node() {}
+		inline Node(const Recti& rct) : mRect(rct) {}
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+		inline Node(const Node& other) = delete;
+		inline Node& operator=(const Node& other) = delete;
+#else
+		inline Node(const Node& other) : mRect(other.mRect), mUsed(other.mUsed)
+		{
+			mChildNode[0] = other.mChildNode[0] ? new Node(*other.mChildNode[0]) : nullptr;
+			mChildNode[1] = other.mChildNode[1] ? new Node(*other.mChildNode[1]) : nullptr;
+		}
+		inline Node& operator=(const Node& other)
+		{
+			if (this != &other)
+			{
+				clear();
+				mRect = other.mRect;
+				mUsed = other.mUsed;
+				mChildNode[0] = other.mChildNode[0] ? new Node(*other.mChildNode[0]) : nullptr;
+				mChildNode[1] = other.mChildNode[1] ? new Node(*other.mChildNode[1]) : nullptr;
+			}
+			return *this;
+		}
+#endif
+		inline Node(Node&& other) noexcept : mChildNode{other.mChildNode[0], other.mChildNode[1]}, mRect(other.mRect), mUsed(other.mUsed) { other.mChildNode[0] = nullptr; other.mChildNode[1] = nullptr; }
 		inline ~Node()  { clear(); }
 
 		void clear();
@@ -77,10 +100,9 @@ protected:
 
 	struct SpriteInfo
 	{
-		uint32 mKey;
-		int mPageIndex;
+		uint32 mKey = 0xffffffff;
+		int mPageIndex = -1;
 		Recti mRect;
-		SpriteInfo() : mKey(0xffffffff), mPageIndex(-1) {}
 	};
 	std::map<uint32, SpriteInfo> mSprites;
 };
@@ -94,15 +116,16 @@ class API_EXPORT SpriteAtlas : protected SpriteAtlasBase
 public:
 	struct Sprite
 	{
-		Texture* mTexture;
+		Texture* mTexture = nullptr;
 		Vec2f mUVStart;
 		Vec2f mUVEnd;
-		Sprite() : mTexture(0) {}
 	};
 
 public:
 	SpriteAtlas();
-	virtual ~SpriteAtlas();
+	~SpriteAtlas();
+	SpriteAtlas(const SpriteAtlas&) = delete;
+	SpriteAtlas& operator=(const SpriteAtlas&) = delete;
 
 	void clear();
 	int add(const Bitmap& bmp);

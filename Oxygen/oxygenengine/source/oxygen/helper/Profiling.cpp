@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -53,7 +53,6 @@ void Profiling::registerRegion(uint16 id, const char* name, const Color& color)
 void Profiling::pushRegion(uint16 id)
 {
 	Region* region = getRegionByID(id);
-
 	RMX_ASSERT(nullptr != region, "Profiling region with id " << id << " not found");
 	RMX_ASSERT(!region->mOnStack, "Profiling region with name '" << region->mName << "' is already on the stack");
 	RMX_ASSERT(mRegionStack.size() >= 1, "Profiling region stack got emptied before");
@@ -69,21 +68,19 @@ void Profiling::pushRegion(uint16 id)
 	}
 	else
 	{
-		RMX_ASSERT(region->mParent == mRegionStack[mRegionStack.size() - 2], "Profiling region '" << region->mName << "' has different parents on the stack");
+		RMX_ASSERT(region->mParent == mRegionStack[mRegionStack.size() - 2], "Profiling region '" << region->mName << "' has different parents on the stack: '" << region->mParent->mName << "' and '" << mRegionStack[mRegionStack.size() - 2] << "'");
 	}
 }
 
 void Profiling::popRegion(uint16 id)
 {
 	Region* region = getRegionByID(id);
-
 	RMX_ASSERT(nullptr != region, "Profiling region with id " << id << " not found");
 	RMX_ASSERT(mRegionStack.size() >= 2, "Can't pop another profiling region from stack, that would remove the root region");
 	RMX_ASSERT(mRegionStack.back() == region, "Profiling region to be popped must be top of stack");
 
 	mRegionStack.pop_back();
 	region->mOnStack = false;
-
 	region->mTimer.pauseTiming();
 }
 
@@ -112,7 +109,7 @@ void Profiling::nextFrame(int simulationFrameNumber)
 	}
 	mRootRegion.mTimer.resumeTiming();		// Needed for first frame to start timing
 
-	static const PerFrameData dummy = {};
+	static const PerFrameData dummy;
 	const PerFrameData& oldData = mAdditionalData.mFrames.empty() ? dummy : mAdditionalData.mFrames.back();
 	while (mAdditionalData.mFrames.size() >= MAX_FRAMES)
 		mAdditionalData.mFrames.pop_front();

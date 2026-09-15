@@ -171,7 +171,7 @@ class JSON_API FastWriter
     : public Writer {
 public:
   FastWriter();
-  ~FastWriter() override {}
+  ~FastWriter() override = default;
 
   void enableYAMLCompatibility();
 
@@ -191,9 +191,9 @@ private:
   void writeValue(const Value& value);
 
   String document_;
-  bool yamlCompatibilityEnabled_;
-  bool dropNullPlaceholders_;
-  bool omitEndingLineFeed_;
+  bool yamlCompatibilityEnabled_{false};
+  bool dropNullPlaceholders_{false};
+  bool omitEndingLineFeed_{false};
 };
 #if defined(_MSC_VER)
 #pragma warning(pop)
@@ -231,7 +231,7 @@ class JSON_API
     StyledWriter : public Writer {
 public:
   StyledWriter();
-  ~StyledWriter() override {}
+  ~StyledWriter() override = default;
 
 public: // overridden from Writer
   /** \brief Serialize a Value in <a HREF="http://www.json.org">JSON</a> format.
@@ -254,18 +254,14 @@ private:
   static bool hasCommentForValue(const Value& value);
   static String normalizeEOL(const String& text);
 
-#if defined(PLATFORM_PS3)
-  typedef std::vector<String> ChildValues;
-#else
   using ChildValues = std::vector<String>;
-#endif
 
   ChildValues childValues_;
   String document_;
   String indentString_;
-  unsigned int rightMargin_;
-  unsigned int indentSize_;
-  bool addChildValues_;
+  unsigned int rightMargin_{74};
+  unsigned int indentSize_{3};
+  bool addChildValues_{false};
 };
 #if defined(_MSC_VER)
 #pragma warning(pop)
@@ -307,7 +303,7 @@ public:
    * \param indentation Each level will be indented by this amount extra.
    */
   StyledStreamWriter(String indentation = "\t");
-  ~StyledStreamWriter() {}
+  ~StyledStreamWriter() = default;
 
 public:
   /** \brief Serialize a Value in <a HREF="http://www.json.org">JSON</a> format.
@@ -332,16 +328,12 @@ private:
   static bool hasCommentForValue(const Value& value);
   static String normalizeEOL(const String& text);
 
-#if defined(PLATFORM_PS3)
-  typedef std::vector<String> ChildValues;
-#else
   using ChildValues = std::vector<String>;
-#endif
 
   ChildValues childValues_;
   OStream* document_;
   String indentString_;
-  unsigned int rightMargin_;
+  unsigned int rightMargin_{74};
   String indentation_;
   bool addChildValues_ : 1;
   bool indented_ : 1;
@@ -358,11 +350,11 @@ String JSON_API valueToString(LargestInt value);
 String JSON_API valueToString(LargestUInt value);
 String JSON_API valueToString(
     double value, unsigned int precision = Value::defaultRealPrecision,
-    PrecisionType precisionType = significantDigits);
+    PrecisionType precisionType = PrecisionType::significantDigits);
 String JSON_API valueToString(bool value);
 String JSON_API valueToQuotedString(const char* value);
 
-/// \brief Output typedef the StyledStreamWriter.
+/// \brief Output using the StyledStreamWriter.
 /// \see Json::operator>>()
 JSON_API OStream& operator<<(OStream&, const Value& root);
 

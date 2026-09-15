@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -32,7 +32,7 @@ public:
 	bool open(const WString& filename, uint32 flags = FILE_ACCESS_READ);
 	void close();
 
-	bool isOpen() const  { return (0 != mFile); }
+	bool isOpen() const  { return (nullptr != mFile); }
 	int64 getSize() const;
 
 	void seek(int64 position);
@@ -43,7 +43,7 @@ public:
 	void flush();
 
 private:
-		FILE* mFile;
+	FILE* mFile = nullptr;
 	WString mFilename;
-		mutable int64 mFileSize;
+	mutable int64 mFileSize = 0;
 };

@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -41,11 +41,7 @@ class BitFlagSet
 {
 public:
 	typedef ENUM Enum;
-	#if defined(PLATFORM_PS3)
 	typedef typename rmx::detail::TypeBySize<sizeof(ENUM)>::Type Storage;
-	#else
-	typedef typename rmx::detail::TypeBySize<sizeof(ENUM)>::Type Storage;
-	#endif
 
 public:
 	inline BitFlagSet() : mFlags(0) {}
@@ -68,7 +64,7 @@ public:
 
 	inline bool allSet(BitFlagSet bitmask) const
 	{
-		return (mFlags & bitmask.mFlags) == bitmask.mFlags;
+		return (mFlags & bitmask.mFlags) == bitmask;
 	}
 
 	inline bool anySet(BitFlagSet bitmask) const
@@ -138,6 +134,9 @@ public:
 		mFlags ^= static_cast<Storage>(flag);
 	}
 
+	inline Storage getValue() const  { return mFlags; }
+	inline Storage& accessValue()	 { return mFlags; }
+
 	inline bool operator==(const BitFlagSet& other) const
 	{
 		return (mFlags == other.mFlags);
@@ -154,8 +153,24 @@ public:
 		return *this;
 	}
 
+	inline BitFlagSet operator|(const BitFlagSet& other) const	{ return BitFlagSet(mFlags | other.mFlags); }
+	inline BitFlagSet operator&(const BitFlagSet& other) const	{ return BitFlagSet(mFlags & other.mFlags); }
+	inline BitFlagSet operator^(const BitFlagSet& other) const	{ return BitFlagSet(mFlags ^ other.mFlags); }
+
+	inline BitFlagSet operator|(Enum flag) const  { return BitFlagSet(mFlags | static_cast<Storage>(flag)); }
+	inline BitFlagSet operator&(Enum flag) const  { return BitFlagSet(mFlags & static_cast<Storage>(flag)); }
+	inline BitFlagSet operator^(Enum flag) const  { return BitFlagSet(mFlags ^ static_cast<Storage>(flag)); }
+
+	inline void operator|=(const BitFlagSet& other)  { mFlags |= other.mFlags; }
+	inline void operator&=(const BitFlagSet& other)  { mFlags &= other.mFlags; }
+	inline void operator^=(const BitFlagSet& other)  { mFlags ^= other.mFlags; }
+
+	inline void operator|=(Enum flag)  { mFlags |= static_cast<Storage>(flag); }
+	inline void operator&=(Enum flag)  { mFlags &= static_cast<Storage>(flag); }
+	inline void operator^=(Enum flag)  { mFlags ^= static_cast<Storage>(flag); }
+
 private:
-	Storage mFlags;
+	Storage mFlags = 0;   // Bitmask of the currently set flags, composed using bitwise OR
 };
 
 

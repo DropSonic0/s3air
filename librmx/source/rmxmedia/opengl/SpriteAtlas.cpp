@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,7 +13,7 @@ void SpriteAtlasBase::Node::clear()
 {
 	for (int i = 0; i < 2; ++i)
 	{
-		if (0 != mChildNode[i])
+		if (nullptr != mChildNode[i])
 		{
 			mChildNode[i]->clear();
 			SAFE_DELETE(mChildNode[i]);
@@ -24,13 +24,13 @@ void SpriteAtlasBase::Node::clear()
 
 SpriteAtlasBase::Node* SpriteAtlasBase::Node::insert(const Vec2i& size, int padding)
 {
-	if (0 != mChildNode[0])
+	if (nullptr != mChildNode[0])
 	{
-		assert(0 != mChildNode[1]);
+		assert(nullptr != mChildNode[1]);
 
 		// Add to a new child node
 		Node* newNode = mChildNode[0]->insert(size, padding);
-		if (0 != newNode)
+		if (nullptr != newNode)
 			return newNode;
 
 		// No more space in there, then try the second child
@@ -39,12 +39,12 @@ SpriteAtlasBase::Node* SpriteAtlasBase::Node::insert(const Vec2i& size, int padd
 
 	// Node already in use?
 	if (mUsed)
-		return 0;
+		return nullptr;
 
 	// Not enough space left?
 	const bool fits = (size.x <= mRect.width && size.y <= mRect.height);
 	if (!fits)
-		return 0;
+		return nullptr;
 
 	// Check for a perfect fit
 	const bool perfectFit = (size.x == mRect.width && size.y == mRect.height);
@@ -81,7 +81,7 @@ SpriteAtlasBase::Node* SpriteAtlasBase::Node::insert(const Vec2i& size, int padd
 }
 
 
-SpriteAtlasBase::SpriteAtlasBase() : mPageSize(512, 128), mPadding(1)
+SpriteAtlasBase::SpriteAtlasBase()
 {
 }
 
@@ -129,13 +129,13 @@ void SpriteAtlasBase::rebuild()
 bool SpriteAtlasBase::valid(uint32 key)
 {
 	const SpriteInfo* info = getSpriteInfo(key);
-	return (0 != info && info->mPageIndex >= 0);
+	return (nullptr != info && info->mPageIndex >= 0);
 }
 
 bool SpriteAtlasBase::getSprite(uint32 key, Sprite& sprite)
 {
 	SpriteInfo* info = getSpriteInfo(key);
-	if (0 == info || info->mPageIndex < 0)
+	if (nullptr == info || info->mPageIndex < 0)
 		return false;
 
 	sprite.mPage.mIndex = info->mPageIndex;
@@ -158,14 +158,14 @@ bool SpriteAtlasBase::internalAdd(uint32 key, const Vec2i& size)
 {
 	// TODO: Check if input is too large for one page
 
-	PageInfo* pageInfo = 0;
-	Node* node = 0;
+	PageInfo* pageInfo = nullptr;
+	Node* node = nullptr;
 	int pageIndex = -1;
 
 	for (unsigned int page = 0; page < mPages.size(); ++page)
 	{
 		node = mPages[page].mRootNode.insert(size, mPadding);
-		if (0 != node)
+		if (nullptr != node)
 		{
 			pageInfo = &mPages[page];
 			pageIndex = page;
@@ -173,19 +173,20 @@ bool SpriteAtlasBase::internalAdd(uint32 key, const Vec2i& size)
 		}
 	}
 
-	if (0 == node)
+	if (nullptr == node)
 	{
 		// Add a new page
 		pageInfo = &vectorAdd(mPages);
 		pageInfo->mRootNode.mRect.set(0, 0, mPageSize.x, mPageSize.y);
 
 		node = pageInfo->mRootNode.insert(size, mPadding);
-		RMX_ASSERT(0 != node, "Invalid node pointer returned");
+		RMX_ASSERT(nullptr != node, "Invalid node pointer returned");
 		pageIndex = (int)mPages.size() - 1;
 	}
 
 	RMX_ASSERT(mSprites.count(key) == 0, "Double usage of the same key in sprite atlas");
 	SpriteInfo& spriteInfo = mSprites[key];
+	spriteInfo.mKey = key;
 	spriteInfo.mPageIndex = pageIndex;
 	spriteInfo.mRect = node->mRect;
 
@@ -194,8 +195,7 @@ bool SpriteAtlasBase::internalAdd(uint32 key, const Vec2i& size)
 
 SpriteAtlasBase::SpriteInfo* SpriteAtlasBase::getSpriteInfo(uint32 key)
 {
-	const auto it = mSprites.find(key);
-	return (it == mSprites.end()) ? 0 : &it->second;
+	return mapFind(mSprites, key);
 }
 
 bool SpriteAtlasBase::compareSpriteInfoBySize(const SpriteInfo& first, const SpriteInfo& second)
@@ -226,7 +226,7 @@ void SpriteAtlas::clear()
 
 int SpriteAtlas::add(const Bitmap& bmp)
 {
-	return internalAdd(bmp, 0);
+	return internalAdd(bmp, nullptr);
 }
 
 int SpriteAtlas::add(const Bitmap& bmp, const Recti& rect)
@@ -263,7 +263,7 @@ void SpriteAtlas::rebuild()
 		const Bitmap& src = oldPageBitmaps[pair.second.mPageIndex];
 
 		const SpriteInfo* newSprite = getSpriteInfo(pair.second.mKey);
-		RMX_ASSERT(0 != newSprite, "Invalid sprite pointer");
+		RMX_ASSERT(nullptr != newSprite, "Invalid sprite pointer");
 
 		mPageData[newSprite->mPageIndex].mBitmap.insert(newSprite->mRect.x, newSprite->mRect.y, src, pair.second.mRect);
 	}
@@ -283,7 +283,7 @@ bool SpriteAtlas::valid(int handle)
 bool SpriteAtlas::getSprite(int handle, Sprite& sprite)
 {
 	const SpriteInfo* info = getSpriteInfo((uint32)handle);
-	if (0 == info || info->mPageIndex < 0)
+	if (nullptr == info || info->mPageIndex < 0)
 		return false;
 
 	const Bitmap& bitmap = mPageData[info->mPageIndex].mBitmap;
@@ -298,7 +298,7 @@ bool SpriteAtlas::getSprite(int handle, Sprite& sprite)
 const Texture* SpriteAtlas::getPage(int num)
 {
 	if (num < 0 || num >= (int)mPageData.size())
-		return 0;
+		return nullptr;
 	return &mPageData[num].mTexture;
 }
 
@@ -306,8 +306,8 @@ const Texture* SpriteAtlas::getPage(int num)
 int SpriteAtlas::internalAdd(const Bitmap& bmp, const Recti* rect, bool updateTexture)
 {
 	Vec2i insertionSize;
-	insertionSize.x = (0 != rect) ? rect->width : bmp.getWidth();
-	insertionSize.y = (0 != rect) ? rect->height : bmp.getHeight();
+	insertionSize.x = (nullptr != rect) ? rect->width : bmp.getWidth();
+	insertionSize.y = (nullptr != rect) ? rect->height : bmp.getHeight();
 
 	const int key = (int)mSprites.size();	// No special key, just enumeration
 	SpriteAtlasBase::internalAdd(key, insertionSize);
@@ -320,7 +320,7 @@ int SpriteAtlas::internalAdd(const Bitmap& bmp, const Recti* rect, bool updateTe
 		return -1;
 	}
 
-	PageData* pageData = 0;
+	PageData* pageData = nullptr;
 	if (sprite.mPage.mIndex < (int)mPageData.size())
 	{
 		pageData = &mPageData[sprite.mPage.mIndex];
@@ -332,7 +332,7 @@ int SpriteAtlas::internalAdd(const Bitmap& bmp, const Recti* rect, bool updateTe
 		pageData->mTexture.create(sprite.mPage.mPageSize.x, sprite.mPage.mPageSize.y);
 	}
 
-	if (0 != rect)
+	if (nullptr != rect)
 	{
 		pageData->mBitmap.insert(sprite.mRect.x, sprite.mRect.y, bmp, *rect);
 	}
@@ -343,7 +343,7 @@ int SpriteAtlas::internalAdd(const Bitmap& bmp, const Recti* rect, bool updateTe
 
 	if (updateTexture)
 	{
-		if (0 != rect)
+		if (nullptr != rect)
 		{
 			Bitmap part;
 			part.copy(bmp, *rect);

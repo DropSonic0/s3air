@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,10 +9,10 @@
 #include "oxygen/pch.h"
 #include "oxygen/application/overlays/DebugSidePanel.h"
 #include "oxygen/application/overlays/DebugSidePanelCategory.h"
-#include "oxygen/application/mainview/GameView.h"
 #include "oxygen/application/Application.h"
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/EngineMain.h"
+#include "oxygen/application/gameview/GameView.h"
 #include "oxygen/application/video/VideoOut.h"
 #include "oxygen/rendering/parts/RenderParts.h"
 #include "oxygen/simulation/CodeExec.h"
@@ -21,7 +21,7 @@
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/simulation/Simulation.h"
 
-#include <lemon/program/Function.h>
+#include <lemon/program/function/Function.h>
 
 
 namespace
@@ -70,6 +70,7 @@ void DebugSidePanel::Builder::addSpacing(int lineSpacing)
 	textLine.mLineSpacing = lineSpacing;
 }
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 void DebugSidePanel::Builder::addCallStack(DebugTracking& debugTracking, int callFrameIndex, std::optional<size_t> firstProgramCounter)
 {
 	std::vector<DebugTracking::Location> callStack;
@@ -87,6 +88,25 @@ void DebugSidePanel::Builder::addCallStack(DebugTracking& debugTracking, int cal
 		}
 	}
 }
+#else
+void DebugSidePanel::Builder::addCallStack(DebugTracking& debugTracking, int callFrameIndex, size_t firstProgramCounter)
+{
+	std::vector<DebugTracking::Location> callStack;
+	debugTracking.getCallStackFromCallFrameIndex(callStack, callFrameIndex, firstProgramCounter);
+	for (const DebugTracking::Location& loc : callStack)
+	{
+		const std::string& functionName = loc.toString(debugTracking.getCodeExec());
+		if (loc.mLineNumber >= 0)
+		{
+			addLine(*String(0, "%s, line %d", functionName.c_str(), loc.mLineNumber), Color::fromABGR32(0xffc0c0c0), 32);
+		}
+		else
+		{
+			addLine(functionName, Color::fromABGR32(0xffc0c0c0), 32);
+		}
+	}
+}
+#endif
 
 
 DebugSidePanel::DebugSidePanel()
@@ -112,11 +132,7 @@ DebugSidePanel::~DebugSidePanel()
 void DebugSidePanel::initialize()
 {
 	mSmallFont.loadFromFile("data/font/freefont_sampled.json");
-#if defined(PLATFORM_PS3)
-	mSmallFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f, 1.0f)));
-#else
-	mSmallFont.addFontProcessor(std::make_shared<ShadowFontProcessor>(Vec2i(1, 1), 1.0f));
-#endif
+	mSmallFont.addFontProcessor(std::shared_ptr<ShadowFontProcessor>(new ShadowFontProcessor(Vec2i(1, 1), 1.0f)));
 }
 
 void DebugSidePanel::deinitialize()
@@ -127,7 +143,7 @@ void DebugSidePanel::keyboard(const rmx::KeyboardEvent& ev)
 {
 	GuiBase::keyboard(ev);
 
-	if (ev.state)
+	if (ev.state && !FTX::System->wasEventConsumed())
 	{
 		DebugSidePanelCategory& category = *mCategories[mActiveCategoryIndex];
 		switch (ev.key)
@@ -151,7 +167,7 @@ void DebugSidePanel::keyboard(const rmx::KeyboardEvent& ev)
 
 void DebugSidePanel::mouse(const rmx::MouseEvent& ev)
 {
-	if (ev.state && ev.button == rmx::MouseButton_Left)
+	if (ev.state && ev.button == rmx::MouseButton::Left && !FTX::System->wasEventConsumed())
 	{
 		if (mMouseOverTab > 0)
 		{
@@ -177,7 +193,7 @@ void DebugSidePanel::mouse(const rmx::MouseEvent& ev)
 
 void DebugSidePanel::update(float timeElapsed)
 {
-	if (FTX::mouseWheel() != 0)
+	if (FTX::mouseWheel() != 0 && !FTX::System->wasEventConsumed())
 	{
 		DebugSidePanelCategory& category = *mCategories[mActiveCategoryIndex];
 		category.mScrollPosition -= FTX::mouseWheel() * 75;
@@ -224,7 +240,7 @@ void DebugSidePanel::render()
 				lastType = mCategories[i]->mType;
 			}
 
-			const bool mouseInRect = FTX::mouseIn(r);
+			const bool mouseInRect = (FTX::mouseIn(r) && !FTX::System->wasEventConsumed());
 			if (mouseInRect)
 			{
 				drawer.drawRect(r, Color(1.0f, 1.0f, 0.0f, 0.5f));
@@ -237,7 +253,6 @@ void DebugSidePanel::render()
 			{
 				case DebugSidePanelCategory::Type::INTERNAL:	color = ((i == mActiveCategoryIndex) ? Color::YELLOW : Color(0.6f, 0.6f, 0.5f, 0.75f));	 break;
 				case DebugSidePanelCategory::Type::CUSTOM:		color = ((i == mActiveCategoryIndex) ? Color::GREEN : Color(0.5f, 0.7f, 0.5f, 0.75f));	 break;
-				case DebugSidePanelCategory::Type::GAME:		color = ((i == mActiveCategoryIndex) ? Color::GREEN : Color(0.5f, 0.7f, 0.5f, 0.75f));	 break;
 			}
 			drawer.printText(mSmallFont, r, buffer, 5, color);
 
@@ -265,15 +280,6 @@ void DebugSidePanel::render()
 			static_cast<CustomDebugSidePanelCategory&>(category).buildCategoryContent(mBuilder, drawer, mMouseOverKey);
 			break;
 		}
-
-		case DebugSidePanelCategory::Type::GAME:
-		{
-			if (category.mCallback)
-			{
-				category.mCallback(category, mBuilder, mMouseOverKey);
-			}
-			break;
-		}
 	}
 
 	// Reset changed key
@@ -283,9 +289,8 @@ void DebugSidePanel::render()
 	{
 		const Recti backup = rect;
 		mMouseOverKey = INVALID_KEY;
-		for (size_t i = 0; i < mBuilder.mTextLines.size(); ++i)
+		for (const Builder::TextLine& line : mBuilder.mTextLines)
 		{
-			const Builder::TextLine& line = mBuilder.mTextLines[i];
 			rect.y += line.mLineSpacing;
 			if (!line.mText.empty())
 			{
@@ -293,7 +298,7 @@ void DebugSidePanel::render()
 				selectionRect.height = 12;
 
 				// Check if mouse cursor is inside
-				if (line.mKey != INVALID_KEY && FTX::mouseIn(selectionRect))
+				if (line.mKey != INVALID_KEY && FTX::mouseIn(selectionRect) && !FTX::System->wasEventConsumed())
 				{
 					mMouseOverKey = line.mKey;
 				}
@@ -305,7 +310,7 @@ void DebugSidePanel::render()
 	// Draw mouse-over highlight for width change
 	{
 		const Recti sensorRect(mainRect.x - 6, mainRect.y, 12, mainRect.height);
-		const bool hovered = FTX::mouseIn(sensorRect);
+		const bool hovered = FTX::mouseIn(sensorRect) && !FTX::System->wasEventConsumed();
 		if (hovered || mChangingSidePanelWidth)
 		{
 			drawer.drawRect(sensorRect, mChangingSidePanelWidth ? Color(0.1f, 0.1f, 0.1f) : Color(0.0f, 0.0f, 0.0));
@@ -313,14 +318,14 @@ void DebugSidePanel::render()
 
 		if (mChangingSidePanelWidth)
 		{
-			if (!FTX::mouseState(rmx::MouseButton_Left))
+			if (!FTX::mouseState(rmx::MouseButton::Left))
 			{
 				mChangingSidePanelWidth = false;
 			}
 		}
 		else
 		{
-			if (hovered && FTX::mouseChange(rmx::MouseButton_Left) && FTX::mouseState(rmx::MouseButton_Left))
+			if (hovered && FTX::mouseChange(rmx::MouseButton::Left) && FTX::mouseState(rmx::MouseButton::Left))
 			{
 				mChangingSidePanelWidth = true;
 			}
@@ -333,9 +338,8 @@ void DebugSidePanel::render()
 	}
 
 	// Now draw the texts
-	for (size_t i = 0; i < mBuilder.mTextLines.size(); ++i)
+	for (const Builder::TextLine& line : mBuilder.mTextLines)
 	{
-		const Builder::TextLine& line = mBuilder.mTextLines[i];
 		rect.y += line.mLineSpacing;
 		if (rect.y < -12 || rect.y >= screenSize.y)	// The 12 is just a guess for the maximum visible line height
 			continue;
@@ -364,11 +368,7 @@ void DebugSidePanel::render()
 			textRect.width -= 20;
 		}
 
-#if defined(PLATFORM_PS3)
-		drawer.printText(mSmallFont, textRect, *line.mText, 1, line.mColor);
-#else
 		drawer.printText(mSmallFont, textRect, line.mText, 1, line.mColor);
-#endif
 	}
 
 	category.mScrollSize = std::max(category.mScrollPosition + rect.y - screenSize.y * 3/4, 0);
@@ -385,14 +385,6 @@ void DebugSidePanel::render()
 	drawer.performRendering();
 }
 
-DebugSidePanelCategory& DebugSidePanel::createGameCategory(size_t identifier, const std::string& header, char shortCharacter, const CategoryCallback& callback)
-{
-	DebugSidePanelCategory& category = addCategory(identifier, header, shortCharacter);
-	category.mType = DebugSidePanelCategory::Type::GAME;
-	category.mCallback = callback;
-	return category;
-}
-
 bool DebugSidePanel::setupCustomCategory(std::string_view header, char shortCharacter)
 {
 	// Search for the category
@@ -400,11 +392,7 @@ bool DebugSidePanel::setupCustomCategory(std::string_view header, char shortChar
 	int index = -1;
 	for (int i = _NUM_INTERNAL_CATEGORIES; i < (int)mCategories.size(); ++i)
 	{
-#if defined(PLATFORM_PS3)
-		if (mCategories[i]->mType == DebugSidePanelCategory::Type::CUSTOM && mCategories[i]->mHeader == std::string(header.data(), header.length()))
-#else
 		if (mCategories[i]->mType == DebugSidePanelCategory::Type::CUSTOM && mCategories[i]->mHeader == header)
-#endif
 		{
 			mSetupCustomCategory = static_cast<CustomDebugSidePanelCategory*>(mCategories[i]);
 			index = i;
@@ -420,19 +408,16 @@ bool DebugSidePanel::setupCustomCategory(std::string_view header, char shortChar
 
 		index = (int)mCategories.size();
 		mSetupCustomCategory = new CustomDebugSidePanelCategory();
-
-#if defined(PLATFORM_PS3)
-		mSetupCustomCategory->mHeader = std::string(header.data(), header.length());
-#else
 		mSetupCustomCategory->mHeader = header;
-#endif
 		mSetupCustomCategory->mShortCharacter = shortCharacter;
+
 		mCategories.push_back(mSetupCustomCategory);
+		mCustomCategories.push_back(mSetupCustomCategory);
 	}
 
 	mSetupCustomCategory->onSetup();
 
-	return ((size_t)index == mActiveCategoryIndex);
+	return ((size_t)index == mActiveCategoryIndex) || mSetupCustomCategory->isVisibleInDevModeWindow();
 }
 
 bool DebugSidePanel::addOption(std::string_view text, bool defaultValue)
@@ -471,11 +456,7 @@ DebugSidePanelCategory& DebugSidePanel::addCategory(size_t identifier, std::stri
 {
 	DebugSidePanelCategory* category = new DebugSidePanelCategory();
 	category->mIdentifier = identifier;
-#if defined(PLATFORM_PS3)
-	category->mHeader = std::string(header.data(), header.length());
-#else
 	category->mHeader = header;
-#endif
 	category->mShortCharacter = shortCharacter ? shortCharacter : header.empty() ? 0 : header[0];
 
 	mCategories.push_back(category);
@@ -508,9 +489,8 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 				builder.addSpacing(12);
 
 				std::map<uint32, const lemon::Function*> functions;
-				for (size_t i = 0; i < callFrames.size(); ++i)
+				for (const CodeExec::CallFrame& callFrame : callFrames)
 				{
-					const CodeExec::CallFrame& callFrame = callFrames[i];
 					if (nullptr != callFrame.mFunction)
 					{
 						const uint32 key = (callFrame.mAddress != 0xffffffff) ? callFrame.mAddress : (0x80000000 + callFrame.mFunction->getID());
@@ -518,18 +498,18 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					}
 				}
 
-				std::vector<std::pair<uint32, const lemon::Function*> > sortedFunctions;
-				for (std::map<uint32, const lemon::Function*>::const_iterator it = functions.begin(); it != functions.end(); ++it)
+				std::vector<std::pair<uint32, const lemon::Function*>> sortedFunctions;
+				for (const auto& pair : functions)
 				{
-					sortedFunctions.push_back(*it);
+					sortedFunctions.push_back(pair);
 				}
 				std::sort(sortedFunctions.begin(), sortedFunctions.end(),
 					[visualizationSorting](const std::pair<uint32, const lemon::Function*>& a, const std::pair<uint32, const lemon::Function*>& b)
 					{
 						if (visualizationSorting)
 						{
-							const std::wstring& filenameA = (a.second->getType() == lemon::Function::Type::SCRIPT) ? static_cast<const lemon::ScriptFunction*>(a.second)->mSourceFileInfo->mFilename : L"";
-							const std::wstring& filenameB = (b.second->getType() == lemon::Function::Type::SCRIPT) ? static_cast<const lemon::ScriptFunction*>(b.second)->mSourceFileInfo->mFilename : L"";
+							const std::wstring& filenameA = (a.second->isA<lemon::ScriptFunction>()) ? a.second->as<lemon::ScriptFunction>().mSourceFileInfo->mFilename : L"";
+							const std::wstring& filenameB = (b.second->isA<lemon::ScriptFunction>()) ? b.second->as<lemon::ScriptFunction>().mSourceFileInfo->mFilename : L"";
 							if (filenameA != filenameB)
 							{
 								return (filenameA < filenameB);
@@ -537,11 +517,7 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 						}
 						if ((a.first & 0x80000000) && (b.first & 0x80000000))
 						{
-#if defined(PLATFORM_PS3)
-							return a.second->getName().getString().compare(b.second->getName().getString()) < 0;
-#else
 							return a.second->getName().getString() < b.second->getName().getString();
-#endif
 						}
 						else
 						{
@@ -550,19 +526,14 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					}
 				);
 
-				for (size_t i = 0; i < sortedFunctions.size(); ++i)
+				for (const auto& pair : sortedFunctions)
 				{
-					const std::pair<uint32, const lemon::Function*>& pair = sortedFunctions[i];
-					const String filename = (pair.second->getType() == lemon::Function::Type::SCRIPT) ? WString(static_cast<const lemon::ScriptFunction*>(pair.second)->mSourceFileInfo->mFilename).toString() : "";
+					const String filename = (pair.second->isA<lemon::ScriptFunction>()) ? WString(pair.second->as<lemon::ScriptFunction>().mSourceFileInfo->mFilename).toString() : "";
 					String line;
 					if (visualizationSorting && !filename.empty())
 						line << filename << " | ";
 					line << ((pair.first < 0x80000000) ? String(0, "0x%06x: ", pair.first) : "");
-#if defined(PLATFORM_PS3)
-					line << std::string(pair.second->getName().getString().data(), pair.second->getName().getString().length()).c_str();
-#else
 					line << pair.second->getName().getString();
-#endif
 					if (!visualizationSorting && !filename.empty())
 						line << " | " << filename;
 					builder.addLine(*line, Color::WHITE, 10);
@@ -574,9 +545,8 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 				builder.addSpacing(12);
 
 				int ignoreDepth = 0;
-				for (size_t i = 0; i < callFrames.size(); ++i)
+				for (const CodeExec::CallFrame& callFrame : callFrames)
 				{
-					const CodeExec::CallFrame& callFrame = callFrames[i];
 					// Ignore debugging stuff
 					if (nullptr != callFrame.mFunction && rmx::startsWith(callFrame.mFunction->getName().getString(), "debug"))
 						continue;
@@ -609,11 +579,7 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 						Color color = Color::WHITE;
 						if (showOpcodesExecuted)
 						{
-#if defined(PLATFORM_PS3)
-							postfix += " <" + std::string(*String(0, "%u", (uint32)callFrame.mSteps)) + ">";
-#else
-							postfix += " <" + std::string(String(0, "%u", (uint32)callFrame.mSteps)) + ">";
-#endif
+							postfix += *String(0, " <%u>", (uint32)callFrame.mSteps);
 							const float log = log10f((float)clamp((int)callFrame.mSteps, 100, 1000000));
 							color.setFromHSL(Vec3f((0.75f - log / 6.0f) * 360.0f, 1.0f, 0.5f));
 						}
@@ -623,11 +589,7 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 									(callFrame.mType == CodeExec::CallFrame::Type::SCRIPT_DIRECT) ? Color::WHITE : Color::YELLOW;
 						}
 						RMX_ASSERT(nullptr != callFrame.mFunction, "Invalid function pointer");
-#if defined(PLATFORM_PS3)
-						builder.addLine(std::string(callFrame.mFunction->getName().getString().data(), callFrame.mFunction->getName().getString().length()) + postfix, color, indent, key);
-#else
 						builder.addLine(std::string(callFrame.mFunction->getName().getString()) + postfix, color, indent, key);
-#endif
 					}
 				}
 				if (callFrames.size() == CodeExec::CALL_FRAMES_LIMIT)
@@ -674,21 +636,18 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					{
 						const auto& hit = *watch->mHits[hitIndex];
 						const uint64 key = ((uint64)watch->mAddress << 32) + hitIndex;
+						if (watch->mBytes <= 4)
+							builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
+						else
+							builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 
 						// Just a test
 					#if 0
-						Builder::TextLine* textLine;
-						if (watch->mBytes <= 4)
-							textLine = &builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
-						else
-							textLine = &builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
-
 						if (key == category.mChangedKey)
 						{
-							std::string scriptFilename;
-							uint32 lineNumber;
-							codeExec.getLemonScriptProgram().resolveLocation(*hit.mLocation.mFunction, (uint32)hit.mLocation.mProgramCounter, scriptFilename, lineNumber);
-							textLine->mCodeLocation = "\"" + scriptFilename + "\":" + std::string(String(0, "%u", lineNumber));
+							LemonScriptProgram::ResolvedLocation location;
+							codeExec.getLemonScriptProgram().resolveLocation(location, *hit.mLocation.mFunction, (uint32)*hit.mLocation.mProgramCounter);
+							textLine->mCodeLocation = "\"" + location.mScriptFilename + "\":" + std::to_string(location.mLineNumber);
 
 							// TODO: The script file name needs to contains the full file path for this to work, not just the file name itself
 							//  -> Maybe store a list of source files in the module?
@@ -697,11 +656,6 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 							::system(("code -r -g " + textLine->mCodeLocation).c_str());
 						#endif
 						}
-					#else
-						if (watch->mBytes <= 4)
-							builder.addLine(*String(0, "= %s at %s", rmx::hexString(hit.mWrittenValue, watch->mBytes * 2).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
-						else
-							builder.addLine(*String(0, "u%d[0xffff%04x] = %s at %s", hit.mBytes * 8, hit.mAddress, rmx::hexString(hit.mWrittenValue, std::min(hit.mBytes * 2, 8)).c_str(), hit.mLocation.toString(codeExec).c_str()), Color::WHITE, 8, key);
 					#endif
 
 						if (category.mOpenKeys.count(key) != 0)
@@ -791,9 +745,8 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 		{
 			const auto& geometries = VideoOut::instance().getGeometries();
 			uint64 key = 1;
-	for (size_t i = 0; i < geometries.size(); ++i)
+			for (const Geometry* geometry : geometries)
 			{
-		const Geometry* geometry = geometries[i];
 				bool ignore = false;
 				switch (geometry->getType())
 				{
@@ -1001,9 +954,9 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 		case CATEGORY_LOG:
 		{
 			const auto& entries = debugTracking.getScriptLogEntries();
-			for (std::map<std::string, DebugTracking::ScriptLogEntry>::const_iterator it = entries.begin(); it != entries.end(); ++it)
+			for (const auto& pair : entries)
 			{
-				const DebugTracking::ScriptLogEntry& entry = it->second;
+				const DebugTracking::ScriptLogEntry& entry = pair.second;
 				if (!entry.mEntries.empty())
 				{
 					const bool hasCurrent = (entry.mLastUpdate >= Application::instance().getSimulation().getFrameNumber() - 1);
@@ -1011,12 +964,12 @@ void DebugSidePanel::buildInternalCategoryContent(DebugSidePanelCategory& catego
 					const float brightness = hasCurrent ? 1.0f : 0.6f;
 					const Color color(brightness, brightness, brightness);
 
-					builder.addLine(*String(0, "%s:", it->first.c_str()), color, 8);
+					builder.addLine(*String(0, "%s:", pair.first.c_str()), color, 8);
 					builder.addSpacing(-12);
 					for (size_t i = 0; i < entry.mEntries.size(); ++i)
 					{
 						const DebugTracking::ScriptLogSingleEntry& singleEntry = entry.mEntries[i];
-						const uint64 key = (((uint64)entry.mEntries.size() << 16) + ((uint64)i << 32)) ^ rmx::getMurmur2_64(String(singleEntry.mValue));
+						const uint64 key = (((uint64)entry.mEntries.size() << 16) + ((uint64)i << 32)) ^ rmx::getMurmur2_64(singleEntry.mValue);
 						builder.addLine(singleEntry.mValue, color, 56, key);
 
 						if (category.mOpenKeys.count(key) != 0)

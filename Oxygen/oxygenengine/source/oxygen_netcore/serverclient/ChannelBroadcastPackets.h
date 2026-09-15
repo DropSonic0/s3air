@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -39,11 +39,7 @@ namespace network
 			}
 		};
 
-#if defined(PLATFORM_PS3)
-		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3("JoinChannelRequest", 0xb06cc680, 0x26b03223)
-#else
 		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY("JoinChannelRequest")
-#endif
 	};
 
 
@@ -68,11 +64,7 @@ namespace network
 			}
 		};
 
-#if defined(PLATFORM_PS3)
-		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3("LeaveChannelRequest", 0x75fb6df5, 0x8ea523bc)
-#else
 		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY("LeaveChannelRequest")
-#endif
 	};
 
 
@@ -113,22 +105,14 @@ namespace network
 			}
 		};
 
-#if defined(PLATFORM_PS3)
-		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY_PS3("GetChannelContent", 0x8805d70c, 0xb4dc5287)
-#else
 		HIGHLEVEL_REQUEST_DEFINE_FUNCTIONALITY("GetChannelContent")
-#endif
 	};
 
 
 	// Sent from server to client
 	struct ChannelErrorPacket : public highlevel::PacketBase
 	{
-#if defined(PLATFORM_PS3)
-		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3("ChannelErrorPacket", 0x176a74b3);
-#else
 		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE("ChannelErrorPacket");
-#endif
 
 		enum class ErrorCode : uint8
 		{
@@ -151,11 +135,7 @@ namespace network
 	// Sent from client to server
 	struct BroadcastChannelMessagePacket : public highlevel::PacketBase
 	{
-#if defined(PLATFORM_PS3)
-		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3("BroadcastChannelMessagePacket", 0xae313eb9);
-#else
 		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE("BroadcastChannelMessagePacket");
-#endif
 
 		bool mIsReplicatedData = false;		// If true, this is replicated data that gets cached on the server; otherwise it's just a message to broadcast
 		uint32 mChannelHash = 0;
@@ -177,11 +157,7 @@ namespace network
 	// Sent from server to multiple clients
 	struct ChannelMessagePacket : public BroadcastChannelMessagePacket
 	{
-#if defined(PLATFORM_PS3)
-		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE_PS3("ChannelMessagePacket", 0x3b8b81be);
-#else
 		HIGHLEVEL_PACKET_DEFINE_PACKET_TYPE("ChannelMessagePacket");
-#endif
 
 		// All properties from "BroadcastChannelMessagePacket" are shared here
 		uint32 mSendingPlayerID = 0;

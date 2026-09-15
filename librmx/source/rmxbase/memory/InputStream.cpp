@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -19,10 +19,6 @@ MemInputStream::MemInputStream(const void* data, size_t size, bool autoDelete)
 	mAutoDelete = autoDelete;
 }
 
-MemInputStream::MemInputStream() : mBuffer(0), mBufferEnd(0), mCursor(0), mAutoDelete(false)
-{
-}
-
 MemInputStream::MemInputStream(InputStream& input)
 {
 	if (strcmp(input.getType(), getType()) == 0)
@@ -39,8 +35,8 @@ MemInputStream::MemInputStream(InputStream& input)
 		mBuffer = mCursor = new uint8[size];
 		mBufferEnd = mBuffer + size;
 		mAutoDelete = true;
-		const size_t read = input.read(const_cast<uint8*>(mBuffer), size);
-		assert(read == size);
+		const size_t bytesRead = input.read(const_cast<uint8*>(mBuffer), size);
+		assert(bytesRead == size);
 	}
 }
 
@@ -60,9 +56,9 @@ size_t MemInputStream::read(void* dst, size_t len)
 {
 	if (mCursor + len > mBufferEnd)
 	{
-		len = (size_t)(mBufferEnd - mCursor);
-		if (len <= 0)
+		if (mCursor >= mBufferEnd)
 			return 0;
+		len = (size_t)(mBufferEnd - mCursor);
 	}
 	memcpy(dst, mCursor, len);
 	mCursor += len;
@@ -84,24 +80,20 @@ bool MemInputStream::tryRead(const void* data, size_t len)
 	return true;
 }
 
-InputStream::StreamingState_t MemInputStream::getStreamingState()
+InputStream::StreamingState MemInputStream::getStreamingState()
 {
-	return (mCursor < mBufferEnd) ? (StreamingState_t)StreamingState::STREAMING : (StreamingState_t)StreamingState::COMPLETED;
+	return (mCursor < mBufferEnd) ? StreamingState::STREAMING : StreamingState::COMPLETED;
 }
 
 
 /* ----- FileInputStream --------------------------------------------------------------------------------- */
 
-FileInputStream::FileInputStream() : mLastStreamingState((StreamingState_t)StreamingState::COMPLETED)
-{
-}
-
-FileInputStream::FileInputStream(const String& filename) : mLastStreamingState((StreamingState_t)StreamingState::COMPLETED)
+FileInputStream::FileInputStream(const String& filename)
 {
 	open(filename);
 }
 
-FileInputStream::FileInputStream(const WString& filename) : mLastStreamingState((StreamingState_t)StreamingState::COMPLETED)
+FileInputStream::FileInputStream(const WString& filename)
 {
 	open(filename);
 }
@@ -114,21 +106,21 @@ FileInputStream::~FileInputStream()
 bool FileInputStream::open(const String& filename)
 {
 	const bool result = mFile.open(filename, FILE_ACCESS_READ);
-	mLastStreamingState = result ? (StreamingState_t)StreamingState::STREAMING : (StreamingState_t)StreamingState::COMPLETED;
+	mLastStreamingState = result ? StreamingState::STREAMING : StreamingState::COMPLETED;
 	return result;
 }
 
 bool FileInputStream::open(const WString& filename)
 {
 	const bool result = mFile.open(filename, FILE_ACCESS_READ);
-	mLastStreamingState = result ? (StreamingState_t)StreamingState::STREAMING : (StreamingState_t)StreamingState::COMPLETED;
+	mLastStreamingState = result ? StreamingState::STREAMING : StreamingState::COMPLETED;
 	return result;
 }
 
 void FileInputStream::close()
 {
 	mFile.close();
-	mLastStreamingState = (StreamingState_t)StreamingState::COMPLETED;
+	mLastStreamingState = StreamingState::COMPLETED;
 }
 
 int64 FileInputStream::getSize64() const
@@ -144,13 +136,13 @@ int64 FileInputStream::getPosition64() const
 void FileInputStream::setPosition64(int64 pos)
 {
 	mFile.seek(pos);
-	mLastStreamingState = (StreamingState_t)StreamingState::STREAMING;
+	mLastStreamingState = StreamingState::STREAMING;
 }
 
 size_t FileInputStream::read(void* dst, size_t len)
 {
 	const size_t readuint8s = mFile.read(dst, len);
-	mLastStreamingState = (readuint8s == 0) ? (StreamingState_t)StreamingState::COMPLETED : (StreamingState_t)StreamingState::STREAMING;
+	mLastStreamingState = (readuint8s == 0) ? StreamingState::COMPLETED : StreamingState::STREAMING;
 	return readuint8s;
 }
 
@@ -174,10 +166,10 @@ bool FileInputStream::tryRead(const void* data, size_t len)
 	return false;
 }
 
-InputStream::StreamingState_t FileInputStream::getStreamingState()
+InputStream::StreamingState FileInputStream::getStreamingState()
 {
-	StreamingState_t result = (StreamingState_t)StreamingState::BLOCKED;
-	if (mLastStreamingState == (StreamingState_t)StreamingState::BLOCKED)
+	StreamingState result = StreamingState::BLOCKED;
+	if (mLastStreamingState == StreamingState::BLOCKED)
 	{
 		// Getting here means that "getStreamingState" got called multiple times in a row
 		uint8 value = 0;
@@ -185,11 +177,11 @@ InputStream::StreamingState_t FileInputStream::getStreamingState()
 		if (readuint8s > 0)
 		{
 			mFile.seek(mFile.tell() - 1);
-			result = (StreamingState_t)StreamingState::STREAMING;
+			result = StreamingState::STREAMING;
 		}
 		else
 		{
-			result = (StreamingState_t)StreamingState::COMPLETED;
+			result = StreamingState::COMPLETED;
 		}
 	}
 	else
@@ -197,6 +189,6 @@ InputStream::StreamingState_t FileInputStream::getStreamingState()
 		// Streaming state was set in last "read", so return its result
 		result = mLastStreamingState;
 	}
-	mLastStreamingState = (StreamingState_t)StreamingState::BLOCKED;
+	mLastStreamingState = StreamingState::BLOCKED;
 	return result;
 }

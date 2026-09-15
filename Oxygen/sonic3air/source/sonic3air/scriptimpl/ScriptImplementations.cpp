@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,8 +14,9 @@
 #include "oxygen/simulation/EmulatorInterface.h"
 #include "oxygen/simulation/RuntimeEnvironment.h"
 
-#include <lemon/program/FunctionWrapper.h>
+#include <lemon/program/function/FunctionWrapper.h>
 #include <lemon/program/Module.h>
+#include <lemon/program/ModuleBindingsBuilder.h>
 
 
 namespace s3air
@@ -32,6 +33,7 @@ namespace s3air
 		uint32& A0 = emulatorInterface.getRegister(EmulatorInterface::Register::A0);
 		uint32& A1 = emulatorInterface.getRegister(EmulatorInterface::Register::A1);
 
+		// TODO: The RAM writes here won't trigger watches, though they should
 		uint8* initialPointer = emulatorInterface.getMemoryPointer(A1, false, 1);
 		uint8* pointer = initialPointer;
 		Kosinski::decompress(emulatorInterface, pointer, A0);
@@ -117,19 +119,17 @@ namespace s3air
 
 void ScriptImplementations::registerScriptBindings(lemon::Module& module)
 {
+	lemon::ModuleBindingsBuilder builder(module);
+
 	const BitFlagSet<lemon::Function::Flag> defaultFlags(lemon::Function::Flag::ALLOW_INLINE_EXECUTION);
 
-	module.addNativeFunction("Kosinski.Decompress", lemon::wrap(&s3air::kosinskiDecompress), defaultFlags);
-	module.addNativeFunction("WriteScrollOffsets", lemon::wrap(&s3air::writeScrollOffsets), defaultFlags);
-	module.addNativeFunction("WriteScrollOffsetsFlipped", lemon::wrap(&s3air::writeScrollOffsetsFlipped), defaultFlags);
+	builder.addNativeFunction("Kosinski.Decompress", lemon::wrap(&s3air::kosinskiDecompress), defaultFlags);
+	builder.addNativeFunction("WriteScrollOffsets", lemon::wrap(&s3air::writeScrollOffsets), defaultFlags);
+	builder.addNativeFunction("WriteScrollOffsetsFlipped", lemon::wrap(&s3air::writeScrollOffsetsFlipped), defaultFlags);
 
-	module.addNativeFunction("putNybbles", lemon::wrap(&s3air::putNybbles), defaultFlags)
-		.setParameterInfo(0, "input")
-		.setParameterInfo(1, "count")
-		.setParameterInfo(2, "value");
+	builder.addNativeFunction("putNybbles", lemon::wrap(&s3air::putNybbles), defaultFlags)
+		.setParameters("input", "count", "value");
 
-	// TEST!
-	module.addNativeFunction("uncompressKosinskiData", lemon::wrap(&s3air::decompressKosinskiData), defaultFlags)
-		.setParameterInfo(0, "sourceAddress")
-		.setParameterInfo(1, "targetInVRAM");
+	builder.addNativeFunction("uncompressKosinskiData", lemon::wrap(&s3air::decompressKosinskiData), defaultFlags)
+		.setParameters("sourceAddress", "targetInVRAM");
 }

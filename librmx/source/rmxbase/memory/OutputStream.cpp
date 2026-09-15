@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -50,7 +50,7 @@ bool MemOutputStream::saveToFile(const String& filename)
 
 /* ----- DynOutputStream --------------------------------------------------------------------------------- */
 
-DynOutputStream::DynOutputStream() : mPageSize(1024), mCurrPage(0), mCursor(0), mPageEnd(0)
+DynOutputStream::DynOutputStream()
 {
 }
 
@@ -69,7 +69,7 @@ void DynOutputStream::clear()
 	mPageEnd = nullptr;
 }
 
-void DynOutputStream::AccessPage(int pageIndex)
+void DynOutputStream::accessPage(int pageIndex)
 {
 	for (int i = (int)mPages.size(); i <= pageIndex; ++i)
 		mPages.push_back(nullptr);
@@ -85,7 +85,7 @@ void DynOutputStream::setPosition(int pos)
 {
 	assert(pos >= 0);
 	mCurrPage = pos / mPageSize;
-	AccessPage(mCurrPage);
+	accessPage(mCurrPage);
 	mCursor += (pos % mPageSize);
 }
 
@@ -116,7 +116,7 @@ int DynOutputStream::write(const void* ptr, int len)
 
 		if (mCursor)
 			++mCurrPage;
-		AccessPage(mCurrPage);
+		accessPage(mCurrPage);
 	}
 	return len;
 }

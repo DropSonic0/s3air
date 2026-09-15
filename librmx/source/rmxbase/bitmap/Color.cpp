@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -24,10 +24,12 @@ const Color Color::TRANSPARENT(0.0f, 0.0f, 0.0f, 0.0f);
 Color Color::interpolateColor(const Color& c0, const Color& c1, float factor)
 {
 	Color result;
-	result.interpolate(c0, c1, factor);
+	result.r = ::saturate(c0.r + (c1.r - c0.r) * factor);
+	result.g = ::saturate(c0.g + (c1.g - c0.g) * factor);
+	result.b = ::saturate(c0.b + (c1.b - c0.b) * factor);
+	result.a = ::saturate(c0.a + (c1.a - c0.a) * factor);
 	return result;
 }
-
 
 uint32 Color::getRGBA32() const
 {
@@ -53,18 +55,13 @@ uint32 Color::getABGR32() const
 		 + ((uint32)(::saturate(a) * 255) << 24);
 }
 
-Color::Color(uint32 color, Encoding_t encoding) : Vec4f(Uninitialized)
-{
-	setByEncoding(color, encoding);
-}
-
-void Color::setByEncoding(uint32 color, Encoding_t encoding)
+void Color::setByEncoding(uint32 color, Encoding encoding)
 {
 	switch (encoding)
 	{
-		case (Encoding_t)Encoding::RGBA_32:  setRGBA32(color);  break;
-		case (Encoding_t)Encoding::ARGB_32:  setARGB32(color);  break;
-		case (Encoding_t)Encoding::ABGR_32:  setABGR32(color);  break;
+		case Encoding::RGBA_32:  setRGBA32(color);  break;
+		case Encoding::ARGB_32:  setARGB32(color);  break;
+		case Encoding::ABGR_32:  setABGR32(color);  break;
 	}
 }
 
@@ -243,13 +240,11 @@ void Color::serialize(VectorBinarySerializer& serializer)
 {
 	if (serializer.isReading())
 	{
-		uint32 abgr = serializer.read<uint32>();
-		setABGR32(abgr);
+		setABGR32(serializer.read<uint32>());
 	}
 	else
 	{
-		uint32 abgr = getABGR32();
-		serializer.write<uint32>(abgr);
+		serializer.write<uint32>(getABGR32());
 	}
 }
 

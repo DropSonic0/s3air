@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,18 +11,13 @@
 // Version number
 #define RMXBASE_VERSION 0x00040100
 
-// RMX modules
-#include "PlatformDefinitions.h"
-
-#if defined(PLATFORM_PS3)
-	#include <stdint.h>
-#endif
-
 // General includes
 #include <cmath>
 #include <float.h>
-#if !defined(PLATFORM_PS3)
-	#include <memory.h>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#include <memory.h>
+#else
+#include <memory>
 #endif
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,18 +29,128 @@
 #include <stack>
 #include <list>
 #include <set>
-#if !defined(NO_UNORDERED_CONTAINERS)
-	#include <unordered_set>
-#endif
 #include <map>
-#if !defined(NO_UNORDERED_CONTAINERS)
-	#include <unordered_map>
-#endif
 #include <algorithm>
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#include <unordered_set>
+#include <unordered_map>
+#else
+#include <limits>
+#include <climits>
+
+#ifndef UINT32_MAX
+#define UINT32_MAX 0xffffffffu
+#endif
+
+namespace std {
+    inline std::string to_string(int val) { char buf[32]; sprintf(buf, "%d", val); return buf; }
+    inline std::string to_string(unsigned int val) { char buf[32]; sprintf(buf, "%u", val); return buf; }
+    inline std::string to_string(long val) { char buf[32]; sprintf(buf, "%ld", val); return buf; }
+    inline std::string to_string(unsigned long val) { char buf[32]; sprintf(buf, "%lu", val); return buf; }
+    inline std::string to_string(long long val) { char buf[64]; sprintf(buf, "%lld", val); return buf; }
+    inline std::string to_string(unsigned long long val) { char buf[64]; sprintf(buf, "%llu", val); return buf; }
+    inline std::string to_string(float val) { char buf[64]; sprintf(buf, "%f", val); return buf; }
+    inline std::string to_string(double val) { char buf[64]; sprintf(buf, "%f", val); return buf; }
+
+    template<typename T>
+    class shared_ptr {
+    public:
+        template<typename U> friend class shared_ptr;
+
+        shared_ptr() : mPtr(nullptr), mRefCount(nullptr) {}
+        explicit shared_ptr(T* p) : mPtr(p), mRefCount(p ? new int(1) : nullptr) {}
+        
+        shared_ptr(const shared_ptr& other) : mPtr(other.mPtr), mRefCount(other.mRefCount) {
+            if (mRefCount) {
+                ++(*mRefCount);
+            }
+        }
+
+        template<typename U>
+        shared_ptr(const shared_ptr<U>& other) : mPtr(other.mPtr), mRefCount(other.mRefCount) {
+            if (mRefCount) {
+                ++(*mRefCount);
+            }
+        }
+        
+        ~shared_ptr() {
+            release();
+        }
+        
+        shared_ptr& operator=(const shared_ptr& other) {
+            if (this != &other) {
+                release();
+                mPtr = other.mPtr;
+                mRefCount = other.mRefCount;
+                if (mRefCount) {
+                    ++(*mRefCount);
+                }
+            }
+            return *this;
+        }
+        
+        T* get() const { return mPtr; }
+        T& operator*() const { return *mPtr; }
+        T* operator->() const { return mPtr; }
+        operator bool() const { return mPtr != nullptr; }
+        
+    private:
+        void release() {
+            if (mRefCount) {
+                --(*mRefCount);
+                if (*mRefCount == 0) {
+                    delete mPtr;
+                    delete mRefCount;
+                }
+            }
+        }
+        
+        T* mPtr;
+        int* mRefCount;
+    };
+
+    template<typename K, typename V, typename H=void, typename E=void, typename A=void>
+    class unordered_map : public std::map<K, V> {
+    };
+
+    template<typename T, typename H=void, typename E=void, typename A=void>
+    class unordered_set : public std::set<T> {
+    };
+
+
+    struct error_code {
+        int value() const { return 0; }
+        operator bool() const { return false; }
+        void clear() {}
+    };
+}
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+using std::sqrt;
+using std::floor;
+using std::ceil;
+using std::abs;
+using std::exp;
+using std::expf;
+using std::cos;
+using std::sin;
+using std::pow;
+using std::log;
+using std::log10;
+using std::log10f;
+using std::malloc;
+using std::free;
+using std::abort;
+using std::modf;
+#endif
+#endif
 
 // Libraries
 #include "rmxbase/_jsoncpp/json/json.h"	// Uses its own namespace "Json"
+
+// RMX modules
+#include "PlatformDefinitions.h"
 #include "export.h"
 #include "rmxbase/base/Types.h"
 #include "rmxbase/base/Basics.h"
@@ -63,6 +168,7 @@
 #include "rmxbase/data/SinglePtr.h"
 #include "rmxbase/data/SmartPtr.h"
 #include "rmxbase/data/GlobalObjectPtr.h"
+#include "rmxbase/data/WeakPtr.h"
 #include "rmxbase/memory/RC4Encryption.h"
 #include "rmxbase/memory/String.h"
 #include "rmxbase/memory/UTF8Conversion.h"
@@ -82,6 +188,7 @@
 #include "rmxbase/memory/ZlibDeflate.h"
 #include "rmxbase/bitmap/Color.h"
 #include "rmxbase/bitmap/BitmapCodecs.h"
+#include "rmxbase/bitmap/PaletteBitmap.h"
 #include "rmxbase/bitmap/BitmapView.h"
 #include "rmxbase/tools/Logging.h"
 
@@ -104,7 +211,17 @@ namespace FTX
 #include "rmxbase/memory/StringImpl.h"
 
 
-
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#ifdef __cplusplus
+extern "C" {
+#endif
+void ps3_log(const char* msg);
+void ps3_set_usrdir(const char* path);
+const char* ps3_get_usrdir();
+#ifdef __cplusplus
+}
+#endif
+#endif
 
 // Initialization
 namespace rmxbase

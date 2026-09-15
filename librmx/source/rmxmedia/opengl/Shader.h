@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -20,26 +20,32 @@
 class API_EXPORT Shader
 {
 public:
-	enum ShaderType
+	enum class ShaderType
 	{
-		ShaderType_FRAGMENT,
-		ShaderType_VERTEX
+		FRAGMENT,
+		VERTEX
 	};
 
-	enum BlendMode
+	enum class BlendMode
 	{
-		BlendMode_UNDEFINED = -1,
-		BlendMode_OPAQUE,
-		BlendMode_ALPHA,
-		BlendMode_ADD
+		UNDEFINED = -1,
+		OPAQUE,
+		ALPHA,
+		ADD
 	};
 
-#if !defined(PLATFORM_PS3)
-	static std::function<void(String&, ShaderType)> mShaderSourcePostProcessCallback;
-	static std::function<bool(BlendMode)> mShaderApplyBlendModeCallback;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+	static inline std::function<void(String&, ShaderType)> mShaderSourcePostProcessCallback;
+	static inline std::function<bool(BlendMode)> mShaderApplyBlendModeCallback;				// Internal application of blend function will only be done if this is not set, or returns false
+#else
+	typedef void (*ShaderSourcePostProcessCallbackFn)(String&, ShaderType);
+	static ShaderSourcePostProcessCallbackFn mShaderSourcePostProcessCallback;
+	typedef bool (*ShaderApplyBlendModeCallbackFn)(BlendMode);
+	static ShaderApplyBlendModeCallbackFn mShaderApplyBlendModeCallback;
 #endif
-	 
-	 				// Internal application of blend function will only be done if this is not set, or returns false
+
+public:
+	static void unbindShader();
 
 public:
 	Shader();
@@ -54,25 +60,45 @@ public:
 	inline BlendMode getBlendMode() const			{ return mBlendMode; }
 	inline void setBlendMode(BlendMode mode)		{ mBlendMode = mode; }
 
-	inline unsigned int getProgramHandle() const			{ return mProgram; }
+	inline GLuint getProgramHandle() const			{ return mProgram; }
 
-	unsigned int getUniformLocation(const char* name) const;
-	unsigned int getAttribLocation(const char* name) const;
+	GLuint getUniformLocation(const char* name) const;
+	GLuint getAttribLocation(const char* name) const;
 
-	void setParam(const char* name, int param);
-	void setParam(const char* name, const Vec2i& param);
-	void setParam(const char* name, const Vec3i& param);
-	void setParam(const char* name, const Vec4i& param);
-	void setParam(const char* name, float param);
-	void setParam(const char* name, const Vec2f& param);
-	void setParam(const char* name, const Vec3f& param);
-	void setParam(const char* name, const Vec4f& param);
+	void setParam(GLuint loc, int param);
+	void setParam(GLuint loc, const Vec2i& param);
+	void setParam(GLuint loc, const Vec3i& param);
+	void setParam(GLuint loc, const Vec4i& param);
+	void setParam(GLuint loc, const Recti& param);
+	void setParam(GLuint loc, float param);
+	void setParam(GLuint loc, const Vec2f& param);
+	void setParam(GLuint loc, const Vec3f& param);
+	void setParam(GLuint loc, const Vec4f& param);
+	void setParam(GLuint loc, const Rectf& param);
 
-	void setMatrix(const char* name, const Mat3f& matrix);
-	void setMatrix(const char* name, const Mat4f& matrix);
+	void setMatrix(GLuint loc, const Mat3f& matrix);
+	void setMatrix(GLuint loc, const Mat4f& matrix);
 
-	void setTexture(const char* name, GLuint handle, GLenum target);
-	void setTexture(const char* name, const Texture& texture);
+	inline void resetTextureCount()  { mTextureCount = 0; }
+	void setTexture(GLuint loc, GLuint handle, GLenum target);
+	void setTexture(GLuint loc, const Texture& texture);
+
+	inline void setParam(const char* name, int param)			{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Vec2i& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Vec3i& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Vec4i& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Recti& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, float param)			{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Vec2f& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Vec3f& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Vec4f& param)	{ setParam(getUniformLocation(name), param); }
+	inline void setParam(const char* name, const Rectf& param)	{ setParam(getUniformLocation(name), param); }
+
+	inline void setMatrix(const char* name, const Mat3f& matrix)			{ setMatrix(getUniformLocation(name), matrix); }
+	inline void setMatrix(const char* name, const Mat4f& matrix)			{ setMatrix(getUniformLocation(name), matrix); }
+
+	inline void setTexture(const char* name, GLuint handle, GLenum target)	{ setTexture(getUniformLocation(name), handle, target); }
+	inline void setTexture(const char* name, const Texture& texture)		{ setTexture(getUniformLocation(name), texture); }
 
 	void bind();
 	void unbind();
@@ -85,11 +111,11 @@ private:
 	bool linkProgram(const std::map<int, String>* vertexAttribMap = nullptr);
 
 private:
-	unsigned int mVertexShader;
-	unsigned int mFragmentShader;
-	unsigned int mProgram;
-	BlendMode mBlendMode;
-	int mTextureCount;
+	GLuint mVertexShader = 0;
+	GLuint mFragmentShader = 0;
+	GLuint mProgram = 0;
+	BlendMode mBlendMode = BlendMode::UNDEFINED;
+	int mTextureCount = 0;
 
 	String mVertexSource;
 	String mFragmentSource;
@@ -124,7 +150,7 @@ private:
 		std::vector<String> mFragmentShaderParts;
 		std::vector<String> mDefines;
 		std::map<int, String> mVertexAttribMap;
-		Shader::BlendMode mBlendMode;
+		Shader::BlendMode mBlendMode = Shader::BlendMode::UNDEFINED;
 	};
 
 private:

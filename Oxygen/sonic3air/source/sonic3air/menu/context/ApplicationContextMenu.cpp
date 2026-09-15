@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -29,17 +29,11 @@ void ApplicationContextMenu::initialize()
 
 	if (mItems.empty())
 	{
-		#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MAC)
-			#define DIRECTORY_STRING "folder"
-		#else
-			#define DIRECTORY_STRING "directory"
-		#endif
-
-		mItems.push_back(Item { "Open saved data " DIRECTORY_STRING, Item::Function::OPEN_SAVED_DATA_DIRECTORY });
-		mItems.push_back(Item { "Open mods " DIRECTORY_STRING,		Item::Function::OPEN_MODS_DIRECTORY });
+		mItems.push_back(Item { "Open saved data " PLATFORM_DIRECTORY_STRING, Item::Function::OPEN_SAVED_DATA_DIRECTORY });
+		mItems.push_back(Item { "Open mods " PLATFORM_DIRECTORY_STRING,		Item::Function::OPEN_MODS_DIRECTORY });
 	#if 0
 		// TODO: This does not work well on Windows
-		mItems.emplace_back(Item { "Open log file",						Item::Function::OPEN_LOGFILE });
+		mItems.push_back(Item { "Open log file",						Item::Function::OPEN_LOGFILE });
 	#endif
 
 		mBaseInnerRect.set(2, 24, 210, 24);
@@ -49,13 +43,16 @@ void ApplicationContextMenu::initialize()
 
 void ApplicationContextMenu::mouse(const rmx::MouseEvent& ev)
 {
+	if (FTX::System->wasEventConsumed())
+	{
+		mActive = false;
+		mContextMenuClick.set(-1, -1);
+		return;
+	}
+
 	if (ev.state)
 	{
-	#if defined(PLATFORM_PS3)
-		if (ev.button == rmx::MouseButton_Right && !FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
-	#else
 		if (ev.button == rmx::MouseButton::Right && !FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
-	#endif
 		{
 			mActive = !mActive;
 			if (mActive)
@@ -74,11 +71,7 @@ void ApplicationContextMenu::mouse(const rmx::MouseEvent& ev)
 			mContextMenuClick.set(-1, -1);
 			return;
 		}
-	#if defined(PLATFORM_PS3)
-		else if (ev.button == rmx::MouseButton_Left)
-	#else
 		else if (ev.button == rmx::MouseButton::Left)
-	#endif
 		{
 			if (mActive)
 			{
@@ -119,7 +112,7 @@ void ApplicationContextMenu::render()
 		for (Item& item : mItems)
 		{
 			rect.y += 2;
-			const bool selected = rect.contains(FTX::mousePos());
+			const bool selected = rect.contains(FTX::mousePos()) && !FTX::System->wasEventConsumed();
 			if (mContextMenuClick.x >= 0 && rect.contains(mContextMenuClick))
 			{
 				clickedItem = &item;

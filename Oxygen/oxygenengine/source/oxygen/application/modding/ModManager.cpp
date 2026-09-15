@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -24,43 +24,36 @@ ModManager::~ModManager()
 void ModManager::startup()
 {
 	// Update base path (actually only needs to be done once, it shouldn't change afterwards anyways)
-	mBasePath = Configuration::instance().mAppDataPath + L"mods/";
-	RMX_LOG_INFO("ModManager startup, base path: " << WString(mBasePath).toStdString());
+	mBasePath = Configuration::instance().mGameAppDataPath + L"mods/";
 
 	// First go through all mod directories recursively to gather all installed mods
 	scanMods();
 
 	// Now get the list of active mods
 	//  -> Check if there's an "active-mods.json" file and read it
-	const std::wstring activeModsFile = mBasePath + L"active-mods.json";
-	if (FTX::FileSystem->exists(activeModsFile))
+	if (FTX::FileSystem->exists(mBasePath + L"active-mods.json"))
 	{
-		RMX_LOG_INFO("Loading active mods from: " << WString(activeModsFile).toStdString());
-		Json::Value json = JsonHelper::loadFile(activeModsFile);
+		Json::Value json = JsonHelper::loadFile(mBasePath + L"active-mods.json");
 
 		Json::Value activeMods = json["ActiveMods"];
 		const int numMods = activeMods.isArray() ? (int)activeMods.size() : 0;
-		RMX_LOG_INFO("Found " << numMods << " active mods in JSON");
 		for (int i = 0; i < numMods; ++i)
 		{
-#if defined(PLATFORM_PS3)
-			const std::wstring localPath = String(activeMods[i].asString().c_str()).toStdWString();
-#else
+			if (!activeMods[i].isString())
+				continue;
+
 			const std::wstring localPath = String(activeMods[i].asString()).toStdWString();
-#endif
+			const uint64 hash = rmx::getMurmur2_64(localPath);
 
 			// Search for this mod in the previously found mods
-			const uint64 hash = rmx::getMurmur2_64(localPath);
-			const auto it = mModsByLocalDirectoryHash.find(hash);
-			if (it == mModsByLocalDirectoryHash.end())
+			Mod* mod = mapFindOrDefault(mModsByLocalDirectoryHash, hash, nullptr);
+			if (nullptr == mod)
 			{
-				RMX_LOG_INFO("Active mod not found in scan: " << WString(localPath).toStdString());
+				// Not found... we could make this an error / failed mod
 			}
 			else
 			{
 				// Make this mod active
-				Mod* mod = it->second;
-				RMX_LOG_INFO("Activating mod: " << mod->mDisplayName << " (" << mod->mDirectoryName << ")");
 				mod->mState = Mod::State::ACTIVE;
 				mActiveMods.push_back(mod);
 			}
@@ -95,14 +88,9 @@ void ModManager::saveActiveMods()
 	Json::Value root;
 	{
 		Json::Value modNames(Json::arrayValue);
-		for (size_t i = 0; i < mActiveMods.size(); ++i)
+		for (Mod* mod : mActiveMods)
 		{
-			Mod* mod = mActiveMods[i];
-#if defined(PLATFORM_PS3)
-			modNames.append(WString(mod->mLocalDirectory).toStdString().c_str());
-#else
 			modNames.append(WString(mod->mLocalDirectory).toStdString());
-#endif
 		}
 		root["ActiveMods"] = modNames;
 		root["UseLegacyLoading"] = false;
@@ -217,10 +205,50 @@ void ModManager::copyModSettingsToConfig()
 	}
 }
 
+bool ModManager::addZipFileProvider(const std::wstring& zipLocalPath)
+{
+	const auto it = mZipFileProviders.find(zipLocalPath);
+	if (it != mZipFileProviders.end())
+	{
+		// Already added, nothing else to do
+		return true;
+	}
+
+	// Create a new zip file provider
+	ZipFileProvider* provider = new ZipFileProvider(mBasePath + zipLocalPath);
+	if (provider->isLoaded())
+	{
+		// Mount using the zip file name as a virtual folder name
+		FTX::FileSystem->addMountPoint(*provider, mBasePath + zipLocalPath + L"/", L"", 0x100);
+		mZipFileProviders[zipLocalPath] = provider;
+
+		// Done
+		RMX_LOG_INFO("Loaded mod zip file: " << WString(zipLocalPath).toStdString());
+		return true;
+	}
+	else
+	{
+		// Failure
+		RMX_LOG_INFO("Failed to load mod zip file: " << WString(zipLocalPath).toStdString());
+		delete provider;
+		return false;
+	}
+}
+
+bool ModManager::tryRemoveZipFileProvider(const std::wstring& zipLocalPath)
+{
+	const auto it = mZipFileProviders.find(zipLocalPath);
+	if (it == mZipFileProviders.end())
+		return false;
+
+	// Note that destroying the file provider will automatically remove its mount points
+	delete it->second;
+	mZipFileProviders.erase(it);
+	return true;
+}
+
 bool ModManager::scanMods()
 {
-	RMX_LOG_INFO("Scanning for mods in: " << WString(mBasePath).toStdString());
-
 	// Mark all existing mods as dirty first
 	for (Mod* existingMod : mAllMods)
 	{
@@ -228,16 +256,14 @@ bool ModManager::scanMods()
 	}
 
 	// Check for zip files in the mods directory
-#if !defined(PLATFORM_PS3)
 	{
 		std::vector<std::wstring> zipPaths;
 		findZipsRecursively(zipPaths, L"", 3);
 		for (const std::wstring& zipPath : zipPaths)
 		{
-			processModZipFile(zipPath);
+			addZipFileProvider(zipPath);
 		}
 	}
-#endif
 
 	// Scan mod directory
 	std::vector<FoundMod> foundMods;
@@ -259,11 +285,7 @@ bool ModManager::scanMods()
 				Json::Value value = metadataJson["GameVersion"];
 				if (value.isString())
 				{
-#if defined(PLATFORM_PS3)
-					const uint32 versionNumber = utils::getVersionNumberFromString(value.asString().c_str());
-#else
 					const uint32 versionNumber = utils::getVersionNumberFromString(value.asString());
-#endif
 					if (versionNumber != 0 && versionNumber > EngineMain::getDelegate().getAppMetaData().mBuildVersionNumber)
 					{
 						errorMessage = "Mod '" + directoryName + "' requires newer game version v" + utils::getVersionStringFromNumber(versionNumber) + ".";
@@ -393,8 +415,6 @@ void ModManager::scanDirectoryRecursive(std::vector<FoundMod>& outFoundMods, con
 	}
 }
 
-#if !defined(PLATFORM_PS3)
-
 void ModManager::findZipsRecursively(std::vector<std::wstring>& outZipPaths, const std::wstring& localPath, int maxDepth)
 {
 	std::vector<rmx::FileIO::FileEntry> zipFileEntries;
@@ -423,49 +443,6 @@ void ModManager::findZipsRecursively(std::vector<std::wstring>& outZipPaths, con
 	}
 }
 
-bool ModManager::processModZipFile(const std::wstring& zipLocalPath)
-{
-	const auto it = mZipFileProviders.find(zipLocalPath);
-	if (it != mZipFileProviders.end())
-	{
-		// Already added, nothing else to do
-		return true;
-	}
-
-	// Create a new zip file provider
-	ZipFileProvider* provider = new ZipFileProvider(mBasePath + zipLocalPath);
-	if (provider->isLoaded())
-	{
-		// Mount using the zip file name as a virtual folder name
-		FTX::FileSystem->addMountPoint(*provider, mBasePath + zipLocalPath + L"/", L"", 0x100);
-		mZipFileProviders[zipLocalPath] = provider;
-
-		// Done
-		RMX_LOG_INFO("Loaded mod zip file: " << WString(zipLocalPath).toStdString());
-		return true;
-	}
-	else
-	{
-		// Failure
-		RMX_LOG_INFO("Failed to load mod zip file: " << WString(zipLocalPath).toStdString());
-		delete provider;
-		return false;
-	}
-}
-
-#else
-
-void ModManager::findZipsRecursively(std::vector<std::wstring>& outZipPaths, const std::wstring& localPath, int maxDepth)
-{
-}
-
-bool ModManager::processModZipFile(const std::wstring& zipLocalPath)
-{
-	return false;
-}
-
-#endif
-
 void ModManager::onActiveModsChanged(bool duringStartup)
 {
 	// Update priorities values in mods
@@ -476,9 +453,8 @@ void ModManager::onActiveModsChanged(bool duringStartup)
 
 	// Rebuild lookup map
 	mActiveModsByNameHash.clear();
-	for (size_t i = 0; i < mActiveMods.size(); ++i)
+	for (Mod* mod : mActiveMods)
 	{
-		Mod* mod = mActiveMods[i];
 		// Add under all different names that can refer to the mod
 		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mUniqueID), mod));
 		mActiveModsByNameHash.insert(std::make_pair(rmx::getMurmur2_64(mod->mDirectoryName), mod));

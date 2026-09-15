@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,21 +11,20 @@
 #include "oxygen/helper/HighResolutionTimer.h"
 #include "oxygen/helper/Logging.h"
 
-#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <thread>
 #endif
 
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-#include <sysutil/sysutil_msgdialog.h>
-#include <sys/timer.h>
-#include <PSGL/psgl.h>
-#include "rmxmedia/framework/FTX_System.h"
-#endif
-
-#ifdef PLATFORM_WINDOWS
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	#include <stdlib.h>
+	#include <unistd.h>
+	#include <sys/timer.h>
+	#include <sysutil/sysutil_msgdialog.h>
+	extern "C" void psglSwap(void);
+#elif defined(PLATFORM_WINDOWS)
 	#include <CleanWindowsInclude.h>
 	#include <shlobj.h>		// For "SHGetKnownFolderPath"
-#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS)
+#elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
 	#include <stdlib.h>
 	#include <unistd.h>
 	#include <sys/types.h>
@@ -39,6 +38,24 @@
 
 namespace
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	struct PS3MsgDialogState
+	{
+		bool mFinished;
+		int mButtonType;
+	};
+
+	static void ps3MsgDialogCallback(int buttonType, void* userData)
+	{
+		PS3MsgDialogState* state = static_cast<PS3MsgDialogState*>(userData);
+		if (state)
+		{
+			state->mButtonType = buttonType;
+			state->mFinished = true;
+		}
+	}
+#endif
+
 #ifdef PLATFORM_WINDOWS
 
 	std::wstring getStringRegKey(HKEY hKey, const wchar_t* valueName)
@@ -198,7 +215,9 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		if (timeLeft <= 0.0)
 			break;
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		const double sleepTimeLeft = timeLeft - timerGranularity;
+#endif
 
 		// Don't spin on mobile platforms, accept some imprecision to avoid battery drain
 		#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MACOS) || defined(PLATFORM_LINUX)
@@ -217,9 +236,7 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 					{
 						HighResolutionTimer yieldTimer;
 						yieldTimer.start();
-					#if !defined(PLATFORM_PS3)
 						std::this_thread::yield();
-					#endif
 						lastYieldTimeMs = yieldTimer.getSecondsSinceStart();
 					}
 				}
@@ -228,23 +245,19 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		}
 		#endif
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		// Is the remaining time rounded down to full milliseconds above the timer granularity?
 		if (sleepTimeLeft >= 1.0)
 		{
 			// Sleep the thread if above granularity
-		#if !defined(PLATFORM_PS3)
 			std::this_thread::sleep_for(std::chrono::milliseconds((int)sleepTimeLeft));
-		#else
-			SDL_Delay((unsigned int)sleepTimeLeft);
-		#endif
 		}
 		else
 		{
 			// Yield the thread if below granularity
-		#if !defined(PLATFORM_PS3)
 			std::this_thread::yield();
-		#endif
 		}
+#endif
 	}
 }
 
@@ -294,7 +307,12 @@ double PlatformFunctions::getTimerGranularityMilliseconds()
 
 void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallPath)
 {
-#if defined(PLATFORM_WINDOWS)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	if (FTX::FileSystem.hasInstance())
+	{
+		FTX::FileSystem->setCurrentDirectory(rmx::convertFromUTF8(ps3_get_usrdir()));
+	}
+#elif defined(PLATFORM_WINDOWS)
 	// Take the working directory from command line if possible
 	const size_t slashPos = executableCallPath.find_last_of(L"/\\");
 	if (slashPos != std::string::npos)
@@ -313,7 +331,7 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 				++pos;
 
 			// Get part as string
-			parts.push_back(std::wstring(path.substr(start, pos-start)));
+			parts.push_back(path.substr(start, pos-start));
 		}
 
 		for (size_t index = 0; index < parts.size(); ++index)
@@ -346,9 +364,6 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 		const std::wstring path = std::wstring(executableCallPath.substr(0, slashPos + 1));
 		rmx::FileSystem::setCurrentDirectory(path);
 	}
-#elif defined(PLATFORM_PS3)
-	// chdir and getcwd are not always available on PS3 toolchains
-	// (The rmx::FileSystem already has a hardcoded mount point for USRDIR instead)
 #endif
 }
 
@@ -377,12 +392,16 @@ void PlatformFunctions::setAppIcon(int iconResource)
 
 std::wstring PlatformFunctions::getAppDataPath()
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	return rmx::convertFromUTF8(ps3_get_usrdir());
+#else
+#if defined(PLATFORM_WINDOWS)
 	PWSTR path = nullptr;
 	if (S_OK == SHGetKnownFolderPath(FOLDERID_RoamingAppData, KF_FLAG_DONT_UNEXPAND | KF_FLAG_CREATE, nullptr, &path))
 	{
 		std::wstring result(path);
 		CoTaskMemFree(path);
+		FTX::FileSystem->normalizePath(result, false);	// Do not add a slash at the end
 		return result;
 	}
 #elif defined(PLATFORM_LINUX)
@@ -395,6 +414,7 @@ std::wstring PlatformFunctions::getAppDataPath()
 	return mExAppDataPath;
 #endif
 	return L"";
+#endif
 }
 
 std::wstring PlatformFunctions::tryGetSteamRomPath(const std::wstring& romName)
@@ -443,47 +463,23 @@ std::string PlatformFunctions::getCompactSystemTimeString()
 	return buf;
 }
 
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-namespace
-{
-	static volatile bool g_ps3MsgDialogFinished = false;
-	static volatile int g_ps3MsgDialogButtonResult = -1;
-
-	static void ps3MsgDialogCallback(int buttonType, void* userData)
-	{
-		if (buttonType == CELL_MSGDIALOG_BUTTON_OK || buttonType == CELL_MSGDIALOG_BUTTON_YES)
-		{
-			g_ps3MsgDialogButtonResult = 1;
-		}
-		else if (buttonType == CELL_MSGDIALOG_BUTTON_NO)
-		{
-			g_ps3MsgDialogButtonResult = 2;
-		}
-		else
-		{
-			g_ps3MsgDialogButtonResult = 0;
-		}
-		g_ps3MsgDialogFinished = true;
-	}
-}
-#endif
-
 void PlatformFunctions::showMessageBox(const std::string& caption, const std::string& text)
 {
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
 
-	g_ps3MsgDialogFinished = false;
-	g_ps3MsgDialogButtonResult = -1;
+	std::string fullMsg = caption.empty() ? text : (caption + "\n\n" + text);
+	PS3MsgDialogState state;
+	state.mFinished = false;
+	state.mButtonType = CELL_MSGDIALOG_BUTTON_NONE;
 
-	std::string fullText = caption.empty() ? text : (caption + "\n\n" + text);
-	unsigned int type = CELL_MSGDIALOG_TYPE_SE_TYPE_ERROR | CELL_MSGDIALOG_TYPE_BG_INVISIBLE | CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON;
-
-	if (cellMsgDialogOpen2(type, fullText.c_str(), ps3MsgDialogCallback, nullptr, nullptr) == 0)
+	unsigned int dialogType = CELL_MSGDIALOG_TYPE_SE_TYPE_ERROR | CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON;
+	int ret = cellMsgDialogOpen2(dialogType, fullMsg.c_str(), ps3MsgDialogCallback, &state, nullptr);
+	if (ret == 0)
 	{
-		while (!g_ps3MsgDialogFinished)
+		while (!state.mFinished)
 		{
 			cellSysutilCheckCallback();
-			if (FTX::FileSystem.hasInstance() && FTX::Video.valid() && FTX::Video->isActive())
+			if (FTX::Video.valid() && FTX::Video->isActive())
 			{
 				psglSwap();
 			}
@@ -493,7 +489,7 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 
 #elif defined(PLATFORM_WINDOWS)
 
-	MessageBoxA(nullptr, text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
+	MessageBoxA((HWND)FTX::Video->getNativeWindowHandle(), text.c_str(), caption.c_str(), MB_OK | MB_ICONEXCLAMATION);
 
 #else
 
@@ -503,31 +499,32 @@ void PlatformFunctions::showMessageBox(const std::string& caption, const std::st
 #endif
 }
 
-PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity_t severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
+PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSeverity severity, DialogButtons dialogButtons, const std::string& caption, const std::string& text)
 {
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
 
-	g_ps3MsgDialogFinished = false;
-	g_ps3MsgDialogButtonResult = -1;
+	std::string fullMsg = caption.empty() ? text : (caption + "\n\n" + text);
+	PS3MsgDialogState state;
+	state.mFinished = false;
+	state.mButtonType = CELL_MSGDIALOG_BUTTON_NONE;
 
-	std::string fullText = caption.empty() ? text : (caption + "\n\n" + text);
-	unsigned int type = CELL_MSGDIALOG_TYPE_SE_TYPE_ERROR | CELL_MSGDIALOG_TYPE_BG_INVISIBLE;
-
+	unsigned int dialogType = (severity == rmx::ErrorSeverity::ERROR) ? CELL_MSGDIALOG_TYPE_SE_TYPE_ERROR : CELL_MSGDIALOG_TYPE_SE_TYPE_NORMAL;
 	if (dialogButtons == DialogButtons::OK)
 	{
-		type |= CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON;
+		dialogType |= CELL_MSGDIALOG_TYPE_BUTTON_TYPE_OK | CELL_MSGDIALOG_TYPE_DISABLE_CANCEL_ON;
 	}
 	else
 	{
-		type |= CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO;
+		dialogType |= CELL_MSGDIALOG_TYPE_BUTTON_TYPE_YESNO;
 	}
 
-	if (cellMsgDialogOpen2(type, fullText.c_str(), ps3MsgDialogCallback, nullptr, nullptr) == 0)
+	int ret = cellMsgDialogOpen2(dialogType, fullMsg.c_str(), ps3MsgDialogCallback, &state, nullptr);
+	if (ret == 0)
 	{
-		while (!g_ps3MsgDialogFinished)
+		while (!state.mFinished)
 		{
 			cellSysutilCheckCallback();
-			if (FTX::FileSystem.hasInstance() && FTX::Video.valid() && FTX::Video->isActive())
+			if (FTX::Video.valid() && FTX::Video->isActive())
 			{
 				psglSwap();
 			}
@@ -535,12 +532,18 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 		}
 	}
 
-	if (g_ps3MsgDialogButtonResult == 1)
+	if (state.mButtonType == CELL_MSGDIALOG_BUTTON_YES || state.mButtonType == CELL_MSGDIALOG_BUTTON_OK)
+	{
 		return DialogResult::OK;
-	else if (g_ps3MsgDialogButtonResult == 2)
+	}
+	else if (state.mButtonType == CELL_MSGDIALOG_BUTTON_NO)
+	{
 		return DialogResult::NO;
+	}
 	else
+	{
 		return DialogResult::CANCEL;
+	}
 
 #elif defined(PLATFORM_WINDOWS)
 
@@ -551,14 +554,14 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 		case DialogButtons::OK_CANCEL:	type |= MB_OKCANCEL;	break;
 		default:						type |= MB_YESNOCANCEL;	break;
 	}
-	switch ((int)severity)
+	switch (severity)
 	{
 		case rmx::ErrorSeverity::ERROR:		type |= MB_ICONEXCLAMATION;	break;
 		case rmx::ErrorSeverity::WARNING:	type |= MB_ICONWARNING;		break;
 		default:							type |= MB_ICONINFORMATION;	break;
 	}
 
-	const int result = MessageBoxA(nullptr, text.c_str(), caption.c_str(), type);
+	const int result = MessageBoxA((HWND)FTX::Video->getNativeWindowHandle(), text.c_str(), caption.c_str(), type);
 	switch (result)
 	{
 		case IDOK:		return DialogResult::OK;
@@ -596,9 +599,9 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 						   (dialogButtons == DialogButtons::OK_CANCEL) ? SDL_arraysize(buttons_OkCancel) : SDL_arraysize(buttons_YesNoCancel);
 
 	uint32 flags = 0;
-	if (severity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::ERROR)
+	if (severity == rmx::ErrorSeverity::ERROR)
 		flags |= SDL_MESSAGEBOX_ERROR;
-	else if (severity == (rmx::ErrorSeverity_t)rmx::ErrorSeverity::WARNING)
+	else if (severity == rmx::ErrorSeverity::WARNING)
 		flags |= SDL_MESSAGEBOX_WARNING;
 	else
 		flags |= SDL_MESSAGEBOX_INFORMATION;
@@ -687,6 +690,18 @@ void PlatformFunctions::openURLExternal(const std::string& url)
 #endif
 }
 
+bool PlatformFunctions::openApplicationExternal(const std::wstring& path, const std::wstring& arguments, const std::wstring& directory)
+{
+#if defined(PLATFORM_WINDOWS)
+	return ::ShellExecuteW(nullptr, L"open", path.c_str(), arguments.c_str(), directory.c_str(), SW_SHOW);
+#elif defined(PLATFORM_LINUX)
+	return system(rmx::convertToUTF8(path + L" " + arguments).c_str());
+#else
+	// Not implemented for other platforms
+	return false;
+#endif
+}
+
 bool PlatformFunctions::isDebuggerPresent()
 {
 #ifdef PLATFORM_WINDOWS
@@ -698,61 +713,30 @@ bool PlatformFunctions::isDebuggerPresent()
 
 bool PlatformFunctions::hasClipboardSupport()
 {
-#ifdef PLATFORM_WINDOWS
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MAC) || defined(PLATFORM_LINUX)
 	return true;
 #else
 	return false;
 #endif
 }
 
-bool PlatformFunctions::copyToClipboard(std::wstring_view string)
+bool PlatformFunctions::copyToClipboard(const std::string& string)
 {
-#ifdef PLATFORM_WINDOWS
-	if (OpenClipboard(nullptr))
-	{
-		const std::string str = WString(string).toStdString();
-		HGLOBAL handle = GlobalAlloc(GMEM_MOVEABLE, str.length() + 1);
-		if (nullptr != handle)
-		{
-			LPTSTR lockedText = (LPTSTR)GlobalLock(handle);
-			if (nullptr != lockedText)
-			{
-				memcpy(lockedText, (LPCTSTR)str.c_str(), str.length() + 1);
-				GlobalUnlock(handle);
-
-				EmptyClipboard();
-				SetClipboardData(CF_TEXT, handle);
-				CloseClipboard();
-				return true;
-			}
-		}
-	}
-#endif
-	return false;
+	return (SDL_SetClipboardText(string.c_str()) == 0);
 }
 
-
-bool PlatformFunctions::pasteFromClipboard(WString& outString)
+bool PlatformFunctions::copyToClipboard(std::wstring_view string)
 {
-#ifdef PLATFORM_WINDOWS
-	bool result = false;
-	if (IsClipboardFormatAvailable(CF_TEXT) && OpenClipboard(nullptr))
-	{
-		HGLOBAL handle = GetClipboardData(CF_TEXT);
-		if (nullptr != handle)
-		{
-			char* text = static_cast<char*>(GlobalLock(handle));
-			if (nullptr != text)
-			{
-				outString = WString(text);
-				GlobalUnlock(handle);
-				result = true;
-			}
-		}
-		CloseClipboard();
-	}
-	return result;
-#else
-	return false;
-#endif
+	return (SDL_SetClipboardText(rmx::convertToUTF8(string).c_str()) == 0);
+}
+
+bool PlatformFunctions::pasteFromClipboard(std::wstring& outString)
+{
+	if (!SDL_HasClipboardText())
+		return false;
+
+	char* utf8String = SDL_GetClipboardText();
+	outString = rmx::convertFromUTF8(utf8String);
+	SDL_free(utf8String);
+	return !outString.empty();
 }

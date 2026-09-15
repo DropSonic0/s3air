@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -16,20 +16,19 @@
 class InputFieldMenuEntry : public GameMenuEntry
 {
 public:
-#if defined(PLATFORM_PS3)
-	static constexpr uint32 MENU_ENTRY_TYPE = 0x512cb2e5;
-#else
-	static constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("InputFieldMenuEntry");
-#endif
+	static const constexpr uint32 MENU_ENTRY_TYPE = rmx::compileTimeFNV_32("InputFieldMenuEntry");
 
 public:
 	InputFieldMenuEntry();
-	InputFieldMenuEntry& initEntry(std::wstring_view defaultText);
+	InputFieldMenuEntry& initEntry(Vec2i size, std::wstring_view defaultText, std::wstring_view placeholderText);
 
 	void keyboard(const rmx::KeyboardEvent& ev) override;
 	void textinput(const rmx::TextInputEvent& ev) override;
 	void renderEntry(RenderContext& renderContext) override;
 
 private:
+	Vec2i mSize;
+	std::wstring mPlaceholderText;
+
 	TextInputHandler mTextInputHandler;
 };

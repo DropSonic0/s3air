@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,13 +13,13 @@
 
 namespace
 {
-	static const int LIT_TABLE[29][2] =
+	static const constexpr int LIT_TABLE[29][2] =
 	{
 		{ 0,3 },  { 0,4 },  { 0,5 },  { 0,6 },  { 0,7 },  { 0,8 },  { 0,9 },  { 0,10 }, { 1,11 },  { 1,13 },  { 1,15 },  { 1,17 },  { 2,19 },  { 2,23 },  { 2,27 },
 		{ 2,31 }, { 3,35 }, { 3,43 }, { 3,51 }, { 3,59 }, { 4,67 }, { 4,83 }, { 4,99 }, { 4,115 }, { 5,131 }, { 5,163 }, { 5,195 }, { 5,227 }, { 0,258 }
 	};
 
-	static const int DIST_TABLE[30][2] =
+	static const constexpr int DIST_TABLE[30][2] =
 	{
 		{ 0,1 },    { 0,2 },     { 0,3 },     { 0,4 },     { 1,5 },     { 1,7 },     { 2,9 },     { 2,13 },     { 3,17 },     { 3,25 },
 		{ 4,33 },   { 4,49 },    { 5,65 },    { 5,97 },    { 6,129 },   { 6,193 },   { 7,257 },   { 7,385 },    { 8,513 },    { 8,769 },
@@ -108,7 +108,7 @@ DeflateCodec::DeflateCodec()
 		// Invert order of bits
 		int value = i;
 		int newValue = 0;
-		for (int j = 0; j < 9; ++j)
+		for (int k = 0; k < 9; ++k)
 		{
 			newValue = (newValue << 1) + (value & 1);
 			value >>= 1;
@@ -412,11 +412,11 @@ uint8* DeflateCodec::decode(int& outputSize, const void* input, int length)
 	while (!finished)
 	{
 		// Block header
-		const int bits = readBits(3);
-		if (bits & 0x01)		// "bfinal" flag
+		const int headerBits = readBits(3);
+		if (headerBits & 0x01)	// "bfinal" flag
 			finished = true;
 
-		const int btype = bits >> 1;
+		const int btype = headerBits >> 1;
 		if (btype == 3)			// Invalid value for btype
 			RETURN_ERROR;
 
@@ -487,9 +487,9 @@ uint8* DeflateCodec::decode(int& outputSize, const void* input, int length)
 			{
 				// Look up length in table
 				int extra_bits = LIT_TABLE[lit_code-257][0];
-				int length = LIT_TABLE[lit_code-257][1];
+				int len = LIT_TABLE[lit_code-257][1];
 				if (extra_bits)
-					length += readBits(extra_bits);
+					len += readBits(extra_bits);
 
 				// Get distance
 				const int dist_code = (btype == 1) ? readBits(5, true) : readFromTree(dist_tree);
@@ -502,22 +502,22 @@ uint8* DeflateCodec::decode(int& outputSize, const void* input, int length)
 					distance += readBits(extra_bits);
 
 				// Copy output from further behind
-				expandOutput(outpos + length);
+				expandOutput(outpos + len);
 				const uint8* src = &output[outpos - distance];
-				if (length > distance)
+				if (len > distance)
 				{
 					memcpy(buffer, src, distance);
 					int fill = distance;
-					while (fill < length)
+					while (fill < len)
 					{
-						const int copy_len = std::min(fill, length - fill);
+						const int copy_len = std::min(fill, len - fill);
 						memcpy(&buffer[fill], buffer, copy_len);
 						fill += copy_len;
 					}
 					src = buffer;
 				}
-				memcpy(&output[outpos], src, length);
-				outpos += length;
+				memcpy(&output[outpos], src, len);
+				outpos += len;
 			}
 			else  // lit_code >= 286
 			{

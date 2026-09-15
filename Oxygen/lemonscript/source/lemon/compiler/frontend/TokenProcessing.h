@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -17,11 +17,13 @@
 
 namespace lemon
 {
-	class Function;
 	class ConstantArray;
 	class ConstantToken;
+	class Function;
 	class GlobalsLookup;
+	class IdentifierToken;
 	class LocalVariable;
+	class Module;
 	class ScriptFunction;
 	class StatementToken;
 
@@ -45,12 +47,17 @@ namespace lemon
 		Context mContext;
 
 	public:
-		TokenProcessing(GlobalsLookup& globalsLookup, const CompileOptions& compileOptions);
+		TokenProcessing(GlobalsLookup& globalsLookup, Module& module, const CompileOptions& compileOptions);
 
 		void processTokens(TokenList& tokensRoot, uint32 lineNumber, const DataTypeDefinition* resultType = nullptr);
 		void processForPreprocessor(TokenList& tokensRoot, uint32 lineNumber);
 
 		bool resolveIdentifiers(TokenList& tokens);
+		bool tryResolveIdentifier(TokenList& tokens, size_t pos);
+
+		bool processConstant(TokenList& tokens, size_t pos);
+
+		const ArrayDataType& getArrayDataType(const DataTypeDefinition& elementType, size_t arraySize);
 
 	private:
 		struct BinaryOperationResult
@@ -96,10 +103,14 @@ namespace lemon
 		void evaluateCompileTimeConstants(TokenList& tokens);
 		bool evaluateCompileTimeConstantsRecursive(Token& inputToken, TokenPtr<StatementToken>& outTokenPtr);
 
+		void resolveMakeCallable(TokenList& tokens);
 		void resolveAddressOfFunctions(TokenList& tokens);
 		void resolveAddressOfMemoryAccesses(TokenList& tokens);
 
 		BinaryOperationResult getBestOperatorSignature(Operator op, const DataTypeDefinition* leftDataType, const DataTypeDefinition* rightDataType);
+
+		const Function* getBuiltinArrayGetter(const DataTypeDefinition& elementType);
+		const Function* getBuiltinArraySetter(const DataTypeDefinition& elementType);
 
 		void assignStatementDataTypes(TokenList& tokens, const DataTypeDefinition* resultType);
 		const DataTypeDefinition* assignStatementDataType(StatementToken& token, const DataTypeDefinition* resultType);
@@ -110,11 +121,16 @@ namespace lemon
 
 	private:
 		GlobalsLookup& mGlobalsLookup;
+		Module& mModule;
 		const CompileOptions& mCompileOptions;
 		TypeCasting mTypeCasting;
 		uint32 mLineNumber = 0;
 
 		CachedBuiltinFunction mBuiltinConstantArrayAccess;
+		CachedBuiltinFunction mBuiltinArrayBracketGetter;
+		CachedBuiltinFunction mBuiltinArrayBracketSetter;
+		CachedBuiltinFunction mBuiltinArrayLength;
+
 		CachedBuiltinFunction mBuiltinStringOperatorPlus;
 		CachedBuiltinFunction mBuiltinStringOperatorPlusInt64;
 		CachedBuiltinFunction mBuiltinStringOperatorPlusInt64Inv;
@@ -122,6 +138,8 @@ namespace lemon
 		CachedBuiltinFunction mBuiltinStringOperatorLessOrEqual;
 		CachedBuiltinFunction mBuiltinStringOperatorGreater;
 		CachedBuiltinFunction mBuiltinStringOperatorGreaterOrEqual;
+		CachedBuiltinFunction mBuiltinStringBracketGetter;
+		CachedBuiltinFunction mBuiltinStringBracketSetter;
 
 		std::vector<BinaryOperationLookup> mBinaryOperationLookup[(size_t)Operator::_NUM_OPERATORS];
 	};

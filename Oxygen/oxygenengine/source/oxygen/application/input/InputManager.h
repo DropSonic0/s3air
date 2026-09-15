@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,14 +11,17 @@
 #include "oxygen/application/input/InputConfig.h"
 #include "oxygen/application/input/RumbleEffectQueue.h"
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#include <cell/pad.h>
+#include <cell/keyboard.h>
+#include <sysutil/sysutil_common.h>
+#endif
 
 class InputManager;
-#if !defined(PLATFORM_PS3)
 struct _SDL_Joystick;
 struct _SDL_GameController;
 typedef struct _SDL_Joystick SDL_Joystick;
 typedef struct _SDL_GameController SDL_GameController;
-#endif
 
 
 class InputFeeder
@@ -38,6 +41,10 @@ protected:
 
 class InputManager : public SingleInstance<InputManager>
 {
+public:
+	static const constexpr size_t NUM_PLAYERS = 4;
+	static const std::string KEYBOARD_DEVICE_NAMES[NUM_PLAYERS];
+
 public:
 	struct RealDevice;
 
@@ -210,7 +217,22 @@ private:
 	void stopControllerRumbleForDevice(RealDevice& device);
 
 private:
-	static constexpr size_t NUM_PLAYERS = 2;
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	bool mPS3PadsInitialized;
+	bool mPS3KbInitialized;
+	uint8_t mPS3KbConnected[2];
+	uint8_t mPS3KeyboardState[256];
+	uint32_t mPS3KeyboardModifiers;
+	CellKbData mPS3LastKbState[2];
+	CellPadData mPS3CachedPadData[7];
+	bool mPS3CachedPadValid[7];
+
+	void initPS3Input();
+	void pollPS3Input();
+	static int32_t convertPS3HIDToKeycode(uint8_t code);
+	static int32_t getPS3Axis(const CellPadData* data, int offset);
+#endif
+
 	Player mPlayers[NUM_PLAYERS];
 
 	std::vector<Control*> mAllControls;

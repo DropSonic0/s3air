@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,15 +8,50 @@
 
 #include "rmxbase.h"
 
-#if defined(PLATFORM_WINDOWS)
-	#define WIN32_LEAN_AND_MEAN
-	#include <CleanWindowsInclude.h>
-#elif defined(PLATFORM_ANDROID)
-	#include <android/log.h>
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+std::vector<rmx::LoggerBase*> rmx::Logging::mLoggers;
 #endif
 
-#if !defined(PLATFORM_PS3)
-	#include <chrono>
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+static char gPS3UsrDir[256] = "/dev_hdd0/game/SONIC3AIR/USRDIR";
+
+extern "C" void ps3_set_usrdir(const char* path)
+{
+	if (path && path[0])
+	{
+		strncpy(gPS3UsrDir, path, sizeof(gPS3UsrDir) - 1);
+		gPS3UsrDir[sizeof(gPS3UsrDir) - 1] = '\0';
+		size_t len = strlen(gPS3UsrDir);
+		if (len > 0 && (gPS3UsrDir[len - 1] == '/' || gPS3UsrDir[len - 1] == '\\'))
+		{
+			gPS3UsrDir[len - 1] = '\0';
+		}
+	}
+}
+
+extern "C" const char* ps3_get_usrdir()
+{
+	return gPS3UsrDir;
+}
+
+extern "C" void ps3_log(const char* msg)
+{
+	if (!msg) return;
+	printf("%s\n", msg);
+}
+#endif
+
+#if defined(PLATFORM_WINDOWS)
+	#define WIN32_LEAN_AND_MEAN
+	#include "CleanWindowsInclude.h"
+#elif defined(PLATFORM_ANDROID)
+	#include <android/log.h>
+#elif defined(PLATFORM_VITA)
+	#include <psp2/kernel/clib.h>
+#endif
+
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#include <chrono>
 #endif
 #include <ctime>
 #include <iomanip>
@@ -25,10 +60,6 @@
 
 namespace rmx
 {
-#if defined(PLATFORM_PS3)
-	std::vector<LoggerBase*> Logging::mLoggers;
-#endif
-
 	namespace detail
 	{
 		std::string getTimestampString()
@@ -45,20 +76,14 @@ namespace rmx
 			std::strftime(buf, sizeof(buf), "[%Y-%m-%d %T] ", &tstruct);
 			return buf;
 		}
+	}
 
-		std::string getFilenameString()
+
+	void LoggerBase::performLogging(LogLevel logLevel, const std::string& string)
+	{
+		if (logLevel >= mMinLogLevel && logLevel <= mMaxLogLevel)
 		{
-			time_t now = time(0);
-			struct tm tstruct;
-			char buf[80];
-		#if defined(PLATFORM_WINDOWS)
-			localtime_s(&tstruct, &now);
-		#else
-			tstruct = *localtime(&now);
-		#endif
-			// Format example: "2022-06-29_11-42-48"
-			std::strftime(buf, sizeof(buf), "%Y-%m-%d_%H-%M-%S", &tstruct);
-			return buf;
+			log(logLevel, string);
 		}
 	}
 
@@ -68,8 +93,24 @@ namespace rmx
 	{
 	}
 
-	void StdCoutLogger::log(LogLevel_t logLevel, const std::string& string)
+	void StdCoutLogger::log(LogLevel logLevel, const std::string& string)
 	{
+	#if !defined(PLATFORM_VITA)
+	#if defined(PLATFORM_WINDOWS)
+		// Use different color in console output on Windows
+		const HANDLE handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
+		const constexpr WORD defaultColor = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_BLUE;
+		WORD color;
+		switch (logLevel)
+		{
+			case LogLevel::TRACE:	color = FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_INTENSITY;	break;	// Cyan
+			case LogLevel::WARNING:	color = FOREGROUND_RED | FOREGROUND_GREEN | FOREGROUND_INTENSITY;	break;	// Yellow
+			case LogLevel::ERROR:	color = FOREGROUND_RED | FOREGROUND_INTENSITY;						break;	// Red
+			default:				color = defaultColor;												break;	// Gray
+		}
+		SetConsoleTextAttribute(handle, color);
+	#endif
+
 		// Write to std::cout
 		if (mAddTimestamp)
 		{
@@ -77,6 +118,7 @@ namespace rmx
 		}
 		std::cout << string << "\r\n";
 		std::cout << std::flush;
+	#endif
 
 		// Write to debug output, depending on platform
 	#if defined(PLATFORM_WINDOWS)
@@ -84,9 +126,14 @@ namespace rmx
 		{
 			OutputDebugString((string + "\r\n").c_str());
 		}
+		SetConsoleTextAttribute(handle, defaultColor);
 	#elif defined(PLATFORM_ANDROID)
 		{
 			__android_log_print(ANDROID_LOG_INFO, "rmx", "%s", string.c_str());
+		}
+	#elif defined(PLATFORM_VITA)
+		{
+			sceClibPrintf("[rmx] %s\n", string.c_str());
 		}
 	#endif
 	}
@@ -104,12 +151,11 @@ namespace rmx
 
 		if (renameExisting && FTX::FileSystem->exists(filename))
 		{
-			const time_t time = FTX::FileSystem->getFileTime(filename);
 			std::wstring directory;
 			std::wstring name;
 			std::wstring extension;
 			FTX::FileSystem->splitPath(filename, &directory, &name, &extension);
-			name += L"_" + String(detail::getFilenameString()).toStdWString();
+			name += L"_" + String(getTimestampStringForFilename()).toStdWString();
 			if (!directory.empty())
 				directory += L'/';
 			FTX::FileSystem->renameFile(filename, directory + name + L'.' + extension);
@@ -118,7 +164,7 @@ namespace rmx
 		mFileHandle.open(filename, FILE_ACCESS_WRITE);
 	}
 
-	void FileLogger::log(LogLevel_t logLevel, const std::string& string)
+	void FileLogger::log(LogLevel logLevel, const std::string& string)
 	{
 		if (mAddTimestamp)
 		{
@@ -146,11 +192,11 @@ namespace rmx
 		mLoggers.push_back(&logger);
 	}
 
-	void Logging::log(LogLevel_t logLevel, const std::string& string)
+	void Logging::log(LogLevel logLevel, const std::string& string)
 	{
 		for (LoggerBase* logger : mLoggers)
 		{
-			logger->log(logLevel, string);
+			logger->performLogging(logLevel, string);
 		}
 	}
 

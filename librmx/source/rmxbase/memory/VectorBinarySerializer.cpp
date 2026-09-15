@@ -1,12 +1,16 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
 */
 
 #include "rmxbase.h"
+
+#if defined(PLATFORM_VITA)
+	#include <psp2/kernel/clib.h>
+#endif
 
 
 namespace
@@ -19,22 +23,26 @@ namespace
 			if (readPosition + sizeof(T) > buffer.size())
 				return false;
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
 			value = rmx::readMemoryUnalignedSwapped<T>(&buffer[readPosition]);
-#else
+		#else
 			value = rmx::readMemoryUnaligned<T>(&buffer[readPosition]);
-#endif
+		#endif
 			readPosition += sizeof(T);
 		}
 		else
 		{
 			const size_t oldSize = buffer.size();
 			buffer.resize(oldSize + sizeof(T));
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-			rmx::writeMemoryUnalignedSwapped<T>(&buffer[oldSize], value);
-#else
-			rmx::writeMemoryUnaligned<T>(&buffer[oldSize], value);
-#endif
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+			T swappedValue = rmx::swapBytes<T>(value);
+			memcpy(&buffer[oldSize], &swappedValue, sizeof(T));
+		#elif !defined(PLATFORM_VITA)
+			*(T*)&buffer[oldSize] = value;
+		#else
+			// Use memcpy to avoid issues with unaligned memory access
+			sceClibMemcpy(&buffer[oldSize], &value, sizeof(T));
+		#endif
 		}
 		return true;
 	}
@@ -47,7 +55,12 @@ namespace
 			if (readPosition >= buffer.size())
 				return false;
 
-			value = (buffer[readPosition] != 0);
+		#if !defined(PLATFORM_VITA)
+			value = *(bool*)&buffer[readPosition];
+		#else
+			// Use memcpy to avoid issues with unaligned memory access
+			sceClibMemcpy(&value, &buffer[readPosition], sizeof(bool));
+		#endif
 			++readPosition;
 		}
 		else
@@ -63,17 +76,13 @@ namespace
 
 VectorBinarySerializer::VectorBinarySerializer(bool read, std::vector<uint8>& buffer) :
 	mReading(read),
-	mBuffer(buffer),
-	mReadPosition(0),
-	mHasError(false)
+	mBuffer(buffer)
 {
 }
 
 VectorBinarySerializer::VectorBinarySerializer(bool read, const std::vector<uint8>& buffer) :
 	mReading(read),
-	mBuffer(const_cast<std::vector<uint8>&>(buffer)),
-	mReadPosition(0),
-	mHasError(false)
+	mBuffer(const_cast<std::vector<uint8>&>(buffer))
 {
 }
 
@@ -224,59 +233,49 @@ void VectorBinarySerializer::serialize(WString& value)
 {
 	if (mReading)
 	{
-		value.clear();
-		const uint32 encodedLength = read<uint32>();
-		if (encodedLength > 0)
-		{
-			// Read UTF-8 encoded string
-			const char* pointer = (const char*)readAccess(encodedLength);
-			if (nullptr != pointer)
-			{
-				std::wstring result;
-				rmx::UTF8Conversion::convertFromUTF8(std::string_view(pointer, encodedLength), result);
-				value.expand((int)result.length());
-				memcpy(value.accessData(), result.data(), result.length() * sizeof(wchar_t));
-			}
-		}
+		value.expand((int)read<uint32>());
+		read(value.accessData(), value.length() * sizeof(wchar_t));			// TODO: This is not compatible among different platforms! Use UTF-8 encoding here as well
 	}
 	else
 	{
-		// Write as UTF-8 string
-		std::wstring_view view(value.getData(), value.length());
-		const size_t encodedLength = rmx::UTF8Conversion::getLengthAsUTF8(view);
-		writeAs<uint32>((uint32)encodedLength);
-
-		char* pointer = (char*)writeAccess(encodedLength);
-		for (size_t i = 0; i < view.length(); ++i)
-		{
-			const size_t encodedLength = rmx::UTF8Conversion::writeCharacterAsUTF8((uint32)view[i], pointer);
-			pointer += encodedLength;
-		}
+		writeAs<uint32>(value.length());
+		if (!value.empty())
+			write(value.accessData(), value.length() * sizeof(wchar_t));	// TODO: This is not compatible among different platforms! Use UTF-8 encoding here as well
 	}
 }
 
 void VectorBinarySerializer::serializeData(std::vector<uint8>& data, size_t bytesLimit)
 {
-	if (isReading())
+	if (mReading)
 	{
-		const size_t numBytes = readSize(bytesLimit);
-		if (numBytes == 0)
-		{
-			data.clear();
-		}
-		else
-		{
-			data.resize(numBytes);
-			serialize(&data[0], data.size());
-		}
+		readData(data, bytesLimit);
 	}
 	else
 	{
-		writeSize(data.size(), bytesLimit);
-		if (!data.empty())
-		{
-			serialize(&data[0], data.size());
-		}
+		writeData(data, bytesLimit);
+	}
+}
+
+void VectorBinarySerializer::readData(std::vector<uint8>& data, size_t bytesLimit)
+{
+	const size_t numBytes = readSize(bytesLimit);
+	if (numBytes == 0)
+	{
+		data.clear();
+	}
+	else
+	{
+		data.resize(numBytes);
+		read(&data[0], data.size());
+	}
+}
+
+void VectorBinarySerializer::writeData(const std::vector<uint8>& data, size_t bytesLimit)
+{
+	writeSize(data.size(), bytesLimit);
+	if (!data.empty())
+	{
+		write(&data[0], data.size());
 	}
 }
 
@@ -337,13 +336,13 @@ void VectorBinarySerializer::write(std::wstring_view value, size_t stringLengthL
 	else
 	{
 		// Write as UTF-8 string
-		const size_t encodedLength = rmx::UTF8Conversion::getLengthAsUTF8(value);
+		size_t encodedLength = rmx::UTF8Conversion::getLengthAsUTF8(value);
 		writeSize(encodedLength, stringLengthLimit);
 
 		char* pointer = (char*)writeAccess(encodedLength);
-		for (size_t i = 0; i < value.length(); ++i)
+		for (wchar_t ch : value)
 		{
-			const size_t encodedLength = rmx::UTF8Conversion::writeCharacterAsUTF8((uint32)value[i], pointer);
+			encodedLength = rmx::UTF8Conversion::writeCharacterAsUTF8((uint32)ch, pointer);
 			pointer += encodedLength;
 		}
 	}

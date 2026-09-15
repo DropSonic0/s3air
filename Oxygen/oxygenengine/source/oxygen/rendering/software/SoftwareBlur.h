@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -40,12 +40,13 @@ private:
 		constexpr int invWeightX = 256 - weightX * 2;
 		constexpr int invWeightY = 256 - weightY * 2;
 
-		mTemp.create(bitmap.getSize());
+		Bitmap temp;
+		temp.create(bitmap.getSize());
 
 		// Pass 1: Blur in x-direction
 		for (int y = 0; y < bitmap.getHeight(); ++y)
 		{
-			uint32* dst = mTemp.getPixelPointer(0, y);
+			uint32* dst = temp.getPixelPointer(0, y);
 			const uint32* src = bitmap.getPixelPointer(0, y);
 
 			// Preparations & leftmost pixel
@@ -71,22 +72,22 @@ private:
 		}
 
 		// Copy everything over
-		bitmap = mTemp;
+		bitmap = temp;
 
 		// Pass 2: Blur in y-direction
 		{
 			// Topmost line
-			mixLines<weightY, invWeightY>(bitmap, mTemp, 0, 0, 1);
+			mixLines<weightY, invWeightY>(bitmap, temp, 0, 0, 1);
 
 			// Lines in between
 			int y = 1;
 			for (; y < bitmap.getHeight() - 1; ++y)
 			{
-				mixLines<weightY, invWeightY>(bitmap, mTemp, y-1, y, y+1);
+				mixLines<weightY, invWeightY>(bitmap, temp, y-1, y, y+1);
 			}
 
 			// Bottommost line
-			mixLines<weightY, invWeightY>(bitmap, mTemp, y-1, y, y);
+			mixLines<weightY, invWeightY>(bitmap, temp, y-1, y, y);
 		}
 	}
 
@@ -96,7 +97,7 @@ private:
 	{
 		return ((((src0 & 0xff00ff) * factor0 + (src1 & 0xff00ff) * factor1 + (src2 & 0xff00ff) * factor0) >> 8) & 0xff00ff)
 			 + ((((src0 & 0x00ff00) * factor0 + (src1 & 0x00ff00) * factor1 + (src2 & 0x00ff00) * factor0) >> 8) & 0x00ff00);
-	};
+	}
 
 	template<int factor0, int factor1>
 	static inline void mixLines(Bitmap& output, const Bitmap& input, int y0, int y1, int y2)
@@ -111,7 +112,4 @@ private:
 			*src1 = mixColors<factor0, factor1>(*src0, *src1, *src2);
 		}
 	}
-
-private:
-	static Bitmap mTemp;
 };

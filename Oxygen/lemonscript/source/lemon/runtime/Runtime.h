@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,15 +8,16 @@
 
 #pragma once
 
+#include "lemon/program/function/ScriptFunction.h"
 #include "lemon/program/StringRef.h"
 #include "lemon/runtime/ControlFlow.h"
 
 
 namespace lemon
 {
-	class Function;
-	class Program;
+	class GlobalVariable;
 	class NativeFunction;
+	class Program;
 	class Variable;
 	struct RuntimeOpcode;
 
@@ -71,6 +72,7 @@ namespace lemon
 	{
 	public:
 		virtual ~RuntimeDetailHandler() {}
+
 		virtual void preExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow)  {}
 		virtual void postExecuteExternalFunction(const NativeFunction& function, const ControlFlow& controlFlow) {}
 	};
@@ -83,13 +85,6 @@ namespace lemon
 	friend class OptimizedOpcodeExec;
 	friend class RuntimeFunction;
 	friend struct RuntimeOpcodeContext;
-
-	public:
-		unsigned int mExecuteStepsLogCounter;
-		unsigned int mCallReturnLogCounter;
-		unsigned int mNativeCallLogCounter;
-		unsigned int mJumpLogCounter;
-		unsigned int mMiscLogCounter;
 
 	public:
 		struct ExecuteResult
@@ -107,6 +102,7 @@ namespace lemon
 		struct ExecuteConnector : public ExecuteResult
 		{
 			virtual ~ExecuteConnector() {}
+
 			virtual bool handleCall(const Function* func, uint64 callTarget) = 0;
 			virtual bool handleReturn() = 0;
 			virtual bool handleExternalCall(uint64 address) = 0;
@@ -127,10 +123,6 @@ namespace lemon
 			const lemon::DataTypeDefinition* mReturnType = nullptr;
 			std::vector<Parameter> mParams;
 		};
-
-	private:
-		static ControlFlow* mActiveControlFlow;
-		static const Environment* mActiveEnvironment;
 
 	public:
 		inline static ControlFlow* getActiveControlFlow()	{ return mActiveControlFlow; }
@@ -158,6 +150,8 @@ namespace lemon
 		inline RuntimeDetailHandler* getRuntimeDetailHandler() const  { return mRuntimeDetailHandler; }
 		void setRuntimeDetailHandler(RuntimeDetailHandler* handler);
 
+		void resetRuntimeState();
+
 		void buildAllRuntimeFunctions();
 
 		RuntimeFunction* getRuntimeFunction(const ScriptFunction& scriptFunction);
@@ -167,9 +161,9 @@ namespace lemon
 		const FlyweightString* resolveStringByKey(uint64 key) const;
 		uint64 addString(std::string_view str);
 
-		int64 getGlobalVariableValue_int64(const Variable& variable);
-		void setGlobalVariableValue_int64(const Variable& variable, int64 value);
-		int64* accessGlobalVariableValue(const Variable& variable);
+		AnyBaseValue getGlobalVariableValue(const GlobalVariable& variable);
+		void setGlobalVariableValue(const GlobalVariable& variable, AnyBaseValue value);
+		int64* accessGlobalVariableValue(const GlobalVariable& variable);
 
 		inline const ControlFlow& getMainControlFlow() const  { return *mControlFlows[0]; }
 		inline const ControlFlow& getSelectedControlFlow() const  { return *mSelectedControlFlow; }
@@ -178,12 +172,16 @@ namespace lemon
 		void callRuntimeFunction(const RuntimeFunction& runtimeFunction, size_t baseCallIndex = 0);
 		void callFunction(const Function& function, size_t baseCallIndex = 0);
 		bool callFunctionAtLabel(const Function& function, FlyweightString labelName);
+		bool callFunctionAtLabel(const ScriptFunction& function, const ScriptFunction::Label& label);
 		bool callFunctionByName(FlyweightString functionName, FlyweightString labelName = FlyweightString());
 		bool callFunctionWithParameters(FlyweightString functionName, const FunctionCallParameters& params);
 		bool returnFromFunction();
 
+		bool canExecuteSteps() const;
 		void executeSteps(ExecuteConnector& result, size_t stepsLimit, size_t minimumCallStackSize);
 		const Function* handleResultCall(const RuntimeOpcode& runtimeOpcode);
+
+		inline const RuntimeOpcode* getCurrentOpcode() const  { return *mCurrentOpcodePtr; }		// Warning: This is only valid during actual code execution
 
 		inline void triggerStopSignal()  { mReceivedStopSignal = true; }
 
@@ -193,19 +191,22 @@ namespace lemon
 		void setupGlobalVariables();
 
 	private:
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+		inline static ControlFlow* mActiveControlFlow = nullptr;
+		inline static const Environment* mActiveEnvironment = nullptr;
+#else
+		static ControlFlow* mActiveControlFlow;
+		static const Environment* mActiveEnvironment;
+#endif
+
+	private:
 		const Program* mProgram = nullptr;
 		MemoryAccessHandler* mMemoryAccessHandler = nullptr;
 		RuntimeDetailHandler* mRuntimeDetailHandler = nullptr;
 
 		std::vector<RuntimeFunction> mRuntimeFunctions;
-
-#if !defined(PLATFORM_PS3)
 		std::unordered_map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
 		std::unordered_map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
-#else
-		std::map<const ScriptFunction*, RuntimeFunction*> mRuntimeFunctionsMapped;
-		std::map<uint64, std::vector<RuntimeFunction*>> mRuntimeFunctionsBySignature;   // Key is the hashed function name + signature hash
-#endif
 		rmx::OneTimeAllocPool mRuntimeOpcodesPool;
 
 		// Static memory contains all global variables
@@ -217,7 +218,9 @@ namespace lemon
 		std::vector<ControlFlow*> mControlFlows;		// Contains at least one control flow at all times = the main control flow at index 0
 		ControlFlow* mSelectedControlFlow = nullptr;	// The currently selected control flow used by methods like "executeSteps" and "callFunction"; this must always be a valid pointer
 
+		bool mEncounteredBuildError = false;			// Set if there was a fatal error in runtime function building
 		bool mReceivedStopSignal = false;
+		const RuntimeOpcode*const* mCurrentOpcodePtr = nullptr;
 	};
 
 }

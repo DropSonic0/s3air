@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,11 +8,15 @@
 
 #include "lemon/pch.h"
 #include "lemon/utility/FlyweightString.h"
-#include <string>
 
 
 namespace lemon
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	detail::FlyweightStringManager FlyweightString::mManager;
+	std::string_view FlyweightString::EMPTY_STRING_VIEW;
+#endif
+
 	namespace detail
 	{
 		FlyweightStringManager::FlyweightStringManager()
@@ -64,12 +68,6 @@ namespace lemon
 		if (serializer.isReading())
 		{
 			const std::string_view stringView = serializer.readStringView(0xffff);
-			static int logCounter = 0;
-			if (logCounter < 20)
-			{
-				RMX_LOG_INFO("FlyweightString::serialize #" << logCounter << ": " << std::string(stringView.data(), stringView.size()));
-				++logCounter;
-			}
 			set(rmx::getMurmur2_64(stringView), stringView);
 		}
 		else
@@ -82,9 +80,4 @@ namespace lemon
 	{
 		serializer.write(getString(), 0xffff);
 	}
-
-
-	detail::FlyweightStringManager FlyweightString::mManager;
-	std::string_view FlyweightString::EMPTY_STRING_VIEW;
-
 }

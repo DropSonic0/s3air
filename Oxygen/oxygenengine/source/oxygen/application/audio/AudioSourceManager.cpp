@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -38,11 +38,11 @@ AudioSourceBase* AudioSourceManager::getAudioSourceForPlayback(SourceRegistratio
 	uint64 hash = 0;
 	if (sourceRegistration.mType == SourceRegistration::Type::FILE)
 	{
-		hash = rmx::getMurmur2_64((String("OggFile:") + WString(sourceRegistration.mSourceFile).toUTF8()));
+		hash = rmx::getMurmur2_64("OggFile:" + rmx::convertToUTF8(sourceRegistration.mSourceFile));
 	}
 	else if (!sourceRegistration.mSourceFile.empty())
 	{
-		hash = rmx::getMurmur2_64((String("SMPSFile:") + WString(sourceRegistration.mSourceFile).toUTF8()));
+		hash = rmx::getMurmur2_64("SMPSFile:" + rmx::convertToUTF8(sourceRegistration.mSourceFile));
 	}
 	else if (sourceRegistration.mSourceAddress != 0)
 	{

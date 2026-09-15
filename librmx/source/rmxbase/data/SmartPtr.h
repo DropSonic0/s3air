@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -26,18 +26,18 @@ private:
 template<class CLASS> class SmartPtr
 {
 public:
-	SmartPtr() : mPtr(0) {}
-	SmartPtr(CLASS* ptr) : mPtr(0) { set(ptr); }
-	SmartPtr(const SmartPtr<CLASS>& ptr) : mPtr(0) { set(*ptr); }
+	SmartPtr() : mPtr(nullptr) {}
+	SmartPtr(CLASS* ptr) : mPtr(nullptr) { set(ptr); }
+	SmartPtr(const SmartPtr<CLASS>& ptr) : mPtr(nullptr) { set(*ptr); }
 	~SmartPtr()  { clear(); }
 
 	void clear()
 	{
-		if (0 == mPtr)
+		if (nullptr == mPtr)
 			return;
 		if (!mPtr->refDec())
 			delete mPtr;
-		mPtr = 0;
+		mPtr = nullptr;
 	}
 
 	void set(CLASS* ptr)

@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -53,7 +53,7 @@ namespace serialization
 	uint32 getToken()
 	{
 		// Return default token
-		return rmx::readMemoryUnalignedLE<uint32>("type");
+		return *(uint32*)("type");
 	}
 }
 
@@ -71,14 +71,12 @@ public:
 
 	struct DataBlockInfo
 	{
-			uint64 mBeginPosition;
-			uint64 mEndPosition;
-
-			DataBlockInfo() : mBeginPosition(0xffffffffffffffffULL), mEndPosition(0xffffffffffffffffULL) {}
+		uint64 mBeginPosition = 0xffffffffffffffffULL;
+		uint64 mEndPosition = 0xffffffffffffffffULL;
 	};
 
 public:
-	BinarySerializer(std::istream& stream);
+	explicit BinarySerializer(std::istream& stream);
 	BinarySerializer(std::ostream& stream, TokenMode tokenMode);
 	~BinarySerializer();
 
@@ -188,8 +186,8 @@ private:
 	void writePortable(const void* address, size_t bytes, bool checkEndianness);
 
 private:
-		std::istream* mInputStream;
-		std::ostream* mOutputStream;
-		TokenMode	  mTokenMode;
-		bool		  mIsLittleEndianMachine;
+	std::istream* mInputStream = nullptr;
+	std::ostream* mOutputStream = nullptr;
+	TokenMode	  mTokenMode = TOKEN_FLAG_NONE;
+	bool		  mIsLittleEndianMachine = true;
 };

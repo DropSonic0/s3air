@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,16 +11,9 @@
 
 /* ----- FontSource ---------------------------------------------------------------------------------------------- */
 
-FontSource::FontSource() :
-	mAscender(0),
-	mDescender(0),
-	mLineHeight(0)
-{
-}
-
 const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 {
-	std::map<uint32, GlyphInfo>::iterator it = mGlyphMap.find(unicode);
+	auto it = mGlyphMap.find(unicode);
 	if (it != mGlyphMap.end())
 		return &it->second;
 
@@ -45,18 +38,17 @@ const FontSource::GlyphInfo* FontSource::getGlyph(uint32 unicode)
 
 namespace rmx { namespace stdfont
 {
-	static constexpr float SIZE = 16;
-	static constexpr int WIDTH = 12;
-	static constexpr int HEIGHT = 20;
-	static constexpr int ASCENDER = 15;
-	static constexpr int LINEHEIGHT = 25;
+	static const constexpr float SIZE = 16;
+	static const constexpr int WIDTH = 12;
+	static const constexpr int HEIGHT = 20;
+	static const constexpr int ASCENDER = 15;
+	static const constexpr int LINEHEIGHT = 25;
 }}
 
-FontSourceStd::FontSourceStd(float size) :
-	FontSource(),
-	mSize(size)
+FontSourceStd::FontSourceStd(float size)
 {
 	RMX_ASSERT(size >= 1.0f && size < 100.0f, "Invalid standard font size of " << size);
+	mSize = size;
 	mAscender = rmx::stdfont::ASCENDER;
 	mDescender = rmx::stdfont::HEIGHT - rmx::stdfont::ASCENDER;
 	mLineHeight = rmx::stdfont::LINEHEIGHT;
@@ -95,14 +87,25 @@ bool FontSourceStd::fillGlyphInfo(FontSource::GlyphInfo& info)
 
 /* ----- FontSourceBitmap ------------------------------------------------------------------------------------------- */
 
-FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
-	FontSource(),
-	mSpaceBetweenCharacters(0),
-	mLoadingSucceeded(false)
+FontSourceBitmap::FontSourceBitmap(const std::wstring& jsonFilename, bool showErrors)
 {
 	// Read JSON file
-	Json::Value root = rmx::JsonHelper::loadFile(*jsonFilename.toWString());
-	RMX_CHECK(!root.isNull(), "Failed to load bitmap font JSON file at '" << *jsonFilename << "'", return);
+	Json::Value root;
+	{
+		std::vector<uint8> content;
+		if (!FTX::FileSystem->readFile(jsonFilename, content))
+		{
+			RMX_CHECK(showErrors, "Failed to load bitmap font JSON file at '" << WString(jsonFilename).toStdString() << "': File not found", );
+			return;
+		}
+
+		root = rmx::JsonHelper::loadFromMemory(content);
+		if (root.isNull())
+		{
+			RMX_CHECK(showErrors, "Failed to load bitmap font JSON file at '" << WString(jsonFilename).toStdString() << "': Error loading JSON content", );
+			return;
+		}
+	}
 
 	rmx::JsonHelper rootHelper(root);
 	rootHelper.tryReadInt("ascender", mAscender);
@@ -111,22 +114,22 @@ FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
 	rootHelper.tryReadInt("space", mSpaceBetweenCharacters);
 
 	// Load bitmap
-	std::string parentPath;
-	rmx::FileIO::splitPath(*jsonFilename, &parentPath, nullptr, nullptr);
+	std::wstring parentPath;
+	rmx::FileIO::splitPath(jsonFilename, &parentPath, nullptr, nullptr);
 
 	std::string textureName;
 	rootHelper.tryReadString("texture", textureName);
-	RMX_CHECK(!textureName.empty(), "Texture field is missing or empty in bitmap font JSON file at '" << *jsonFilename << "'", );
+	RMX_CHECK(!textureName.empty(), "Texture field is missing or empty in bitmap font JSON file at '" << WString(jsonFilename).toStdString() << "'", );
 
-	Bitmap bitmap(parentPath + "/" + textureName);
-	if (bitmap.empty())
+	Bitmap bitmap;
+	if (!bitmap.load(parentPath + L"/" + String(textureName).toStdWString()))
 	{
-		RMX_ERROR("Failed to load font bitmap from '" << parentPath << "/" << textureName << "' (referenced in '" << *jsonFilename << "')", );
+		RMX_CHECK(showErrors, "Failed to load font bitmap from '" << WString(parentPath).toStdString() << "/" << textureName << "' (referenced in '" << WString(jsonFilename).toStdString() << "')", );
 		return;
 	}
 
 	Json::Value charactersJson = root["characters"];
-	for (Json::Value::iterator iterator = charactersJson.begin(); iterator != charactersJson.end(); ++iterator)
+	for (auto iterator = charactersJson.begin(); iterator != charactersJson.end(); ++iterator)
 	{
 		wchar_t character;
 		{
@@ -135,7 +138,7 @@ FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
 			key.fromUTF8(keyString.c_str(), keyString.length());
 			character = key[0];
 		}
-		String value = iterator->asString().c_str();
+		String value = iterator->asString();
 
 		if (value.startsWith("redirect:"))
 		{
@@ -164,13 +167,7 @@ FontSourceBitmap::FontSourceBitmap(const String& jsonFilename) :
 
 bool FontSourceBitmap::fillGlyphInfo(FontSource::GlyphInfo& info)
 {
-#if defined(NO_UNORDERED_CONTAINERS)
-	typedef std::map<wchar_t, Bitmap>::iterator Iterator;
-#else
-	typedef std::unordered_map<wchar_t, Bitmap>::iterator Iterator;
-#endif
-
-	Iterator it = mCharacterBitmaps.find((wchar_t)info.mUnicode);
+	auto it = mCharacterBitmaps.find(info.mUnicode);
 	if (it == mCharacterBitmaps.end())
 	{
 		// Resolve redirect if possible

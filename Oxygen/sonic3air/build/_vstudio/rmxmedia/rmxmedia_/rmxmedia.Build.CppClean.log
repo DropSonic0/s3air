@@ -7,7 +7,6 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\videobuffer.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\fileinputstreamsdl.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\fileprovidersdl.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\font.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\fontprocessor.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\fontsource.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\appframework.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\ftx_system.o
@@ -23,6 +22,7 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\vertexarrayobject.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\rmxmedia.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\jobmanager.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\thread.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\fontprocessor.o
 c:\s3air\oxygen\sonic3air\build\lib\rmxmedia.a
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\..\..\lib\\rmxmedia.a
 c:\s3air\oxygen\sonic3air\build\_vstudio\rmxmedia\rmxmedia_\rmxmedia.tlog\ps3ppusnc.command.1.tlog

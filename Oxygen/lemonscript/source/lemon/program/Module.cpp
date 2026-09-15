@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -10,6 +10,7 @@
 #include "lemon/program/Module.h"
 #include "lemon/program/ModuleSerializer.h"
 #include "lemon/program/GlobalsLookup.h"
+#include "lemon/program/function/ScriptFunction.h"
 
 #include <iomanip>
 
@@ -22,16 +23,17 @@ namespace lemon
 	}
 
 
-	Module::Module(const std::string& name) :
+	Module::Module(const std::string& name, AppendedInfo* appendedInfo) :
 		mModuleName(name),
-		mModuleId(rmx::getMurmur2_64(name) & 0xffffffffffff0000ull)
+		mModuleId(rmx::getMurmur2_64(name) & 0xffffffffffff0000ull),
+		mAppendedInfo(appendedInfo)
 	{
-		static_assert((size_t)Opcode::Type::_NUM_TYPES == 36, "Opcode::Type count must be 36");	// Otherwise DEFAULT_OPCODE_BASETYPES needs to get updated
 	}
 
 	Module::~Module()
 	{
 		clear();
+		delete mAppendedInfo;
 	}
 
 	void Module::clear()
@@ -42,17 +44,22 @@ namespace lemon
 		// Functions
 		for (Function* func : mFunctions)
 		{
-			if (func->getType() == Function::Type::NATIVE)
-				mNativeFunctionPool.destroyObject(*static_cast<NativeFunction*>(func));
+			if (func->isA<NativeFunction>())
+				mNativeFunctionPool.destroyObject(func->as<NativeFunction>());
 			else
-				mScriptFunctionPool.destroyObject(*static_cast<ScriptFunction*>(func));
+				mScriptFunctionPool.destroyObject(func->as<ScriptFunction>());
 		}
 		mFunctions.clear();
 		mScriptFunctions.clear();
 		mNativeFunctionPool.clear();
 		mScriptFunctionPool.clear();
 
+		// Callable functions
+		mCallableFunctions.clear();
+
 		// Variables
+		for (Variable* var : mGlobalVariables)
+			delete var;
 		mGlobalVariables.clear();
 
 		// Constants
@@ -60,6 +67,7 @@ namespace lemon
 
 		// Constant arrays
 		mConstantArrays.clear();
+		mNumGlobalConstantArrays = 0;
 
 		// Defines
 		for (Define* define : mDefines)
@@ -73,19 +81,22 @@ namespace lemon
 		mStringLiterals.clear();
 
 		// Data types
-		for (const CustomDataType* customDataType : mDataTypes)
+		for (const DataTypeDefinition* dataType : mDataTypes)
 		{
-			delete customDataType;
+			delete dataType;
 		}
 		mDataTypes.clear();
 
 		// Clear source file infos
 		mSourceFileInfoPool.clear();
 		mAllSourceFiles.clear();
+		mWarnings.clear();
 	}
 
 	void Module::startCompiling(const GlobalsLookup& globalsLookup)
 	{
+		mScriptFeatureLevel = 1;	// Default for compiled scripts is feature level 1 unless the script explicitly defines feature level 2
+
 		if (mFunctions.empty())
 		{
 			// It's the same here as for variables, see below
@@ -135,7 +146,9 @@ namespace lemon
 				{
 					case DataTypeDefinition::Class::INTEGER:
 					{
-						content << rmx::hexString(constant->getValue().get<uint64>());
+						const uint64 value = constant->getValue().get<uint64>();
+						const uint32 minDigits = (uint32)constant->getDataType()->getBytes() * 2;
+						content << rmx::hexString(value, minDigits);
 						break;
 					}
 
@@ -172,14 +185,16 @@ namespace lemon
 			for (const Function* function : mFunctions)
 			{
 				const bool isMethod = !function->getContext().isEmpty();
-				if (isMethod == outputMethods)
-				{
-					if (function->getName().getString()[0] != '#')	// Exclude hidden built-ins (which can't be accessed by scripts directly anyways)
-					{
-						currentFunctions.push_back(function);
-					}
-				}
+				if (isMethod != outputMethods)
+					continue;
+				if (function->hasFlag(Function::Flag::EXCLUDE_FROM_DEFINITIONS))
+					continue;
+				if (function->getName().getString()[0] == '#')	// Exclude hidden built-ins (which can't be accessed by scripts directly anyways)
+					continue;
+
+				currentFunctions.push_back(function);
 			}
+
 			if (currentFunctions.empty())
 				continue;
 
@@ -191,20 +206,11 @@ namespace lemon
 			for (const Function* function : currentFunctions)
 			{
 				// Separate functions with different prefixes
-				size_t dot = std::string_view::npos;
-				const std::string_view functionNameStr = function->getName().getString();
-				for (size_t k = 0; k < functionNameStr.length(); ++k)
-				{
-					if (functionNameStr[k] == '.')
-					{
-						dot = k;
-						break;
-					}
-				}
-				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : functionNameStr.substr(0, dot);
+				const size_t dot = function->getName().getString().find_first_of('.');
+				std::string_view prefix = (dot == std::string_view::npos) ? std::string_view() : function->getName().getString().substr(0, dot);
 				if (prefix != lastPrefix)
 				{
-					lastPrefix.assign(prefix.data(), prefix.size());
+					lastPrefix = prefix;
 					content << "\r\n";
 				}
 
@@ -240,11 +246,12 @@ namespace lemon
 		fileHandle.write(&content[0], content.length());
 	}
 
-	const SourceFileInfo& Module::addSourceFileInfo(const std::wstring& basepath, const std::wstring& filename)
+	const SourceFileInfo& Module::addSourceFileInfo(const std::wstring& localPath, const std::wstring& filename)
 	{
 		SourceFileInfo& sourceFileInfo = mSourceFileInfoPool.createObject();
+		sourceFileInfo.mModule = this;
 		sourceFileInfo.mFilename = filename;
-		sourceFileInfo.mFullPath = basepath + filename;
+		sourceFileInfo.mLocalPath = localPath;
 		sourceFileInfo.mIndex = mAllSourceFiles.size();
 		mAllSourceFiles.push_back(&sourceFileInfo);
 		return sourceFileInfo;
@@ -278,7 +285,7 @@ namespace lemon
 		return mFunctions[uniqueId & 0xffff];
 	}
 
-	ScriptFunction& Module::addScriptFunction(FlyweightString name, const DataTypeDefinition* returnType, const Function::ParameterList& parameters, std::vector<FlyweightString>* aliasNames)
+	ScriptFunction& Module::addScriptFunction(FlyweightString name, const DataTypeDefinition* returnType, const Function::ParameterList& parameters, std::vector<Function::AliasName>* aliasNames)
 	{
 		ScriptFunction& func = mScriptFunctionPool.createObject();
 		func.setModule(*this);
@@ -316,6 +323,22 @@ namespace lemon
 		return func;
 	}
 
+	uint32 Module::addOrFindCallableFunctionAddress(const Function& function)
+	{
+		const uint64 nameHash = function.getName().getHash();
+		const uint32 address = ((uint32)nameHash & 0x0fffffff) | 0x10000000;	// Value 1 in the uppermost 4 bits tells us that this is referring to a function
+		uint64& ref = mCallableFunctions[address];
+		if (ref == 0)
+		{
+			ref = nameHash;
+		}
+		else
+		{
+			RMX_ASSERT(ref == nameHash, "Conflict: Function '" << function.getName() << "' uses the same callable address " << rmx::hexString(address, 8) << " as a different function");
+		}
+		return address;
+	}
+
 	void Module::addFunctionInternal(Function& func)
 	{
 		RMX_ASSERT(mFunctions.size() < 0x10000, "Too many functions in module");
@@ -343,7 +366,7 @@ namespace lemon
 		return variable;
 	}
 
-	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, VariableAccessorType&& accessor)
+	ExternalVariable& Module::addExternalVariable(FlyweightString name, const DataTypeDefinition* dataType, std::function<int64*()>&& accessor)
 	{
 		// TODO: Add an object pool for this
 		ExternalVariable& variable = *new ExternalVariable();
@@ -380,7 +403,7 @@ namespace lemon
 		return constant;
 	}
 
-	ConstantArray& Module::addConstantArray(FlyweightString name, const DataTypeDefinition* elementDataType, const uint64* values, size_t size, bool isGlobalDefinition)
+	ConstantArray& Module::addConstantArray(FlyweightString name, const DataTypeDefinition* elementDataType, const AnyBaseValue* values, size_t size, bool isGlobalDefinition)
 	{
 		ConstantArray& constantArray = mConstantArrayPool.createObject();
 		constantArray.mName = name;
@@ -416,7 +439,15 @@ namespace lemon
 		mStringLiterals.push_back(str);
 	}
 
-	const CustomDataType* Module::addDataType(const char* name, BaseType baseType)
+	ArrayDataType& Module::addArrayDataType(const DataTypeDefinition& elementType, size_t arraySize)
+	{
+		const uint16 id = mFirstDataTypeID + (uint16)mDataTypes.size();
+		ArrayDataType* arrayDataType = new ArrayDataType(id, elementType, arraySize);
+		mDataTypes.push_back(arrayDataType);
+		return *arrayDataType;
+	}
+
+	const CustomDataType* Module::addCustomDataType(const char* name, BaseType baseType)
 	{
 		const uint16 id = mFirstDataTypeID + (uint16)mDataTypes.size();
 		CustomDataType* customDataType = new CustomDataType(name, id, baseType);

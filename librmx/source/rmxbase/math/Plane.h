@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -15,28 +15,13 @@ namespace math
 	class Plane
 	{
 	public:
-#if defined(PLATFORM_PS3)
-		struct Side
-		{
-			enum Enum
-			{
-				NO_SIDE,
-				POSITIVE_SIDE,
-				NEGATIVE_SIDE,
-				BOTH_SIDES
-			};
-		};
-		typedef Side::Enum Side_t;
-#else
 		enum class Side
 		{
 			NO_SIDE,
 			POSITIVE_SIDE,
 			NEGATIVE_SIDE,
-			BOTH_SIDES
+			BOTH_SIDE
 		};
-		using Side_t = Side;
-#endif
 
 	public:
 		Plane()
@@ -61,14 +46,12 @@ namespace math
 			redefine(point0, point1, point2);
 		}
 
-		const Vec3f& getNormal() const	{ return mNormal; }
-		float getDistance() const		{ return mDistance; }
+		inline const Vec3f& getNormal() const	{ return mNormal; }
+		inline float getDistance() const		{ return mDistance; }
 
 		void redefine(const Vec3f& point0, const Vec3f& point1, const Vec3f& point2)
 		{
-			Vec3f edge1 = point1 - point0;
-			Vec3f edge2 = point2 - point0;
-			mNormal.cross(edge1, edge2);
+			mNormal = Vec3f::crossProduct(point1 - point0, point2 - point0);
 			redefine(mNormal.normalized(), point0);
 		}
 
@@ -83,30 +66,18 @@ namespace math
 			return mNormal.dot(point) + mDistance;
 		}
 
-		Side_t getSide(const Vec3f& point) const
+		Side getSide(const Vec3f& point) const
 		{
-			float fDistance = getDistance(point);
-
-#if defined(PLATFORM_PS3)
+			const float fDistance = getDistance(point);
 			if (fDistance < 0.0)
 				return Side::NEGATIVE_SIDE;
-
-			if (fDistance > 0.0)
+			else if (fDistance > 0.0)
 				return Side::POSITIVE_SIDE;
-
-			return Side::NO_SIDE;
-#else
-			if (fDistance < 0.0)
-				return Side_t::NEGATIVE_SIDE;
-
-			if (fDistance > 0.0)
-				return Side_t::POSITIVE_SIDE;
-
-			return Side_t::NO_SIDE;
-#endif
+			else
+				return Side::NO_SIDE;
 		}
 
-		float normalise()
+		float normalize()
 		{
 			float fLength = mNormal.length();
 			if (fLength > 0.0f)

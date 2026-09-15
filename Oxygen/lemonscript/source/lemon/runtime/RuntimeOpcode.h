@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -18,6 +18,7 @@ namespace lemon
 	struct RuntimeOpcode;
 	struct RuntimeOpcodeBuffer;
 	struct RuntimeOpcodeContext;
+	class ScriptFunction;
 
 
 	typedef void(*ExecFunc)(const RuntimeOpcodeContext context);
@@ -26,7 +27,7 @@ namespace lemon
 	{
 	public:
 		virtual ~RuntimeOpcodeProvider() {}
-		virtual bool buildRuntimeOpcode(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime) = 0;
+		virtual bool buildRuntimeOpcode(RuntimeOpcodeBuffer& buffer, const Opcode* opcodes, int numOpcodesAvailable, int firstOpcodeIndex, int& outNumOpcodesConsumed, const Runtime& runtime, const ScriptFunction& function) = 0;
 	};
 
 
@@ -51,7 +52,7 @@ namespace lemon
 	struct API_EXPORT RuntimeOpcode : public RuntimeOpcodeBase
 	{
 	public:
-		static constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
+		static const constexpr size_t PARAMETER_OFFSET = sizeof(RuntimeOpcodeBase);
 
 		template<typename T> FORCE_INLINE T getParameter() const
 		{

@@ -14,10 +14,10 @@
 // a) suppress false positives from static code analysis
 // b) possibly improve optimization opportunities.
 #if !defined(JSONCPP_NORETURN)
-#if defined(_MSC_VER) && _MSC_VER == 1800
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#define JSONCPP_NORETURN __attribute__((noreturn))
+#elif defined(_MSC_VER) && _MSC_VER == 1800
 #define JSONCPP_NORETURN __declspec(noreturn)
-#elif defined(PLATFORM_PS3)
-#define JSONCPP_NORETURN
 #else
 #define JSONCPP_NORETURN [[noreturn]]
 #endif
@@ -26,6 +26,10 @@
 // Support for '= delete' with template declarations was a late addition
 // to the c++11 standard and is rejected by clang 3.8 and Apple clang 8.2
 // even though these declare themselves to be c++11 compilers.
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+#define JSONCPP_TEMPLATE_DELETE
+#endif
+
 #if !defined(JSONCPP_TEMPLATE_DELETE)
 #if defined(__clang__) && defined(__apple_build_version__)
 #if __apple_build_version__ <= 8000042
@@ -37,16 +41,55 @@
 #endif
 #endif
 #if !defined(JSONCPP_TEMPLATE_DELETE)
-#if defined(PLATFORM_PS3)
-#define JSONCPP_TEMPLATE_DELETE
-#else
 #define JSONCPP_TEMPLATE_DELETE = delete
 #endif
 #endif
+
+#include <stddef.h>
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+namespace std {
+    template<typename T>
+    class unique_ptr {
+        T* ptr;
+    public:
+        unique_ptr() : ptr(NULL) {}
+        explicit unique_ptr(T* p) : ptr(p) {}
+        ~unique_ptr() { delete ptr; }
+        unique_ptr(const unique_ptr& other) {
+            unique_ptr& non_const_other = const_cast<unique_ptr&>(other);
+            ptr = non_const_other.ptr;
+            non_const_other.ptr = NULL;
+        }
+        unique_ptr& operator=(const unique_ptr& other) {
+            if (this != &other) {
+                unique_ptr& non_const_other = const_cast<unique_ptr&>(other);
+                delete ptr;
+                ptr = non_const_other.ptr;
+                non_const_other.ptr = NULL;
+            }
+            return *this;
+        }
+        T& operator*() const { return *ptr; }
+        T* operator->() const { return ptr; }
+        T* get() const { return ptr; }
+        operator bool() const { return ptr != NULL; }
+        void reset(T* p = NULL) {
+            if (ptr != p) {
+                delete ptr;
+                ptr = p;
+            }
+        }
+        T* release() {
+            T* tmp = ptr;
+            ptr = NULL;
+            return tmp;
+        }
+    };
+}
 #endif
 
-#if !defined(PLATFORM_PS3)
-	#include <array>
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#include <array>
 #endif
 #include <exception>
 #include <map>
@@ -75,8 +118,8 @@ namespace Json {
 class JSON_API Exception : public std::exception {
 public:
   Exception(String msg);
-  ~Exception() throw() override;
-  char const* what() const throw() override;
+  ~Exception() noexcept override;
+  char const* what() const noexcept override;
 
 protected:
   String msg_;
@@ -202,21 +245,6 @@ class JSON_API Value {
   friend class ValueIteratorBase;
 
 public:
-#if defined(PLATFORM_PS3)
-  typedef std::vector<String> Members;
-  typedef ValueIterator iterator;
-  typedef ValueConstIterator const_iterator;
-  typedef Json::UInt UInt;
-  typedef Json::Int Int;
-#if defined(JSON_HAS_INT64)
-  typedef Json::UInt64 UInt64;
-  typedef Json::Int64 Int64;
-#endif // defined(JSON_HAS_INT64)
-  typedef Json::LargestInt LargestInt;
-  typedef Json::LargestUInt LargestUInt;
-  typedef Json::ArrayIndex ArrayIndex;
-  typedef std::string value_type;
-#else
   using Members = std::vector<String>;
   using iterator = ValueIterator;
   using const_iterator = ValueConstIterator;
@@ -232,7 +260,6 @@ public:
 
   // Required for boost integration, e. g. BOOST_TEST
   using value_type = std::string;
-#endif
 
 #if JSON_USE_NULLREF
   // Binary compatibility kludges, do not use.
@@ -244,33 +271,34 @@ public:
   static Value const& nullSingleton();
 
   /// Minimum signed integer value that can be stored in a Json::Value.
-  static const LargestInt minLargestInt;
+  static constexpr LargestInt minLargestInt =
+      LargestInt(~(LargestUInt(-1) / 2));
   /// Maximum signed integer value that can be stored in a Json::Value.
-  static const LargestInt maxLargestInt;
+  static constexpr LargestInt maxLargestInt = LargestInt(LargestUInt(-1) / 2);
   /// Maximum unsigned integer value that can be stored in a Json::Value.
-  static const LargestUInt maxLargestUInt;
+  static constexpr LargestUInt maxLargestUInt = LargestUInt(-1);
 
   /// Minimum signed int value that can be stored in a Json::Value.
-  static const Int minInt;
+  static constexpr Int minInt = Int(~(UInt(-1) / 2));
   /// Maximum signed int value that can be stored in a Json::Value.
-  static const Int maxInt;
+  static constexpr Int maxInt = Int(UInt(-1) / 2);
   /// Maximum unsigned int value that can be stored in a Json::Value.
-  static const UInt maxUInt;
+  static constexpr UInt maxUInt = UInt(-1);
 
 #if defined(JSON_HAS_INT64)
   /// Minimum signed 64 bits int value that can be stored in a Json::Value.
-  static const Int64 minInt64;
+  static constexpr Int64 minInt64 = Int64(~(UInt64(-1) / 2));
   /// Maximum signed 64 bits int value that can be stored in a Json::Value.
-  static const Int64 maxInt64;
+  static constexpr Int64 maxInt64 = Int64(UInt64(-1) / 2);
   /// Maximum unsigned 64 bits int value that can be stored in a Json::Value.
-  static const UInt64 maxUInt64;
+  static constexpr UInt64 maxUInt64 = UInt64(-1);
 #endif // defined(JSON_HAS_INT64)
   /// Default precision for real value for string representation.
-  static const UInt defaultRealPrecision;
+  static constexpr UInt defaultRealPrecision = 17;
   // The constant is hard-coded because some compiler have trouble
   // converting Value::maxUInt64 to a double correctly (AIX/xlC).
   // Assumes that UInt64 is a 64 bits integer.
-  static const double maxUInt64AsDouble;
+  static constexpr double maxUInt64AsDouble = 18446744073709551615.0;
 // Workaround for bug in the NVIDIAs CUDA 9.1 nvcc compiler
 // when using gcc and clang backend compilers.  CZString
 // cannot be defined as private.  See issue #486
@@ -286,14 +314,10 @@ private:
     CZString(ArrayIndex index);
     CZString(char const* str, unsigned length, DuplicationPolicy allocate);
     CZString(CZString const& other);
-#if !defined(PLATFORM_PS3)
-    CZString(CZString&& other) throw();
-#endif
+    CZString(CZString&& other) noexcept;
     ~CZString();
     CZString& operator=(const CZString& other);
-#if !defined(PLATFORM_PS3)
-    CZString& operator=(CZString&& other) throw();
-#endif
+    CZString& operator=(CZString&& other) noexcept;
 
     bool operator<(CZString const& other) const;
     bool operator==(CZString const& other) const;
@@ -369,21 +393,15 @@ public:
   Value(const StaticString& value);
   Value(const String& value);
   Value(bool value);
-#if !defined(PLATFORM_PS3)
   Value(std::nullptr_t ptr) = delete;
-#endif
   Value(const Value& other);
-#if !defined(PLATFORM_PS3)
-  Value(Value&& other) throw();
-#endif
+  Value(Value&& other) noexcept;
   ~Value();
 
   /// \note Overwrite existing comments. To preserve comments, use
   /// #swapPayload().
   Value& operator=(const Value& other);
-#if !defined(PLATFORM_PS3)
-  Value& operator=(Value&& other) throw();
-#endif
+  Value& operator=(Value&& other) noexcept;
 
   /// Swap everything.
   void swap(Value& other);
@@ -442,8 +460,8 @@ public:
   bool isObject() const;
 
   /// The `as<T>` and `is<T>` member function templates and specializations.
-  template <typename T> T as() const;
-  template <typename T> bool is() const;
+  template <typename T> T as() const JSONCPP_TEMPLATE_DELETE;
+  template <typename T> bool is() const JSONCPP_TEMPLATE_DELETE;
 
   bool isConvertibleTo(ValueType other) const;
 
@@ -455,11 +473,7 @@ public:
   bool empty() const;
 
   /// Return !isNull()
-#if defined(PLATFORM_PS3)
-  operator bool() const;
-#else
   explicit operator bool() const;
-#endif
 
   /// Remove all object members and array elements.
   /// \pre type() is arrayValue, objectValue, or nullValue
@@ -500,15 +514,11 @@ public:
   ///
   /// Equivalent to jsonvalue[jsonvalue.size()] = value;
   Value& append(const Value& value);
-#if !defined(PLATFORM_PS3)
   Value& append(Value&& value);
-#endif
 
   /// \brief Insert value in array at specific index
   bool insert(ArrayIndex index, const Value& newValue);
-#if !defined(PLATFORM_PS3)
   bool insert(ArrayIndex index, Value&& newValue);
-#endif
 
   /// Access an object value by name, create a null member if it does not exist.
   /// \note Because of our implementation, keys are limited to 2^30 -1 chars.
@@ -674,25 +684,21 @@ private:
 
   class Comments {
   public:
-    Comments() throw();
+    Comments();
     Comments(const Comments& that);
-#if !defined(PLATFORM_PS3)
-    Comments(Comments&& that) throw();
-#endif
+    Comments(Comments&& that) noexcept;
     Comments& operator=(const Comments& that);
-#if !defined(PLATFORM_PS3)
-    Comments& operator=(Comments&& that) throw();
-#endif
+    Comments& operator=(Comments&& that) noexcept;
     bool has(CommentPlacement slot) const;
     String get(CommentPlacement slot) const;
     void set(CommentPlacement slot, String comment);
 
   private:
-    #if defined(PLATFORM_PS3)
-    typedef std::array<String, numberOfCommentPlacement> Array;
-    #else
-    using Array = std::array<String, numberOfCommentPlacement>;
-    #endif
+    struct Array {
+        String elems[numberOfCommentPlacement];
+        String& operator[](size_t i) { return elems[i]; }
+        const String& operator[](size_t i) const { return elems[i]; }
+    };
     std::unique_ptr<Array> ptr_;
   };
   Comments comments_;
@@ -741,22 +747,14 @@ public:
   friend class Path;
 
   PathArgument();
-  #if defined(PLATFORM_PS3)
   PathArgument(ArrayIndex index);
-  #else
-  PathArgument(ArrayIndex index);
-  #endif
   PathArgument(const char* key);
   PathArgument(String key);
 
 private:
   enum Kind { kindNone = 0, kindIndex, kindKey };
   String key_;
-  #if defined(PLATFORM_PS3)
   ArrayIndex index_;
-  #else
-  ArrayIndex index_{};
-  #endif
   Kind kind_;
 };
 
@@ -786,13 +784,8 @@ public:
   Value& make(Value& root) const;
 
 private:
-  #if defined(PLATFORM_PS3)
-  typedef std::vector<const PathArgument*> InArgs;
-  typedef std::vector<PathArgument> Args;
-  #else
   using InArgs = std::vector<const PathArgument*>;
   using Args = std::vector<PathArgument>;
-  #endif
 
   void makePath(const String& path, const InArgs& in);
   void addPathInArg(const String& path, const InArgs& in,
@@ -807,17 +800,10 @@ private:
  */
 class JSON_API ValueIteratorBase {
 public:
-#if defined(PLATFORM_PS3)
-  typedef std::bidirectional_iterator_tag iterator_category;
-  typedef unsigned int size_t;
-  typedef int difference_type;
-  typedef ValueIteratorBase SelfType;
-#else
   using iterator_category = std::bidirectional_iterator_tag;
   using size_t = unsigned int;
   using difference_type = int;
   using SelfType = ValueIteratorBase;
-#endif
 
   bool operator==(const SelfType& other) const { return isEqual(other); }
 
@@ -873,7 +859,7 @@ protected:
 
 private:
   Value::ObjectValues::iterator current_;
-  // Indicates that iterator for a null value.
+  // Indicates that iterator is for a null value.
   bool isNull_;
 
 public:
@@ -890,19 +876,12 @@ class JSON_API ValueConstIterator : public ValueIteratorBase {
   friend class Value;
 
 public:
-#if defined(PLATFORM_PS3)
-  typedef const Value value_type;
-  typedef const Value& reference;
-  typedef const Value* pointer;
-  typedef ValueConstIterator SelfType;
-#else
   using value_type = const Value;
   // typedef unsigned int size_t;
   // typedef int difference_type;
   using reference = const Value&;
   using pointer = const Value*;
   using SelfType = ValueConstIterator;
-#endif
 
   ValueConstIterator();
   ValueConstIterator(ValueIterator const& other);
@@ -948,21 +927,12 @@ class JSON_API ValueIterator : public ValueIteratorBase {
   friend class Value;
 
 public:
-#if defined(PLATFORM_PS3)
-  typedef Value value_type;
-  typedef unsigned int size_t;
-  typedef int difference_type;
-  typedef Value& reference;
-  typedef Value* pointer;
-  typedef ValueIterator SelfType;
-#else
   using value_type = Value;
   using size_t = unsigned int;
   using difference_type = int;
   using reference = Value&;
   using pointer = Value*;
   using SelfType = ValueIterator;
-#endif
 
   ValueIterator();
   explicit ValueIterator(const ValueConstIterator& other);

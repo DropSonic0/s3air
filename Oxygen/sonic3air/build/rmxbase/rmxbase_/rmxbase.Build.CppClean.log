@@ -5,7 +5,6 @@ c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecbmp.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecico.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecjpg.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecpng.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\color.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\stb_image_impl.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\filecrawler.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\filehandle.o
@@ -33,6 +32,7 @@ c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\tools.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_reader.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_value.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_writer.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\color.o
 c:\s3air\oxygen\sonic3air\lib\rmxbase.a
 c:\s3air\oxygen\sonic3air\build\rmxbase\..\..\lib\\rmxbase.a
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxbase.tlog\ps3ppusnc.command.1.tlog

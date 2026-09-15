@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -18,12 +18,8 @@ namespace
 		vectorwrapbuf(std::vector<CharT> &vec)
 		{
 			// This is needed here
-#if defined(PLATFORM_PS3)
-			CharT* data = vec.empty() ? nullptr : &vec[0];
-#else
-			CharT* data = vec.data();
-#endif
-			this->setg(data, data, data + vec.size());
+			CharT* p = vec.empty() ? nullptr : &vec[0];
+			this->setg(p, p, p + vec.size());
 		}
 	};
 }
@@ -63,12 +59,7 @@ namespace rmx
 
 		std::vector<uint8> content;
 		content.resize(size);
-		if (size > 0)
-#if defined(PLATFORM_PS3)
-			stream.read((char*)&content[0], size);
-#else
-			stream.read((char*)content.data(), size);
-#endif
+		stream.read(content.empty() ? nullptr : (char*)&content[0], size);
 
 		return loadFromMemory(content);
 	}
@@ -82,18 +73,18 @@ namespace rmx
 		{
 			Json::CharReaderBuilder rbuilder;
 			rbuilder["collectComments"] = false;
-			Json::String errs;
+			std::string errs;
 			Json::parseFromStream(rbuilder, str, &root, &errs);
 
 			if (!errs.empty())
 			{
 				if (nullptr != outErrors)
 				{
-					*outErrors = errs.c_str();
+					*outErrors = errs;
 				}
 				else
 				{
-					RMX_ASSERT(errs.empty(), "Error parsing JSON file: " + String(errs.c_str()));
+					RMX_ASSERT(errs.empty(), "Error parsing JSON file: " + errs);
 				}
 			}
 		}
@@ -102,7 +93,7 @@ namespace rmx
 
 	bool JsonHelper::saveFile(const std::wstring& filename, const Json::Value& value)
 	{
-		const String output(value.toStyledString().c_str());
+		const String output(value.toStyledString());
 		return FTX::FileSystem->saveFile(filename, (char*)*output, output.length());
 	}
 
@@ -114,10 +105,10 @@ namespace rmx
 
 	bool JsonHelper::tryReadString(const std::string& key, std::string& output)
 	{
-		const Json::Value& value = mJson[key.c_str()];
+		const Json::Value& value = mJson[key];
 		if (value.isString())
 		{
-			output = value.asString().c_str();
+			output = value.asString();
 			return true;
 		}
 		return false;
@@ -125,10 +116,12 @@ namespace rmx
 
 	bool JsonHelper::tryReadString(const std::string& key, std::wstring& output)
 	{
-		const Json::Value& value = mJson[key.c_str()];
+		const Json::Value& value = mJson[key];
 		if (value.isString())
 		{
-			output = *String(value.asString().c_str()).toWString();		// TODO: Is there an encoding for non-ASCII characters?
+			WString result;
+			result.fromUTF8(value.asString());
+			output = *result;
 			return true;
 		}
 		return false;
@@ -136,7 +129,7 @@ namespace rmx
 
 	bool JsonHelper::tryReadInt(const std::string& key, int& output)
 	{
-		const Json::Value& value = mJson[key.c_str()];
+		const Json::Value& value = mJson[key];
 		if (value.isInt())
 		{
 			output = value.asInt();
@@ -144,7 +137,7 @@ namespace rmx
 		}
 		else if (value.isString())
 		{
-			output = String(value.asString().c_str()).parseInt();
+			output = (int)rmx::parseInteger(String(value.asString()));
 			return true;
 		}
 		return false;
@@ -163,7 +156,7 @@ namespace rmx
 
 	bool JsonHelper::tryReadBool(const std::string& key, bool& output)
 	{
-		const Json::Value& value = mJson[key.c_str()];
+		const Json::Value& value = mJson[key];
 		if (value.isBool())
 		{
 			output = value.asBool();
@@ -176,7 +169,7 @@ namespace rmx
 		}
 		else if (value.isString())
 		{
-			String str(value.asString().c_str());
+			String str(value.asString());
 			if (str == "true")
 				output = true;
 			else if (str == "false")
@@ -190,7 +183,7 @@ namespace rmx
 
 	bool JsonHelper::tryReadFloat(const std::string& key, float& output)
 	{
-		const Json::Value& value = mJson[key.c_str()];
+		const Json::Value& value = mJson[key];
 		if (value.isDouble())
 		{
 			output = (float)value.asDouble();
@@ -203,7 +196,7 @@ namespace rmx
 		}
 		else if (value.isString())
 		{
-			output = String(value.asString().c_str()).parseFloat();
+			output = String(value.asString()).parseFloat();
 			return true;
 		}
 		return false;
@@ -212,12 +205,15 @@ namespace rmx
 	bool JsonHelper::tryReadStringArray(const std::string& key, std::vector<std::string>& output)
 	{
 		output.clear();
-		const Json::Value& value = mJson[key.c_str()];
+		const Json::Value& value = mJson[key];
 		if (value.isArray())
 		{
 			for (const auto& element : value)
 			{
-				output.push_back(element.asString().c_str());
+				if (!element.isString())
+					return false;
+
+				output.push_back(element.asString());
 			}
 			return true;
 		}

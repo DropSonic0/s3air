@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,7 +9,7 @@
 #pragma once
 
 #include "oxygen/simulation/DebuggingInterfaces.h"
-#if !defined(PLATFORM_PS3)
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <optional>
 #endif
 
@@ -28,7 +28,11 @@ public:
 	struct Location
 	{
 		const lemon::ScriptFunction* mFunction = nullptr;
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		std::optional<size_t> mProgramCounter;
+#else
+		size_t mProgramCounter = 0;
+#endif
 		mutable std::string mResolvedString;
 		mutable int mLineNumber = -1;
 
@@ -68,6 +72,7 @@ public:
 		};
 
 		std::vector<Hit*> mHits;
+		std::string mName;
 		uint32 mAddress = 0;
 		uint16 mBytes = 0;
 		bool mPersistent = false;
@@ -105,15 +110,21 @@ public:
 
 	// Debug watches
 	inline const std::vector<Watch*>& getWatches() const  { return mWatches; }
+	bool hasWatch(uint32 address, uint16 bytes) const;
+	int getExistingWatchIndex(uint32 address, uint16 bytes) const;
 	void updateWatches();
 	void clearWatches(bool clearPersistent = false);
-	void addWatch(uint32 address, uint16 bytes, bool persistent);
+	void addWatch(uint32 address, uint16 bytes, bool persistent, std::string_view name = "");
 	void removeWatch(uint32 address, uint16 bytes);
 
 	// VRAM writes
 	inline const std::vector<VRAMWrite*>& getVRAMWrites() const  { return mVRAMWrites; }
 
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 	void getCallStackFromCallFrameIndex(std::vector<Location>& outCallStack, int callFrameIndex, std::optional<size_t> firstProgramCounter);
+#else
+	void getCallStackFromCallFrameIndex(std::vector<Location>& outCallStack, int callFrameIndex, size_t firstProgramCounter = 0);
+#endif
 
 private:
 	void deleteWatch(Watch& watch);

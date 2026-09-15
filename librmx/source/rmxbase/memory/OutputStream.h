@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -66,21 +66,22 @@ class API_EXPORT MemOutputStream : public OutputStream
 {
 public:
 	MemOutputStream(int size);
-	virtual ~MemOutputStream();
+	virtual ~MemOutputStream() override;
 
-	void setPosition(int pos)	{ mCursor = mBuffer + pos; assert(mCursor <= mBufferEnd); }
-	int getPosition() const		{ return (int)(mCursor - mBuffer); }
-	int getCapacity() const		{ return (int)(mBufferEnd - mBuffer); }
-	uint8* getBuffer()			{ return mBuffer; }
+	inline void setPosition(int pos) override	{ mCursor = mBuffer + pos; assert(mCursor <= mBufferEnd); }
+	inline int getPosition() const override		{ return (int)(mCursor - mBuffer); }
+	int write(const void* ptr, int len) override;
 
-	int  write(const void* ptr, int len);
+	inline int getCapacity() const				{ return (int)(mBufferEnd - mBuffer); }
+	inline uint8* getBuffer()					{ return mBuffer; }
+
 	bool saveTo(OutputStream& stream);
 	bool saveToFile(const String& filename);
 
 protected:
-		uint8* mBuffer;
-		uint8* mBufferEnd;
-		uint8* mCursor;
+	uint8* mBuffer = nullptr;
+	uint8* mBufferEnd = nullptr;
+	uint8* mCursor = nullptr;
 };
 
 
@@ -89,24 +90,24 @@ class API_EXPORT DynOutputStream : public OutputStream
 {
 public:
 	DynOutputStream();
-	virtual ~DynOutputStream();
+	virtual ~DynOutputStream() override;
 
 	void clear();
 
-	void setPosition(int pos);
-	int getPosition() const;
-	int getCapacity() const  { return 0x7fffffff; }
+	void setPosition(int pos) override;
+	int getPosition() const override;
+	int write(const void* ptr, int len) override;
 
-	int write(const void* ptr, int len);
+	inline int getCapacity() const  { return std::numeric_limits<int>::max(); }
 	bool saveTo(OutputStream& stream);
 
 protected:
-	void AccessPage(int pageIndex);
+	void accessPage(int pageIndex);
 
 protected:
 	std::vector<uint8*> mPages;
-		int mPageSize;
-		int mCurrPage;
-		uint8* mCursor;
-		uint8* mPageEnd;
+	int mPageSize = 1024;
+	int mCurrPage = 0;
+	uint8* mCursor = nullptr;
+	uint8* mPageEnd = nullptr;
 };

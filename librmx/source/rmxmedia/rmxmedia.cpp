@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -13,12 +13,12 @@
 // Singletons
 namespace FTX
 {
-	SingletonPtr<rmx::JobManager>		 JobManager;
-	SingletonPtr<rmx::FTX_SystemManager> System;
-	SingletonPtr<rmx::FTX_VideoManager>	 Video;
-	SingletonPtr<rmx::AudioManager>		 Audio;
+	SingletonPtr<rmx::JobManager>	 JobManager;
+	SingletonPtr<rmx::SystemManager> System;
+	SingletonPtr<rmx::VideoManager>	 Video;
+	SingletonPtr<rmx::AudioManager>	 Audio;
 #ifdef RMX_WITH_OPENGL_SUPPORT
-	SingletonPtr<rmx::Painter>			 Painter;
+	SingletonPtr<rmx::Painter>		 Painter;
 #endif
 };
 
@@ -26,6 +26,8 @@ namespace FTX
 void rmxmedia::initialize()
 {
 	rmxbase::initialize();
+
+	rmx::ErrorHandling::mNativeWindowHandleProvider = []() { return FTX::Video->getNativeWindowHandle(); };
 
 	// Initialize audio load callbacks
 	AudioBuffer::LoadCallbackList callbacks;
@@ -41,8 +43,8 @@ void rmxmedia::initialize()
 	}
 
 	// Initialize font factories
-	Font::mCodecs.add<FontSourceStdFactory>();
-	Font::mCodecs.add<FontSourceBitmapFactory>();
+	rmx::FontCodecList::mCodecs.add<FontSourceStdFactory>();
+	rmx::FontCodecList::mCodecs.add<FontSourceBitmapFactory>();
 }
 
 void rmxmedia::getBuildInfo(String& info)

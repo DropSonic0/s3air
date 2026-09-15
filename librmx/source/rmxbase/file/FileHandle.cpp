@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -23,7 +23,7 @@ namespace
 		}
 	}
 
-#if defined(PLATFORM_WINDOWS)
+#ifndef USE_UTF8_PATHS
 	const wchar_t* getModeStringW(uint32 flags)
 	{
 		switch (flags & 0x0f)
@@ -39,29 +39,29 @@ namespace
 }
 
 
-FileHandle::FileHandle() : mFile(0), mFileSize(0)
+FileHandle::FileHandle()
 {
 }
 
-FileHandle::FileHandle(const String& filename, uint32 flags) : mFile(0), mFileSize(0)
+FileHandle::FileHandle(const String& filename, uint32 flags)
 {
 	open(filename, flags);
 }
 
-FileHandle::FileHandle(const WString& filename, uint32 flags) : mFile(0), mFileSize(0)
+FileHandle::FileHandle(const WString& filename, uint32 flags)
 {
 	open(filename, flags);
 }
 
 FileHandle::~FileHandle()
 {
-	if (0 != mFile)
+	if (nullptr != mFile)
 		close();
 }
 
 bool FileHandle::open(const String& filename, uint32 flags)
 {
-	if (0 != mFile)
+	if (nullptr != mFile)
 		close();
 
 #if defined(PLATFORM_WINDOWS)
@@ -72,7 +72,7 @@ bool FileHandle::open(const String& filename, uint32 flags)
 	mFile = fopen(*filename, ::getModeString(flags));
 #endif
 
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return false;
 
 	mFilename = filename.toWString();
@@ -82,27 +82,18 @@ bool FileHandle::open(const String& filename, uint32 flags)
 
 bool FileHandle::open(const WString& filename, uint32 flags)
 {
-	if (0 != mFile)
+	if (nullptr != mFile)
 		close();
 
 	const bool isWrite = (flags & 0x0f) != FILE_ACCESS_READ;
 	if (isWrite)
 	{
 		// Create directory if needed
-#if defined(PLATFORM_PS3)
-		const std::wstring_view view(*filename);
-		const size_t slashPosition = view.find_last_of(L"/\\");
-		if (slashPosition != std::wstring_view::npos)
-		{
-			rmx::FileIO::createDirectory(view.substr(0, slashPosition));
-		}
-#else
 		const size_t slashPosition = std::wstring_view(*filename).find_last_of(L"/\\");
 		if (slashPosition != std::string::npos)
 		{
 			rmx::FileIO::createDirectory(std::wstring_view(*filename).substr(0, slashPosition));
 		}
-#endif
 	}
 
 #if defined(PLATFORM_WINDOWS)
@@ -113,7 +104,7 @@ bool FileHandle::open(const WString& filename, uint32 flags)
 	mFile = fopen(*filename.toString(), ::getModeString(flags));
 #endif
 
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return false;
 
 	mFilename = filename;
@@ -123,15 +114,15 @@ bool FileHandle::open(const WString& filename, uint32 flags)
 
 void FileHandle::close()
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return;
 	fclose(mFile);
-	mFile = 0;
+	mFile = nullptr;
 }
 
 int64 FileHandle::getSize() const
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return 0;
 
 	if (mFileSize < 0)
@@ -142,10 +133,10 @@ int64 FileHandle::getSize() const
 		mFileSize = _ftelli64(mFile);
 		_fseeki64(mFile, pos, SEEK_SET);
 #else
-		long pos = ftell(mFile);
+		int pos = ftell(mFile);
 		fseek(mFile, 0, SEEK_END);
 		mFileSize = (int64)ftell(mFile);
-		fseek(mFile, (long)pos, SEEK_SET);
+		fseek(mFile, pos, SEEK_SET);
 #endif
 	}
 	return mFileSize;
@@ -153,18 +144,20 @@ int64 FileHandle::getSize() const
 
 void FileHandle::seek(int64 position)
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return;
 #ifdef _MSC_VER
 	_fseeki64(mFile, position, SEEK_SET);
-#else
+#elif defined(__CELLOS_LV2__) || defined(__SNC__)
 	fseek(mFile, (long)position, SEEK_SET);
+#else
+	fseek(mFile, position, SEEK_SET);
 #endif
 }
 
 int64 FileHandle::tell() const
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return 0;
 #ifdef _MSC_VER
 	return _ftelli64(mFile);
@@ -175,21 +168,21 @@ int64 FileHandle::tell() const
 
 size_t FileHandle::read(void* output, size_t bytes) const
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return 0;
 	return fread(output, 1, bytes, mFile);
 }
 
 size_t FileHandle::write(const void* input, size_t bytes)
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return 0;
 	return fwrite(input, 1, bytes, mFile);
 }
 
 void FileHandle::flush()
 {
-	if (0 == mFile)
+	if (nullptr == mFile)
 		return;
 	fflush(mFile);
 }

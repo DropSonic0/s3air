@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -20,14 +20,13 @@ namespace lowlevel
 	struct PacketBase
 	{
 	public:
-#if defined(PLATFORM_PS3)
-		static const VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS;
-#else
-		static constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS { 1, 1 };
-#endif
-
-	public:
 		virtual ~PacketBase() {}
+
+#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
+		static const constexpr VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS { 1, 1 };
+#else
+		static const VersionRange<uint8> LOWLEVEL_PROTOCOL_VERSIONS;
+#endif
 
 	public:
 		bool serializePacket(VectorBinarySerializer& serializer, uint8 protocolVersion)
@@ -49,9 +48,7 @@ namespace lowlevel
 		VersionRange<uint8> mLowLevelProtocolVersionRange;
 		VersionRange<uint8> mHighLevelProtocolVersionRange;
 
-		virtual ~StartConnectionPacket() {}
-
-		static constexpr uint16 SIGNATURE = 0x87a1;
+		static const constexpr uint16 SIGNATURE = 0x87a1;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override
@@ -67,9 +64,7 @@ namespace lowlevel
 		uint8 mLowLevelProtocolVersion = 0;
 		uint8 mHighLevelProtocolVersion = 0;
 
-		virtual ~AcceptConnectionPacket() {}
-
-		static constexpr uint16 SIGNATURE = 0x1b22;
+		static const constexpr uint16 SIGNATURE = 0x1b22;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override
@@ -80,22 +75,31 @@ namespace lowlevel
 	};
 
 
+	struct TerminateConnectionPacket : public PacketBase
+	{
+		static const constexpr uint16 SIGNATURE = 0x7e75;
+		virtual uint16 getSignature() const override  { return SIGNATURE; }
+
+		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override
+		{
+		}
+	};
+
+
 	struct ErrorPacket : public PacketBase
 	{
-		virtual ~ErrorPacket() {}
-
 		enum class ErrorCode : uint8
 		{
 			// The errors marking with (*) are sent without an actual establishes connection - that means they do not include a proper local connection ID and just re-use the received remote connection ID
 			UNKNOWN					= 0,
 			CONNECTION_INVALID		= 1,	// (*) Received a packet with an unknown connection ID
-			UNSUPPORTED_VERSION		= 2,	// (*) Received a start connection packet that uses protocol versions that can't be supported
+			UNSUPPORTED_VERSION		= 2,	// (*) Received a start connection packet (or other) that uses protocol versions that can't be supported
 			TOO_MANY_CONNECTIONS	= 3,	// (*) Remote server / client has too many active connections already
 		};
 		ErrorCode mErrorCode = ErrorCode::UNKNOWN;
 		uint32 mParameter = 0;
 
-		static constexpr uint16 SIGNATURE = 0xf584;
+		static const constexpr uint16 SIGNATURE = 0xf584;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		inline ErrorPacket() {}
@@ -110,8 +114,6 @@ namespace lowlevel
 
 	struct HighLevelPacket : public PacketBase
 	{
-		virtual ~HighLevelPacket() {}
-
 		struct Flags
 		{
 			// None defined yet
@@ -122,7 +124,7 @@ namespace lowlevel
 		uint8  mPacketFlags = 0;
 		uint32 mUniquePacketID = 0;
 
-		static constexpr uint16 SIGNATURE = 0xe994;
+		static const constexpr uint16 SIGNATURE = 0xe994;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override
@@ -137,9 +139,8 @@ namespace lowlevel
 	struct RequestQueryPacket : public HighLevelPacket
 	{
 		// No need for any custom members here
-		virtual ~RequestQueryPacket() {}
 
-		static constexpr uint16 SIGNATURE = 0x0c7a;
+		static const constexpr uint16 SIGNATURE = 0x0c7a;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override
@@ -154,9 +155,7 @@ namespace lowlevel
 		// Extension to the high level packet
 		uint32 mUniqueRequestID = 0;
 
-		virtual ~RequestResponsePacket() {}
-
-		static constexpr uint16 SIGNATURE = 0xd028;
+		static const constexpr uint16 SIGNATURE = 0xd028;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override
@@ -171,9 +170,7 @@ namespace lowlevel
 	{
 		uint32 mUniquePacketID = 0;
 
-		virtual ~ReceiveConfirmationPacket() {}
-
-		static constexpr uint16 SIGNATURE = 0x276f;
+		static const constexpr uint16 SIGNATURE = 0x276f;
 		virtual uint16 getSignature() const override  { return SIGNATURE; }
 
 		virtual void serializeContent(VectorBinarySerializer& serializer, uint8 protocolVersion) override

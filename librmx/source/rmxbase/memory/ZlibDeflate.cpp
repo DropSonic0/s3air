@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,11 +8,6 @@
 
 #include "rmxbase.h"
 #include "zlib.h"
-#include <cstdio>
-
-#ifndef z_const
-	#define z_const
-#endif
 
 // Other platforms than Windows with Visual C++ need to the zlib library dependency into their build separately
 #if defined(PLATFORM_WINDOWS) && defined(_MSC_VER)
@@ -22,7 +17,6 @@
 
 bool ZlibDeflate::decode(std::vector<uint8>& output, const void* inputData, size_t inputSize)
 {
-	printf("ZlibDeflate::decode: inputSize=%u\n", (uint32)inputSize); fflush(stdout);
 	// Setup inflate
 	z_stream strm;
 	strm.zalloc = nullptr;
@@ -32,7 +26,7 @@ bool ZlibDeflate::decode(std::vector<uint8>& output, const void* inputData, size
 	if (zlibResult != Z_OK)
 		return false;
 
-	static const size_t CHUNK_SIZE = 0x4000;
+	const constexpr size_t CHUNK_SIZE = 0x4000;
 	strm.next_in = (Bytef*)inputData;
 	strm.avail_in = (uInt)inputSize;
 
@@ -62,9 +56,7 @@ bool ZlibDeflate::decode(std::vector<uint8>& output, const void* inputData, size
 
 	// Clean up
 	zlibResult = inflateEnd(&strm);
-	bool success = (zlibResult == Z_STREAM_END || zlibResult == Z_OK);
-	printf("ZlibDeflate::decode: end, outputSize=%u, success=%d\n", (uint32)output.size(), success); fflush(stdout);
-	return success;
+	return (zlibResult == Z_STREAM_END || zlibResult == Z_OK);
 }
 
 bool ZlibDeflate::encode(std::vector<uint8>& output, const void* inputData, size_t inputSize, int compressionLevel)
@@ -79,7 +71,6 @@ bool ZlibDeflate::encode(std::vector<uint8>& output, const void* inputData, size
 		return false;
 
 	output.resize(inputSize + (inputSize + 999) / 1000 + 12);
-	size_t outputLeft = output.size();
 
 	stream.next_out = &output[0];
 	stream.avail_out = (uInt)output.size();

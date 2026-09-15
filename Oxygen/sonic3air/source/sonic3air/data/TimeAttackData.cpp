@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -19,7 +19,7 @@ std::map<uint32, TimeAttackData::Table> TimeAttackData::mTables;
 
 namespace
 {
-	std::string getRecPathCharName(uint8 category)
+	const char* getRecPathCharName(uint8 category)
 	{
 		switch (category)
 		{
@@ -71,11 +71,11 @@ TimeAttackData::Table& TimeAttackData::loadTable(uint16 zoneAndAct, uint8 catego
 		{
 			const Json::Value file = rec["File"];
 			const Json::Value time = rec["Time"];
-			if (file.isString())
+			if (file.isString() && time.isString())
 			{
 				Entry& entry = vectorAdd(timeAttackTable->mEntries);
-				entry.mFilename = *String(file.asString().c_str()).toWString();
-				entry.mTime = parseTimeString(time.asString().c_str());
+				entry.mFilename = *String(file.asString()).toWString();
+				entry.mTime = parseTimeString(time.asString());
 			}
 		}
 	}
@@ -95,7 +95,7 @@ void TimeAttackData::saveTable(uint16 zoneAndAct, uint8 category, const std::wst
 	{
 		Json::Value& rec = records.append(Json::Value());
 		rec["File"] = *WString(entry.mFilename).toString();
-		rec["Time"] = TimeAttackData::getTimeString(entry.mTime).c_str();
+		rec["Time"] = TimeAttackData::getTimeString(entry.mTime);
 	}
 
 	JsonHelper::saveFile(filename, root);
@@ -107,11 +107,7 @@ std::wstring TimeAttackData::getSavePath(uint16 zoneAndAct, uint8 category, std:
 	if (nullptr == currentZone)
 		return L"";
 
-#if defined(PLATFORM_PS3)
-	const std::string zoneAndActName = currentZone->mShortName + std::string(*String(0, "%d", (zoneAndAct & 0x01) + 1));
-#else
 	const std::string zoneAndActName = currentZone->mShortName + std::to_string((zoneAndAct & 0x01) + 1);
-#endif
 	const std::string characterName = getRecPathCharName(category);
 
 	if (nullptr != outRecBaseFilename)

@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -14,19 +14,6 @@ class API_EXPORT FileCrawler
 public:
 	typedef rmx::FileIO::FileEntry FileEntry;
 
-#if defined(PLATFORM_PS3)
-	struct SortMode
-	{
-		enum Enum
-		{
-			BY_FILENAME = 0,
-			BY_EXTENSION,
-			BY_TIME,
-			BY_SIZE
-		};
-	};
-	typedef SortMode::Enum SortMode_t;
-#else
 	enum class SortMode
 	{
 		BY_FILENAME = 0,
@@ -34,8 +21,6 @@ public:
 		BY_TIME,
 		BY_SIZE
 	};
-	typedef SortMode SortMode_t;
-#endif
 
 public:
 	static std::vector<std::wstring> getSubdirectories(const std::wstring& parentDirectory);
@@ -50,7 +35,7 @@ public:
 	void addFiles(const WString& filemask, bool recursive = false);
 
 	// Change order of entries
-	void sort(SortMode_t mode);
+	void sort(SortMode mode);
 	void invertOrder();
 
 	// Access entries

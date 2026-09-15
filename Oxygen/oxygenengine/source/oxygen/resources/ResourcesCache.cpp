@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,10 +8,10 @@
 
 #include "oxygen/pch.h"
 #include "oxygen/resources/ResourcesCache.h"
+#include "oxygen/resources/PaletteCollection.h"
+#include "oxygen/resources/RawDataCollection.h"
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/modding/ModManager.h"
-#include "oxygen/helper/FileHelper.h"
-#include "oxygen/helper/JsonHelper.h"
 #include "oxygen/helper/Logging.h"
 #include "oxygen/platform/PlatformFunctions.h"
 
@@ -32,7 +32,7 @@ bool ResourcesCache::loadRom()
 	{
 		for (const GameProfile::RomInfo& romInfo : gameProfile.mRomInfos)
 		{
-			romPath = config.mAppDataPath + romInfo.mSteamRomName;
+			romPath = config.mGameAppDataPath + romInfo.mSteamRomName;
 			loaded = loadRomFile(romPath, romInfo);
 			if (loaded)
 				break;
@@ -44,7 +44,8 @@ bool ResourcesCache::loadRom()
 
 #if !defined(PLATFORM_ANDROID)
 	// Try at last known ROM location, if there is one
-	if (!loaded && !config.mLastRomPath.empty())
+	//  -> Do this only for the S3AIR executable, it won't work when switching between projects in OxygenApp
+	if (!loaded && !config.mLastRomPath.empty() && gameProfile.mIdentifier == "Sonic3AIR")
 	{
 		romPath = config.mLastRomPath;
 		loaded = loadRomFile(romPath);
@@ -133,45 +134,8 @@ bool ResourcesCache::loadRomFromMemory(const std::vector<uint8>& content)
 
 void ResourcesCache::loadAllResources()
 {
-	// Load raw data incl. ROM injections
-	mRawDataMap.clear();
-	mRomInjections.clear();
-	mRawDataPool.clear();
-	loadRawData(L"data/rawdata", false);
-	for (const Mod* mod : ModManager::instance().getActiveMods())
-	{
-		loadRawData(mod->mFullPath + L"rawdata", true);
-	}
-
-	// Load palettes
-	mPalettes.clear();
-	loadPalettes(L"data/palettes", false);
-	for (const Mod* mod : ModManager::instance().getActiveMods())
-	{
-		loadPalettes(mod->mFullPath + L"palettes", true);
-	}
-}
-
-const std::vector<const ResourcesCache::RawData*>& ResourcesCache::getRawData(uint64 key) const
-{
-	static const std::vector<const RawData*> EMPTY;
-	const auto it = mRawDataMap.find(key);
-	return (it == mRawDataMap.end()) ? EMPTY : it->second;
-}
-
-const ResourcesCache::Palette* ResourcesCache::getPalette(uint64 key, uint8 line) const
-{
-	return mapFind(mPalettes, key + line);
-}
-
-void ResourcesCache::applyRomInjections(uint8* rom, uint32 romSize) const
-{
-	for (const RawData* rawData : mRomInjections)
-	{
-		RMX_CHECK(rawData->mRomInjectAddress < romSize, "ROM injection at invalid address " << rmx::hexString(rawData->mRomInjectAddress, 6), continue);
-		const uint32 size = std::min((uint32)rawData->mContent.size(), romSize - rawData->mRomInjectAddress);
-		memcpy(&rom[rawData->mRomInjectAddress], &rawData->mContent[0], size);
-	}
+	PaletteCollection::instance().loadPalettes();
+	RawDataCollection::instance().loadRawData();
 }
 
 bool ResourcesCache::loadRomFile(const std::wstring& filename)
@@ -269,22 +233,10 @@ bool ResourcesCache::applyRomModifications(const GameProfile::RomInfo& romInfo)
 		if (content->size() != mRom.size())
 			return false;
 
-#if defined(PLATFORM_PS3)
-		// On PS3, we want to avoid alignment issues and ensure endian-safe XORing
-		// (The diff files are usually created as Little-Endian uint64 streams)
 		for (size_t i = 0; i < content->size(); ++i)
 		{
 			mRom[i] ^= (*content)[i];
 		}
-#else
-		uint64* ptr = (uint64*)&mRom[0];
-		uint64* diff = (uint64*)&(*content)[0];
-		const size_t count = content->size() / 8;
-		for (size_t i = 0; i < count; ++i)
-		{
-			ptr[i] ^= diff[i];
-		}
-#endif
 	}
 
 	for (auto& pair : romInfo.mBlankRegions)
@@ -330,7 +282,7 @@ void ResourcesCache::saveRomToAppData()
 {
 	if (nullptr != mLoadedRomInfo && !mLoadedRomInfo->mSteamRomName.empty())
 	{
-		const std::wstring filepath = Configuration::instance().mAppDataPath + mLoadedRomInfo->mSteamRomName;
+		const std::wstring filepath = Configuration::instance().mGameAppDataPath + mLoadedRomInfo->mSteamRomName;
 		const bool success = FTX::FileSystem->saveFile(filepath, mRom);
 		if (success)
 		{
@@ -343,90 +295,3 @@ void ResourcesCache::saveRomToAppData()
 	}
 }
 
-void ResourcesCache::loadRawData(const std::wstring& path, bool isModded)
-{
-	// Load raw data from the given path
-	std::vector<rmx::FileIO::FileEntry> fileEntries;
-	fileEntries.reserve(8);
-	FTX::FileSystem->listFilesByMask(path + L"/*.json", true, fileEntries);
-	for (const rmx::FileIO::FileEntry& fileEntry : fileEntries)
-	{
-		const Json::Value root = JsonHelper::loadFile(fileEntry.mPath + fileEntry.mFilename);
-
-		for (auto it = root.begin(); it != root.end(); ++it)
-		{
-			const Json::Value& entryJson = *it;
-			if (!entryJson.isObject())
-				continue;
-
-			RawData* rawData = nullptr;
-			if (entryJson["File"].isString())
-			{
-				const char* filename = entryJson["File"].asCString();
-				const uint64 key = rmx::getMurmur2_64(String(it.key().asCString()));
-				rawData = &mRawDataPool.createObject();
-				rawData->mIsModded = isModded;
-				if (!FTX::FileSystem->readFile(fileEntry.mPath + String(filename).toStdWString(), rawData->mContent))
-				{
-					mRawDataPool.destroyObject(*rawData);
-					continue;
-				}
-				mRawDataMap[key].push_back(rawData);
-			}
-
-			if (nullptr == rawData)
-				continue;
-
-			// Check if it's a ROM injection
-			if (!entryJson["RomInject"].isNull())
-			{
-				rawData->mRomInjectAddress = (uint32)rmx::parseInteger(entryJson["RomInject"].asCString());
-				mRomInjections.push_back(rawData);
-			}
-		}
-	}
-}
-
-void ResourcesCache::loadPalettes(const std::wstring& path, bool isModded)
-{
-	// Load palettes from the given path
-	std::vector<rmx::FileIO::FileEntry> fileEntries;
-	fileEntries.reserve(8);
-	FTX::FileSystem->listFilesByMask(path + L"/*.png", true, fileEntries);
-	for (const rmx::FileIO::FileEntry& fileEntry : fileEntries)
-	{
-		if (!FTX::FileSystem->exists(fileEntry.mPath + fileEntry.mFilename))
-			continue;
-
-		std::vector<uint8> content;
-		if (!FTX::FileSystem->readFile(fileEntry.mPath + fileEntry.mFilename, content))
-			continue;
-
-		Bitmap bitmap;
-		if (!bitmap.load(fileEntry.mPath + fileEntry.mFilename))
-		{
-			RMX_ERROR("Failed to load PNG at '" << *WString(fileEntry.mPath + fileEntry.mFilename).toString() << "'", );
-			continue;
-		}
-
-		String name = WString(fileEntry.mFilename).toString();
-		name.remove(name.length() - 4, 4);
-
-		uint64 key = rmx::getMurmur2_64(name);		// Hash is the key of the first palette, the others are enumerated from there
-		const int numLines = std::min(bitmap.getHeight(), 64);
-		const int numColorsPerLine = std::min(bitmap.getWidth(), 64);
-
-		for (int y = 0; y < numLines; ++y)
-		{
-			Palette& palette = mPalettes[key];
-			palette.mIsModded = isModded;
-			palette.mColors.resize(numColorsPerLine);
-
-			for (int x = 0; x < numColorsPerLine; ++x)
-			{
-				palette.mColors[x] = Color::fromABGR32(bitmap.getPixel(x, y));
-			}
-			++key;
-		}
-	}
-}

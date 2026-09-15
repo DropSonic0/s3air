@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2024 by Eukaryot
+*	Copyright (C) 2008-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -32,14 +32,6 @@
 #endif
 #ifdef uint64
 	#undef uint64
-#endif
-
-
-// System types
-#if defined(PLATFORM_PS3)
-	#include <stdint.h>
-#else
-	#include <cstdint>
 #endif
 
 

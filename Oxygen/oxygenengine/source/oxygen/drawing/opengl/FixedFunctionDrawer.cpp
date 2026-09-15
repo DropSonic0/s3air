@@ -10,7 +10,7 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
-#if defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(RMX_PLATFORM_PS3)
 	#include <PSGL/psgl.h>
 	#include <PSGL/psglu.h>
 	#define glOrthoPlatform glOrthof
@@ -25,7 +25,8 @@
 #include "oxygen/drawing/DrawCommand.h"
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/helper/Logging.h"
-#include "oxygen/resources/SpriteCache.h"
+#include "oxygen/resources/SpriteCollection.h"
+#include "oxygen/rendering/sprite/ComponentSprite.h"
 #include "rmxmedia/opengl/OpenGLFontOutput.h"
 
 
@@ -144,12 +145,13 @@ namespace fixedfunctiondrawer
 
 		OpenGLFontOutput& getOpenGLFontOutput(Font& font)
 		{
-			OpenGLFontOutput* fontOutput = mapFind(mFontOutputMap, &font);
-			if (nullptr != fontOutput)
-				return *fontOutput;
+			std::shared_ptr<OpenGLFontOutput>* fontOutputPtr = mapFind(mFontOutputMap, &font);
+			if (nullptr != fontOutputPtr && *fontOutputPtr)
+				return **fontOutputPtr;
 
-			const auto pair = mFontOutputMap.insert(std::make_pair(&font, OpenGLFontOutput(font)));
-			return pair.first->second;
+			std::shared_ptr<OpenGLFontOutput> fontOutput(new OpenGLFontOutput(font));
+			mFontOutputMap.insert(std::make_pair(&font, fontOutput));
+			return *fontOutput;
 		}
 
 		void drawRect(const Recti& targetRect, GLuint textureHandle, const Color& color, Vec2f uv0 = Vec2f(0.0f, 0.0f), Vec2f uv1 = Vec2f(1.0f, 1.0f))
@@ -198,7 +200,7 @@ namespace fixedfunctiondrawer
 		void printText(Font& font, const StringReader& text, const Recti& rect, const DrawerPrintOptions& printOptions)
 		{
 			OpenGLFontOutput& fontOutput = getOpenGLFontOutput(font);
-			const Vec2f pos = font.alignText(rect, text, printOptions.mAlignment);
+			const Vec2i pos = font.alignText(rect, text, printOptions.mAlignment);
 
 			static std::vector<Font::TypeInfo> typeInfos;
 			typeInfos.clear();
@@ -210,7 +212,7 @@ namespace fixedfunctiondrawer
 			fontOutput.buildVertexGroups(vertexGroups, typeInfos);
 
 			setBlendMode(BlendMode::ALPHA);
-		#if defined(PLATFORM_PS3)
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0.05f);
 		#endif
@@ -247,7 +249,7 @@ namespace fixedfunctiondrawer
 				glDrawArrays(GL_TRIANGLES, 0, vertexGroup.mNumVertices);
 			}
 
-		#if defined(PLATFORM_PS3)
+		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 			glDisable(GL_ALPHA_TEST);
 		#endif
 
@@ -267,7 +269,7 @@ namespace fixedfunctiondrawer
 		std::vector<Recti> mScissorStack;
 
 	private:
-		std::unordered_map<Font*, OpenGLFontOutput> mFontOutputMap;
+		std::unordered_map<Font*, std::shared_ptr<OpenGLFontOutput>> mFontOutputMap;
 	};
 }
 
@@ -361,7 +363,7 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 			case DrawCommand::Type::SPRITE:
 			{
 				SpriteDrawCommand& sc = drawCommand->as<SpriteDrawCommand>();
-				const SpriteCache::CacheItem* item = SpriteCache::instance().getSprite(sc.mSpriteKey);
+				const SpriteCollection::Item* item = SpriteCollection::instance().getSprite(sc.mSpriteKey);
 				if (nullptr == item || !item->mUsesComponentSprite)
 					break;
 
@@ -388,7 +390,7 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 			case DrawCommand::Type::SPRITE_RECT:
 			{
 				SpriteRectDrawCommand& sc = drawCommand->as<SpriteRectDrawCommand>();
-				const SpriteCache::CacheItem* item = SpriteCache::instance().getSprite(sc.mSpriteKey);
+				const SpriteCollection::Item* item = SpriteCollection::instance().getSprite(sc.mSpriteKey);
 				if (nullptr == item || !item->mUsesComponentSprite)
 					break;
 
@@ -536,7 +538,7 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 
 void FixedFunctionDrawer::presentScreen()
 {
-#if defined(PLATFORM_PS3)
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 	psglSwap();
 #else
 	SDL_GL_SwapWindow(mInternal.mOutputWindow);

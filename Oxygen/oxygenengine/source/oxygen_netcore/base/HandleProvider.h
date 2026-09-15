@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <rmxbase.h>
 #include <vector>
 
 
@@ -17,17 +18,17 @@ class HandleProvider
 public:
 	struct Entry
 	{
-		HANDLE mHandle;	// Invalid handle by default
+		HANDLE mHandle;
 		mutable CONTENT mContent;
 
-		inline Entry() : mHandle(0), mContent(CONTENT()) {}
-		inline Entry(HANDLE handle, CONTENT content) : mHandle(handle), mContent(content) {}
+		Entry() : mHandle(0), mContent() {}
+		Entry(HANDLE handle, CONTENT content) : mHandle(handle), mContent(content) {}
 	};
 
 public:
 	HandleProvider()
 	{
-		static_assert((DEFAULT_SIZE & (DEFAULT_SIZE - 1)) == 0, "DEFAULT_SIZE must be a power of two");	// Make sure it's a power of two
+		static_assert((DEFAULT_SIZE & (DEFAULT_SIZE - 1)) == 0, "DEFAULT_SIZE must be a power of two");
 		mEntries.resize(DEFAULT_SIZE);
 		mBitmask = DEFAULT_SIZE - 1;
 	}

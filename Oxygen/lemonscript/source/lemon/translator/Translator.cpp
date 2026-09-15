@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,7 +9,7 @@
 #include "lemon/pch.h"
 #include "lemon/translator/Translator.h"
 #include "lemon/translator/SourceCodeWriter.h"
-#include "lemon/program/Function.h"
+#include "lemon/program/function/Function.h"
 
 
 namespace lemon
@@ -85,11 +85,7 @@ namespace lemon
 				{
 					const LabelNode& labelNode = node.as<LabelNode>();
 					writer.decreaseIndentation();
-					{
-						String line;
-						line << labelNode.mLabel.getString() << ":";
-						writer.writeLine(line);
-					}
+					writer.writeLine(std::string(labelNode.mLabel.getString()) + ":");
 					writer.increaseIndentation();
 					break;
 				}
@@ -97,11 +93,7 @@ namespace lemon
 				case Node::Type::JUMP:
 				{
 					const JumpNode& jumpNode = node.as<JumpNode>();
-					{
-						String line = "goto ";
-						line << jumpNode.mLabelToken->mName.getString() << ";";
-						writer.writeLine(line);
-					}
+					writer.writeLine("goto " + std::string(jumpNode.mLabelToken->mName.getString()) + ";");
 					break;
 				}
 
@@ -194,9 +186,9 @@ namespace lemon
 
 				default:
 				{
-					String line = "<unknown_node_";
-					line << (int)node.getType() << ">";
-					writer.writeLine(line);
+					char buf[32];
+					sprintf(buf, "%d", (int)node.getType());
+					writer.writeLine("<unknown_node_" + std::string(buf) + ">");
 					break;
 				}
 			}
@@ -243,14 +235,14 @@ namespace lemon
 		{
 			switch (token.getType())
 			{
-				case Token::Type::CONSTANT:
+				case ConstantToken::TYPE:
 				{
 					const ConstantToken& ct = token.as<ConstantToken>();
 					line << rmx::hexString(ct.mValue.get<uint64>());	// TODO: Support float and double here as well
 					break;
 				}
 
-				case Token::Type::PARENTHESIS:
+				case ParenthesisToken::TYPE:
 				{
 					const ParenthesisToken& pt = token.as<ParenthesisToken>();
 					switch (pt.mParenthesisType)
@@ -262,7 +254,7 @@ namespace lemon
 					{
 						if (k > 0)
 							line << ", ";
-						translateTokenInternal(line, static_cast<const StatementToken&>(pt.mContent[k]));
+						translateTokenInternal(line, pt.mContent[k].as<StatementToken>());
 					}
 					switch (pt.mParenthesisType)
 					{
@@ -272,19 +264,19 @@ namespace lemon
 					break;
 				}
 
-				case Token::Type::COMMA_SEPARATED:
+				case CommaSeparatedListToken::TYPE:
 				{
 					const CommaSeparatedListToken& cslt = token.as<CommaSeparatedListToken>();
 					for (size_t k = 0; k < cslt.mContent.size(); ++k)
 					{
 						if (k > 0)
 							line << ", ";
-						translateTokenInternal(line, static_cast<const StatementToken&>(cslt.mContent[k][0]));
+						translateTokenInternal(line, cslt.mContent[k][0].as<StatementToken>());
 					}
 					break;
 				}
 
-				case Token::Type::UNARY_OPERATION:
+				case UnaryOperationToken::TYPE:
 				{
 					const UnaryOperationToken& uot = token.as<UnaryOperationToken>();
 					switch (uot.mOperator)
@@ -301,7 +293,7 @@ namespace lemon
 					break;
 				}
 
-				case Token::Type::BINARY_OPERATION:
+				case BinaryOperationToken::TYPE:
 				{
 					const BinaryOperationToken& bot = token.as<BinaryOperationToken>();
 					translateTokenInternal(line, *bot.mLeft);
@@ -346,14 +338,14 @@ namespace lemon
 					break;
 				}
 
-				case Token::Type::VARIABLE:
+				case VariableToken::TYPE:
 				{
 					const VariableToken& vt = token.as<VariableToken>();
 					CppWriter::addIdentifier(line, vt.mVariable->getName().getString());
 					break;
 				}
 
-				case Token::Type::FUNCTION:
+				case FunctionToken::TYPE:
 				{
 					const FunctionToken& ft = token.as<FunctionToken>();
 					CppWriter::addIdentifier(line, ft.mFunction->getName().getString());
@@ -370,7 +362,7 @@ namespace lemon
 					break;
 				}
 
-				case Token::Type::MEMORY_ACCESS:
+				case MemoryAccessToken::TYPE:
 				{
 					const MemoryAccessToken& mat = token.as<MemoryAccessToken>();
 					line << "accessMemory_";
@@ -381,7 +373,7 @@ namespace lemon
 					break;
 				}
 
-				case Token::Type::VALUE_CAST:
+				case ValueCastToken::TYPE:
 				{
 					const ValueCastToken& vct = token.as<ValueCastToken>();
 					line << "(";
@@ -409,7 +401,7 @@ namespace lemon
 		cppTranslator.translate(output, rootNode);
 	}
 
-	void Translator::translateToCppAndSave(const wchar_t* filename, const BlockNode& rootNode)
+	void Translator::translateToCppAndSave(std::wstring_view filename, const BlockNode& rootNode)
 	{
 		String output;
 		translateToCpp(output, rootNode);

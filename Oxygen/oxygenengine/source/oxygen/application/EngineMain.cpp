@@ -1,6 +1,6 @@
 /*
 *	Part of the Oxygen Engine / Sonic 3 A.I.R. software distribution.
-*	Copyright (C) 2017-2024 by Eukaryot
+*	Copyright (C) 2017-2026 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -9,6 +9,7 @@
 #include "oxygen/pch.h"
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/application/Application.h"
+#include "oxygen/application/ArgumentsReader.h"
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/GameProfile.h"
 #include "oxygen/application/audio/AudioOutBase.h"
@@ -17,43 +18,47 @@
 #include "oxygen/application/modding/ModManager.h"
 #include "oxygen/application/video/VideoOut.h"
 #include "oxygen/download/DownloadManager.h"
+#include "oxygen/menu/imgui/ImGuiIntegration.h"
+#include "oxygen/menu/devmode/DevModeMainWindow.h"
 #include "oxygen/drawing/opengl/OpenGLDrawer.h"
 #include "oxygen/drawing/opengl/FixedFunctionDrawer.h"
 #include "oxygen/drawing/software/SoftwareDrawer.h"
-#include "oxygen/platform/CrashHandler.h"
-#include "oxygen/platform/PlatformFunctions.h"
-#include "oxygen/resources/FontCollection.h"
-#include "oxygen/resources/ResourcesCache.h"
 #include "oxygen/file/PackedFileProvider.h"
 #include "oxygen/helper/FileHelper.h"
 #include "oxygen/helper/JsonHelper.h"
 #include "oxygen/helper/Logging.h"
+#include "oxygen/network/EngineServerClient.h"
+#include "oxygen/platform/CrashHandler.h"
+#include "oxygen/platform/PlatformFunctions.h"
+#include "oxygen/resources/FontCollection.h"
+#include "oxygen/resources/ResourcesCache.h"
 #include "oxygen/rendering/RenderResources.h"
 #include "oxygen/simulation/LogDisplay.h"
 #include "oxygen/simulation/PersistentData.h"
 #include "oxygen/simulation/Simulation.h"
 #if defined(PLATFORM_ANDROID)
-	#include "oxygen/platform/AndroidJavaInterface.h"
+	#include "oxygen/platform/android/AndroidJavaInterface.h"
 #endif
 
 
-#if !defined(PLATFORM_MAC) && !defined(PLATFORM_ANDROID)	// Maybe other platforms can be excluded as well? Possibly only Windows and Linux need this
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_LINUX)
 	#define LOAD_APP_ICON_PNG
 #endif
 
 
 struct EngineMain::Internal
 {
-	GameProfile		mGameProfile;
-	InputManager	mInputManager;
-	LogDisplay		mLogDisplay;
-	ModManager		mModManager;
-	ResourcesCache	mResourcesCache;
-	FontCollection	mFontCollection;
-	PersistentData	mPersistentData;
-	VideoOut		mVideoOut;
-	ControlsIn		mControlsIn;
-	DownloadManager mDownloadManager;
+	GameProfile		   mGameProfile;
+	InputManager	   mInputManager;
+	LogDisplay		   mLogDisplay;
+	ModManager		   mModManager;
+	ResourcesCache	   mResourcesCache;
+	FontCollection	   mFontCollection;
+	PersistentData	   mPersistentData;
+	VideoOut		   mVideoOut;
+	ControlsIn		   mControlsIn;
+	DownloadManager	   mDownloadManager;
+	EngineServerClient mEngineServerClient;
 
 #if defined(PLATFORM_ANDROID)
 	AndroidJavaInterface mAndroidJavaInterface;
@@ -80,8 +85,9 @@ void EngineMain::earlySetup()
 	INIT_RMXEXT_OGGVORBIS;
 }
 
-EngineMain::EngineMain(EngineDelegateInterface& delegate_) :
+EngineMain::EngineMain(EngineDelegateInterface& delegate_, ArgumentsReader& arguments) :
 	mDelegate(delegate_),
+	mArguments(arguments),
 	mInternal(*new Internal())
 {
 }
@@ -91,16 +97,9 @@ EngineMain::~EngineMain()
 	delete &mInternal;
 }
 
-void EngineMain::execute(int argc, char** argv)
+void EngineMain::execute()
 {
-	// Setup arguments
-	mArguments.reserve(argc);
-	for (int i = 0; i < argc; ++i)
-	{
-		mArguments.push_back(argv[i]);
-	}
-
-	// Startup the Oxygen engine part that is independent from the application / project
+	// Startup the Oxygen Engine part that is independent from the application / project
 	if (startupEngine())
 	{
 		// Enter the application run loop
@@ -114,7 +113,7 @@ void EngineMain::execute(int argc, char** argv)
 void EngineMain::onActiveModsChanged()
 {
 	// Update sprites
-	RenderResources::instance().loadSpriteCache(true);
+	RenderResources::instance().loadSprites(true);
 
 	// Update the resource cache -> palettes, raw data
 	ResourcesCache::instance().loadAllResources();
@@ -144,7 +143,7 @@ bool EngineMain::reloadFilePackage(std::wstring_view packageName, bool forceRelo
 	for (size_t index = 0; index < gameProfile.mDataPackages.size(); ++index)
 	{
 		const GameProfile::DataPackage& dataPackage = gameProfile.mDataPackages[index];
-		if (std::wstring(dataPackage.mFilename) == std::wstring(packageName.data(), packageName.length()))
+		if (dataPackage.mFilename == packageName)
 		{
 			return loadFilePackageByIndex(index, forceReload);
 		}
@@ -161,9 +160,9 @@ uint32 EngineMain::getPlatformFlags() const
 	else
 	{
 		uint32 flags = 0;
-	#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MAC) || defined(PLATFORM_LINUX)
+	#if defined(PLATFORM_IS_DESKTOP)
 		flags |= 0x0001;
-	#elif defined(PLATFORM_ANDROID) || defined(PLATFORM_WEB) || defined(PLATFORM_IOS)
+	#elif defined(PLATFORM_IS_MOBILE)
 		flags |= 0x0002;
 	#endif
 		return flags;
@@ -173,10 +172,10 @@ uint32 EngineMain::getPlatformFlags() const
 void EngineMain::switchToRenderMethod(Configuration::RenderMethod newRenderMethod)
 {
 	Configuration& config = Configuration::instance();
-	const bool wasUsingOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
+	const bool wasUsingOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL || config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
 	config.mRenderMethod = newRenderMethod;
 
-	bool nowUsingOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
+	bool nowUsingOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL || config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
 	if (nowUsingOpenGL != wasUsingOpenGL)
 	{
 		// Need to recreate the window
@@ -185,6 +184,9 @@ void EngineMain::switchToRenderMethod(Configuration::RenderMethod newRenderMetho
 
 		// Check OpenGL in the config again, it could have changed - namely if OpenGL initialization failed
 		nowUsingOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL || config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
+
+		if (ImGuiIntegration::hasInstance())
+			ImGuiIntegration::instance().onWindowRecreated(nowUsingOpenGL);
 	}
 
 	if (nowUsingOpenGL)
@@ -199,8 +201,7 @@ void EngineMain::switchToRenderMethod(Configuration::RenderMethod newRenderMetho
 void EngineMain::setVSyncMode(Configuration::FrameSyncType frameSyncMode)
 {
 	Configuration& config = Configuration::instance();
-	const bool wasUsingOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
-	if (wasUsingOpenGL)
+	if ((config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL) || (config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT))
 	{
 		if (frameSyncMode >= Configuration::FrameSyncType::VSYNC_ON)
 		{
@@ -213,8 +214,31 @@ void EngineMain::setVSyncMode(Configuration::FrameSyncType frameSyncMode)
 	}
 }
 
+Vec2i EngineMain::getDisplaySize(int displayIndex) const
+{
+	SDL_Rect rect;
+	if (SDL_GetDisplayBounds(displayIndex, &rect) == 0)
+	{
+		return Vec2i(rect.w, rect.h);
+	}
+	else
+	{
+		SDL_DisplayMode dm;
+		if (SDL_GetDesktopDisplayMode(displayIndex, &dm) == 0)
+		{
+			return Vec2i(dm.w, dm.h);
+		}
+	}
+
+	// Return some fallback size in case everything failed... how about Full HD?
+	return Vec2i(1920, 1080);
+}
+
 bool EngineMain::startupEngine()
 {
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] startupEngine() started");
+#endif
 #if defined(PLATFORM_ANDROID)
 	{
 		// Create file provider for APK content access (and do it right here already)
@@ -226,60 +250,11 @@ bool EngineMain::startupEngine()
 
 	PlatformFunctions::onEngineStartup();
 
-	// Determine verious directory and file paths in config
-	initDirectories();
-
-	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
-	Configuration& config = Configuration::instance();
-
-	// Startup logging
-	{
-	#if defined(PLATFORM_PS3)
-		oxygen::Logging::startup(config.mAppDataPath + L"log.txt");
-		RMX_LOG_INFO("--- EARLY LOGGING START ---");
-	#else
-		oxygen::Logging::startup(config.mAppDataPath + L"logfile.txt");
-	#endif
-		RMX_LOG_INFO("--- STARTUP ---");
-		RMX_LOG_INFO("Logging started");
-		RMX_LOG_INFO("Application version: " << appMetaData.mBuildVersionString);
-
-		String commandLine;
-		for (std::string& arg : mArguments)
-		{
-			if (!commandLine.empty())
-				commandLine.add(' ');
-			commandLine.add(arg);
-		}
-		RMX_LOG_INFO("Command line:  " << commandLine.toStdString());
-		RMX_LOG_INFO("App data path: " << WString(config.mAppDataPath).toStdString());
-	}
-
 	if (!mDelegate.onEnginePreStartup())
 		return false;
 
-	std::wstring argumentProjectPath;
-#ifndef PLATFORM_ANDROID
-	// Parse arguments
-	for (size_t i = 1; i < mArguments.size(); ++i)
-	{
-		if (mArguments[i][0] == '-')
-		{
-			// TODO: Add handling for options
-		}
-		else
-		{
-			const String arg(mArguments[i]);
-
-			std::wstring path = arg.toStdWString();
-			FTX::FileSystem->normalizePath(path, true);
-			if (FTX::FileSystem->exists(path + L"oxygenproject.json"))
-			{
-				argumentProjectPath = path;
-			}
-		}
-	}
-#endif
+	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
+	Configuration& config = Configuration::instance();
 
 	// Don't use the accelerometer as a joystick on mobile devices, that's just confusing
 	SDL_SetHint(SDL_HINT_ACCELEROMETER_AS_JOYSTICK, "0");
@@ -288,24 +263,41 @@ bool EngineMain::startupEngine()
 	//  -> It should be disabled by default according to the SDL2 docs, but that does not seem to be always the case
 	SDL_DisableScreenSaver();
 
+	// Determine various directory and file paths in config
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] initDirectories()");
+#endif
+	initDirectories();
+
+	// Startup logging
+	{
+		oxygen::Logging::startup(config.mAppDataPath + L"logfile.txt");
+		RMX_LOG_INFO("--- STARTUP ---");
+		RMX_LOG_INFO("Logging started");
+		RMX_LOG_INFO("Application version: " << appMetaData.mBuildVersionString);
+		RMX_LOG_INFO("Executable path:     " << WString(mArguments.mExecutableCallPath).toStdString());
+		RMX_LOG_INFO("App data path:       " << WString(config.mAppDataPath).toStdString());
+	}
+
 	// Load configuration and settings
-	if (!initConfigAndSettings(argumentProjectPath))
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] initConfigAndSettings()");
+#endif
+	if (!initConfigAndSettings())
 		return false;
 
-	RMX_LOG_INFO("SaveStatesDirLocal: " << WString(config.mSaveStatesDirLocal).toStdString());
-	RMX_LOG_INFO("SaveStatesDir: " << WString(config.mSaveStatesDir).toStdString());
-#if defined(PLATFORM_PS3)
-	printf("PS3 SaveStatesDirLocal: %s\n", WString(config.mSaveStatesDirLocal).toStdString().c_str());
-	printf("PS3 SaveStatesDir: %s\n", WString(config.mSaveStatesDir).toStdString().c_str());
-	fflush(stdout);
-#endif
-
 	// Setup file system
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] initFileSystem()");
+#endif
 	RMX_LOG_INFO("File system setup");
 	if (!initFileSystem())
 		return false;
 
 	// System
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] FTX::System->initialize()");
+#endif
 	RMX_LOG_INFO("System initialization...");
 	if (!FTX::System->initialize())
 	{
@@ -314,6 +306,9 @@ bool EngineMain::startupEngine()
 	}
 
 	// Video
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] createWindow()");
+#endif
 	RMX_LOG_INFO("Video initialization...");
 	if (!createWindow())
 	{
@@ -321,25 +316,42 @@ bool EngineMain::startupEngine()
 		return false;
 	}
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] mVideoOut.startup()");
+#endif
 	RMX_LOG_INFO("Startup of VideoOut");
 	mInternal.mVideoOut.startup();
 
 	// Input manager startup after config is loaded
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] InputManager::startup()");
+#endif
 	RMX_LOG_INFO("Input initialization...");
 	InputManager::instance().startup();
 
-	RMX_LOG_INFO("Startup of ControlsIn");
-	mInternal.mControlsIn.startup();
-
 	// Audio
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] FTX::Audio->initialize()");
+#endif
 	RMX_LOG_INFO("Audio initialization...");
-	FTX::Audio->initialize(config.mAudioSampleRate, 2, 1024);
+	FTX::Audio->initialize(config.mAudio.mSampleRate, 2, 1024);
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] AudioOut::startup()");
+#endif
 	RMX_LOG_INFO("Startup of AudioOut");
 	mAudioOut = &EngineMain::getDelegate().createAudioOut();
 	mAudioOut->startup();
 
+	// Networking
+	RMX_LOG_INFO("Networking initialization...");
+	const bool useIPv6 = false;
+	mInternal.mEngineServerClient.setupClient(useIPv6);
+
 	// Done
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	ps3_log("[PS3] Engine startup successful");
+#endif
 	RMX_LOG_INFO("Engine startup successful");
 	return true;
 }
@@ -366,7 +378,6 @@ void EngineMain::shutdown()
 		mAudioOut->shutdown();
 		SAFE_DELETE(mAudioOut);
 	}
-	mInternal.mControlsIn.shutdown();
 
 	// Shutdown drawer
 	mDrawer.shutdown();
@@ -387,39 +398,23 @@ void EngineMain::initDirectories()
 	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
 	Configuration& config = Configuration::instance();
 
-#if !defined(PLATFORM_ANDROID)
-	config.mExePath = *String(mArguments[0]).toWString();
-	#if defined(PLATFORM_PS3)
-		rmx::FileSystem::normalizePath(config.mExePath, false);
-		RMX_LOG_INFO("Executable path: " << WString(config.mExePath).toStdString());
-	#endif
+#if !defined(PLATFORM_ANDROID) && !defined(PLATFORM_VITA)
+	config.mExePath = mArguments.mExecutableCallPath;
 #endif
 
 	// Get app data path
 	{
-	#if defined(PLATFORM_PS3)
-		// PlayStation 3
-		std::wstring initialPath = L"/dev_hdd0/game/" + appMetaData.mAppDataFolder + L"/USRDIR/";
-		config.mAppDataPath = initialPath;
-
-		const std::wstring& exePath = config.mExePath;
-		const size_t slashPos = exePath.find_last_of(L'/');
-		if (slashPos != std::wstring::npos)
-		{
-			config.mAppDataPath = exePath.substr(0, slashPos + 1);
-			// On PS3, we want to make sure the app data path is normalized and does not end in double slashes
-			rmx::FileSystem::normalizePath(config.mAppDataPath, true);
-			RMX_LOG_INFO("Derived app data path from executable: " << WString(config.mAppDataPath).toStdString());
-		}
-		else
-		{
-			RMX_LOG_INFO("Using default app data path: " << WString(config.mAppDataPath).toStdString());
-		}
-	#elif defined(PLATFORM_ANDROID)
+	#if defined(PLATFORM_ANDROID)
 		// Android
 		// TODO: Use internal storage path as a fallback?
 		WString storagePath = String(SDL_AndroidGetExternalStoragePath()).toWString();
 		config.mAppDataPath = *(storagePath + L'/');
+	#elif defined(PLATFORM_VITA)
+		// Vita
+		config.mAppDataPath = L"ux0:data/sonic3air/savedata/";
+	#elif defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		// PS3
+		config.mAppDataPath = rmx::convertFromUTF8(ps3_get_usrdir()) + L"/";
 	#elif !defined(PLATFORM_IOS)
 		// Choose app data path
 		{
@@ -454,86 +449,88 @@ void EngineMain::initDirectories()
 
 			rmx::FileSystem::normalizePath(redirectedPath, true);
 			if (!FTX::FileSystem->exists(redirectedPath))
-			{
-				RMX_LOG_INFO("Redirection failed, path does not exist: " << WString(redirectedPath).toStdString());
 				break;
-			}
 
-			RMX_LOG_INFO("Redirecting app data path to: " << WString(redirectedPath).toStdString());
 			config.mAppDataPath = redirectedPath;
 		}
 	}
 
-	config.mSaveStatesDirLocal = config.mAppDataPath + L"savestates/";
-	config.mSRamFilename = config.mAppDataPath + L"sram.bin";
-	config.mPersistentDataFilename = config.mAppDataPath + L"persistentdata.bin";
-
-#if defined(PLATFORM_PS3)
-	// On PS3, we also need to add a mount point for the app data path to the filesystem
-	// (Otherwise it might not be able to create files there, as it only knows about the initial root mount)
-	// We mount it as a root replacement so that relative paths are correctly resolved to the USRDIR
-	rmx::RealFileProvider* provider = new rmx::RealFileProvider();
-	FTX::FileSystem->addManagedFileProvider(*provider);
-	FTX::FileSystem->addMountPoint(*provider, L"", config.mAppDataPath, 0x10);
-#endif
+	// Fill some paths with fallback values, even though we haven't loaded a game profile yet
+	updateGameProfilePaths();
 }
 
-bool EngineMain::initConfigAndSettings(const std::wstring& argumentProjectPath)
+bool EngineMain::initConfigAndSettings()
 {
 	RMX_LOG_INFO("Initializing configuration");
 	Configuration& config = Configuration::instance();
 	config.initialization();
 
 	RMX_LOG_INFO("Loading configuration");
-	if (FTX::FileSystem->exists(config.mAppDataPath + L"config.json"))
-	{
-		RMX_LOG_INFO("Loading config.json from app data path");
-		config.loadConfiguration(config.mAppDataPath + L"config.json");
-	}
-	else
-	{
-#if (defined(PLATFORM_MAC) || defined(PLATFORM_IOS)) && defined(ENDUSER)
-		RMX_LOG_INFO("Loading config.json from game data path");
-		config.loadConfiguration(config.mGameDataPath + L"/config.json");
-#else
-		RMX_LOG_INFO("Loading local config.json");
-		config.loadConfiguration(L"config.json");
-#endif
-	}
+	loadConfigJson();
 
 	// Setup a custom game profile (like S3AIR does) or load the "oxygenproject.json"
 	const bool hasCustomGameProfile = mDelegate.setupCustomGameProfile();
 	if (!hasCustomGameProfile)
 	{
-		if (!argumentProjectPath.empty())
+		if (!mArguments.mProjectPath.empty() && FTX::FileSystem->exists(mArguments.mProjectPath + L"oxygenproject.json"))
 		{
 			// Overwrite project path from config
-			config.mProjectPath = argumentProjectPath;
+			config.mProjectPath = mArguments.mProjectPath;
 		}
-		if (!config.mProjectPath.empty())
-		{
-			RMX_LOG_INFO("Loading game profile");
-			const bool loadedProject = mInternal.mGameProfile.loadOxygenProjectFromFile(config.mProjectPath + L"oxygenproject.json");
-			RMX_CHECK(loadedProject, "Failed to load game profile from '" << *WString(config.mProjectPath).toString() << "oxygenproject.json'", );
-		}
+
+		RMX_LOG_INFO("Loading game profile");
+		const bool loadedProject = mInternal.mGameProfile.loadOxygenProjectFromFile(config.mProjectPath + L"oxygenproject.json");
+		RMX_CHECK(loadedProject, "Failed to load game profile from '" << *WString(config.mProjectPath).toString() << "oxygenproject.json'", );
 	}
 
-	RMX_LOG_INFO("Loading settings from: " << WString(config.mAppDataPath).toStdString());
+	updateGameProfilePaths();
+
+	// Load settings
+	RMX_LOG_INFO("Loading settings");
 	const bool loadedSettings = config.loadSettings(config.mAppDataPath + L"settings.json", Configuration::SettingsType::STANDARD);
 	config.loadSettings(config.mAppDataPath + L"settings_input.json", Configuration::SettingsType::INPUT);
-	config.loadSettings(config.mAppDataPath + L"settings_global.json", Configuration::SettingsType::GLOBAL);
-	RMX_LOG_INFO("Settings loaded: " << (loadedSettings ? "SUCCESS" : "FAILED (using defaults)"));
-	if (!loadedSettings)
+	if (loadedSettings)
+	{
+	#if defined(PLATFORM_IS_DESKTOP)
+		// Load config.json once again on top, so that config.json is preferred over settings.json
+		if (!hasCustomGameProfile && !mArguments.mProjectPath.empty() && FTX::FileSystem->exists(mArguments.mProjectPath + L"oxygenproject.json"))
+		{
+			// Load project path's config.json, if there is one
+			config.loadConfiguration(mArguments.mProjectPath + L"config.json");
+		}
+		else
+		{
+			loadConfigJson();
+		}
+	#endif
+
+		// Remove old "settings_global.json", which was only used for legacy compatibility
+		FTX::FileSystem->removeFile(config.mAppDataPath + L"settings_global.json");
+	}
+	else
 	{
 		// Save default settings once immediately
 		config.saveSettings();
 	}
 
+	// Respect display index if set on the command line
+	if (mArguments.mDisplayIndex >= 0)
+	{
+		config.mDisplayIndex = mArguments.mDisplayIndex;
+	}
+
+	// Enable dev mode if requested
+	config.mDevMode.mEnabled = config.mDevMode.mEnableAtStartup;
+
 	// Evaluate fail-safe mode
 	if (config.mFailSafeMode)
 	{
 		RMX_LOG_INFO("Using fail-safe mode");
+	#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		config.mRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
+	#else
 		config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;	// Should already be set actually, but why not play it safe
+	#endif
 	}
 	else if (config.mRenderMethod == Configuration::RenderMethod::UNDEFINED)
 	{
@@ -541,43 +538,107 @@ bool EngineMain::initConfigAndSettings(const std::wstring& argumentProjectPath)
 	}
 
 	// Respect the platform's settings for supported render methods
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	config.mRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
+#else
 	if (config.mRenderMethod > Configuration::getHighestSupportedRenderMethod())
 		config.mRenderMethod = Configuration::getHighestSupportedRenderMethod();
-
-#if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS)
-	// Use fullscreen, with no borders please
-	//  -> Note that this doesn't work for the web version, if running in mobile browsers - we rely on a window with fixed size (see config.json) there
-	config.mWindowMode = Configuration::WindowMode::EXCLUSIVE_FULLSCREEN;
 #endif
 
-	config.evaluateGameRecording();
+#if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
+	// Use fullscreen, with no borders please
+	//  -> Note that this doesn't work for the web version, if running in mobile browsers - we rely on a window with fixed size (see config.json) there
+	config.mWindowMode = Configuration::WindowMode::FULLSCREEN_EXCLUSIVE;
+#endif
 
 	RMX_LOG_INFO(((config.mRenderMethod == Configuration::RenderMethod::SOFTWARE) ? "Using pure software renderer" :
-				  (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FIXED) ? "Using opengl-fixed renderer" :
 				  (config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT) ? "Using opengl-soft renderer" : "Using opengl-full renderer"));
 	return true;
 }
 
+void EngineMain::loadConfigJson()
+{
+	Configuration& config = Configuration::instance();
+	if (FTX::FileSystem->exists(config.mAppDataPath + L"config.json"))
+	{
+		config.loadConfiguration(config.mAppDataPath + L"config.json");
+	}
+	else
+	{
+	#if (defined(PLATFORM_MAC) || defined(PLATFORM_IOS)) && defined(ENDUSER)
+		config.loadConfiguration(config.mGameDataPath + L"/config.json");
+	#else
+		config.loadConfiguration(L"config.json");
+	#endif
+	}
+}
+
+void EngineMain::updateGameProfilePaths()
+{
+	Configuration& config = Configuration::instance();
+
+	// Use an project-specific app data sub-folder path, unless the application defined its own app data folder (like the S3AIR executable does)
+	if ((mDelegate.getAppMetaData().mAppDataFolder != L"OxygenEngine") || mInternal.mGameProfile.mIdentifier.empty())
+	{
+		config.mGameAppDataPath = config.mAppDataPath;
+	}
+	else
+	{
+		config.mGameAppDataPath = config.mAppDataPath + L"_" + String(mInternal.mGameProfile.mIdentifier).toStdWString() + L"/";
+	}
+
+	// Update dependent paths
+	config.mSaveStatesDirLocal = config.mGameAppDataPath + L"savestates/";
+	config.mPersistentDataBasePath = config.mGameAppDataPath + L"storage/";
+}
+
 bool EngineMain::initFileSystem()
 {
-	// Create mod data folder (the default mod directory)
 	Configuration& config = Configuration::instance();
-	RMX_LOG_INFO("Creating mods directory at: " << WString(config.mAppDataPath + L"mods").toStdString());
-	FTX::FileSystem->createDirectory(config.mAppDataPath + L"mods");
 
-	// Add real file system provider for the game data path, if it isn't located in local "data" directory
+	if (mDelegate.isDedicatedApplication())
+	{
+		// Add Oxygen Engine data path if it exists in the expected place
+		//  -> This is relevant when starting an external project app (like S3AIR) during development
+		const std::wstring engineBasePath = L"../oxygenengine/";
+		if (FTX::FileSystem->exists(engineBasePath))
+		{
+			rmx::RealFileProvider* provider = new rmx::RealFileProvider();
+			FTX::FileSystem->addManagedFileProvider(*provider);
+			FTX::FileSystem->addMountPoint(*provider, L"data/", engineBasePath + L"data/", 0x10);
+		}
+	}
+
+	// In case the game data path isn't located in local "data" directory, add a real file system provider for it
 	//  -> This is relevant for Oxygen Engine using an external game data path
-	RMX_LOG_INFO("Game data path: " << WString(config.mGameDataPath).toStdString());
+	//  -> Also, the Mac build of S3AIR requires this logic, as game data is in a different subdirectory inside the app container than the binary
+	//  -> In other cases (such as S3AIR on other platforms), no additional real file provider is needed, so this part is skipped
 	if (config.mGameDataPath != L"data" && config.mGameDataPath != L"./data")
 	{
-		RMX_LOG_INFO("Mounting external game data path: " << WString(config.mGameDataPath).toStdString());
 		rmx::RealFileProvider* provider = new rmx::RealFileProvider();
 		FTX::FileSystem->addManagedFileProvider(*provider);
 		FTX::FileSystem->addMountPoint(*provider, L"data/", config.mGameDataPath + L'/', 0x10);
 	}
 
+	// Create mod data folder (the default mod directory)
+	FTX::FileSystem->createDirectory(config.mGameAppDataPath + L"mods");
+
 	// Add package providers
-	return loadFilePackages(false);
+	if (!loadFilePackages(false))
+		return false;
+
+	// Sanity check if engine data exists
+	//  -> The Oxygen icon is a file that is always part of the engine data, so we just check for that
+	if (!FTX::FileSystem->exists(config.mEngineDataPath + L"/oxygen_icon.png"))
+	{
+		if (mDelegate.isDedicatedApplication())
+			RMX_ERROR("Could not find engine data.\nThis can mean your game installation is broken and needs to be downloaded and installed again.\n\nIn case you manually replaced your data folder with the source data files, please make sure to also copy over the files from 'oxygenengine/data' as well.", )
+		else
+			RMX_ERROR("Could not find engine data.\nThis can mean your game installation is broken and needs to be downloaded and installed again.", );
+		return false;
+	}
+
+	return true;
 }
 
 bool EngineMain::loadFilePackages(bool forceReload)
@@ -628,21 +689,16 @@ bool EngineMain::loadFilePackageByIndex(size_t index, bool forceReload)
 
 	// First try loading from game installation
 	const std::wstring gameDataBasePath = config.mGameDataPath + L"/";
-	const std::wstring fullPackagePath = gameDataBasePath + dataPackage.mFilename;
-	RMX_LOG_INFO("Trying to load package: " << WString(fullPackagePath).toStdString());
-	PackedFileProvider* provider = PackedFileProvider::createPackedFileProvider(fullPackagePath);
+	PackedFileProvider* provider = PackedFileProvider::createPackedFileProvider(gameDataBasePath + dataPackage.mFilename);
 	if (nullptr == provider)
 	{
 		// Then try loading from save data (e.g. downloaded packages)
-		const std::wstring saveDataBasePath = config.mAppDataPath + L"data/";
-		const std::wstring fullSavePackagePath = saveDataBasePath + dataPackage.mFilename;
-		RMX_LOG_INFO("Trying to load package from app data: " << WString(fullSavePackagePath).toStdString());
-		provider = PackedFileProvider::createPackedFileProvider(fullSavePackagePath);
+		const std::wstring saveDataBasePath = config.mAppDataPath + L"/data/";
+		provider = PackedFileProvider::createPackedFileProvider(saveDataBasePath + dataPackage.mFilename);
 	}
 
 	if (nullptr != provider)
 	{
-		RMX_LOG_INFO("Successfully loaded package: " << WString(dataPackage.mFilename).toStdString());
 		// Mount to "data" in any case, otherwise OxygenApp won't work when the game data path is somewhere different
 		FTX::FileSystem->addManagedFileProvider(*provider);
 		FTX::FileSystem->addMountPoint(*provider, L"data/", L"data/", 0x20 + (int)index);
@@ -651,7 +707,6 @@ bool EngineMain::loadFilePackageByIndex(size_t index, bool forceReload)
 	}
 
 	// Failed
-	RMX_LOG_INFO("Failed to load package: " << WString(dataPackage.mFilename).toStdString());
 	return false;
 }
 
@@ -660,11 +715,11 @@ bool EngineMain::createWindow()
 	Configuration& config = Configuration::instance();
 	const EngineDelegateInterface::AppMetaData& appMetaData = mDelegate.getAppMetaData();
 
-	const bool useOpenGL = (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT);
+	const bool useOpenGL = (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FULL) || (config.mRenderMethod == Configuration::RenderMethod::OPENGL_SOFT);
 
 	// Setup video config
 	rmx::VideoConfig videoConfig(config.mWindowMode != Configuration::WindowMode::WINDOWED, config.mWindowSize.x, config.mWindowSize.y, appMetaData.mTitle.c_str());
-	videoConfig.mRenderer = useOpenGL ? rmx::VideoConfig::Renderer_OPENGL : rmx::VideoConfig::Renderer_SOFTWARE;
+	videoConfig.mRenderer = useOpenGL ? rmx::VideoConfig::Renderer::OPENGL : rmx::VideoConfig::Renderer::SOFTWARE;
 	videoConfig.mResizeable = true;
 	videoConfig.mAutoClearScreen = useOpenGL;
 	videoConfig.mAutoSwapBuffers = false;
@@ -736,33 +791,28 @@ bool EngineMain::createWindow()
 				break;
 			}
 
-			case Configuration::WindowMode::BORDERLESS_FULLSCREEN:
+			case Configuration::WindowMode::FULLSCREEN_BORDERLESS:
 			{
 				// Borderless maximized window
-				SDL_Rect rect;
-				if (SDL_GetDisplayBounds(displayIndex, &rect) == 0)
-				{
-					videoConfig.mWindowRect.width = rect.w;
-					videoConfig.mWindowRect.height = rect.h;
-				}
-				else
-				{
-					SDL_DisplayMode dm;
-					if (SDL_GetDesktopDisplayMode(displayIndex, &dm) == 0)
-					{
-						videoConfig.mWindowRect.width = dm.w;
-						videoConfig.mWindowRect.height = dm.h;
-					}
-				}
+				videoConfig.mWindowRect.setSize(getDisplaySize(displayIndex));
 				flags |= SDL_WINDOW_BORDERLESS;
 				break;
 			}
 
-			case Configuration::WindowMode::EXCLUSIVE_FULLSCREEN:
+			case Configuration::WindowMode::FULLSCREEN_DESKTOP:
 			{
 				// Fullscreen window at desktop resolution
 				//  -> According to https://wiki.libsdl.org/SDL_SetWindowFullscreen, this is not really an exclusive fullscreen mode, but that's fine
+				videoConfig.mWindowRect.setSize(getDisplaySize(displayIndex));
 				flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+				break;
+			}
+
+			case Configuration::WindowMode::FULLSCREEN_EXCLUSIVE:
+			{
+				// Real exclusive fullscreen with desktop resolution (though also allowing for a custom resolution)
+				videoConfig.mWindowRect.setSize(getDisplaySize(displayIndex));
+				flags |= SDL_WINDOW_FULLSCREEN;
 				break;
 			}
 		}
@@ -778,28 +828,28 @@ bool EngineMain::createWindow()
 		SDL_GetWindowSize(mSDLWindow, &videoConfig.mWindowRect.width, &videoConfig.mWindowRect.height);
 		SDL_ShowCursor(!videoConfig.mHideCursor);
 
-#if defined(PLATFORM_PS3)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
 		if (true)
 #else
 		if (useOpenGL)
 #endif
 		{
 			RMX_LOG_INFO("Creating OpenGL context...");
-		#if defined(PLATFORM_PS3)
-			PSGLinitOptions options =
-			{
-				enable: PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE,
-				maxSPUs: 1,
-				initializeSPUs: true,
-				persistentMemorySize: 32 * 1024 * 1024,
-				transientMemorySize: 8 * 1024 * 1024,
-				errorConsole: 0,
-				fifoSize: 2 * 1024 * 1024,
-				hostMemorySize: 64 * 1024 * 1024
-			};
+		#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+			PSGLinitOptions options;
+			memset(&options, 0, sizeof(options));
+			options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE;
+			options.maxSPUs = 1;
+			options.initializeSPUs = GL_TRUE;
+			options.persistentMemorySize = 32 * 1024 * 1024;
+			options.transientMemorySize = 8 * 1024 * 1024;
+			options.errorConsole = 0;
+			options.fifoSize = 2 * 1024 * 1024;
+			options.hostMemorySize = 64 * 1024 * 1024;
 			psglInit(&options);
 
 			PSGLdeviceParameters params;
+			memset(&params, 0, sizeof(params));
 			params.enable = PSGL_DEVICE_PARAMETERS_COLOR_FORMAT | PSGL_DEVICE_PARAMETERS_DEPTH_FORMAT | PSGL_DEVICE_PARAMETERS_MULTISAMPLING_MODE | PSGL_DEVICE_PARAMETERS_BUFFERING_MODE | PSGL_DEVICE_PARAMETERS_RESC_ADJUST_ASPECT_RATIO;
 			params.bufferingMode = PSGL_BUFFERING_MODE_DOUBLE;
 			params.colorFormat = GL_ARGB_SCE;
@@ -817,7 +867,7 @@ bool EngineMain::createWindow()
 
 			if (nullptr != context)
 			{
-				GLuint w, h;
+				GLuint w = 1280, h = 720;
 				psglGetDeviceDimensions(device, &w, &h);
 				videoConfig.mWindowRect.width = (int)w;
 				videoConfig.mWindowRect.height = (int)h;
@@ -826,7 +876,6 @@ bool EngineMain::createWindow()
 			}
 		#else
 			SDL_GLContext context = SDL_GL_CreateContext(mSDLWindow);
-		#endif
 			if (nullptr != context)
 			{
 				RMX_LOG_INFO("Vsync setup...");
@@ -838,22 +887,26 @@ bool EngineMain::createWindow()
 				config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;
 				// TODO: In this case, the SDL window was created with SDL_WINDOW_OPENGL flag, but that does not seem to be a problem
 			}
+		#endif
 		}
 	}
 
 	// Create drawer depending on render method
 #ifdef RMX_WITH_OPENGL_SUPPORT
-	if (config.mRenderMethod == Configuration::RenderMethod::OPENGL_FIXED)
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	RMX_LOG_INFO("Creating FixedFunctionDrawer for PS3...");
+	if (!mDrawer.createDrawer<FixedFunctionDrawer>())
 	{
-		if (!mDrawer.createDrawer<FixedFunctionDrawer>())
+		RMX_LOG_INFO("FixedFunctionDrawer setup failed, trying OpenGLDrawer");
+		if (!mDrawer.createDrawer<OpenGLDrawer>())
 		{
-			// Fallback to software drawer
-			RMX_LOG_INFO("Fixed-function drawer setup failed, using software rendering");
+			RMX_LOG_INFO("OpenGL drawer setup failed, using software rendering");
 			config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;
 			mDrawer.createDrawer<SoftwareDrawer>();
 		}
 	}
-	else if (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT)
+#else
+	if (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT)
 	{
 		if (!mDrawer.createDrawer<OpenGLDrawer>())
 		{
@@ -864,10 +917,15 @@ bool EngineMain::createWindow()
 		}
 	}
 	else
-#endif
 	{
 		mDrawer.createDrawer<SoftwareDrawer>();
 	}
+#endif
+#else
+	{
+		mDrawer.createDrawer<SoftwareDrawer>();
+	}
+#endif
 
 	// Tell FTX video manager that everything is okay
 	FTX::Video->setInitialized(videoConfig, mSDLWindow);
