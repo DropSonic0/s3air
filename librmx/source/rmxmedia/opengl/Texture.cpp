@@ -10,19 +10,6 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
-#if defined(PLATFORM_PS3)
-static void swizzleRGBAtoARGB(uint32_t* data, int count)
-{
-	for (int i = 0; i < count; ++i)
-	{
-		uint32_t rgba = data[i];
-		// Input (RGBA): 0xRRGGBBAA
-		// Output (ARGB): 0xAARRGGBB
-		data[i] = (rgba >> 8) | (rgba << 24);
-	}
-}
-#endif
-
 Texture::Texture() : mHandle(0), mType(0), mFormat(0), mWidth(0), mHeight(0), mFilterLinear(true), mHasMipmaps(false)
 {
 	initialize();
@@ -88,7 +75,7 @@ void Texture::create(int width, int height, int format)
 
 	bind();
 #if defined(PLATFORM_PS3)
-	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 #else
 	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 #endif
@@ -112,7 +99,7 @@ void Texture::createCubemap(int width, int height, int format)
 	for (int i = 0; i < 6; ++i)
 	{
 #if defined(PLATFORM_PS3)
-		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 #else
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 #endif
@@ -128,21 +115,8 @@ void Texture::load(const void* data, int width, int height)
 	generate();
 	bind();
 
-#if defined(PLATFORM_PS3)
-	if (data != nullptr)
-	{
-		// We need to swizzle the data for PS3's ARGB format
-		std::vector<uint32_t> swizzledData((uint32_t*)data, (uint32_t*)data + (width * height));
-		swizzleRGBAtoARGB(&swizzledData[0], width * height);
-		glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, &swizzledData[0]);
-	}
-	else
-	{
-		glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
-	}
-#else
 	glTexImage2D(mType, 0, mFormat, mWidth, mHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-#endif
+
 
 	setFilterLinear();
 	setWrapClamp();
@@ -172,16 +146,9 @@ void Texture::updateRect(const void* data, const Recti& rect)
 		return;
 
 	bind();
-#if defined(PLATFORM_PS3)
-	if (data != nullptr)
-	{
-		std::vector<uint32_t> swizzledData((uint32_t*)data, (uint32_t*)data + (rect.width * rect.height));
-		swizzleRGBAtoARGB(&swizzledData[0], rect.width * rect.height);
-		glTexSubImage2D(mType, 0, rect.x, rect.y, rect.width, rect.height, GL_ARGB_SCE, GL_UNSIGNED_BYTE, &swizzledData[0]);
-	}
-#else
+
 	glTexSubImage2D(mType, 0, rect.x, rect.y, rect.width, rect.height, GL_RGBA, GL_UNSIGNED_BYTE, data);
-#endif
+
 }
 
 void Texture::updateRect(const Bitmap& bitmap, int px, int py)
@@ -269,7 +236,7 @@ void Texture::setWrapRepeatMirror()
 int Texture::getDefaultDataFormat(int internalFormat)
 {
 #if defined(PLATFORM_PS3)
-	return GL_ARGB_SCE;
+	return GL_RGBA;
 #else
 	return GL_RGBA;
 #endif

@@ -30,7 +30,7 @@ void OpenGLTexture::loadBitmap(const Bitmap& bitmap)
 
 	glBindTexture(GL_TEXTURE_2D, mTextureHandle);
 #if defined(PLATFORM_PS3)
-	glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, bitmap.getWidth(), bitmap.getHeight(), 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, bitmap.getData());
+	glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, bitmap.getWidth(), bitmap.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.getData());
 #else
 	glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, bitmap.getWidth(), bitmap.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.getData());
 #endif
@@ -51,7 +51,7 @@ void OpenGLTexture::setup(Vec2i size, GLint format)
 
 	glBindTexture(GL_TEXTURE_2D, mTextureHandle);
 #if defined(PLATFORM_PS3)
-	glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 #else
 	glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 #endif

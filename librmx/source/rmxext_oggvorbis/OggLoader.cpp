@@ -23,10 +23,13 @@ bool OggLoader::staticLoadVorbis(AudioBuffer* buffer, const String& source, cons
 
 OggLoader::OggLoader()
 {
-	mIsStreaming = false; mInputStream = nullptr; mAudioBuffer = nullptr; mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
+	mIsStreaming = false;
 	mInputStream = nullptr;
 	mAudioBuffer = nullptr;
-	mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
+	mError = OggLoaderError::OK;
+	mVorbisGranulePos = 0;
+	mAudioState = OggLoaderState::INACTIVE;
+	mSkipAudioSampleOutput = 0;
 	ogg_sync_init(&mSyncState);
 }
 
@@ -40,8 +43,6 @@ void OggLoader::reset()
 {
 	if (mAudioState != OggLoaderState::INACTIVE)
 	{
-		mAudioState = OggLoaderState::INACTIVE;
-
 		ogg_stream_clear(&mVorbisStreamState);
 		vorbis_block_clear(&mVorbisBlock);
 		vorbis_dsp_clear(&mVorbisDspState);
@@ -49,10 +50,13 @@ void OggLoader::reset()
 		vorbis_info_clear(&mVorbisInfo);
 	}
 
-	mIsStreaming = false; mInputStream = nullptr; mAudioBuffer = nullptr; mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
+	mIsStreaming = false;
 	mInputStream = nullptr;
 	mAudioBuffer = nullptr;
-	mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
+	mError = OggLoaderError::OK;
+	mVorbisGranulePos = 0;
+	mAudioState = OggLoaderState::INACTIVE;
+	mSkipAudioSampleOutput = 0;
 
 	ogg_sync_reset(&mSyncState);
 }
@@ -76,6 +80,7 @@ bool OggLoader::openStreams(InputStream* istream)
 {
 	mInputStream = istream;
 	mAudioState = OggLoaderState::INACTIVE;
+	RMX_LOG_INFO("[PS3-OggLoader] openStreams: istream=" << (void*)istream);
 
 	// Initialisation Ogg/Vorbis
 	vorbis_info_init(&mVorbisInfo);
@@ -187,6 +192,7 @@ bool OggLoader::openStreams(InputStream* istream)
 
 bool OggLoader::startVorbisStreaming(AudioBuffer* audiobuffer, InputStream* istream, float precachingTime)
 {
+	RMX_LOG_INFO("[PS3-OggLoader] startVorbisStreaming: audiobuffer=" << (void*)audiobuffer << ", istream=" << (void*)istream);
 	// Read from Ogg Vorbis input stream
 	reset();
 	if (0 == audiobuffer)
@@ -194,6 +200,7 @@ bool OggLoader::startVorbisStreaming(AudioBuffer* audiobuffer, InputStream* istr
 	mAudioBuffer = audiobuffer;
 	mAudioBuffer->clear();
 	mIsStreaming = openStreams(istream);
+	RMX_LOG_INFO("[PS3-OggLoader] startVorbisStreaming: mIsStreaming=" << mIsStreaming << ", error=" << (int)mError);
 	if (!mIsStreaming)
 		return false;
 	if (precachingTime > 0.0f)
@@ -214,8 +221,53 @@ bool OggLoader::updateStreaming()
 		const int memcount = vorbis_synthesis_pcmout(&mVorbisDspState, &pcm);
 		if (memcount > 0)
 		{
+			RMX_LOG_INFO("[PS3-OggLoader] updateStreaming: memcount=" << memcount);
 			// Fill output audio buffer
 			int samples = memcount;
+
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+			// Tremor (libivorbis) outputs 32-bit fixed-point samples in Q24 format (1 << 24 = 1.0)
+			ogg_int32_t** intPcm = (ogg_int32_t**)pcm;
+			static std::vector<short> buffer0;
+			static std::vector<short> buffer1;
+			if ((int)buffer0.size() < samples)
+			{
+				buffer0.resize(samples);
+				buffer1.resize(samples);
+			}
+
+			const ogg_int32_t* src0 = intPcm[0];
+			const ogg_int32_t* src1 = (mVorbisInfo.channels >= 2) ? intPcm[1] : intPcm[0];
+
+			if (mSkipAudioSampleOutput >= samples)
+			{
+				mSkipAudioSampleOutput -= samples;
+			}
+			else
+			{
+				if (mSkipAudioSampleOutput > 0)
+				{
+					src0 += mSkipAudioSampleOutput;
+					src1 += mSkipAudioSampleOutput;
+					samples -= mSkipAudioSampleOutput;
+					mSkipAudioSampleOutput = 0;
+				}
+
+				for (int s = 0; s < samples; ++s)
+				{
+					int val0 = src0[s] >> 9; // Q24 to 16-bit signed short
+					buffer0[s] = (short)clamp(val0, -32768, 32767);
+
+					int val1 = src1[s] >> 9;
+					buffer1[s] = (short)clamp(val1, -32768, 32767);
+				}
+
+				short* shortSource[2] = { &buffer0[0], &buffer1[0] };
+				mAudioBuffer->lock();
+				mAudioBuffer->addData(shortSource, samples);
+				mAudioBuffer->unlock();
+			}
+#else
 			float* source[2];
 			source[0] = pcm[0];
 			source[1] = (mVorbisInfo.channels >= 2) ? pcm[1] : pcm[0];
@@ -238,6 +290,7 @@ bool OggLoader::updateStreaming()
 				mAudioBuffer->addData(source, samples);
 				mAudioBuffer->unlock();
 			}
+#endif
 
 			vorbis_synthesis_read(&mVorbisDspState, memcount);
 			return true;
@@ -245,9 +298,12 @@ bool OggLoader::updateStreaming()
 
 		// Decode next Vorbis packet
 		ogg_packet oggPacket;
-		if (ogg_stream_packetout(&mVorbisStreamState, &oggPacket) > 0)
+		int pktRes = ogg_stream_packetout(&mVorbisStreamState, &oggPacket);
+		if (pktRes > 0)
 		{
-			if (vorbis_synthesis(&mVorbisBlock, &oggPacket) == 0)
+			int synthRes = vorbis_synthesis(&mVorbisBlock, &oggPacket);
+			RMX_LOG_INFO("[PS3-OggLoader] packetout: bytes=" << oggPacket.bytes << ", synthRes=" << synthRes);
+			if (synthRes == 0)
 			{
 				vorbis_synthesis_blockin(&mVorbisDspState, &mVorbisBlock);
 			}
@@ -257,9 +313,11 @@ bool OggLoader::updateStreaming()
 
 	// Get more ogg pages
 	ogg_page oggPage;
-	if (ogg_sync_pageout(&mSyncState, &oggPage) == 1)
+	int pageRes = ogg_sync_pageout(&mSyncState, &oggPage);
+	if (pageRes == 1)
 	{
 		const ogg_int64_t gpos = ogg_page_granulepos(&oggPage);
+		RMX_LOG_INFO("[PS3-OggLoader] pageout success, gpos=" << (long long)gpos);
 		if (nullptr != mAudioBuffer && ogg_stream_pagein(&mVorbisStreamState, &oggPage) == 0)
 		{
 			if (gpos >= 0)
@@ -270,16 +328,22 @@ bool OggLoader::updateStreaming()
 	}
 
 	// If all above failed, more data from the input stream is needed
-	if (bufferData() > 0)
+	int bytesRead = bufferData();
+	RMX_LOG_INFO("[PS3-OggLoader] bufferData read: " << bytesRead << " bytes");
+	if (bytesRead > 0)
 	{
 		return true;
 	}
 
+	RMX_LOG_INFO("[PS3-OggLoader] EOF reached, streaming complete");
 	// Input stream read complete and decoded everything, word here is done
 	mAudioState = OggLoaderState::COMPLETE;
-	mIsStreaming = false; mInputStream = nullptr; mAudioBuffer = nullptr; mError = OggLoaderError::OK; mVorbisGranulePos = 0; mAudioState = OggLoaderState::INACTIVE; mSkipAudioSampleOutput = 0;
+	mIsStreaming = false;
 
-	mAudioBuffer->setCompleted();
+	if (nullptr != mAudioBuffer)
+	{
+		mAudioBuffer->setCompleted();
+	}
 	return false;
 }
 

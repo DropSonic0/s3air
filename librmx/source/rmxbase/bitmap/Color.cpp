@@ -47,18 +47,10 @@ uint32 Color::getARGB32() const
 
 uint32 Color::getABGR32() const
 {
-#if defined(PLATFORM_PS3)
-	// On PS3, we use ARGB as the 32-bit pixel format
-	return ((uint32)(::saturate(a) * 255) << 24)
-		 + ((uint32)(::saturate(r) * 255) << 16)
-		 + ((uint32)(::saturate(g) * 255) << 8)
-		 + ((uint32)(::saturate(b) * 255));
-#else
 	return ((uint32)(::saturate(r) * 255))
 		 + ((uint32)(::saturate(g) * 255) << 8)
 		 + ((uint32)(::saturate(b) * 255) << 16)
 		 + ((uint32)(::saturate(a) * 255) << 24);
-#endif
 }
 
 Color::Color(uint32 color, Encoding_t encoding) : Vec4f(Uninitialized)
@@ -94,18 +86,10 @@ void Color::setARGB32(uint32 colorARGB)
 
 void Color::setABGR32(uint32 colorABGR)
 {
-#if defined(PLATFORM_PS3)
-	// On PS3, we use ARGB as the 32-bit pixel format
-	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
-	r = (float)((colorABGR >> 16) & 0xff) / 255.0f;
-	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
-	b = (float)((colorABGR)       & 0xff) / 255.0f;
-#else
 	r = (float)((colorABGR)       & 0xff) / 255.0f;
 	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
 	b = (float)((colorABGR >> 16) & 0xff) / 255.0f;
 	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
-#endif
 }
 
 void Color::setFromHSL(const Vec3f& hsl)
@@ -260,37 +244,12 @@ void Color::serialize(VectorBinarySerializer& serializer)
 	if (serializer.isReading())
 	{
 		uint32 abgr = serializer.read<uint32>();
-#if defined(PLATFORM_PS3)
-		// On PS3, ABGR32 was (a<<24)|(r<<16)|(g<<8)|b but on others it was r|(g<<8)|(b<<16)|(a<<24)
-		// To maintain compatibility with Little-Endian save states, we must interpret the serialized 
-		// uint32 as Little-Endian ABGR (a|b|g|r in memory) and convert to our internal representation.
-		
-		// The VectorBinarySerializer already swapped bytes if host is BE, so we have the LE value here.
-		// LE value: a is highest byte, b, g, r is lowest. 
-		// We want to call setABGR32 which on PS3 expects (a<<24)|(r<<16)|(g<<8)|b.
-		uint32 converted = ((abgr & 0xff000000))        // Alpha
-						 | ((abgr & 0x000000ff) << 16)  // Red
-						 | ((abgr & 0x0000ff00))        // Green
-						 | ((abgr & 0x00ff0000) >> 16); // Blue
-		setABGR32(converted);
-#else
 		setABGR32(abgr);
-#endif
 	}
 	else
 	{
 		uint32 abgr = getABGR32();
-#if defined(PLATFORM_PS3)
-		// Convert from internal PS3 ABGR32 (a<<24)|(r<<16)|(g<<8)|b
-		// to standard LE ABGR32 (a<<24)|(b<<16)|(g<<8)|r
-		uint32 converted = ((abgr & 0xff000000))        // Alpha
-						 | ((abgr & 0x00ff0000) >> 16)  // Red
-						 | ((abgr & 0x0000ff00))        // Green
-						 | ((abgr & 0x000000ff) << 16); // Blue
-		serializer.write<uint32>(converted);
-#else
 		serializer.write<uint32>(abgr);
-#endif
 	}
 }
 

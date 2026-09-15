@@ -130,11 +130,7 @@ bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadRes
 		for (int i = 0; i < pal_size; ++i)
 		{
 			palSerializer.serialize(palette[i]);
-#if !defined(PLATFORM_PS3)
 			palette[i] = RGBA_to_BGRA(palette[i] | 0xff000000);
-#else
-			palette[i] = palette[i] | 0xff000000;
-#endif
 		}
 	}
 
@@ -237,13 +233,9 @@ bool BitmapCodecBMP::encode(const Bitmap& bitmap, OutputStream& stream)
 	for (int y = 0; y < height; ++y)
 	{
 		const uint32* src = bitmap.getPixelPointer(0, height-y-1);
-#if !defined(PLATFORM_PS3)
 		for (int x = 0; x < width; ++x)
 			output[x] = RGBA_to_BGRA(src[x]);
-#else
-		for (int x = 0; x < width; ++x)
-			output[x] = src[x];
-#endif
+
 		
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 		for (int x = 0; x < width; ++x)

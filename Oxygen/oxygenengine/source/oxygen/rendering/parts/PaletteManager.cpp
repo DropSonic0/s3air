@@ -112,13 +112,8 @@ Color PaletteManager::unpackColor(uint16 packedColor)
 		b = ((packedColor >> 9) & 0x07) * 0x24;
 	}
 
-#if defined(PLATFORM_PS3)
-	uint32 color = (r << 24) | (g << 16) | (b << 8) | 0xff;
-	return Color::fromRGBA32(color);
-#else
 	uint32 color = r | (g << 8) | (b << 16) | 0xff000000;
 	return Color::fromABGR32(color);
-#endif
 }
 
 void PaletteManager::preFrameUpdate()
@@ -191,11 +186,7 @@ void PaletteManager::writePaletteEntryPacked(int paletteIndex, uint16 colorIndex
 	}
 
 	unsigned int color;
-#if defined(PLATFORM_PS3)
-	color = ((colorIndex & 0x0f) ? 0x000000ff : 0) | (r << 24) | (g << 16) | (b << 8);
-#else
 	color = ((colorIndex & 0x0f) ? 0xff000000 : 0) | r | (g << 8) | (b << 16);
-#endif
 
 	if (paletteIndex == 0)
 	{
@@ -279,20 +270,12 @@ void PaletteManager::serializePalette(VectorBinarySerializer& serializer, Palett
 {
 	for (size_t k = 0; k < Palette::NUM_COLORS; ++k)
 	{
-#if defined(PLATFORM_PS3)
-		Color color = Color::fromRGBA32(palette.mColor[k]);
-#else
 		Color color = Color::fromABGR32(palette.mColor[k]);
-#endif
 		color.serialize(serializer);
 
 		if (serializer.isReading())
 		{
-#if defined(PLATFORM_PS3)
-			palette.mColor[k] = color.getRGBA32();
-#else
 			palette.mColor[k] = color.getABGR32();
-#endif
 			palette.setAllPaletteChangeFlags();
 			palette.invalidatePackedColorCache();
 		}

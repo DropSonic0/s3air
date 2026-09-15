@@ -382,15 +382,7 @@ bool BitmapCodecPNG::encode(const Bitmap& bitmap, OutputStream& stream)
 		const uint32* src = bitmap.getPixelPointer(0, line);
 		for (int x = 0; x < width; ++x)
 		{
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-			// On PS3, internal format is ARGB (0xAARRGGBB). 
-			// PNG expects RGBA (0xRRGGBBAA).
-			// So we rotate ARGB to RGBA: (ARGB << 8) | (ARGB >> 24)
-			const uint32 argb = src[x];
-			dst[x] = (argb << 8) | (argb >> 24);
-#else
 			dst[x] = src[x];
-#endif
 		}
 	}
 	int outsize = 0;

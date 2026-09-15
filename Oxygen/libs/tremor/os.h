@@ -36,13 +36,28 @@
 #  define M_PI (3.1415926536f)
 #endif
 
+#ifndef LITTLE_ENDIAN
+#  define LITTLE_ENDIAN 1
+#endif
+#ifndef BIG_ENDIAN
+#  define BIG_ENDIAN 2
+#endif
+
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__PPU__) || defined(__ppc__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#  ifndef BYTE_ORDER
+#    define BYTE_ORDER BIG_ENDIAN
+#  endif
+#else
+#  ifndef BYTE_ORDER
+#    define BYTE_ORDER LITTLE_ENDIAN
+#  endif
+#endif
+
 #ifdef _WIN32
 #  include <malloc.h>
 #  define rint(x)   (floor((x)+0.5f)) 
 #  define NO_FLOAT_MATH_LIB
 #  define FAST_HYPOT(a, b) sqrt((a)*(a) + (b)*(b))
-#  define LITTLE_ENDIAN 1
-#  define BYTE_ORDER LITTLE_ENDIAN
 #endif
 
 #ifdef HAVE_ALLOCA_H

@@ -1,0 +1,651 @@
+Disassembly of section .text:
+
+SoundEmulation::SoundEmulation():
+0x00000000: F821FF71 stdu     r1,-0x90(r1)
+0x00000004: 7C0802A6 mfspr    r0,lr                02
+0x00000008: F80100A0 std      r0,0xA0(r1)
+0x0000000C: FBC10080 std      r30,0x80(r1)          PIPE
+0x00000010: FBA10078 std      r29,0x78(r1)
+0x00000014: 607E0000 mr       r30,r3                PIPE
+0x00000018: 3BA00000 li       r29,0x0
+0x0000001C: FBE10088 std      r31,0x88(r1)          PIPE
+0x00000020: 38600DFC li       r3,0xDFC
+0x00000024: FB810070 std      r28,0x70(r1)          PIPE
+0x00000028: 63BF0000 mr       r31,r29
+0x0000002C: 48000001 bl       operator new(unsigned int) 08
+0x00000030: 60000000 nop      
+0x00000034: 607C0000 mr       r28,r3                PIPE
+0x00000038: 2C1C0000 cmpwi    r28,0x0              01 (00000034) REG
+0x0000003C: 4182001C beq      0x00000058           01 (00000038) REG
+0x00000040: 63830000 mr       r3,r28
+0x00000044: 38800000 li       r4,0x0                PIPE
+0x00000048: 38A00DFC li       r5,0xDFC
+0x0000004C: 48000001 bl       .memset              08
+0x00000050: 60000000 nop      
+0x00000054: 639D0000 mr       r29,r28               PIPE
+0x00000058: 3C600000 lis      r3,0x0
+0x0000005C: 93BE0000 stw      r29,0x0(r30)          PIPE
+0x00000060: 3CE00000 lis      r7,0x0
+0x00000064: 30C30000 addic    r6,r3,0x0             PIPE
+0x00000068: 3900021C li       r8,0x21C
+0x0000006C: 63E50000 mr       r5,r31                PIPE
+0x00000070: 80630000 lwz      r3,0x0(r3)
+0x00000074: 63C40000 mr       r4,r30
+0x00000078: 33A70000 addic    r29,r7,0x0
+0x0000007C: 80C60004 lwz      r6,0x4(r6)
+0x00000080: 907E0004 stw      r3,0x4(r30)
+0x00000084: 7D0903A6 mtspr    ctr,r8
+0x00000088: 90DE0008 stw      r6,0x8(r30)
+0x0000008C: 7CA307B4 extsw    r3,r5                 PIPE
+0x00000090: 30C4000C addic    r6,r4,0xC
+0x00000094: 31050004 addic    r8,r5,0x4             PIPE
+0x00000098: 78C60020 clrldi   r6,r6,32
+0x0000009C: 30E40010 addic    r7,r4,0x10            PIPE
+0x000000A0: 7D0807B4 extsw    r8,r8
+0x000000A4: 7C7D182E lwzx     r3,r29,r3
+0x000000A8: 78EB0020 clrldi   r11,r7,32
+0x000000AC: 31250008 addic    r9,r5,0x8             PIPE
+0x000000B0: 90660000 stw      r3,0x0(r6)
+0x000000B4: 3145000C addic    r10,r5,0xC            PIPE
+0x000000B8: 7D2307B4 extsw    r3,r9
+0x000000BC: 7CDD402E lwzx     r6,r29,r8
+0x000000C0: 31040014 addic    r8,r4,0x14
+0x000000C4: 7D4A07B4 extsw    r10,r10               PIPE
+0x000000C8: 30840018 addic    r4,r4,0x18
+0x000000CC: 90CB0000 stw      r6,0x0(r11)           PIPE
+0x000000D0: 79060020 clrldi   r6,r8,32
+0x000000D4: 7C7D182E lwzx     r3,r29,r3
+0x000000D8: 78890020 clrldi   r9,r4,32
+0x000000DC: 30A50010 addic    r5,r5,0x10            PIPE
+0x000000E0: 7D1D502E lwzx     r8,r29,r10
+0x000000E4: 60E40000 mr       r4,r7
+0x000000E8: 90660000 stw      r3,0x0(r6)
+0x000000EC: 91090000 stw      r8,0x0(r9)            PIPE
+0x000000F0: 4200FF9C bdnz     0x0000008C
+0x000000F4: 3C600000 lis      r3,0x0
+0x000000F8: 30830000 addic    r4,r3,0x0            01 (000000F4) REG
+0x000000FC: 80630000 lwz      r3,0x0(r3)
+0x00000100: 93FE21D4 stw      r31,0x21D4(r30)
+0x00000104: 80840004 lwz      r4,0x4(r4)            PIPE
+0x00000108: 907E21CC stw      r3,0x21CC(r30)
+0x0000010C: 909E21D0 stw      r4,0x21D0(r30)        PIPE
+0x00000110: 93FE21D8 stw      r31,0x21D8(r30)
+0x00000114: 93FE21DC stw      r31,0x21DC(r30)       PIPE
+0x00000118: 93FE21E0 stw      r31,0x21E0(r30)
+0x0000011C: E80100A0 ld       r0,0xA0(r1)           PIPE
+0x00000120: 7C0803A6 mtspr    lr,r0                01 (0000011C) REG
+0x00000124: EB810070 ld       r28,0x70(r1)
+0x00000128: EBA10078 ld       r29,0x78(r1)
+0x0000012C: EBC10080 ld       r30,0x80(r1)          PIPE
+0x00000130: EBE10088 ld       r31,0x88(r1)
+0x00000134: 38210090 addi     r1,r1,0x90
+0x00000138: 4E800020 blr                           08
+
+SoundEmulation::SoundEmulation():
+0x0000013C: F821FF71 stdu     r1,-0x90(r1)          PIPE
+0x00000140: 7C0802A6 mfspr    r0,lr                02
+0x00000144: F80100A0 std      r0,0xA0(r1)           PIPE
+0x00000148: FBC10080 std      r30,0x80(r1)
+0x0000014C: FBA10078 std      r29,0x78(r1)          PIPE
+0x00000150: 607E0000 mr       r30,r3
+0x00000154: 3BA00000 li       r29,0x0               PIPE
+0x00000158: FBE10088 std      r31,0x88(r1)
+0x0000015C: 38600DFC li       r3,0xDFC              PIPE
+0x00000160: FB810070 std      r28,0x70(r1)
+0x00000164: 63BF0000 mr       r31,r29               PIPE
+0x00000168: 48000001 bl       operator new(unsigned int) 08
+0x0000016C: 60000000 nop                            PIPE
+0x00000170: 607C0000 mr       r28,r3
+0x00000174: 2C1C0000 cmpwi    r28,0x0              01 (00000170) REG PIPE
+0x00000178: 4182001C beq      0x00000194
+0x0000017C: 63830000 mr       r3,r28
+0x00000180: 38800000 li       r4,0x0
+0x00000184: 38A00DFC li       r5,0xDFC              PIPE
+0x00000188: 48000001 bl       .memset              08
+0x0000018C: 60000000 nop                            PIPE
+0x00000190: 639D0000 mr       r29,r28
+0x00000194: 3C600000 lis      r3,0x0                PIPE
+0x00000198: 93BE0000 stw      r29,0x0(r30)
+0x0000019C: 3CE00000 lis      r7,0x0                PIPE
+0x000001A0: 30C30000 addic    r6,r3,0x0
+0x000001A4: 3900021C li       r8,0x21C              PIPE
+0x000001A8: 63E50000 mr       r5,r31
+0x000001AC: 80630000 lwz      r3,0x0(r3)
+0x000001B0: 63C40000 mr       r4,r30
+0x000001B4: 33A70000 addic    r29,r7,0x0            PIPE
+0x000001B8: 80C60004 lwz      r6,0x4(r6)
+0x000001BC: 907E0004 stw      r3,0x4(r30)           PIPE
+0x000001C0: 7D0903A6 mtspr    ctr,r8
+0x000001C4: 90DE0008 stw      r6,0x8(r30)
+0x000001C8: 7CA307B4 extsw    r3,r5
+0x000001CC: 30C4000C addic    r6,r4,0xC             PIPE
+0x000001D0: 31050004 addic    r8,r5,0x4
+0x000001D4: 78C60020 clrldi   r6,r6,32              PIPE
+0x000001D8: 30E40010 addic    r7,r4,0x10
+0x000001DC: 7D0807B4 extsw    r8,r8                 PIPE
+0x000001E0: 7C7D182E lwzx     r3,r29,r3
+0x000001E4: 78EB0020 clrldi   r11,r7,32
+0x000001E8: 31250008 addic    r9,r5,0x8
+0x000001EC: 90660000 stw      r3,0x0(r6)            PIPE
+0x000001F0: 3145000C addic    r10,r5,0xC
+0x000001F4: 7D2307B4 extsw    r3,r9                 PIPE
+0x000001F8: 7CDD402E lwzx     r6,r29,r8
+0x000001FC: 31040014 addic    r8,r4,0x14
+0x00000200: 7D4A07B4 extsw    r10,r10
+0x00000204: 30840018 addic    r4,r4,0x18            PIPE
+0x00000208: 90CB0000 stw      r6,0x0(r11)
+0x0000020C: 79060020 clrldi   r6,r8,32              PIPE
+0x00000210: 7C7D182E lwzx     r3,r29,r3
+0x00000214: 78890020 clrldi   r9,r4,32
+0x00000218: 30A50010 addic    r5,r5,0x10
+0x0000021C: 7D1D502E lwzx     r8,r29,r10
+0x00000220: 60E40000 mr       r4,r7
+0x00000224: 90660000 stw      r3,0x0(r6)            PIPE
+0x00000228: 91090000 stw      r8,0x0(r9)
+0x0000022C: 4200FF9C bdnz     0x000001C8
+0x00000230: 3C600000 lis      r3,0x0
+0x00000234: 30830000 addic    r4,r3,0x0            01 (00000230) REG PIPE
+0x00000238: 80630000 lwz      r3,0x0(r3)
+0x0000023C: 93FE21D4 stw      r31,0x21D4(r30)       PIPE
+0x00000240: 80840004 lwz      r4,0x4(r4)
+0x00000244: 907E21CC stw      r3,0x21CC(r30)        PIPE
+0x00000248: 909E21D0 stw      r4,0x21D0(r30)
+0x0000024C: 93FE21D8 stw      r31,0x21D8(r30)       PIPE
+0x00000250: 93FE21DC stw      r31,0x21DC(r30)
+0x00000254: 93FE21E0 stw      r31,0x21E0(r30)       PIPE
+0x00000258: E80100A0 ld       r0,0xA0(r1)
+0x0000025C: 7C0803A6 mtspr    lr,r0                02 (00000258) REG
+0x00000260: EB810070 ld       r28,0x70(r1)
+0x00000264: EBA10078 ld       r29,0x78(r1)          PIPE
+0x00000268: EBC10080 ld       r30,0x80(r1)
+0x0000026C: EBE10088 ld       r31,0x88(r1)          PIPE
+0x00000270: 38210090 addi     r1,r1,0x90
+0x00000274: 4E800020 blr                           08
+
+SoundEmulation::~SoundEmulation():
+0x00000278: F821FF91 stdu     r1,-0x70(r1)
+0x0000027C: 7C0802A6 mfspr    r0,lr                02
+0x00000280: F8010080 std      r0,0x80(r1)
+0x00000284: 80630000 lwz      r3,0x0(r3)            PIPE
+0x00000288: 48000001 bl       operator delete(void*) 08
+0x0000028C: 60000000 nop                            PIPE
+0x00000290: E8010080 ld       r0,0x80(r1)
+0x00000294: 7C0803A6 mtspr    lr,r0                02 (00000290) REG
+0x00000298: 38210070 addi     r1,r1,0x70
+0x0000029C: 4E800020 blr                           08
+
+SoundEmulation::~SoundEmulation():
+0x000002A0: F821FF91 stdu     r1,-0x70(r1)
+0x000002A4: 7C0802A6 mfspr    r0,lr                02
+0x000002A8: F8010080 std      r0,0x80(r1)
+0x000002AC: 80630000 lwz      r3,0x0(r3)            PIPE
+0x000002B0: 48000001 bl       operator delete(void*) 08
+0x000002B4: 60000000 nop                            PIPE
+0x000002B8: E8010080 ld       r0,0x80(r1)
+0x000002BC: 7C0803A6 mtspr    lr,r0                02 (000002B8) REG
+0x000002C0: 38210070 addi     r1,r1,0x70
+0x000002C4: 4E800020 blr                           08
+
+SoundEmulation::reset():
+0x000002C8: F821FF81 stdu     r1,-0x80(r1)
+0x000002CC: 7C0802A6 mfspr    r0,lr                02
+0x000002D0: F8010090 std      r0,0x90(r1)
+0x000002D4: FBE10078 std      r31,0x78(r1)          PIPE
+0x000002D8: 607F0000 mr       r31,r3
+0x000002DC: 807F0000 lwz      r3,0x0(r31)          04 (000002D8) REG LSU
+0x000002E0: 306300C0 addic    r3,r3,0xC0           01 (000002DC) REG
+0x000002E4: FBC10070 std      r30,0x70(r1)          PIPE
+0x000002E8: 78630020 clrldi   r3,r3,32
+0x000002EC: 48000001 bl       soundemulation::YM2612::resetChip() 08
+0x000002F0: 60000000 nop      
+0x000002F4: 807F0000 lwz      r3,0x0(r31)
+0x000002F8: 48000001 bl       soundemulation::SN76489::reset() 08
+0x000002FC: 60000000 nop                            PIPE
+0x00000300: 807F0000 lwz      r3,0x0(r31)
+0x00000304: 38800000 li       r4,0x0
+0x00000308: 38A00096 li       r5,0x96
+0x0000030C: 38C00001 li       r6,0x1                PIPE
+0x00000310: 38E000FF li       r7,0xFF
+0x00000314: 48000001 bl       soundemulation::SN76489::config(unsigned int, int, int, int) 08
+0x00000318: 60000000 nop      
+0x0000031C: 3BC00000 li       r30,0x0               PIPE
+0x00000320: 307F000C addic    r3,r31,0xC
+0x00000324: 93DF21D0 stw      r30,0x21D0(r31)       PIPE
+0x00000328: 93DF21CC stw      r30,0x21CC(r31)
+0x0000032C: 907F21D4 stw      r3,0x21D4(r31)        PIPE
+0x00000330: 93DF21E0 stw      r30,0x21E0(r31)
+0x00000334: 93DF21DC stw      r30,0x21DC(r31)       PIPE
+0x00000338: 33FF0004 addic    r31,r31,0x4
+0x0000033C: 7BE30020 clrldi   r3,r31,32            01 (00000338) REG PIPE
+0x00000340: 80630000 lwz      r3,0x0(r3)           03 (0000033C) REG LSU
+0x00000344: 48000001 bl       .blip_clear          08
+0x00000348: 60000000 nop      
+0x0000034C: 33DE0001 addic    r30,r30,0x1           PIPE
+0x00000350: 2C1E0002 cmpwi    r30,0x2              01 (0000034C) REG
+0x00000354: 4180FFE4 blt      0x00000338           01 (00000350) REG
+0x00000358: E8010090 ld       r0,0x90(r1)
+0x0000035C: 7C0803A6 mtspr    lr,r0                02 (00000358) REG
+0x00000360: EBC10070 ld       r30,0x70(r1)
+0x00000364: EBE10078 ld       r31,0x78(r1)          PIPE
+0x00000368: 38210080 addi     r1,r1,0x80
+0x0000036C: 4E800020 blr                           08
+
+_ZN14SoundEmulation4initEid$rodata:
+0x00000370: 412B5850 bdnzt    cr2,so,0x00005BC0
+0x00000374: 00000000 illegal  
+
+SoundEmulation::init(int, double):
+0x00000378: F821FF51 stdu     r1,-0xB0(r1)
+0x0000037C: 7C0802A6 mfspr    r0,lr                02
+0x00000380: F80100C0 std      r0,0xC0(r1)
+0x00000384: DBC100A0 stfd     f30,0xA0(r1)          PIPE
+0x00000388: DBE100A8 stfd     f31,0xA8(r1)
+0x0000038C: 3CA06666 lis      r5,0x6666
+0x00000390: FBE10098 std      r31,0x98(r1)
+0x00000394: 609F0000 mr       r31,r4                PIPE
+0x00000398: FFE00890 fmr      f31,f1
+0x0000039C: 60A46667 ori      r4,r5,0x6667
+0x000003A0: FBC10090 std      r30,0x90(r1)
+0x000003A4: 7C84F896 mulhw    r4,r4,r31            09 PIPE
+0x000003A8: 607E0000 mr       r30,r3
+0x000003AC: 7C831670 srawi    r3,r4,2               PIPE
+0x000003B0: 54640FFE srwi     r4,r3,31             01 (000003AC) REG
+0x000003B4: FBA10088 std      r29,0x88(r1)          PIPE
+0x000003B8: 7C632014 addc     r3,r3,r4
+0x000003BC: 7C7D07B4 extsw    r29,r3               01 (000003B8) REG PIPE
+0x000003C0: FB810080 std      r28,0x80(r1)
+0x000003C4: 63A30000 mr       r3,r29                PIPE
+0x000003C8: 48000001 bl       .blip_new            08
+0x000003CC: 60000000 nop                            PIPE
+0x000003D0: 907E0004 stw      r3,0x4(r30)
+0x000003D4: 63A30000 mr       r3,r29                PIPE
+0x000003D8: 48000001 bl       .blip_new            08
+0x000003DC: 60000000 nop                            PIPE
+0x000003E0: 809E0000 lwz      r4,0x0(r30)
+0x000003E4: 907E0008 stw      r3,0x8(r30)           PIPE
+0x000003E8: 306400C0 addic    r3,r4,0xC0
+0x000003EC: 78630020 clrldi   r3,r3,32             01 (000003E8) REG PIPE
+0x000003F0: 48000001 bl       soundemulation::YM2612::init() 08
+0x000003F4: 60000000 nop                            PIPE
+0x000003F8: 807E0000 lwz      r3,0x0(r30)
+0x000003FC: 3880000E li       r4,0xE
+0x00000400: 306300C0 addic    r3,r3,0xC0           01 (000003F8) REG
+0x00000404: 78630020 clrldi   r3,r3,32             01 (00000400) REG PIPE
+0x00000408: 48000001 bl       soundemulation::YM2612::config(unsigned char) 08
+0x0000040C: 60000000 nop                            PIPE
+0x00000410: 386003F0 li       r3,0x3F0
+0x00000414: 80BE0000 lwz      r5,0x0(r30)
+0x00000418: 309E0004 addic    r4,r30,0x4
+0x0000041C: 78840020 clrldi   r4,r4,32             01 (00000418) REG PIPE
+0x00000420: 907E21D8 stw      r3,0x21D8(r30)
+0x00000424: 60A30000 mr       r3,r5                 PIPE
+0x00000428: 48000001 bl       soundemulation::SN76489::init(blip_t**) 08
+0x0000042C: 60000000 nop                            PIPE
+0x00000430: 807E0000 lwz      r3,0x0(r30)
+0x00000434: 38800000 li       r4,0x0
+0x00000438: 38A00096 li       r5,0x96
+0x0000043C: 38C00001 li       r6,0x1                PIPE
+0x00000440: 38E000FF li       r7,0xFF
+0x00000444: 48000001 bl       soundemulation::SN76489::config(unsigned int, int, int, int) 08
+0x00000448: 60000000 nop      
+0x0000044C: 807E0000 lwz      r3,0x0(r30)
+0x00000450: 306300C0 addic    r3,r3,0xC0           01 (0000044C) REG
+0x00000454: 78630020 clrldi   r3,r3,32             01 (00000450) REG PIPE
+0x00000458: 48000001 bl       soundemulation::YM2612::resetChip() 08
+0x0000045C: 60000000 nop                            PIPE
+0x00000460: 807E0000 lwz      r3,0x0(r30)
+0x00000464: 48000001 bl       soundemulation::SN76489::reset() 08
+0x00000468: 60000000 nop      
+0x0000046C: 807E0000 lwz      r3,0x0(r30)
+0x00000470: 38800000 li       r4,0x0
+0x00000474: 38A00096 li       r5,0x96               PIPE
+0x00000478: 38C00001 li       r6,0x1
+0x0000047C: 38E000FF li       r7,0xFF               PIPE
+0x00000480: 48000001 bl       soundemulation::SN76489::config(unsigned int, int, int, int) 08
+0x00000484: 60000000 nop                            PIPE
+0x00000488: 3BA00000 li       r29,0x0
+0x0000048C: 307E000C addic    r3,r30,0xC            PIPE
+0x00000490: 63C50000 mr       r5,r30
+0x00000494: 93BE21D0 stw      r29,0x21D0(r30)       PIPE
+0x00000498: 93BE21CC stw      r29,0x21CC(r30)
+0x0000049C: 907E21D4 stw      r3,0x21D4(r30)        PIPE
+0x000004A0: 93BE21E0 stw      r29,0x21E0(r30)
+0x000004A4: 93BE21DC stw      r29,0x21DC(r30)       PIPE
+0x000004A8: 33850004 addic    r28,r5,0x4
+0x000004AC: 7B830020 clrldi   r3,r28,32            01 (000004A8) REG PIPE
+0x000004B0: 80630000 lwz      r3,0x0(r3)           03 (000004AC) REG LSU
+0x000004B4: 48000001 bl       .blip_clear          08
+0x000004B8: 60000000 nop      
+0x000004BC: 33BD0001 addic    r29,r29,0x1           PIPE
+0x000004C0: 63850000 mr       r5,r28
+0x000004C4: 2C1D0002 cmpwi    r29,0x2               PIPE
+0x000004C8: 4180FFE0 blt      0x000004A8
+0x000004CC: 3C800000 lis      r4,0x0
+0x000004D0: 7FE307B4 extsw    r3,r31
+0x000004D4: 38840000 addi     r4,r4,0x0             PIPE
+0x000004D8: F8610018 std      r3,0x18(r1)
+0x000004DC: C8240000 lfd      f1,0x0(r4)            PIPE
+0x000004E0: 807E0004 lwz      r3,0x4(r30)
+0x000004E4: FFFF0072 fmul     f31,f31,f1            PIPE
+0x000004E8: C8210018 lfd      f1,0x18(r1)          50 (000004D8) LHS[04]
+0x000004EC: FFC00E9C fcfid    f30,f1                PIPE
+0x000004F0: FC20F890 fmr      f1,f31
+0x000004F4: FC40F090 fmr      f2,f30               08 (000004EC) REG PIPE
+0x000004F8: 48000001 bl       .blip_set_rates      08
+0x000004FC: 60000000 nop                            PIPE
+0x00000500: 807E0008 lwz      r3,0x8(r30)
+0x00000504: FC20F890 fmr      f1,f31                PIPE
+0x00000508: FC40F090 fmr      f2,f30
+0x0000050C: 48000001 bl       .blip_set_rates      08
+0x00000510: 60000000 nop      
+0x00000514: 38600001 li       r3,0x1                PIPE
+0x00000518: E80100C0 ld       r0,0xC0(r1)
+0x0000051C: 7C0803A6 mtspr    lr,r0                02 (00000518) REG
+0x00000520: CBC100A0 lfd      f30,0xA0(r1)
+0x00000524: CBE100A8 lfd      f31,0xA8(r1)          PIPE
+0x00000528: EB810080 ld       r28,0x80(r1)
+0x0000052C: EBA10088 ld       r29,0x88(r1)          PIPE
+0x00000530: EBC10090 ld       r30,0x90(r1)
+0x00000534: EBE10098 ld       r31,0x98(r1)          PIPE
+0x00000538: 382100B0 addi     r1,r1,0xB0
+0x0000053C: 4E800020 blr                           08
+
+SoundEmulation::shutdown():
+0x00000540: F821FF71 stdu     r1,-0x90(r1)
+0x00000544: 7C0802A6 mfspr    r0,lr                02
+0x00000548: F80100A0 std      r0,0xA0(r1)
+0x0000054C: FBC10080 std      r30,0x80(r1)          PIPE
+0x00000550: FBE10088 std      r31,0x88(r1)
+0x00000554: FBA10078 std      r29,0x78(r1)          PIPE
+0x00000558: FB810070 std      r28,0x70(r1)
+0x0000055C: 3BC00000 li       r30,0x0               PIPE
+0x00000560: 63DF0000 mr       r31,r30              01 (0000055C) REG
+0x00000564: 33A30004 addic    r29,r3,0x4            PIPE
+0x00000568: 7BBC0020 clrldi   r28,r29,32           01 (00000564) REG
+0x0000056C: 807C0000 lwz      r3,0x0(r28)          04 (00000568) REG LSU
+0x00000570: 48000001 bl       .blip_delete         08
+0x00000574: 60000000 nop                            PIPE
+0x00000578: 33DE0001 addic    r30,r30,0x1
+0x0000057C: 93FC0000 stw      r31,0x0(r28)          PIPE
+0x00000580: 63A30000 mr       r3,r29
+0x00000584: 2C1E0002 cmpwi    r30,0x2               PIPE
+0x00000588: 4180FFDC blt      0x00000564
+0x0000058C: E80100A0 ld       r0,0xA0(r1)
+0x00000590: 7C0803A6 mtspr    lr,r0                01 (0000058C) REG
+0x00000594: EB810070 ld       r28,0x70(r1)
+0x00000598: EBA10078 ld       r29,0x78(r1)
+0x0000059C: EBC10080 ld       r30,0x80(r1)          PIPE
+0x000005A0: EBE10088 ld       r31,0x88(r1)
+0x000005A4: 38210090 addi     r1,r1,0x90
+0x000005A8: 4E800020 blr                           08
+
+SoundEmulation::fmUpdate(unsigned int):
+0x000005AC: F821FF81 stdu     r1,-0x80(r1)          PIPE
+0x000005B0: 7C0802A6 mfspr    r0,lr                02
+0x000005B4: F8010090 std      r0,0x90(r1)           PIPE
+0x000005B8: FBE10078 std      r31,0x78(r1)
+0x000005BC: FBC10070 std      r30,0x70(r1)          PIPE
+0x000005C0: 607F0000 mr       r31,r3
+0x000005C4: 83DF21E0 lwz      r30,0x21E0(r31)      04 (000005C0) REG LSU
+0x000005C8: 7C04F040 cmplw    r4,r30               01 (000005C4) REG
+0x000005CC: 40810084 ble      0x00000650           01 (000005C8) REG
+0x000005D0: 7C7E2010 subfc    r3,r30,r4
+0x000005D4: 83DF21D8 lwz      r30,0x21D8(r31)
+0x000005D8: 30BF000C addic    r5,r31,0xC
+0x000005DC: 809F21D4 lwz      r4,0x21D4(r31)
+0x000005E0: 38C00438 li       r6,0x438
+0x000005E4: 7C63F014 addc     r3,r3,r30             PIPE
+0x000005E8: 3063FFFF addic    r3,r3,-0x1           01 (000005E4) REG
+0x000005EC: 7FC3F396 divwu    r30,r3,r30           38+01 (000005E8) REG PIPE
+0x000005F0: 7C652010 subfc    r3,r5,r4
+0x000005F4: 7C631670 srawi    r3,r3,2              01 (000005F0) REG PIPE
+0x000005F8: 7C630194 addze    r3,r3                01 (000005F4) REG
+0x000005FC: 5465F87E srwi     r5,r3,1              01 (000005F8) REG PIPE
+0x00000600: 7CA53010 subfc    r5,r5,r6             01 (000005FC) REG
+0x00000604: 7C05F040 cmplw    r5,r30               01 (00000600) REG PIPE
+0x00000608: 40800008 bge      0x00000610
+0x0000060C: 60BE0000 mr       r30,r5
+0x00000610: 807F0000 lwz      r3,0x0(r31)
+0x00000614: 7FC507B4 extsw    r5,r30               01 (0000060C) REG
+0x00000618: 306300C0 addic    r3,r3,0xC0
+0x0000061C: 78630020 clrldi   r3,r3,32             01 (00000618) REG PIPE
+0x00000620: 48000001 bl       soundemulation::YM2612::update(int*, int) 08
+0x00000624: 60000000 nop                            PIPE
+0x00000628: 807F21D8 lwz      r3,0x21D8(r31)
+0x0000062C: 7C7E19D6 mullw    r3,r30,r3            09+02 (00000628) REG
+0x00000630: 57C4083C slwi     r4,r30,1
+0x00000634: 80BF21D4 lwz      r5,0x21D4(r31)
+0x00000638: 78841764 sldi     r4,r4,2              01 (00000630) REG
+0x0000063C: 80DF21E0 lwz      r6,0x21E0(r31)
+0x00000640: 7C852014 addc     r4,r5,r4             01 (00000638) REG
+0x00000644: 7C661814 addc     r3,r6,r3              PIPE
+0x00000648: 909F21D4 stw      r4,0x21D4(r31)
+0x0000064C: 907F21E0 stw      r3,0x21E0(r31)        PIPE
+0x00000650: E8010090 ld       r0,0x90(r1)
+0x00000654: 7C0803A6 mtspr    lr,r0                02 (00000650) REG
+0x00000658: EBC10070 ld       r30,0x70(r1)
+0x0000065C: EBE10078 ld       r31,0x78(r1)          PIPE
+0x00000660: 38210080 addi     r1,r1,0x80
+0x00000664: 4E800020 blr                           08
+
+SoundEmulation::internalUpdate(unsigned int, std::vector<SoundChipWrite, std::allocator<SoundChipWrite>> const&):
+0x00000668: F821FF51 stdu     r1,-0xB0(r1)
+0x0000066C: 7C0802A6 mfspr    r0,lr                02
+0x00000670: F80100C0 std      r0,0xC0(r1)
+0x00000674: FB410080 std      r26,0x80(r1)          PIPE
+0x00000678: FBA10098 std      r29,0x98(r1)
+0x0000067C: FB610088 std      r27,0x88(r1)          PIPE
+0x00000680: 3B400000 li       r26,0x0
+0x00000684: 60BB0000 mr       r27,r5                PIPE
+0x00000688: FBE100A8 std      r31,0xA8(r1)
+0x0000068C: 635D0000 mr       r29,r26               PIPE
+0x00000690: FBC100A0 std      r30,0xA0(r1)
+0x00000694: 609F0000 mr       r31,r4                PIPE
+0x00000698: FB810090 std      r28,0x90(r1)
+0x0000069C: FB210078 std      r25,0x78(r1)          PIPE
+0x000006A0: FB010070 std      r24,0x70(r1)
+0x000006A4: 607E0000 mr       r30,r3                PIPE
+0x000006A8: 63BC0000 mr       r28,r29
+0x000006AC: 833B0004 lwz      r25,0x4(r27)
+0x000006B0: 63A60000 mr       r6,r29
+0x000006B4: 2C190000 cmpwi    r25,0x0               PIPE
+0x000006B8: 41820014 beq      0x000006CC
+0x000006BC: 807B0008 lwz      r3,0x8(r27)
+0x000006C0: 7C791810 subfc    r3,r25,r3            01 (000006BC) REG
+0x000006C4: 7C662670 srawi    r6,r3,4              01 (000006C0) REG PIPE
+0x000006C8: 7CC60194 addze    r6,r6                01 (000006C4) REG
+0x000006CC: 7C1A3040 cmplw    r26,r6               01 (000006C8) REG PIPE
+0x000006D0: 40800098 bge      0x00000768
+0x000006D4: 7F39E014 addc     r25,r25,r28
+0x000006D8: 7B390020 clrldi   r25,r25,32           01 (000006D4) REG
+0x000006DC: 80790000 lwz      r3,0x0(r25)          04 (000006D8) REG LSU
+0x000006E0: 2C830003 cmpwi    cr1,r3,0x3           01 (000006DC) REG
+0x000006E4: 2C030000 cmpwi    r3,0x0                PIPE
+0x000006E8: 41820080 beq      0x00000768
+0x000006EC: 4086001C bne      cr1,0x00000708        PIPE
+0x000006F0: 807E0000 lwz      r3,0x0(r30)
+0x000006F4: 80990008 lwz      r4,0x8(r25)           PIPE
+0x000006F8: 88B90005 lbz      r5,0x5(r25)
+0x000006FC: 48000001 bl       soundemulation::SN76489::write(unsigned int, unsigned int) 08
+0x00000700: 60000000 nop      
+0x00000704: 48000058 b        0x0000075C           08
+0x00000708: 63C30000 mr       r3,r30
+0x0000070C: 80990008 lwz      r4,0x8(r25)
+0x00000710: 48000001 bl       SoundEmulation::fmUpdate(unsigned int) 08
+0x00000714: 80790000 lwz      r3,0x0(r25)           PIPE
+0x00000718: 63A40000 mr       r4,r29
+0x0000071C: 80DE0000 lwz      r6,0x0(r30)
+0x00000720: 88B90004 lbz      r5,0x4(r25)
+0x00000724: 2C030002 cmpwi    r3,0x2
+0x00000728: 40820008 bne      0x00000730
+0x0000072C: 38800002 li       r4,0x2
+0x00000730: 306600C0 addic    r3,r6,0xC0
+0x00000734: 78630020 clrldi   r3,r3,32             01 (00000730) REG PIPE
+0x00000738: 48000001 bl       soundemulation::YM2612::write(unsigned int, unsigned int) 08
+0x0000073C: 60000000 nop                            PIPE
+0x00000740: 807E0000 lwz      r3,0x0(r30)
+0x00000744: 88B90005 lbz      r5,0x5(r25)           PIPE
+0x00000748: 38800001 li       r4,0x1
+0x0000074C: 306300C0 addic    r3,r3,0xC0            PIPE
+0x00000750: 78630020 clrldi   r3,r3,32             01 (0000074C) REG
+0x00000754: 48000001 bl       soundemulation::YM2612::write(unsigned int, unsigned int) 08
+0x00000758: 60000000 nop      
+0x0000075C: 339C0010 addic    r28,r28,0x10          PIPE
+0x00000760: 335A0001 addic    r26,r26,0x1
+0x00000764: 4BFFFF48 b        0x000006AC           08
+0x00000768: 63E40000 mr       r4,r31
+0x0000076C: 807E0000 lwz      r3,0x0(r30)
+0x00000770: 48000001 bl       soundemulation::SN76489::update(unsigned int) 08
+0x00000774: 60000000 nop                            PIPE
+0x00000778: 63C30000 mr       r3,r30
+0x0000077C: 63E40000 mr       r4,r31                PIPE
+0x00000780: 48000001 bl       SoundEmulation::fmUpdate(unsigned int) 08
+0x00000784: 833E21DC lwz      r25,0x21DC(r30)       PIPE
+0x00000788: 33BE000C addic    r29,r30,0xC
+0x0000078C: 835E21CC lwz      r26,0x21CC(r30)
+0x00000790: 837E21D0 lwz      r27,0x21D0(r30)
+0x00000794: 7BBC0020 clrldi   r28,r29,32           01 (00000788) REG
+0x00000798: 3C6051EB lis      r3,0x51EB
+0x0000079C: 6078851F ori      r24,r3,0x851F        01 (00000798) REG PIPE
+0x000007A0: 807C0000 lwz      r3,0x0(r28)
+0x000007A4: 80BE0004 lwz      r5,0x4(r30)           PIPE
+0x000007A8: 78642EA4 sldi     r4,r3,5
+0x000007AC: 7C632014 addc     r3,r3,r4             01 (000007A8) REG PIPE
+0x000007B0: 78631764 sldi     r3,r3,2              01 (000007AC) REG
+0x000007B4: 7C641810 subfc    r3,r4,r3             01 (000007B0) REG PIPE
+0x000007B8: 7C781896 mulhw    r3,r24,r3            09+01 (000007B4) REG
+0x000007BC: 309C0004 addic    r4,r28,0x4            PIPE
+0x000007C0: 7C632E70 srawi    r3,r3,5
+0x000007C4: 789C0020 clrldi   r28,r4,32             PIPE
+0x000007C8: 54640FFE srwi     r4,r3,31
+0x000007CC: 7C632014 addc     r3,r3,r4             01 (000007C8) REG PIPE
+0x000007D0: 7C9A1810 subfc    r4,r26,r3            01 (000007CC) REG
+0x000007D4: 60A30000 mr       r3,r5                 PIPE
+0x000007D8: 7C8507B4 extsw    r5,r4
+0x000007DC: 63240000 mr       r4,r25                PIPE
+0x000007E0: 7F45D014 addc     r26,r5,r26
+0x000007E4: 48000001 bl       .blip_add_delta      08
+0x000007E8: 60000000 nop      
+0x000007EC: 807C0000 lwz      r3,0x0(r28)
+0x000007F0: 80BE0008 lwz      r5,0x8(r30)
+0x000007F4: 339C0004 addic    r28,r28,0x4
+0x000007F8: 78642EA4 sldi     r4,r3,5
+0x000007FC: 7B9C0020 clrldi   r28,r28,32            PIPE
+0x00000800: 7C632014 addc     r3,r3,r4
+0x00000804: 78631764 sldi     r3,r3,2              01 (00000800) REG PIPE
+0x00000808: 7C641810 subfc    r3,r4,r3             01 (00000804) REG
+0x0000080C: 7C781896 mulhw    r3,r24,r3            09+01 (00000808) REG PIPE
+0x00000810: 7C632E70 srawi    r3,r3,5
+0x00000814: 54640FFE srwi     r4,r3,31             01 (00000810) REG PIPE
+0x00000818: 7C632014 addc     r3,r3,r4             01 (00000814) REG
+0x0000081C: 63240000 mr       r4,r25                PIPE
+0x00000820: 7CDB1810 subfc    r6,r27,r3
+0x00000824: 60A30000 mr       r3,r5                 PIPE
+0x00000828: 7CC507B4 extsw    r5,r6
+0x0000082C: 7F65D814 addc     r27,r5,r27           01 (00000828) REG PIPE
+0x00000830: 48000001 bl       .blip_add_delta      08
+0x00000834: 60000000 nop                            PIPE
+0x00000838: 807E21D8 lwz      r3,0x21D8(r30)
+0x0000083C: 7F391814 addc     r25,r25,r3           02 (00000838) REG
+0x00000840: 7B390020 clrldi   r25,r25,32           01 (0000083C) REG
+0x00000844: 7C1FC840 cmplw    r31,r25              01 (00000840) REG PIPE
+0x00000848: 4181FF50 bgt      0x00000798
+0x0000084C: 7C7FC810 subfc    r3,r31,r25
+0x00000850: 93BE21D4 stw      r29,0x21D4(r30)
+0x00000854: 63E40000 mr       r4,r31                PIPE
+0x00000858: 935E21CC stw      r26,0x21CC(r30)
+0x0000085C: 937E21D0 stw      r27,0x21D0(r30)       PIPE
+0x00000860: 80BE0004 lwz      r5,0x4(r30)
+0x00000864: 907E21DC stw      r3,0x21DC(r30)        PIPE
+0x00000868: 907E21E0 stw      r3,0x21E0(r30)
+0x0000086C: 60A30000 mr       r3,r5                 PIPE
+0x00000870: 48000001 bl       .blip_end_frame      08
+0x00000874: 60000000 nop                            PIPE
+0x00000878: 807E0008 lwz      r3,0x8(r30)
+0x0000087C: 63E40000 mr       r4,r31
+0x00000880: 48000001 bl       .blip_end_frame      08
+0x00000884: 60000000 nop                            PIPE
+0x00000888: 807E0004 lwz      r3,0x4(r30)
+0x0000088C: 48000001 bl       .blip_samples_avail  08
+0x00000890: 60000000 nop      
+0x00000894: E80100C0 ld       r0,0xC0(r1)
+0x00000898: 7C0803A6 mtspr    lr,r0                01 (00000894) REG
+0x0000089C: EB010070 ld       r24,0x70(r1)
+0x000008A0: EB210078 ld       r25,0x78(r1)
+0x000008A4: EB410080 ld       r26,0x80(r1)          PIPE
+0x000008A8: EB610088 ld       r27,0x88(r1)
+0x000008AC: EB810090 ld       r28,0x90(r1)          PIPE
+0x000008B0: EBA10098 ld       r29,0x98(r1)
+0x000008B4: EBC100A0 ld       r30,0xA0(r1)          PIPE
+0x000008B8: EBE100A8 ld       r31,0xA8(r1)
+0x000008BC: 382100B0 addi     r1,r1,0xB0
+0x000008C0: 4E800020 blr                           08
+
+SoundEmulation::update(short*, std::vector<SoundChipWrite, std::allocator<SoundChipWrite>> const&):
+0x000008C4: F821FF71 stdu     r1,-0x90(r1)          PIPE
+0x000008C8: 7C0802A6 mfspr    r0,lr                02
+0x000008CC: F80100A0 std      r0,0xA0(r1)           PIPE
+0x000008D0: FBE10088 std      r31,0x88(r1)
+0x000008D4: FBC10080 std      r30,0x80(r1)          PIPE
+0x000008D8: 607F0000 mr       r31,r3
+0x000008DC: 609E0000 mr       r30,r4                PIPE
+0x000008E0: 3C80000D lis      r4,0xD
+0x000008E4: FBA10078 std      r29,0x78(r1)          PIPE
+0x000008E8: 6084AC28 ori      r4,r4,0xAC28
+0x000008EC: 48000001 bl       SoundEmulation::internalUpdate(unsigned int, std::vector<SoundChipWrite, std::allocator<SoundChipWrite>> const&) 08
+0x000008F0: 607D0000 mr       r29,r3
+0x000008F4: 63C40000 mr       r4,r30                PIPE
+0x000008F8: 807F0004 lwz      r3,0x4(r31)
+0x000008FC: 63A50000 mr       r5,r29
+0x00000900: 48000001 bl       .blip_read_samples   08
+0x00000904: 60000000 nop                            PIPE
+0x00000908: 309E0002 addic    r4,r30,0x2
+0x0000090C: 807F0008 lwz      r3,0x8(r31)
+0x00000910: 63A50000 mr       r5,r29
+0x00000914: 78840020 clrldi   r4,r4,32              PIPE
+0x00000918: 48000001 bl       .blip_read_samples   08
+0x0000091C: 60000000 nop                            PIPE
+0x00000920: 63A30000 mr       r3,r29
+0x00000924: E80100A0 ld       r0,0xA0(r1)
+0x00000928: 7C0803A6 mtspr    lr,r0                01 (00000924) REG
+0x0000092C: EBA10078 ld       r29,0x78(r1)
+0x00000930: EBC10080 ld       r30,0x80(r1)
+0x00000934: EBE10088 ld       r31,0x88(r1)          PIPE
+0x00000938: 38210090 addi     r1,r1,0x90
+0x0000093C: 4E800020 blr                           08
+
+.__std___18_SoundEmulation_cpp_acbeb43d:
+0x00000940: F821FF91 stdu     r1,-0x70(r1)
+0x00000944: 7C0802A6 mfspr    r0,lr                02
+0x00000948: F8010080 std      r0,0x80(r1)
+0x0000094C: 3C600000 lis      r3,0x0                PIPE
+0x00000950: 30630000 addic    r3,r3,0x0            01 (0000094C) REG
+0x00000954: 48000001 bl       std::_Winit::~_Winit() 08
+0x00000958: 60000000 nop      
+0x0000095C: 3C600000 lis      r3,0x0                PIPE
+0x00000960: 30630000 addic    r3,r3,0x0            01 (0000095C) REG
+0x00000964: 48000001 bl       std::ios_base::Init::~Init() 08
+0x00000968: 60000000 nop      
+0x0000096C: E8010080 ld       r0,0x80(r1)
+0x00000970: 7C0803A6 mtspr    lr,r0                01 (0000096C) REG
+0x00000974: 38210070 addi     r1,r1,0x70
+0x00000978: 4E800020 blr                           08
+
+.__sti___18_SoundEmulation_cpp_acbeb43d:
+0x0000097C: F821FF91 stdu     r1,-0x70(r1)          PIPE
+0x00000980: 7C0802A6 mfspr    r0,lr                02
+0x00000984: F8010080 std      r0,0x80(r1)           PIPE
+0x00000988: 3C600000 lis      r3,0x0
+0x0000098C: 30630000 addic    r3,r3,0x0            01 (00000988) REG PIPE
+0x00000990: 48000001 bl       std::ios_base::Init::Init() 08
+0x00000994: 60000000 nop                            PIPE
+0x00000998: 3C600000 lis      r3,0x0
+0x0000099C: 30630000 addic    r3,r3,0x0            01 (00000998) REG PIPE
+0x000009A0: 48000001 bl       std::_Winit::_Winit() 08
+0x000009A4: 60000000 nop                            PIPE
+0x000009A8: E8010080 ld       r0,0x80(r1)
+0x000009AC: 7C0803A6 mtspr    lr,r0                02 (000009A8) REG
+0x000009B0: 38210070 addi     r1,r1,0x70
+0x000009B4: 4E800020 blr                           08
+
+

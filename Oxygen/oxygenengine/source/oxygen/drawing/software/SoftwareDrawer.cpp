@@ -230,15 +230,6 @@ namespace softwaredrawer
 			// Copy over data and swap red and blue channels
 			//  -> Note that input and output may be identical, or must not overlap otherwise
 			
-#if defined(PLATFORM_PS3)
-			// PS3/BE uses RGBA32 (RRGGBBAA in memory)
-			// Swapping Red and Blue means: (R<<24)|(G<<16)|(B<<8)|A -> (B<<24)|(G<<16)|(R<<8)|A
-			const uint32 redMask   = 0xff000000;
-			const uint32 greenMask = 0x00ff0000;
-			const uint32 blueMask  = 0x0000ff00;
-			const uint32 alphaMask = 0x000000ff;
-			const int shift = 16;
-#else
 			// Others/LE uses ABGR32 (AABBGGRR in memory)
 			// Swapping Red and Blue means: (A<<24)|(B<<16)|(G<<8)|R -> (A<<24)|(R<<16)|(G<<8)|B
 			const uint32 redMask   = 0x000000ff;
@@ -246,16 +237,11 @@ namespace softwaredrawer
 			const uint32 blueMask  = 0x00ff0000;
 			const uint32 alphaMask = 0xff000000;
 			const int shift = 16;
-#endif
 
 			for (int k = 0; k < numPixels; ++k)
 			{
 				const uint32 color = src[k];
-#if defined(PLATFORM_PS3)
-				dst[k] = ((color & redMask) >> shift) | (color & greenMask) | ((color & blueMask) << shift) | (color & alphaMask);
-#else
 				dst[k] = ((color & redMask) << shift) | (color & greenMask) | ((color & blueMask) >> shift) | (color & alphaMask);
-#endif
 			}
 		}
 
@@ -706,7 +692,7 @@ void SoftwareDrawer::presentScreen()
 	}
 
 	glBindTexture(GL_TEXTURE_2D, screenTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mInternal.mScreenSurface->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, mInternal.mScreenSurface->w, mInternal.mScreenSurface->h, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, mInternal.mScreenSurface->pixels);
 
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);

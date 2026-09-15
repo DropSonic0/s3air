@@ -92,10 +92,10 @@ PackedFileProvider* PackedFileProvider::createPackedFileProvider(std::wstring_vi
 }
 
 PackedFileProvider::PackedFileProvider(std::wstring_view packageFilename) :
-	mInternal(*new Internal())
+mInternal(*new Internal())
 {
 	// Load the package if there is one
-	mLoaded = FilePackage::loadPackage(packageFilename, mPackedFiles, mInputStream, true);	// TODO: Use streaming instead of loading all content right away
+	mLoaded = FilePackage::loadPackage(packageFilename, mPackedFiles, mInputStream, false);	// Use on-demand lazy loading to prevent memory exhaustion on PS3
 	if (mLoaded)
 	{
 		RMX_LOG_INFO("Loaded file package '" << WString(packageFilename).toStdString() << "' with " << mPackedFiles.size() << " entries");
@@ -204,6 +204,28 @@ PackedFileProvider::PackedFile* PackedFileProvider::findPackedFile(const std::ws
 		if (it != mPackedFiles.end())
 		{
 			return &it->second;
+		}
+
+		// Fallback: Case-insensitive search
+		std::wstring lowerFilename = filename;
+		for (size_t i = 0; i < lowerFilename.length(); ++i)
+		{
+			if (lowerFilename[i] >= L'A' && lowerFilename[i] <= L'Z')
+				lowerFilename[i] += (L'a' - L'A');
+		}
+
+		for (auto& pair : mPackedFiles)
+		{
+			std::wstring lowerKey = pair.first;
+			for (size_t i = 0; i < lowerKey.length(); ++i)
+			{
+				if (lowerKey[i] >= L'A' && lowerKey[i] <= L'Z')
+					lowerKey[i] += (L'a' - L'A');
+			}
+			if (lowerKey == lowerFilename)
+			{
+				return &pair.second;
+			}
 		}
 	}
 	return nullptr;

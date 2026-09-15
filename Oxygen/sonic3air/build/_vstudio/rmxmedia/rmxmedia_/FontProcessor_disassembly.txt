@@ -1,0 +1,555 @@
+Disassembly of section .text:
+
+_ZN19ShadowFontProcessor7processER18FontProcessingData$rodata:
+0x00000000: 3A83126F addi     r20,r3,0x126F
+0x00000004: 40000000 bdnzf    ge,0x00000004
+0x00000008: 3F000000 lis      r24,0x0
+0x0000000C: 00000000 illegal  
+0x00000010: 3F800000 lis      r28,0x0
+0x00000014: 60000000 nop                            PIPE
+
+ShadowFontProcessor::process(FontProcessingData&):
+0x00000018: F821FF11 stdu     r1,-0xF0(r1)
+0x0000001C: 7C0802A6 mfspr    r0,lr                02
+0x00000020: F8010100 std      r0,0x100(r1)
+0x00000024: DBE100E8 stfd     f31,0xE8(r1)          PIPE
+0x00000028: FBA100D0 std      r29,0xD0(r1)
+0x0000002C: 3CA00000 lis      r5,0x0                PIPE
+0x00000030: 607D0000 mr       r29,r3
+0x00000034: FB8100C8 std      r28,0xC8(r1)          PIPE
+0x00000038: 38A50000 addi     r5,r5,0x0
+0x0000003C: 609C0000 mr       r28,r4                PIPE
+0x00000040: C0250000 lfs      f1,0x0(r5)
+0x00000044: C05D001C lfs      f2,0x1C(r29)          PIPE
+0x00000048: FBE100E0 std      r31,0xE0(r1)
+0x0000004C: FBC100D8 std      r30,0xD8(r1)          PIPE
+0x00000050: FB6100C0 std      r27,0xC0(r1)
+0x00000054: FB4100B8 std      r26,0xB8(r1)          PIPE
+0x00000058: FB2100B0 std      r25,0xB0(r1)
+0x0000005C: FB0100A8 std      r24,0xA8(r1)          PIPE
+0x00000060: FAE100A0 std      r23,0xA0(r1)
+0x00000064: FAC10098 std      r22,0x98(r1)          PIPE
+0x00000068: FC020800 fcmpu    f2,f1
+0x0000006C: 418002AC blt      0x00000318           27 (00000068) REG FLUSH
+0x00000070: 3C600000 lis      r3,0x0
+0x00000074: 837C000C lwz      r27,0xC(r28)
+0x00000078: 38630000 addi     r3,r3,0x0            01 (00000070) REG
+0x0000007C: C0230004 lfs      f1,0x4(r3)           04 (00000078) REG LSU
+0x00000080: C3E30008 lfs      f31,0x8(r3)
+0x00000084: C05D000C lfs      f2,0xC(r29)           PIPE
+0x00000088: 835C0010 lwz      r26,0x10(r28)
+0x0000008C: EC22F87A fmadds   f1,f2,f1,f31          PIPE
+0x00000090: 833C0014 lwz      r25,0x14(r28)
+0x00000094: 831C0018 lwz      r24,0x18(r28)         PIPE
+0x00000098: 48000001 bl       .floorf              08
+0x0000009C: 60000000 nop                            PIPE
+0x000000A0: FC20081E fctiwz   f1,f1
+0x000000A4: 38C00000 li       r6,0x0
+0x000000A8: 60D70000 mr       r23,r6               01 (000000A4) REG
+0x000000AC: D8210018 stfd     f1,0x18(r1)          08 (000000A0) REG
+0x000000B0: 80A1001C lwz      r5,0x1C(r1)          70 (000000AC) LHS[01]
+0x000000B4: 2C050000 cmpwi    r5,0x0               01 (000000B0) REG PIPE
+0x000000B8: 41800014 blt      0x000000CC
+0x000000BC: 2C050010 cmpwi    r5,0x10
+0x000000C0: 40810008 ble      0x000000C8
+0x000000C4: 38A00010 li       r5,0x10
+0x000000C8: 60A60000 mr       r6,r5                01 (000000C4) REG
+0x000000CC: 80BD0004 lwz      r5,0x4(r29)
+0x000000D0: 62FF0000 mr       r31,r23
+0x000000D4: 2C050000 cmpwi    r5,0x0                PIPE
+0x000000D8: 41800014 blt      0x000000EC
+0x000000DC: 2C050010 cmpwi    r5,0x10
+0x000000E0: 40810008 ble      0x000000E8
+0x000000E4: 38A00010 li       r5,0x10
+0x000000E8: 60BF0000 mr       r31,r5               01 (000000E4) REG
+0x000000EC: 80BD0008 lwz      r5,0x8(r29)
+0x000000F0: 62FE0000 mr       r30,r23
+0x000000F4: 2C050000 cmpwi    r5,0x0                PIPE
+0x000000F8: 41800014 blt      0x0000010C
+0x000000FC: 2C050010 cmpwi    r5,0x10
+0x00000100: 40810008 ble      0x00000108
+0x00000104: 38A00010 li       r5,0x10
+0x00000108: 60BE0000 mr       r30,r5               01 (00000104) REG
+0x0000010C: 7C7F3010 subfc    r3,r31,r6             PIPE
+0x00000110: 92E10070 stw      r23,0x70(r1)
+0x00000114: 30E10070 addic    r7,r1,0x70            PIPE
+0x00000118: 2C030000 cmpwi    r3,0x0
+0x0000011C: 60E50000 mr       r5,r7                 PIPE
+0x00000120: 90610074 stw      r3,0x74(r1)
+0x00000124: 40810008 ble      0x0000012C
+0x00000128: 30E10074 addic    r7,r1,0x74
+0x0000012C: 7D06D014 addc     r8,r6,r26             PIPE
+0x00000130: 80E70000 lwz      r7,0x0(r7)
+0x00000134: 7C7E3010 subfc    r3,r30,r6
+0x00000138: 7D08F814 addc     r8,r8,r31
+0x0000013C: 7CFB3814 addc     r7,r27,r7             PIPE
+0x00000140: 31210074 addic    r9,r1,0x74
+0x00000144: 2C030000 cmpwi    r3,0x0                PIPE
+0x00000148: 911C0010 stw      r8,0x10(r28)
+0x0000014C: 92E10074 stw      r23,0x74(r1)          PIPE
+0x00000150: 90610070 stw      r3,0x70(r1)
+0x00000154: 90FC000C stw      r7,0xC(r28)           PIPE
+0x00000158: 40810008 ble      0x00000160
+0x0000015C: 60A90000 mr       r9,r5
+0x00000160: 63D60000 mr       r22,r30
+0x00000164: 7C66C014 addc     r3,r6,r24             PIPE
+0x00000168: 83C90000 lwz      r30,0x0(r9)
+0x0000016C: 7CA74014 addc     r5,r7,r8
+0x00000170: 80DC0004 lwz      r6,0x4(r28)
+0x00000174: 7C63B014 addc     r3,r3,r22
+0x00000178: 813C0008 lwz      r9,0x8(r28)
+0x0000017C: 7D19F014 addc     r8,r25,r30
+0x00000180: 7C9BD014 addc     r4,r27,r26
+0x00000184: 7CA53014 addc     r5,r5,r6              PIPE
+0x00000188: 907C0018 stw      r3,0x18(r28)
+0x0000018C: 7C681814 addc     r3,r8,r3              PIPE
+0x00000190: 911C0014 stw      r8,0x14(r28)
+0x00000194: 7C842810 subfc    r4,r4,r5              PIPE
+0x00000198: 7C634814 addc     r3,r3,r9
+0x0000019C: 7CB8C814 addc     r5,r24,r25            PIPE
+0x000001A0: 63FA0000 mr       r26,r31
+0x000001A4: 7C651810 subfc    r3,r5,r3              PIPE
+0x000001A8: 7FFB3810 subfc    r31,r27,r7
+0x000001AC: 7C9B07B4 extsw    r27,r4                PIPE
+0x000001B0: 33210078 addic    r25,r1,0x78
+0x000001B4: 7C7807B4 extsw    r24,r3                PIPE
+0x000001B8: 7FFF07B4 extsw    r31,r31
+0x000001BC: 7FDE07B4 extsw    r30,r30               PIPE
+0x000001C0: 63230000 mr       r3,r25
+0x000001C4: 48000001 bl       Bitmap::Bitmap()     08
+0x000001C8: 60000000 nop      
+0x000001CC: 63640000 mr       r4,r27                PIPE
+0x000001D0: 63050000 mr       r5,r24
+0x000001D4: 63230000 mr       r3,r25                PIPE
+0x000001D8: 38C00000 li       r6,0x0
+0x000001DC: 48000001 bl       Bitmap::create(int, int, unsigned int) 08
+0x000001E0: 60000000 nop      
+0x000001E4: 7C9FD014 addc     r4,r31,r26            PIPE
+0x000001E8: 7CBEB014 addc     r5,r30,r22
+0x000001EC: 63230000 mr       r3,r25                PIPE
+0x000001F0: 63860000 mr       r6,r28
+0x000001F4: 7C8407B4 extsw    r4,r4                 PIPE
+0x000001F8: 7CA507B4 extsw    r5,r5
+0x000001FC: 48000001 bl       Bitmap::insertBlend(int, int, Bitmap const&) 08
+0x00000200: 60000000 nop      
+0x00000204: 3C600000 lis      r3,0x0                PIPE
+0x00000208: C03D000C lfs      f1,0xC(r29)
+0x0000020C: 38630000 addi     r3,r3,0x0            01 (00000204) REG
+0x00000210: C043000C lfs      f2,0xC(r3)           03 (0000020C) REG LSU
+0x00000214: FC011000 fcmpu    f1,f2                 PIPE
+0x00000218: 41810008 bgt      0x00000220           27 (00000214) REG FLUSH
+0x0000021C: 48000014 b        0x00000230           08 PIPE
+0x00000220: 30610078 addic    r3,r1,0x78
+0x00000224: 60640000 mr       r4,r3                01 (00000220) REG PIPE
+0x00000228: 48000001 bl       Bitmap::gaussianBlur(Bitmap const&, float) 08
+0x0000022C: 60000000 nop                            PIPE
+0x00000230: 307D0010 addic    r3,r29,0x10
+0x00000234: 78630020 clrldi   r3,r3,32             01 (00000230) REG PIPE
+0x00000238: 48000001 bl       Color::getABGR32() const 08
+0x0000023C: 60000000 nop                            PIPE
+0x00000240: 3C800000 lis      r4,0x0
+0x00000244: C03D001C lfs      f1,0x1C(r29)
+0x00000248: 547B023E clrlwi   r27,r3,8
+0x0000024C: 38840000 addi     r4,r4,0x0             PIPE
+0x00000250: C0440010 lfs      f2,0x10(r4)          03 (0000024C) REG LSU
+0x00000254: FC011000 fcmpu    f1,f2                 PIPE
+0x00000258: 41800008 blt      0x00000260           27 (00000254) REG FLUSH
+0x0000025C: 48000074 b        0x000002D0           08 PIPE
+0x00000260: 62F90000 mr       r25,r23
+0x00000264: 83410078 lwz      r26,0x78(r1)
+0x00000268: 8061007C lwz      r3,0x7C(r1)
+0x0000026C: 80810080 lwz      r4,0x80(r1)           PIPE
+0x00000270: 7C6321D6 mullw    r3,r3,r4             09+01 (0000026C) REG
+0x00000274: 7C171800 cmpw     r23,r3                PIPE
+0x00000278: 40800068 bge      0x000002E0
+0x0000027C: 7F3807B4 extsw    r24,r25
+0x00000280: 7C7AC02E lwzx     r3,r26,r24           03 (0000027C) REG LSU
+0x00000284: 5463463E srwi     r3,r3,24             02 (00000280) REG
+0x00000288: 78630020 clrldi   r3,r3,32             01 (00000284) REG
+0x0000028C: F8610018 std      r3,0x18(r1)          03 (00000288) REG PIPE LSU
+0x00000290: C03D001C lfs      f1,0x1C(r29)
+0x00000294: C8410018 lfd      f2,0x18(r1)          50 (0000028C) PIPE LHS[02]
+0x00000298: FC40169C fcfid    f2,f2
+0x0000029C: FC401018 frsp     f2,f2                09 (00000298) REG PIPE
+0x000002A0: EC22F87A fmadds   f1,f2,f1,f31         09 (0000029C) REG
+0x000002A4: 48000001 bl       .floorf              08
+0x000002A8: 60000000 nop      
+0x000002AC: FC20081E fctiwz   f1,f1
+0x000002B0: 33390004 addic    r25,r25,0x4
+0x000002B4: 32F70001 addic    r23,r23,0x1           PIPE
+0x000002B8: D8210018 stfd     f1,0x18(r1)          07 (000002AC) REG
+0x000002BC: 8061001C lwz      r3,0x1C(r1)          70 (000002B8) PIPE LHS[01]
+0x000002C0: 7863C1E4 sldi     r3,r3,24             01 (000002BC) REG
+0x000002C4: 7C7B1814 addc     r3,r27,r3            01 (000002C0) REG PIPE
+0x000002C8: 7C7AC12E stwx     r3,r26,r24           03 (000002C4) REG LSU
+0x000002CC: 4BFFFF9C b        0x00000268           08
+0x000002D0: 30610078 addic    r3,r1,0x78
+0x000002D4: 63640000 mr       r4,r27                PIPE
+0x000002D8: 48000001 bl       Bitmap::clearRGB(unsigned int) 08
+0x000002DC: 60000000 nop                            PIPE
+0x000002E0: 33A10078 addic    r29,r1,0x78
+0x000002E4: 63E40000 mr       r4,r31                PIPE
+0x000002E8: 63A30000 mr       r3,r29
+0x000002EC: 63C50000 mr       r5,r30                PIPE
+0x000002F0: 63860000 mr       r6,r28
+0x000002F4: 48000001 bl       Bitmap::insertBlend(int, int, Bitmap const&) 08
+0x000002F8: 60000000 nop      
+0x000002FC: 63830000 mr       r3,r28                PIPE
+0x00000300: 63A40000 mr       r4,r29
+0x00000304: 48000001 bl       Bitmap::copy(Bitmap const&) 08
+0x00000308: 60000000 nop      
+0x0000030C: 63A30000 mr       r3,r29                PIPE
+0x00000310: 48000001 bl       Bitmap::~Bitmap()    08
+0x00000314: 60000000 nop                            PIPE
+0x00000318: E8010100 ld       r0,0x100(r1)
+0x0000031C: 7C0803A6 mtspr    lr,r0                02 (00000318) REG
+0x00000320: CBE100E8 lfd      f31,0xE8(r1)
+0x00000324: EAC10098 ld       r22,0x98(r1)          PIPE
+0x00000328: EAE100A0 ld       r23,0xA0(r1)
+0x0000032C: EB0100A8 ld       r24,0xA8(r1)          PIPE
+0x00000330: EB2100B0 ld       r25,0xB0(r1)
+0x00000334: EB4100B8 ld       r26,0xB8(r1)          PIPE
+0x00000338: EB6100C0 ld       r27,0xC0(r1)
+0x0000033C: EB8100C8 ld       r28,0xC8(r1)          PIPE
+0x00000340: EBA100D0 ld       r29,0xD0(r1)
+0x00000344: EBC100D8 ld       r30,0xD8(r1)          PIPE
+0x00000348: EBE100E0 ld       r31,0xE0(r1)
+0x0000034C: 382100F0 addi     r1,r1,0xF0
+0x00000350: 4E800020 blr                           08
+
+OutlineFontProcessor::process(FontProcessingData&):
+0x00000354: F821FF21 stdu     r1,-0xE0(r1)          PIPE
+0x00000358: 7C0802A6 mfspr    r0,lr                02
+0x0000035C: F80100F0 std      r0,0xF0(r1)           PIPE
+0x00000360: FB0100A0 std      r24,0xA0(r1)
+0x00000364: FAE10098 std      r23,0x98(r1)          PIPE
+0x00000368: 60780000 mr       r24,r3
+0x0000036C: 60970000 mr       r23,r4                PIPE
+0x00000370: 80B80014 lwz      r5,0x14(r24)
+0x00000374: 2C85000A cmpwi    cr1,r5,0xA           02 (00000370) REG
+0x00000378: FBE100D8 std      r31,0xD8(r1)
+0x0000037C: FBC100D0 std      r30,0xD0(r1)          PIPE
+0x00000380: FBA100C8 std      r29,0xC8(r1)
+0x00000384: FB8100C0 std      r28,0xC0(r1)          PIPE
+0x00000388: FB6100B8 std      r27,0xB8(r1)
+0x0000038C: FB4100B0 std      r26,0xB0(r1)          PIPE
+0x00000390: FB2100A8 std      r25,0xA8(r1)
+0x00000394: FAC10090 std      r22,0x90(r1)          PIPE
+0x00000398: FAA10088 std      r21,0x88(r1)
+0x0000039C: FA810080 std      r20,0x80(r1)          PIPE
+0x000003A0: 2C050000 cmpwi    r5,0x0
+0x000003A4: 40810268 ble      0x0000060C           01 (000003A0) REG
+0x000003A8: 3BE0000A li       r31,0xA
+0x000003AC: 41850008 bgt      cr1,0x000003B4
+0x000003B0: 60BF0000 mr       r31,r5
+0x000003B4: 93F80014 stw      r31,0x14(r24)        03 (000003B0) REG PIPE LSU
+0x000003B8: 57E3083C slwi     r3,r31,1
+0x000003BC: 8097000C lwz      r4,0xC(r23)
+0x000003C0: 32C10070 addic    r22,r1,0x70
+0x000003C4: 80B70014 lwz      r5,0x14(r23)
+0x000003C8: 80F70010 lwz      r7,0x10(r23)
+0x000003CC: 7CC4F814 addc     r6,r4,r31
+0x000003D0: 81370018 lwz      r9,0x18(r23)
+0x000003D4: 7D07F814 addc     r8,r7,r31            01 (000003C8) REG
+0x000003D8: 81770004 lwz      r11,0x4(r23)
+0x000003DC: 7D441814 addc     r10,r4,r3
+0x000003E0: 7C651814 addc     r3,r5,r3
+0x000003E4: 90D7000C stw      r6,0xC(r23)           PIPE
+0x000003E8: 7C843814 addc     r4,r4,r7
+0x000003EC: 91170010 stw      r8,0x10(r23)          PIPE
+0x000003F0: 7C634814 addc     r3,r3,r9
+0x000003F4: 7D0A3814 addc     r8,r10,r7             PIPE
+0x000003F8: 81570008 lwz      r10,0x8(r23)
+0x000003FC: 7D085814 addc     r8,r8,r11            01 (000003F4) REG
+0x00000400: 7D85F814 addc     r12,r5,r31
+0x00000404: 7C844010 subfc    r4,r4,r8              PIPE
+0x00000408: 7C635014 addc     r3,r3,r10
+0x0000040C: 7CA92814 addc     r5,r9,r5              PIPE
+0x00000410: 7CC9F814 addc     r6,r9,r31
+0x00000414: 7C9E07B4 extsw    r30,r4                PIPE
+0x00000418: 91970014 stw      r12,0x14(r23)
+0x0000041C: 7C851810 subfc    r4,r5,r3              PIPE
+0x00000420: 62C30000 mr       r3,r22
+0x00000424: 7C9D07B4 extsw    r29,r4                PIPE
+0x00000428: 90D70018 stw      r6,0x18(r23)
+0x0000042C: 7FFF07B4 extsw    r31,r31               PIPE
+0x00000430: 48000001 bl       Bitmap::Bitmap()     08
+0x00000434: 60000000 nop                            PIPE
+0x00000438: 62C30000 mr       r3,r22
+0x0000043C: 63C40000 mr       r4,r30                PIPE
+0x00000440: 63A50000 mr       r5,r29
+0x00000444: 38C00000 li       r6,0x0                PIPE
+0x00000448: 48000001 bl       Bitmap::create(int, int, unsigned int) 08
+0x0000044C: 60000000 nop                            PIPE
+0x00000450: 30780004 addic    r3,r24,0x4
+0x00000454: 787D0020 clrldi   r29,r3,32            01 (00000450) REG PIPE
+0x00000458: 63A30000 mr       r3,r29               01 (00000454) REG
+0x0000045C: 48000001 bl       Color::getABGR32() const 08
+0x00000460: 60000000 nop      
+0x00000464: 547E023E clrlwi   r30,r3,8              PIPE
+0x00000468: 63A30000 mr       r3,r29
+0x0000046C: 48000001 bl       Color::getABGR32() const 08
+0x00000470: 60000000 nop      
+0x00000474: 3B800000 li       r28,0x0               PIPE
+0x00000478: 547D463E srwi     r29,r3,24
+0x0000047C: 63950000 mr       r21,r28               PIPE
+0x00000480: 80610078 lwz      r3,0x78(r1)
+0x00000484: 7C1C1800 cmpw     r28,r3               02 (00000480) REG
+0x00000488: 40800150 bge      0x000005D8
+0x0000048C: 62BB0000 mr       r27,r21
+0x00000490: 80610074 lwz      r3,0x74(r1)
+0x00000494: 7C1B1800 cmpw     r27,r3               02 (00000490) REG
+0x00000498: 40800134 bge      0x000005CC
+0x0000049C: 81380014 lwz      r9,0x14(r24)
+0x000004A0: 62A50000 mr       r5,r21
+0x000004A4: 9AA1007C stb      r21,0x7C(r1)          PIPE
+0x000004A8: 7F4900D0 neg      r26,r9
+0x000004AC: 60B40000 mr       r20,r5                PIPE
+0x000004B0: 7F5A07B4 extsw    r26,r26
+0x000004B4: 7C1A4800 cmpw     r26,r9               01 (000004B0) REG PIPE
+0x000004B8: 418100D0 bgt      0x00000588
+0x000004BC: 61390000 mr       r25,r9
+0x000004C0: 88780018 lbz      r3,0x18(r24)
+0x000004C4: 2C030000 cmpwi    r3,0x0               02 (000004C0) REG
+0x000004C8: 40820018 bne      0x000004E0
+0x000004CC: 63430000 mr       r3,r26
+0x000004D0: 48000001 bl       .abs                 08
+0x000004D4: 60000000 nop                            PIPE
+0x000004D8: 7F23C810 subfc    r25,r3,r25
+0x000004DC: 81380014 lwz      r9,0x14(r24)
+0x000004E0: 7CBAE014 addc     r5,r26,r28
+0x000004E4: 7CBF2810 subfc    r5,r31,r5            01 (000004E0) REG PIPE
+0x000004E8: 2C050000 cmpwi    r5,0x0               01 (000004E4) REG
+0x000004EC: 41800084 blt      0x00000570           01 (000004E8) REG
+0x000004F0: 80770008 lwz      r3,0x8(r23)
+0x000004F4: 7C051800 cmpw     r5,r3                02 (000004F0) REG
+0x000004F8: 40800078 bge      0x00000570
+0x000004FC: 7CD900D0 neg      r6,r25
+0x00000500: 7C06C800 cmpw     r6,r25               01 (000004FC) REG
+0x00000504: 4181006C bgt      0x00000570           01 (00000500) REG
+0x00000508: 7D06D814 addc     r8,r6,r27
+0x0000050C: 7D1F4010 subfc    r8,r31,r8            01 (00000508) REG PIPE
+0x00000510: 2C080000 cmpwi    r8,0x0               01 (0000050C) REG
+0x00000514: 4180004C blt      0x00000560           01 (00000510) REG
+0x00000518: 80F70004 lwz      r7,0x4(r23)
+0x0000051C: 7C083800 cmpw     r8,r7                02 (00000518) REG
+0x00000520: 40800040 bge      0x00000560
+0x00000524: 7C6729D6 mullw    r3,r7,r5             09
+0x00000528: 80970000 lwz      r4,0x0(r23)
+0x0000052C: 7C681814 addc     r3,r8,r3
+0x00000530: 5687063E clrlwi   r7,r20,24
+0x00000534: 78631764 sldi     r3,r3,2               PIPE
+0x00000538: 3281007D addic    r20,r1,0x7D
+0x0000053C: 7C6307B4 extsw    r3,r3                 PIPE
+0x00000540: 7C64182E lwzx     r3,r4,r3             03 (0000053C) REG LSU
+0x00000544: 5463463E srwi     r3,r3,24             02 (00000540) REG
+0x00000548: 7C033800 cmpw     r3,r7                01 (00000544) REG
+0x0000054C: 9861007D stb      r3,0x7D(r1)           PIPE
+0x00000550: 40800008 bge      0x00000558
+0x00000554: 3281007C addic    r20,r1,0x7C
+0x00000558: 8A940000 lbz      r20,0x0(r20)         03 (00000554) REG LSU
+0x0000055C: 9A81007C stb      r20,0x7C(r1)         03 (00000558) REG PIPE LSU
+0x00000560: 30C60001 addic    r6,r6,0x1
+0x00000564: 31080001 addic    r8,r8,0x1             PIPE
+0x00000568: 7C06C800 cmpw     r6,r25
+0x0000056C: 4081FFA4 ble      0x00000510           01 (00000568) REG
+0x00000570: 335A0001 addic    r26,r26,0x1
+0x00000574: 61390000 mr       r25,r9                PIPE
+0x00000578: 7F5A07B4 extsw    r26,r26
+0x0000057C: 62850000 mr       r5,r20                PIPE
+0x00000580: 7C1AC800 cmpw     r26,r25
+0x00000584: 4081FF3C ble      0x000004C0           01 (00000580) REG
+0x00000588: 54A3063E clrlwi   r3,r5,24
+0x0000058C: 7C63E9D6 mullw    r3,r3,r29            09+01 (00000588) REG PIPE
+0x00000590: 3C808080 lis      r4,0x8080
+0x00000594: 63C60000 mr       r6,r30                PIPE
+0x00000598: 60848081 ori      r4,r4,0x8081
+0x0000059C: 7C641816 mulhwu   r3,r4,r3             09+01 (00000598) REG PIPE
+0x000005A0: 63850000 mr       r5,r28
+0x000005A4: 5464C9FE srwi     r4,r3,7               PIPE
+0x000005A8: 62C30000 mr       r3,r22
+0x000005AC: 5086C00E insrwi   r6,r4,8,0             PIPE
+0x000005B0: 63640000 mr       r4,r27
+0x000005B4: 78C60020 clrldi   r6,r6,32              PIPE
+0x000005B8: 48000001 bl       Bitmap::setPixel(int, int, unsigned int) 08
+0x000005BC: 60000000 nop                            PIPE
+0x000005C0: 337B0001 addic    r27,r27,0x1
+0x000005C4: 7F7B07B4 extsw    r27,r27              01 (000005C0) REG PIPE
+0x000005C8: 4BFFFEC8 b        0x00000490           08
+0x000005CC: 339C0001 addic    r28,r28,0x1           PIPE
+0x000005D0: 7F9C07B4 extsw    r28,r28              01 (000005CC) REG
+0x000005D4: 4BFFFEAC b        0x00000480           08
+0x000005D8: 62C30000 mr       r3,r22
+0x000005DC: 63E40000 mr       r4,r31                PIPE
+0x000005E0: 63E50000 mr       r5,r31
+0x000005E4: 62E60000 mr       r6,r23                PIPE
+0x000005E8: 48000001 bl       Bitmap::insertBlend(int, int, Bitmap const&) 08
+0x000005EC: 60000000 nop                            PIPE
+0x000005F0: 62E30000 mr       r3,r23
+0x000005F4: 62C40000 mr       r4,r22                PIPE
+0x000005F8: 48000001 bl       Bitmap::copy(Bitmap const&) 08
+0x000005FC: 60000000 nop                            PIPE
+0x00000600: 62C30000 mr       r3,r22
+0x00000604: 48000001 bl       Bitmap::~Bitmap()    08
+0x00000608: 60000000 nop      
+0x0000060C: E80100F0 ld       r0,0xF0(r1)
+0x00000610: 7C0803A6 mtspr    lr,r0                01 (0000060C) REG
+0x00000614: EA810080 ld       r20,0x80(r1)
+0x00000618: EAA10088 ld       r21,0x88(r1)
+0x0000061C: EAC10090 ld       r22,0x90(r1)          PIPE
+0x00000620: EAE10098 ld       r23,0x98(r1)
+0x00000624: EB0100A0 ld       r24,0xA0(r1)          PIPE
+0x00000628: EB2100A8 ld       r25,0xA8(r1)
+0x0000062C: EB4100B0 ld       r26,0xB0(r1)          PIPE
+0x00000630: EB6100B8 ld       r27,0xB8(r1)
+0x00000634: EB8100C0 ld       r28,0xC0(r1)          PIPE
+0x00000638: EBA100C8 ld       r29,0xC8(r1)
+0x0000063C: EBC100D0 ld       r30,0xD0(r1)          PIPE
+0x00000640: EBE100D8 ld       r31,0xD8(r1)
+0x00000644: 382100E0 addi     r1,r1,0xE0
+0x00000648: 4E800020 blr                           08
+0x0000064C: 60000000 nop                            PIPE
+
+_ZN21GradientFontProcessor7processER18FontProcessingData$rodata:
+0x00000650: 40000000 bdnzf    ge,_ZN21GradientFontProcessor7processER18FontProcessingData$rodata
+0x00000654: 00000000 illegal  
+0x00000658: 3F800000 lis      r28,0x0
+0x0000065C: 3EB33334 addis    r21,r19,0x3334        PIPE
+0x00000660: 3F266666 addis    r25,r6,0x6666
+0x00000664: 3F000000 lis      r24,0x0               PIPE
+0x00000668: 41EFFFFF bsola+   cr3,0xFFFFFFFC       08
+0x0000066C: FFE00000 illegal                        PIPE
+0x00000670: 41E00000 blt+     0x00000670           08
+0x00000674: 00000000 illegal                        PIPE
+0x00000678: 00000000 illegal  
+0x0000067C: 00000000 illegal  
+
+GradientFontProcessor::process(FontProcessingData&):
+0x00000680: 3C600000 lis      r3,0x0
+0x00000684: 38C00000 li       r6,0x0                PIPE
+0x00000688: 38A30000 addi     r5,r3,0x0
+0x0000068C: 60C30000 mr       r3,r6                 PIPE
+0x00000690: C0C50000 lfs      f6,0x0(r5)
+0x00000694: C0A50004 lfs      f5,0x4(r5)            PIPE
+0x00000698: C0850008 lfs      f4,0x8(r5)
+0x0000069C: C065000C lfs      f3,0xC(r5)            PIPE
+0x000006A0: C0450010 lfs      f2,0x10(r5)
+0x000006A4: C0250014 lfs      f1,0x14(r5)           PIPE
+0x000006A8: 80A40008 lwz      r5,0x8(r4)
+0x000006AC: 7C062800 cmpw     r6,r5                02 (000006A8) REG
+0x000006B0: 40800138 bge      0x000007E8
+0x000006B4: 7CC707B4 extsw    r7,r6
+0x000006B8: 7CA507B4 extsw    r5,r5
+0x000006BC: F8E1FFF0 std      r7,-0x10(r1)          PIPE
+0x000006C0: 80E40004 lwz      r7,0x4(r4)
+0x000006C4: C8E1FFF0 lfd      f7,-0x10(r1)         50 (000006BC) PIPE LHS[02]
+0x000006C8: F8A1FFF0 std      r5,-0x10(r1)
+0x000006CC: FCE03E9C fcfid    f7,f7                 PIPE
+0x000006D0: 7D0639D6 mullw    r8,r6,r7             09
+0x000006D4: FCE03818 frsp     f7,f7                 PIPE
+0x000006D8: 2C870000 cmpwi    cr1,r7,0x0
+0x000006DC: 5505103A slwi     r5,r8,2               PIPE
+0x000006E0: C901FFF0 lfd      f8,-0x10(r1)         50 (000006C8) LHS[15]
+0x000006E4: FD00469C fcfid    f8,f8                 PIPE
+0x000006E8: 80E40000 lwz      r7,0x0(r4)
+0x000006EC: 7CA72814 addc     r5,r7,r5             02 (000006E8) REG
+0x000006F0: 78A50020 clrldi   r5,r5,32             01 (000006EC) REG
+0x000006F4: FD004018 frsp     f8,f8                05 (000006E4) REG
+0x000006F8: ECE74024 fdivs    f7,f7,f8             56+09 (000006F4) REG
+0x000006FC: ECE701B2 fmuls    f7,f7,f6              PIPE
+0x00000700: FC072800 fcmpu    f7,f5                09 (000006FC) REG
+0x00000704: 41800008 blt      0x0000070C           27 (00000700) REG FLUSH
+0x00000708: 4800000C b        0x00000714           08
+0x0000070C: FCE02890 fmr      f7,f5                 PIPE
+0x00000710: 48000014 b        0x00000724           08
+0x00000714: FC072000 fcmpu    f7,f4                 PIPE
+0x00000718: 41810008 bgt      0x00000720           27 (00000714) REG FLUSH
+0x0000071C: 48000008 b        0x00000724           08 PIPE
+0x00000720: FCE02090 fmr      f7,f4
+0x00000724: ECE710FA fmadds   f7,f7,f3,f2          09 (00000720) REG PIPE
+0x00000728: 60670000 mr       r7,r3
+0x0000072C: 408500B4 ble      cr1,0x000007E0
+0x00000730: 81050000 lwz      r8,0x0(r5)
+0x00000734: 5509063E clrlwi   r9,r8,24             02 (00000730) REG
+0x00000738: 79290020 clrldi   r9,r9,32             01 (00000734) REG
+0x0000073C: 550A863E extrwi   r10,r8,8,8            PIPE
+0x00000740: F921FFF0 std      r9,-0x10(r1)
+0x00000744: 5509C63E extrwi   r9,r8,8,16            PIPE
+0x00000748: 794A0020 clrldi   r10,r10,32
+0x0000074C: 79290020 clrldi   r9,r9,32              PIPE
+0x00000750: 5508000E clrrwi   r8,r8,24
+0x00000754: 30E70001 addic    r7,r7,0x1             PIPE
+0x00000758: C901FFF0 lfd      f8,-0x10(r1)         50 (00000740) LHS[06]
+0x0000075C: F921FFF0 std      r9,-0x10(r1)          PIPE
+0x00000760: FD00469C fcfid    f8,f8
+0x00000764: FD004018 frsp     f8,f8                09 (00000760) REG PIPE
+0x00000768: C921FFF0 lfd      f9,-0x10(r1)         50 (0000075C) LHS[12]
+0x0000076C: F941FFF0 std      r10,-0x10(r1)         PIPE
+0x00000770: ED0809FA fmadds   f8,f8,f7,f1
+0x00000774: FD204E9C fcfid    f9,f9                 PIPE
+0x00000778: 31450004 addic    r10,r5,0x4
+0x0000077C: FD00465E fctidz   f8,f8                08 (00000770) REG
+0x00000780: FD204818 frsp     f9,f9
+0x00000784: C941FFF0 lfd      f10,-0x10(r1)        50 (0000076C) LHS[12]
+0x00000788: ED2909FA fmadds   f9,f9,f7,f1
+0x0000078C: D901FFF0 stfd     f8,-0x10(r1)
+0x00000790: FD40569C fcfid    f10,f10
+0x00000794: 8121FFF4 lwz      r9,-0xC(r1)          70 (0000078C) LHS[01]
+0x00000798: FD204E5E fctidz   f9,f9
+0x0000079C: FD005018 frsp     f8,f10                PIPE
+0x000007A0: ED0809FA fmadds   f8,f8,f7,f1          09 (0000079C) REG
+0x000007A4: D921FFF0 stfd     f9,-0x10(r1)
+0x000007A8: 8161FFF4 lwz      r11,-0xC(r1)         70 (000007A4) LHS[01]
+0x000007AC: 556B402E slwi     r11,r11,8            01 (000007A8) REG PIPE
+0x000007B0: 7D295B78 or       r9,r9,r11            01 (000007AC) REG
+0x000007B4: FD00465E fctidz   f8,f8
+0x000007B8: D901FFF0 stfd     f8,-0x10(r1)         09 (000007B4) REG
+0x000007BC: 8161FFF4 lwz      r11,-0xC(r1)         70 (000007B8) PIPE LHS[01]
+0x000007C0: 556B801E slwi     r11,r11,16           01 (000007BC) REG
+0x000007C4: 7D295B78 or       r9,r9,r11            01 (000007C0) REG PIPE
+0x000007C8: 7D284378 or       r8,r9,r8             01 (000007C4) REG
+0x000007CC: 91050000 stw      r8,0x0(r5)           03 (000007C8) REG PIPE LSU
+0x000007D0: 81040004 lwz      r8,0x4(r4)
+0x000007D4: 79450020 clrldi   r5,r10,32
+0x000007D8: 7C074000 cmpw     r7,r8                01 (000007D0) REG
+0x000007DC: 4180FF54 blt      0x00000730           01 (000007D8) REG
+0x000007E0: 30C60001 addic    r6,r6,0x1
+0x000007E4: 4BFFFEC4 b        0x000006A8           08
+0x000007E8: 4E800020 blr                           08
+
+.__std___17_FontProcessor_cpp_73e0aefb:
+0x000007EC: F821FF91 stdu     r1,-0x70(r1)          PIPE
+0x000007F0: 7C0802A6 mfspr    r0,lr                02
+0x000007F4: F8010080 std      r0,0x80(r1)           PIPE
+0x000007F8: 3C600000 lis      r3,0x0
+0x000007FC: 30630000 addic    r3,r3,0x0            01 (000007F8) REG PIPE
+0x00000800: 48000001 bl       std::_Winit::~_Winit() 08
+0x00000804: 60000000 nop                            PIPE
+0x00000808: 3C600000 lis      r3,0x0
+0x0000080C: 30630000 addic    r3,r3,0x0            01 (00000808) REG PIPE
+0x00000810: 48000001 bl       std::ios_base::Init::~Init() 08
+0x00000814: 60000000 nop                            PIPE
+0x00000818: E8010080 ld       r0,0x80(r1)
+0x0000081C: 7C0803A6 mtspr    lr,r0                02 (00000818) REG
+0x00000820: 38210070 addi     r1,r1,0x70
+0x00000824: 4E800020 blr                           08
+
+.__sti___17_FontProcessor_cpp_73e0aefb:
+0x00000828: F821FF91 stdu     r1,-0x70(r1)
+0x0000082C: 7C0802A6 mfspr    r0,lr                02
+0x00000830: F8010080 std      r0,0x80(r1)
+0x00000834: 3C600000 lis      r3,0x0                PIPE
+0x00000838: 30630000 addic    r3,r3,0x0            01 (00000834) REG
+0x0000083C: 48000001 bl       std::ios_base::Init::Init() 08
+0x00000840: 60000000 nop      
+0x00000844: 3C600000 lis      r3,0x0                PIPE
+0x00000848: 30630000 addic    r3,r3,0x0            01 (00000844) REG
+0x0000084C: 48000001 bl       std::_Winit::_Winit() 08
+0x00000850: 60000000 nop      
+0x00000854: E8010080 ld       r0,0x80(r1)
+0x00000858: 7C0803A6 mtspr    lr,r0                01 (00000854) REG
+0x0000085C: 38210070 addi     r1,r1,0x70
+0x00000860: 4E800020 blr                           08
+0x00000864: 60000000 nop                            PIPE
+
+
