@@ -44,9 +44,9 @@ namespace emulatorinterface
 		}
 
 		// Modes for "accessMemory" (i.e. possible template parameter values)
-		#define MEMORY_MODE_READ      0		// Read access
-		#define MEMORY_MODE_WRITE     1		// Write access without debugging support
-		#define MEMORY_MODE_WRITE_DEV 2		// Write access with debugging support
+#define MEMORY_MODE_READ      0		// Read access
+#define MEMORY_MODE_WRITE     1		// Write access without debugging support
+#define MEMORY_MODE_WRITE_DEV 2		// Write access with debugging support
 
 		template<int MODE>
 		FORCE_INLINE uint8* accessMemory(uint32 address, uint32 size)
@@ -123,7 +123,7 @@ void RuntimeMemory::clear()
 		const std::vector<uint8>& unmodifiedROM = ResourcesCache::instance().getUnmodifiedRom();
 		memcpy(mRom, &unmodifiedROM[0], unmodifiedROM.size());
 		if (sizeof(mRom) > unmodifiedROM.size())
-			memset(&mRom[unmodifiedROM.size()], 0, sizeof(mRom) - unmodifiedROM.size());
+			memset(&mRom[unmodifiedROM.size()], 0, sizeof(mRom)-unmodifiedROM.size());
 	}
 
 	memset(mRam, 0, sizeof(mRam));
@@ -142,7 +142,7 @@ void RuntimeMemory::applyRomInjections()
 
 
 EmulatorInterface::EmulatorInterface() :
-	mInternal(*new emulatorinterface::Internal())
+mInternal(*new emulatorinterface::Internal())
 {
 }
 
@@ -223,19 +223,31 @@ uint8 EmulatorInterface::readMemory8(uint32 address)
 uint16 EmulatorInterface::readMemory16(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 2);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	return rmx::readMemoryUnaligned<uint16>(pointer);
+#else
 	return rmx::readMemoryUnalignedSwapped<uint16>(pointer);
+#endif
 }
 
 uint32 EmulatorInterface::readMemory32(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 4);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	return rmx::readMemoryUnaligned<uint32>(pointer);
+#else
 	return rmx::readMemoryUnalignedSwapped<uint32>(pointer);
+#endif
 }
 
 uint64 EmulatorInterface::readMemory64(uint32 address)
 {
 	const uint8* pointer = mInternal.accessMemory<MEMORY_MODE_READ>(address, 8);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	return rmx::readMemoryUnaligned<uint64>(pointer);
+#else
 	return rmx::readMemoryUnalignedSwapped<uint64>(pointer);
+#endif
 }
 
 void EmulatorInterface::writeMemory8(uint32 address, uint8 value)
@@ -246,20 +258,32 @@ void EmulatorInterface::writeMemory8(uint32 address, uint8 value)
 void EmulatorInterface::writeMemory16(uint32 address, uint16 value)
 {
 	uint16* mem = (uint16*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 2);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*mem = value;
+#else
 	*mem = swapBytes16(value);
+#endif
 }
 
 void EmulatorInterface::writeMemory32(uint32 address, uint32 value)
 {
 	uint32* mem = (uint32*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 4);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*mem = value;
+#else
 	*mem = swapBytes32(value);
+#endif
 }
 
 void EmulatorInterface::writeMemory64(uint32 address, uint64 value)
 {
 	// TODO: Check if the ARM byte alignment issue an Android (see "readMemory64") can happen here as well
 	uint64* mem = (uint64*)mInternal.accessMemory<MEMORY_MODE_WRITE>(address, 8);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*mem = value;
+#else
 	*mem = swapBytes64(value);
+#endif
 }
 
 void EmulatorInterface::writeMemory8_dev(uint32 address, uint8 value)
@@ -270,19 +294,31 @@ void EmulatorInterface::writeMemory8_dev(uint32 address, uint8 value)
 void EmulatorInterface::writeMemory16_dev(uint32 address, uint16 value)
 {
 	uint16* mem = (uint16*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 2);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*mem = value;
+#else
 	*mem = swapBytes16(value);
+#endif
 }
 
 void EmulatorInterface::writeMemory32_dev(uint32 address, uint32 value)
 {
 	uint32* mem = (uint32*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 4);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*mem = value;
+#else
 	*mem = swapBytes32(value);
+#endif
 }
 
 void EmulatorInterface::writeMemory64_dev(uint32 address, uint64 value)
 {
 	uint64* mem = (uint64*)mInternal.accessMemory<MEMORY_MODE_WRITE_DEV>(address, 8);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*mem = value;
+#else
 	*mem = swapBytes64(value);
+#endif
 }
 
 uint32& EmulatorInterface::getRegister(size_t index)
@@ -362,7 +398,11 @@ void EmulatorInterface::copyFromMemoryToVRam(uint16 vramAddress, uint32 sourceAd
 	const uint16* end = src + (bytes / 2);
 	for (; src != end; ++src, ++dst)
 	{
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+		*dst = *src;
+#else
 		*dst = swapBytes16(*src);
+#endif
 	}
 
 	// Mark as changed
@@ -388,7 +428,11 @@ std::vector<EmulatorInterface::Watch>& EmulatorInterface::getWatches()
 
 void EmulatorInterface::getDirectAccessSpecialization(SpecializationResult& outResult, uint64 address, size_t size, bool writeAccess)
 {
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	outResult.mSwapBytes = false;
+#else
 	outResult.mSwapBytes = true;
+#endif
 	address &= 0x00ffffff;
 	if (address >= 0xff0000)
 	{

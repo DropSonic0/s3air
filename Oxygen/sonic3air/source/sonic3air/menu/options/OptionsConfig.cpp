@@ -16,7 +16,7 @@ namespace
 	struct ConfigBuilder
 	{
 		explicit ConfigBuilder(OptionsConfig::OptionsTab& optionsTab) :
-			mOptionsTab(optionsTab)
+		mOptionsTab(optionsTab)
 		{
 			mOptionsTab.mCategories.clear();
 		}
@@ -139,16 +139,16 @@ void OptionsConfig::buildDisplay()
 		configBuilder.addSetting("Renderer:", option::RENDERER);
 		const Configuration::RenderMethod highest = Configuration::getHighestSupportedRenderMethod();
 
-	#if !defined(PLATFORM_VITA)
+#if !defined(PLATFORM_VITA)
 		configBuilder.addOption("Fail-Safe / Software", (uint32)Configuration::RenderMethod::SOFTWARE);
 		if (highest >= Configuration::RenderMethod::OPENGL_SOFT)
 			configBuilder.addOption("OpenGL Software", (uint32)Configuration::RenderMethod::OPENGL_SOFT);
 		if (highest >= Configuration::RenderMethod::OPENGL_FULL)
 			configBuilder.addOption("OpenGL Hardware", (uint32)Configuration::RenderMethod::OPENGL_FULL);
-	#else
+#else
 		// OpenGL Hardware does not work correctly on PSVita
 		configBuilder.addOption("OpenGL Software", (uint32)Configuration::RenderMethod::OPENGL_SOFT);
-	#endif
+#endif
 
 		configBuilder.addSetting("Frame Sync:", option::FRAME_SYNC)
 			.addOption("V-Sync Off", 0)
@@ -160,7 +160,7 @@ void OptionsConfig::buildDisplay()
 			.addOption("Aspect Fit", 0)
 			.addOption("Stretch 50%", 2)
 			.addOption("Stretch 100%", 3);
-			//.addOption("Scale To Fill", 4);	// Works, but shouldn't be an option, as it looks a bit broken
+		//.addOption("Scale To Fill", 4);	// Works, but shouldn't be an option, as it looks a bit broken
 
 		configBuilder.addSetting("Backdrop:", option::BACKDROP)
 			.addOption("Black", 0)
@@ -168,7 +168,7 @@ void OptionsConfig::buildDisplay()
 			.addOption("Classic Box 2", 2)
 			.addOption("Classic Box 3", 3);
 
-	#if !defined(PLATFORM_VITA)
+#if !defined(PLATFORM_VITA)
 		configBuilder.addSetting("Screen Filter:", option::FILTERING)
 			.addOption("Sharp", 0)
 			.addOption("Soft 1", 1)
@@ -177,13 +177,13 @@ void OptionsConfig::buildDisplay()
 			.addOption("HQ2x", 4)
 			.addOption("HQ3x", 5)
 			.addOption("HQ4x", 6);
-	#else
+#else
 		// High quality filters on the PSVITA is playing in slowmotion...
 		configBuilder.addSetting("Screen Filter:", option::FILTERING)
 			.addOption("Sharp", 0)
 			.addOption("Soft 1", 1)
 			.addOption("Soft 2", 2);
-	#endif
+#endif
 
 		configBuilder.addSetting("Scanlines:", option::SCANLINES)
 			.addOption("Off", 0)
@@ -202,13 +202,13 @@ void OptionsConfig::buildDisplay()
 
 	CATEGORY("Window Mode")
 	{
-	#if !defined(PLATFORM_VITA)
-	#if defined(PLATFORM_LINUX)
+#if !defined(PLATFORM_VITA) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
+#if defined(PLATFORM_LINUX)
 		// Under Linux, the fullscreen with desktop resolution works better, so that's what we present as option
 		const Configuration::WindowMode borderlessFullscreenMode = Configuration::WindowMode::FULLSCREEN_DESKTOP;
-	#else
+#else
 		const Configuration::WindowMode borderlessFullscreenMode = Configuration::WindowMode::FULLSCREEN_BORDERLESS;
-	#endif
+#endif
 
 		configBuilder.addSetting("Current Screen:", option::WINDOW_MODE)
 			.addOption("Windowed", (uint32)Configuration::WindowMode::WINDOWED)
@@ -219,14 +219,14 @@ void OptionsConfig::buildDisplay()
 			.addOption("Windowed", (uint32)Configuration::WindowMode::WINDOWED)
 			.addOption("Fullscreen", (uint32)borderlessFullscreenMode)
 			.addOption("Exclusive Fullscreen", (uint32)Configuration::WindowMode::FULLSCREEN_EXCLUSIVE);
-	#else
-		// These aren't supposed to show up on the Vita
+#else
+		// These aren't supposed to show up on Vita / PS3 console platforms
 		configBuilder.addSetting("Current Screen:", option::WINDOW_MODE)
 			.addOption("Exclusive Fullscreen", 0);
 
 		configBuilder.addSetting("Startup Screen:", option::WINDOW_MODE_STARTUP)
 			.addOption("Exclusive Fullscreen", 0);
-	#endif
+#endif
 	}
 
 	CATEGORY("Performance Output")
@@ -511,7 +511,7 @@ void OptionsConfig::buildControls()
 
 		for (int k = 0; k < InputManager::NUM_PLAYERS; ++k)
 		{
-			configBuilder.addSetting(*String(0, "Controller Player %d", k+1), (option::Option)(option::CONTROLLER_PLAYER_1 + k));
+			configBuilder.addSetting(*String(0, "Controller Player %d", k + 1), (option::Option)(option::CONTROLLER_PLAYER_1 + k));
 			if (Application::instance().hasVirtualGamepad())
 				configBuilder.addOption("None (Touch only)", -1);
 			else
@@ -532,7 +532,7 @@ void OptionsConfig::buildControls()
 		CATEGORY("Virtual Gamepad")
 		{
 			configBuilder.addSetting("Visibility:", option::VGAMEPAD_OPACITY).addNumberOptions(0, 100, 10, "%");
-			configBuilder.addSetting("D-Pad Size:",	option::VGAMEPAD_DPAD_SIZE).addNumberOptions(50, 150, 10);
+			configBuilder.addSetting("D-Pad Size:", option::VGAMEPAD_DPAD_SIZE).addNumberOptions(50, 150, 10);
 			configBuilder.addSetting("Buttons Size:", option::VGAMEPAD_BUTTONS_SIZE).addNumberOptions(50, 150, 10);
 			configBuilder.addSetting("Set Touch Gamepad Layout...", option::VGAMEPAD_SETUP);
 		}
@@ -542,7 +542,7 @@ void OptionsConfig::buildControls()
 	{
 		for (int k = 0; k < InputManager::NUM_PLAYERS; ++k)
 		{
-			configBuilder.addSetting(*String(0, "Rumble Player %d", k+1), (option::Option)(option::CONTROLLER_RUMBLE_P1 + k));
+			configBuilder.addSetting(*String(0, "Rumble Player %d", k + 1), (option::Option)(option::CONTROLLER_RUMBLE_P1 + k));
 			configBuilder.addOption("Off", 0);
 			for (int i = 20; i <= 100; i += 20)
 				configBuilder.addOption(*String(0, "%d %%", i), i);

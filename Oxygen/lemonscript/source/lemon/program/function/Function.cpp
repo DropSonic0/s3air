@@ -17,6 +17,9 @@ namespace lemon
 		uint32 getVoidSignatureHash()
 		{
 			uint32 value = PredefinedDataTypes::VOID.getDataTypeHash();
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || defined(__ORDER_BIG_ENDIAN__)
+			value = rmx::swapBytes(value);
+#endif
 			return rmx::getFNV1a_32((const uint8*)&value, sizeof(uint32));
 		}
 	}
@@ -35,6 +38,20 @@ namespace lemon
 
 	uint32 Function::SignatureBuilder::getSignatureHash()
 	{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || defined(__ORDER_BIG_ENDIAN__)
+		std::vector<uint32> swappedData = mData;
+		for (uint32& v : swappedData)
+		{
+			v = rmx::swapBytes(v);
+		}
+		uint32 hash = rmx::getFNV1a_32((const uint8*)&swappedData[0], swappedData.size() * sizeof(uint32));
+		while (hash == 0)		// That should be a really rare case anyway
+		{
+			swappedData.push_back(rmx::swapBytes(0xcd000000u));		// Just add anything to get away from hash 0
+			hash = rmx::getFNV1a_32((const uint8*)&swappedData[0], swappedData.size() * sizeof(uint32));
+		}
+		return hash;
+#else
 		uint32 hash = rmx::getFNV1a_32((const uint8*)&mData[0], mData.size() * sizeof(uint32));
 		while (hash == 0)		// That should be a really rare case anyway
 		{
@@ -42,6 +59,7 @@ namespace lemon
 			hash = rmx::getFNV1a_32((const uint8*)&mData[0], mData.size() * sizeof(uint32));
 		}
 		return hash;
+#endif
 	}
 
 
