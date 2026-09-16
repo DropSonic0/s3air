@@ -15,21 +15,21 @@ void ShadowFontProcessor::process(FontProcessingData& data)
 		return;
 
 	// Add shadow effect
-	const int oldBorderLeft   = data.mBorderLeft;
-	const int oldBorderRight  = data.mBorderRight;
-	const int oldBorderTop    = data.mBorderTop;
+	const int oldBorderLeft = data.mBorderLeft;
+	const int oldBorderRight = data.mBorderRight;
+	const int oldBorderTop = data.mBorderTop;
 	const int oldBorderBottom = data.mBorderBottom;
 
 	const int border = clamp(roundToInt(mShadowBlur * 2.0f), 0, 16);
 	const int offsX = clamp(mShadowOffset.x, 0, 16);
 	const int offsY = clamp(mShadowOffset.y, 0, 16);
 
-	data.mBorderLeft   = oldBorderLeft   + std::max(0, border - offsX);
-	data.mBorderRight  = oldBorderRight  + border + offsX;
-	data.mBorderTop    = oldBorderTop    + std::max(0, border - offsY);
+	data.mBorderLeft = oldBorderLeft + std::max(0, border - offsX);
+	data.mBorderRight = oldBorderRight + border + offsX;
+	data.mBorderTop = oldBorderTop + std::max(0, border - offsY);
 	data.mBorderBottom = oldBorderBottom + border + offsY;
 
-	const int newWidth  = data.mBitmap.getWidth()  + (data.mBorderLeft + data.mBorderRight) - (oldBorderLeft + oldBorderRight);
+	const int newWidth = data.mBitmap.getWidth() + (data.mBorderLeft + data.mBorderRight) - (oldBorderLeft + oldBorderRight);
 	const int newHeight = data.mBitmap.getHeight() + (data.mBorderTop + data.mBorderBottom) - (oldBorderTop + oldBorderBottom);
 	const int insetX = data.mBorderLeft - oldBorderLeft;
 	const int insetY = data.mBorderTop - oldBorderTop;
@@ -42,6 +42,21 @@ void ShadowFontProcessor::process(FontProcessingData& data)
 		bmp.gaussianBlur(bmp, mShadowBlur);
 	}
 
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	const uint32 shadowRGB = mShadowColor.getRGBA32() & 0xffffff00;
+	if (mShadowColor.a < 1.0f)
+	{
+		uint32* data = bmp.getData();
+		for (int i = 0; i < bmp.getPixelCount(); ++i)
+		{
+			data[i] = shadowRGB + roundToInt((float)(data[i] & 0xff) * mShadowColor.a);
+		}
+	}
+	else
+	{
+		bmp.clearRGB(shadowRGB);
+	}
+#else
 	const uint32 shadowRGB = mShadowColor.getABGR32() & 0xffffff;
 	if (mShadowColor.a < 1.0f)
 	{
@@ -55,6 +70,7 @@ void ShadowFontProcessor::process(FontProcessingData& data)
 	{
 		bmp.clearRGB(shadowRGB);
 	}
+#endif
 	bmp.insertBlend(insetX, insetY, data.mBitmap);
 	data.mBitmap = bmp;
 }
@@ -67,17 +83,17 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 	if (mRange > 10)
 		mRange = 10;
 
-	const int oldBorderLeft   = data.mBorderLeft;
-	const int oldBorderRight  = data.mBorderRight;
-	const int oldBorderTop    = data.mBorderTop;
+	const int oldBorderLeft = data.mBorderLeft;
+	const int oldBorderRight = data.mBorderRight;
+	const int oldBorderTop = data.mBorderTop;
 	const int oldBorderBottom = data.mBorderBottom;
 
-	data.mBorderLeft   = oldBorderLeft   + mRange;
-	data.mBorderRight  = oldBorderRight  + mRange;
-	data.mBorderTop    = oldBorderTop    + mRange;
+	data.mBorderLeft = oldBorderLeft + mRange;
+	data.mBorderRight = oldBorderRight + mRange;
+	data.mBorderTop = oldBorderTop + mRange;
 	data.mBorderBottom = oldBorderBottom + mRange;
 
-	const int newWidth  = data.mBitmap.getWidth()  + (data.mBorderLeft + data.mBorderRight) - (oldBorderLeft + oldBorderRight);
+	const int newWidth = data.mBitmap.getWidth() + (data.mBorderLeft + data.mBorderRight) - (oldBorderLeft + oldBorderRight);
 	const int newHeight = data.mBitmap.getHeight() + (data.mBorderTop + data.mBorderBottom) - (oldBorderTop + oldBorderBottom);
 	const int insetX = data.mBorderLeft - oldBorderLeft;
 	const int insetY = data.mBorderTop - oldBorderTop;
@@ -86,6 +102,45 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 	bitmap.create(newWidth, newHeight, 0);
 
 #if 1
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	const uint32 outlineColorRGB = mOutlineColor.getRGBA32() & 0xffffff00;
+	const uint32 outlineColorAlpha = mOutlineColor.getRGBA32() & 0xff;
+
+	for (int y = 0; y < bitmap.getHeight(); ++y)
+	{
+		for (int x = 0; x < bitmap.getWidth(); ++x)
+		{
+			uint8 highestAlpha = 0;
+			for (int dy = -mRange; dy <= mRange; ++dy)
+			{
+				int rangeX = mRange;
+				if (!mRectangularOutline)
+				{
+					rangeX -= abs(dy);
+				}
+
+				const int originalY = y + dy - insetY;
+				if (originalY >= 0 && originalY < data.mBitmap.getHeight())
+				{
+					for (int dx = -rangeX; dx <= rangeX; ++dx)
+					{
+						const int originalX = x + dx - insetX;
+						if (originalX >= 0 && originalX < data.mBitmap.getWidth())	// TODO: This can be optimized by calculating the correct range for dx
+						{
+							const uint32 color = data.mBitmap.getPixel(originalX, originalY);
+							const uint8 alpha = (color & 0xff);
+							highestAlpha = std::max(alpha, highestAlpha);
+						}
+					}
+				}
+			}
+
+			highestAlpha = highestAlpha * outlineColorAlpha / 255;
+			const uint32 outColor = outlineColorRGB + highestAlpha;
+			bitmap.setPixel(x, y, outColor);
+		}
+	}
+#else
 	const uint32 outlineColorBGR = mOutlineColor.getABGR32() & 0x00ffffff;
 	const uint32 outlineColorAlpha = mOutlineColor.getABGR32() >> 24;
 
@@ -123,9 +178,14 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 			bitmap.setPixel(x, y, outColor);
 		}
 	}
+#endif
 #else
 	// Old simpler implementation, which mostly ignores alpha values
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	const uint32 outlineColorABGR = mOutlineColor.getRGBA32();
+#else
 	const uint32 outlineColorABGR = mOutlineColor.getABGR32();
+#endif
 	for (int y = 0; y < data.mBitmap.getHeight(); ++y)
 	{
 		for (int x = 0; x < data.mBitmap.getWidth(); ++x)
@@ -162,6 +222,15 @@ void GradientFontProcessor::process(FontProcessingData& data)
 		const float shadingFactor = interpolate(0.65f, 1.0f, saturate((float)y / (float)data.mBitmap.getHeight() * 2.0f));
 		for (int x = 0; x < data.mBitmap.getWidth(); ++x)
 		{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+			float colorR = (float)((*pixelPtr >> 24) & 0xff);
+			float colorG = (float)((*pixelPtr >> 16) & 0xff);
+			float colorB = (float)((*pixelPtr >> 8) & 0xff);
+			colorR *= shadingFactor;
+			colorG *= shadingFactor;
+			colorB *= shadingFactor;
+			*pixelPtr = ((uint32)(colorR + 0.5f) << 24) | ((uint32)(colorG + 0.5f) << 16) | ((uint32)(colorB + 0.5f) << 8) | (*pixelPtr & 0xff);
+#else
 			float colorR = (float)((*pixelPtr) & 0xff);
 			float colorG = (float)((*pixelPtr >> 8) & 0xff);
 			float colorB = (float)((*pixelPtr >> 16) & 0xff);
@@ -169,6 +238,7 @@ void GradientFontProcessor::process(FontProcessingData& data)
 			colorG *= shadingFactor;
 			colorB *= shadingFactor;
 			*pixelPtr = (uint32)(colorR + 0.5f) | ((uint32)(colorG + 0.5f) << 8) | ((uint32)(colorB + 0.5f) << 16) | (*pixelPtr & 0xff000000);
+#endif
 			++pixelPtr;
 		}
 	}

@@ -31,7 +31,7 @@ void OpenGLTexture::loadBitmap(const Bitmap& bitmap)
 	if (!bitmap.isEmpty())
 	{
 		glBindTexture(GL_TEXTURE_2D, mTextureHandle);
-		glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, bitmap.getWidth(), bitmap.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, bitmap.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, bitmap.getWidth(), bitmap.getHeight(), 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, bitmap.getData());
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -56,7 +56,7 @@ void OpenGLTexture::setup(Vec2i size, GLint format)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, format, size.x, size.y, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, nullptr);
 
 	mSize = size;
 }

@@ -260,12 +260,12 @@ bool OpenGLDrawerResources::updatePalette(PaletteData& data, const PaletteBase& 
 	if (secondaryPaletteChanged)
 	{
 		// Update everything
-		glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, data.mBitmap.getWidth(), data.mBitmap.getHeight(), 0, GL_RGBA, GL_UNSIGNED_BYTE, data.mBitmap.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, data.mBitmap.getWidth(), data.mBitmap.getHeight(), 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, data.mBitmap.getData());
 	}
 	else
 	{
 		// Update only the primary palette
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 2, GL_RGBA, GL_UNSIGNED_BYTE, data.mBitmap.getData());
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 256, 2, GL_ARGB_SCE, GL_UNSIGNED_BYTE, data.mBitmap.getData());
 	}
 	return true;
 }
