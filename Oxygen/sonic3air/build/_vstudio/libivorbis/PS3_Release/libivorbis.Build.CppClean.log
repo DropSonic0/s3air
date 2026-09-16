@@ -2,7 +2,6 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\block.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\codebook.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\floor0.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\floor1.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\info.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\mapping0.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\mdct.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\registry.o
@@ -11,6 +10,7 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\sharedbook.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\synthesis.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\vorbisfile.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\window.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\info.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\ps3_release\libivorbis.a
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\libivorbis.tlog\ps3ppusnc.command.1.tlog
 c:\s3air\oxygen\sonic3air\build\_vstudio\libivorbis\ps3_release\libivorbis.tlog\ps3ppusnc.read.1.tlog

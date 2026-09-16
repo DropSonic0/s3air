@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\framework\external\zlib\zlib\contrib\minizip\ioapi.c" />
+    <ClCompile Include="..\..\..\..\..\framework\external\zlib\zlib\contrib\minizip\unzip.c" />
     <ClCompile Include="..\..\..\..\libs\zlib\adler32.c" />
     <ClCompile Include="..\..\..\..\libs\zlib\compress.c" />
     <ClCompile Include="..\..\..\..\libs\zlib\crc32.c" />

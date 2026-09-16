@@ -1,3 +1,6 @@
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_reader.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_value.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_writer.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\basics.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\errorhandler.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmap.o
@@ -5,7 +8,10 @@ c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecbmp.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecico.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecjpg.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\bitmapcodecpng.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\color.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\palettebitmap.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\stb_image_impl.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\weakptr.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\filecrawler.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\filehandle.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\fileio.o
@@ -14,7 +20,6 @@ c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\filesystem.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\jsonhelper.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\realfileprovider.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\math.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\vec2.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\binaryserializer.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\inputstream.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\onetimeallocpool.o
@@ -22,17 +27,13 @@ c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\outputstream.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rc4encryption.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxdeflate.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\string.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\unalignedmemory.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\utf8conversion.o
+c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\unalignedmemory.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\vectorbinaryserializer.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\zlibdeflate.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxbase.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\logging.o
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\tools.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_reader.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_value.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\json_writer.o
-c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\color.o
 c:\s3air\oxygen\sonic3air\lib\rmxbase.a
 c:\s3air\oxygen\sonic3air\build\rmxbase\..\..\lib\\rmxbase.a
 c:\s3air\oxygen\sonic3air\build\rmxbase\rmxbase_\rmxbase.tlog\ps3ppusnc.command.1.tlog

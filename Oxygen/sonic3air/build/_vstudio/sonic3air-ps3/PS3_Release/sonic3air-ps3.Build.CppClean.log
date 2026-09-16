@@ -22,7 +22,6 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\drawingutils.
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\gameutils.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\packagebuilder.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\main.o
-c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\actselectmenu.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\extrasmenu.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\gameapp.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\gamemenubase.o
@@ -39,13 +38,16 @@ c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\gamemenucontr
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\gamemenuscrolling.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\modsmenu.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\modsmenuentries.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\modsstartpage.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\controllersetupmenu.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\optionsconfig.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\optionsentry.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\optionsmenu.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\optionsmenuentries.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\secretunlockedwindow.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\skippablecutscenewindow.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\pch.o
+c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\platformspecifics.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\dynamicsprites.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\scriptimplementations.o
 c:\s3air\oxygen\sonic3air\build\_vstudio\sonic3air-ps3\ps3_release\sonic3air-ps3.tlog\ps3ppuld64.command.1.tlog

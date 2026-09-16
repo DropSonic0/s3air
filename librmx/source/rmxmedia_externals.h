@@ -1,6 +1,6 @@
 /*
 *	rmx Library
-*	Copyright (C) 2008-2026 by Eukaryot
+*	Copyright (C) 2008-2024 by Eukaryot
 *
 *	Published under the GNU GPLv3 open source software license, see license.txt
 *	or https://www.gnu.org/licenses/gpl-3.0.en.html
@@ -11,1003 +11,1121 @@
 
 // Library linking via pragma
 #if defined(PLATFORM_WINDOWS) && defined(RMX_LIB)
-	#pragma comment(lib, "sdl2main.lib")
-	#pragma comment(lib, "sdl2.lib")
-	#pragma comment(lib, "winmm.lib")
-	#pragma comment(lib, "imm32.lib")
-	#pragma comment(lib, "version.lib")
-	#pragma comment(lib, "setupapi.lib")
-	#pragma comment(lib, "opengl32.lib")
+#pragma comment(lib, "sdl2main.lib")
+#pragma comment(lib, "sdl2.lib")
+#pragma comment(lib, "winmm.lib")
+#pragma comment(lib, "imm32.lib")
+#pragma comment(lib, "version.lib")
+#pragma comment(lib, "setupapi.lib")
+#pragma comment(lib, "opengl32.lib")
 #endif
 
 // This is for some reason needed under Linux
 #if defined(__GNUC__) && __GNUC__ >= 4
-	#define DECLSPEC __attribute__ ((visibility("default")))
+#define DECLSPEC __attribute__ ((visibility("default")))
 #endif
 
 
 // SDL
-#ifdef PLATFORM_WINDOWS
-	// Needed for MSYS2
-	#if defined(__GNUC__)
-		#include <SDL2/SDL.h>
-	#else
-		#include <SDL/SDL.h>
-	#endif
+#if defined(PLATFORM_PS3)
+// OpenGL for PS3 (using PSGL)
+// We include this early so we can use its types and avoid conflicts
+#include <PSGL/psgl.h>
+#include <PSGL/psglu.h>
+#include <pthread.h>
+#include <unistd.h>
+#include <cell/audio.h>
+#include <cell/pad.h>
+#include <cell/keyboard.h>
+#include <sys/event.h>
+#include <sys/timer.h>
+#include <time.h>
+#include <stdint.h>
+#include <sys/sys_time.h>
 
-#elif defined(PLATFORM_LINUX)
-	#include <SDL2/SDL.h>
+#define usleep sys_timer_usleep
 
-#elif !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	#include <SDL.h>
+// SDL Shims for PS3
+typedef unsigned int Uint32;
+typedef int SDL_Keycode;
+typedef int SDL_bool;
+
+inline unsigned int SDL_GetTicks() {
+	static unsigned int start_ms = 0;
+	sys_time_sec_t sec;
+	sys_time_nsec_t nsec;
+	sys_time_get_current_time(&sec, &nsec);
+	unsigned int current_ms = (unsigned int)(sec * 1000 + nsec / 1000000);
+	if (start_ms == 0) start_ms = current_ms;
+	return current_ms - start_ms;
+}
+typedef pthread_mutex_t SDL_mutex;
+typedef pthread_cond_t SDL_cond;
+typedef pthread_t SDL_Thread;
+typedef int SDL_AudioDeviceID;
+typedef int SDL_AudioStatus;
+#define SDL_AUDIO_STOPPED 0
+#define SDL_AUDIO_PLAYING 1
+#define SDL_AUDIO_PAUSED 2
+struct SDL_AudioSpec {
+	int freq;
+	int channels;
+	int samples;
+	int format;
+	void(*callback)(void*, unsigned char*, int);
+	void* userdata;
+};
+struct SDL_AudioCVT {
+	int needed;
+	int src_format;
+	int dst_format;
+	double rate_incr;
+	unsigned char* buf;
+	int len;
+	int len_cvt;
+	int len_mult;
+	double len_ratio;
+};
+#define AUDIO_S16LSB 0
+struct SDL_WindowEvent { int windowID; int event; int data1; int data2; };
+struct SDL_Keysym { int sym; int scancode; int mod; };
+struct SDL_KeyboardEvent { int type; SDL_Keysym keysym; int state; int repeat; };
+struct SDL_TextInputEvent { int type; char text[32]; };
+struct SDL_MessageBoxButtonData { uint32 flags; int buttonid; const char* text; };
+struct SDL_MessageBoxData { uint32 flags; struct SDL_Window* window; const char* title; const char* message; int numbuttons; const SDL_MessageBoxButtonData* buttons; const void* colorScheme; };
+struct SDL_MouseButtonEvent { int type; int button; int state; int x; int y; };
+struct SDL_MouseWheelEvent { int type; int y; };
+struct SDL_MouseMotionEvent { int type; int state; int x; int y; };
+struct SDL_Event {
+	int type;
+	SDL_WindowEvent window;
+	SDL_KeyboardEvent key;
+	SDL_TextInputEvent text;
+	SDL_MouseButtonEvent button;
+	SDL_MouseWheelEvent wheel;
+	SDL_MouseMotionEvent motion;
+};
+struct SDL_Window { int w, h; void* surface_buffer; };
+
+inline SDL_mutex* SDL_CreateMutex() {
+	SDL_mutex* m = new SDL_mutex;
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(m, &attr);
+	pthread_mutexattr_destroy(&attr);
+	return m;
+}
+inline void SDL_DestroyMutex(SDL_mutex* m) { pthread_mutex_destroy(m); delete m; }
+inline void SDL_LockMutex(SDL_mutex* m) { pthread_mutex_lock(m); }
+inline void SDL_UnlockMutex(SDL_mutex* m) { pthread_mutex_unlock(m); }
+inline SDL_cond* SDL_CreateCond() { SDL_cond* c = new SDL_cond; pthread_cond_init(c, NULL); return c; }
+inline void SDL_DestroyCond(SDL_cond* c) { pthread_cond_destroy(c); delete c; }
+inline void SDL_CondSignal(SDL_cond* c) { pthread_cond_signal(c); }
+inline void SDL_CondWait(SDL_cond* c, SDL_mutex* m) { pthread_cond_wait(c, m); }
+inline int  SDL_CondWaitTimeout(SDL_cond* c, SDL_mutex* m, unsigned int ms) {
+	sys_time_sec_t sec;
+	sys_time_nsec_t nsec;
+	sys_time_get_current_time(&sec, &nsec);
+	struct timespec ts;
+	ts.tv_sec = sec + ms / 1000;
+	ts.tv_nsec = nsec + (ms % 1000) * 1000000;
+	if (ts.tv_nsec >= 1000000000) { ts.tv_sec++; ts.tv_nsec -= 1000000000; }
+	return pthread_cond_timedwait(c, m, &ts);
+}
+inline SDL_Thread* SDL_CreateThread(int(*f)(void*), const char* n, void* d) {
+	SDL_Thread* t = new SDL_Thread;
+	typedef void* (*pthread_func)(void*);
+	if (pthread_create(t, NULL, (pthread_func)f, d) != 0) { delete t; return nullptr; }
+	return t;
+}
+inline void SDL_WaitThread(SDL_Thread* t, int* s) { pthread_join(*t, NULL); delete t; }
+inline void* SDL_RWFromFile(const char* f, const char* m) { return 0; }
+inline void SDL_RWclose(void* c) {}
+inline size_t SDL_RWsize(void* c) { return 0; }
+inline size_t SDL_RWtell(void* c) { return 0; }
+inline size_t SDL_RWseek(void* c, long long p, int w) { return 0; }
+inline size_t SDL_RWread(void* c, void* d, size_t s, size_t n) { return 0; }
+#define RW_SEEK_SET 0
+#define SDLK_SCANCODE_MASK (1<<30)
+#define SDLK_KP_DIVIDE 0x40000054
+#define SDLK_KP_MULTIPLY 0x40000055
+#define SDLK_KP_PLUS 0x40000057
+#define SDLK_KP_MINUS 0x40000056
+#define KMOD_LCTRL 0x0040
+#define KMOD_RCTRL 0x0080
+#define KMOD_CTRL (KMOD_LCTRL | KMOD_RCTRL)
+#define KMOD_LSHIFT 0x0001
+#define KMOD_RSHIFT 0x0002
+#define KMOD_SHIFT (KMOD_LSHIFT | KMOD_RSHIFT)
+#define SDLK_LALT 0x400000e2
+#define SDLK_RALT 0x400000e6
+#define SDLK_RETURN 0x0d
+#define SDLK_LSHIFT 0x400000e1
+#define SDLK_RSHIFT 0x400000e5
+#define SDLK_END 0x4000004d
+#define SDLK_HOME 0x4000004a
+#define SDLK_PAGEUP 0x4000004b
+#define SDLK_PAGEDOWN 0x4000004e
+#define SDLK_F1 0x4000003a
+#define SDLK_F2 0x4000003b
+#define SDLK_F3 0x4000003c
+#define SDLK_F4 0x4000003d
+#define SDLK_F5 0x4000003e
+#define SDLK_F7 0x40000040
+#define SDLK_F8 0x40000041
+#define SDLK_F10 0x40000043
+#define SDLK_F11 0x40000044
+#define SDLK_PRINTSCREEN 0x40000046
+#define SDLK_TAB '\t'
+#define SDLK_SPACE ' '
+#define SDLK_EXCLAIM '!'
+#define SDLK_QUOTEDBL '"'
+#define SDLK_HASH '#'
+#define SDLK_PERCENT '%'
+#define SDLK_DOLLAR '$'
+#define SDLK_AMPERSAND '&'
+#define SDLK_QUOTE '\''
+#define SDLK_LEFTPAREN '('
+#define SDLK_RIGHTPAREN ')'
+#define SDLK_ASTERISK '*'
+#define SDLK_PLUS '+'
+#define SDLK_COMMA ','
+#define SDLK_MINUS '-'
+#define SDLK_PERIOD '.'
+#define SDLK_SLASH '/'
+#define SDLK_0 '0'
+#define SDLK_1 '1'
+#define SDLK_2 '2'
+#define SDLK_3 '3'
+#define SDLK_4 '4'
+#define SDLK_5 '5'
+#define SDLK_6 '6'
+#define SDLK_7 '7'
+#define SDLK_8 '8'
+#define SDLK_9 '9'
+#define SDLK_COLON ':'
+#define SDLK_SEMICOLON ';'
+#define SDLK_LESS '<'
+#define SDLK_EQUALS '='
+#define SDLK_GREATER '>'
+#define SDLK_QUESTION '?'
+#define SDLK_AT '@'
+#define SDLK_LEFTBRACKET '['
+#define SDLK_BACKSLASH '\\'
+#define SDLK_RIGHTBRACKET ']'
+#define SDLK_CARET '^'
+#define SDLK_UNDERSCORE '_'
+#define SDLK_BACKQUOTE '`'
+#define SDLK_a 'a'
+#define SDLK_b 'b'
+#define SDLK_c 'c'
+#define SDLK_d 'd'
+#define SDLK_e 'e'
+#define SDLK_f 'f'
+#define SDLK_g 'g'
+#define SDLK_h 'h'
+#define SDLK_i 'i'
+#define SDLK_j 'j'
+#define SDLK_k 'k'
+#define SDLK_l 'l'
+#define SDLK_m 'm'
+#define SDLK_n 'n'
+#define SDLK_o 'o'
+#define SDLK_p 'p'
+#define SDLK_q 'q'
+#define SDLK_r 'r'
+#define SDLK_s 's'
+#define SDLK_t 't'
+#define SDLK_u 'u'
+#define SDLK_v 'v'
+#define SDLK_w 'w'
+#define SDLK_x 'x'
+#define SDLK_y 'y'
+#define SDLK_z 'z'
+#define SDLK_CAPSLOCK 0x40000039
+#define SDLK_INSERT 0x40000049
+#define SDLK_DELETE 0x7f
+#define SDLK_UP 0x40000052
+#define SDLK_DOWN 0x40000051
+#define SDLK_LEFT 0x40000050
+#define SDLK_RIGHT 0x4000004f
+#define SDLK_ESCAPE 0x1b
+#define SDLK_BACKSPACE 0x08
+#define SDLK_CLEAR 0x4000009c
+#define SDLK_KP_ENTER 0x40000058
+#define SDLK_KP_1 0x40000059
+#define SDLK_KP_2 0x4000005a
+#define SDLK_KP_3 0x4000005b
+#define SDLK_KP_4 0x4000005c
+#define SDLK_KP_5 0x4000005d
+#define SDLK_KP_6 0x4000005e
+#define SDLK_KP_7 0x4000005f
+#define SDLK_KP_8 0x40000060
+#define SDLK_KP_9 0x40000061
+#define SDLK_KP_0 0x40000062
+#define SDLK_KP_PERIOD 0x40000063
+#define SDLK_RSHIFT 0x400000e5
+#define SDLK_LCTRL 0x400000e0
+#define SDLK_RCTRL 0x400000e4
+#define SDLK_LGUI 0x400000e3
+#define SDLK_RGUI 0x400000e7
+#define SDLK_F12 0x40000045
+#define SDLK_SCROLLLOCK 0x40000047
+#define SDLK_PAUSE 0x40000048
+#define SDLK_NUMLOCKCLEAR 0x40000053
+
+inline void SDL_PauseAudioDevice(SDL_AudioDeviceID d, int p) {}
+inline SDL_AudioStatus SDL_GetAudioStatus() { return (SDL_AudioStatus)0; }
+inline void SDL_LockAudioDevice(SDL_AudioDeviceID d) { /* Handled in AudioManager */ }
+inline void SDL_UnlockAudioDevice(SDL_AudioDeviceID d) { /* Handled in AudioManager */ }
+inline int SDL_LoadWAV(const char* f, SDL_AudioSpec* s, unsigned char** d, unsigned int* l) { return 0; }
+inline void SDL_FreeWAV(unsigned char* d) {}
+inline int SDL_BuildAudioCVT(SDL_AudioCVT* c, int sf, int sc, int sr, int df, int dc, int dr) { return 0; }
+inline int SDL_ConvertAudio(SDL_AudioCVT* c) { return 0; }
+inline void SDL_DestroyWindow(SDL_Window* w) { if (w) { if (w->surface_buffer) free(w->surface_buffer); delete w; } }
+#define SDL_INIT_VIDEO 1
+#define SDL_INIT_AUDIO 2
+#define SDL_INIT_TIMER 4
+#define SDL_INIT_GAMECONTROLLER 8
+#define SDL_INIT_JOYSTICK 16
+#define SDL_arraysize(X) (sizeof(X)/sizeof(X[0]))
+#define SDL_VERSION_ATLEAST(X, Y, Z) 0
+static inline void _SDL_PS3_InitKeyboard();
+
+inline int SDL_Init(int f) {
+	static bool pad_init = false;
+	if ((f & SDL_INIT_JOYSTICK) && !pad_init) {
+		cellPadInit(7);
+		pad_init = true;
+	}
+	_SDL_PS3_InitKeyboard();
+	return 0;
+}
+inline int SDL_InitSubSystem(Uint32 f) { return SDL_Init(f); }
+inline void SDL_Quit() {
+	cellPadEnd();
+	cellKbEnd();
+}
+inline char* SDL_GetError() { return (char*)""; }
+inline int SDL_SetHint(const char* n, const char* v) { return 1; }
+inline void SDL_WarpMouseInWindow(SDL_Window* w, int x, int y) {}
+inline int SDL_GetModState() { return 0; }
+inline int SDL_ShowSimpleMessageBox(uint32 f, const char* t, const char* m, struct SDL_Window* w) { return 0; }
+inline int SDL_ShowMessageBox(const struct SDL_MessageBoxData* d, int* b) { if (b) *b = 0; return 0; }
+
+struct _SDL_Joystick { int port; };
+struct _SDL_PS3_JoystickData {
+	CellPadData data;
+	unsigned int last_update_ms;
+};
+static _SDL_PS3_JoystickData _ps3_joystick_cache[7];
+inline bool _SDL_PS3_GetJoystickData(int port, CellPadData* outData) {
+	static bool cache_init = false;
+	if (!cache_init) {
+		for (int i = 0; i < 7; ++i) _ps3_joystick_cache[i].last_update_ms = 0;
+		cache_init = true;
+	}
+
+	unsigned int now = SDL_GetTicks();
+
+	// Poll at most once every 8ms to avoid clearing the SDK buffer mid-frame
+	if (now - _ps3_joystick_cache[port].last_update_ms >= 8 || _ps3_joystick_cache[port].last_update_ms == 0) {
+		CellPadData newData;
+		if (cellPadGetData(port, &newData) == CELL_OK && newData.len > 0) {
+			_ps3_joystick_cache[port].data = newData;
+			_ps3_joystick_cache[port].last_update_ms = now;
+		}
+	}
+	*outData = _ps3_joystick_cache[port].data;
+	return _ps3_joystick_cache[port].data.len > 0;
+}
+typedef struct _SDL_Joystick SDL_Joystick;
+typedef struct _SDL_GameController SDL_GameController;
+typedef enum {
+	SDL_CONTROLLER_BINDTYPE_NONE = 0,
+	SDL_CONTROLLER_BINDTYPE_AXIS,
+	SDL_CONTROLLER_BINDTYPE_BUTTON,
+	SDL_CONTROLLER_BINDTYPE_HAT
+} SDL_GameControllerBindType;
+struct SDL_GameControllerButtonBind {
+	SDL_GameControllerBindType bindType;
+	union {
+		int button;
+		int axis;
+		struct {
+			int hat;
+			int hat_mask;
+		} hat;
+	} value;
+};
+#define SDL_CONTROLLER_AXIS_LEFTX 0
+#define SDL_CONTROLLER_AXIS_LEFTY 1
+#define SDL_CONTROLLER_BUTTON_A 0
+#define SDL_CONTROLLER_BUTTON_B 1
+#define SDL_CONTROLLER_BUTTON_X 2
+#define SDL_CONTROLLER_BUTTON_Y 3
+#define SDL_CONTROLLER_BUTTON_BACK 4
+#define SDL_CONTROLLER_BUTTON_GUIDE 5
+#define SDL_CONTROLLER_BUTTON_START 6
+#define SDL_CONTROLLER_BUTTON_LEFTSTICK 7
+#define SDL_CONTROLLER_BUTTON_RIGHTSTICK 8
+#define SDL_CONTROLLER_BUTTON_LEFTSHOULDER 9
+#define SDL_CONTROLLER_BUTTON_RIGHTSHOULDER 10
+#define SDL_CONTROLLER_BUTTON_DPAD_UP 11
+#define SDL_CONTROLLER_BUTTON_DPAD_DOWN 12
+#define SDL_CONTROLLER_BUTTON_DPAD_LEFT 13
+#define SDL_CONTROLLER_BUTTON_DPAD_RIGHT 14
+
+inline const char* SDL_JoystickName(SDL_Joystick* j) { return "PLAYSTATION(R)3 Controller"; }
+inline const char* SDL_GameControllerName(SDL_GameController* c) { return (const char*)0; }
+inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForAxis(SDL_GameController* c, int a) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
+inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForButton(SDL_GameController* c, int bt) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
+inline int SDL_JoystickNumButtons(SDL_Joystick* j) { return 16; }
+inline unsigned char SDL_JoystickGetButton(SDL_Joystick* j, int b) {
+	if (!j) return 0;
+	CellPadData data;
+	if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
+	// Standard digital buttons are at indices 2 and 3
+	uint16 buttons = (data.button[2] << 8) | (data.button[3] & 0xff);
+	// Fallback to button[0] if it seems to contain the mask
+	if (buttons == 0 && data.button[0] != 0) buttons = data.button[0];
+	switch (b) {
+	case SDL_CONTROLLER_BUTTON_A: return (buttons & CELL_PAD_CTRL_CROSS) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_B: return (buttons & CELL_PAD_CTRL_CIRCLE) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_X: return (buttons & CELL_PAD_CTRL_SQUARE) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_Y: return (buttons & CELL_PAD_CTRL_TRIANGLE) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_BACK: return (buttons & CELL_PAD_CTRL_SELECT) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_GUIDE: return 0;
+	case SDL_CONTROLLER_BUTTON_START: return (buttons & CELL_PAD_CTRL_START) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_LEFTSTICK: return (buttons & CELL_PAD_CTRL_L3) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_RIGHTSTICK: return (buttons & CELL_PAD_CTRL_R3) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return (buttons & CELL_PAD_CTRL_L1) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return (buttons & CELL_PAD_CTRL_R1) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_DPAD_UP: return (buttons & CELL_PAD_CTRL_UP) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return (buttons & CELL_PAD_CTRL_DOWN) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return (buttons & CELL_PAD_CTRL_LEFT) ? 1 : 0;
+	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return (buttons & CELL_PAD_CTRL_RIGHT) ? 1 : 0;
+	case 15: return (buttons & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2)) ? 1 : 0; // Fallback or extra
+	}
+	return 0;
+}
+inline int SDL_JoystickNumAxes(SDL_Joystick* j) { return 4; }
+inline short SDL_JoystickGetAxis(SDL_Joystick* j, int a) {
+	if (!j) return 0;
+	CellPadData data;
+	if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
+	int ps3_axis = -1;
+	switch (a) {
+	case 0: ps3_axis = 6; break; // LX
+	case 1: ps3_axis = 7; break; // LY
+	case 2: ps3_axis = 4; break; // RX
+	case 3: ps3_axis = 5; break; // RY
+	}
+	if (ps3_axis != -1) return (short)((data.button[ps3_axis] - 128) * 256);
+	return 0;
+}
+inline int SDL_JoystickNumHats(SDL_Joystick* j) { return 0; }
+inline unsigned char SDL_JoystickGetHat(SDL_Joystick* j, int h) { return 0; }
+inline int SDL_NumJoysticks() {
+	CellPadInfo2 info;
+	return (cellPadGetInfo2(&info) == CELL_OK) ? info.now_connect : 0;
+}
+inline SDL_Joystick* SDL_JoystickOpen(int i) {
+	CellPadInfo2 info;
+	if (cellPadGetInfo2(&info) != CELL_OK) return nullptr;
+	int connectedCount = 0;
+	for (int port = 0; port < 7; port++) {
+		if (info.port_status[port] & CELL_PAD_STATUS_CONNECTED) {
+			if (connectedCount == i) {
+				SDL_Joystick* j = new SDL_Joystick;
+				j->port = port;
+				return j;
+			}
+			connectedCount++;
+		}
+	}
+	return nullptr;
+}
+inline void SDL_JoystickClose(SDL_Joystick* j) { if (j) delete j; }
+inline int SDL_JoystickInstanceID(SDL_Joystick* j) { return j ? j->port : -1; }
+inline SDL_GameController* SDL_GameControllerOpen(int i) { return (SDL_GameController*)0; }
+inline int SDL_JoystickRumble(SDL_Joystick* j, unsigned short l, unsigned short h, uint32 d) {
+	if (!j) return -1;
+	CellPadActParam act;
+	act.motor[0] = (h > 0) ? 1 : 0;
+	act.motor[1] = l >> 8;
+	cellPadSetActDirect(j->port, &act);
+	return 0;
+}
+
+typedef int64 SDL_TouchID;
+typedef struct SDL_Finger {
+	float x;
+	float y;
+	float pressure;
+} SDL_Finger;
+inline int SDL_GetNumTouchDevices() { return 0; }
+inline SDL_TouchID SDL_GetTouchDevice(int i) { return 0; }
+inline int SDL_GetNumTouchFingers(SDL_TouchID t) { return 0; }
+inline SDL_Finger* SDL_GetTouchFinger(SDL_TouchID t, int i) { return (SDL_Finger*)0; }
+
+
+inline SDL_Window* SDL_CreateWindow(const char* t, int x, int y, int w, int h, Uint32 f) {
+	SDL_Window* win = new SDL_Window;
+	win->w = w; win->h = h;
+	win->surface_buffer = nullptr;
+	return win;
+}
+inline int SDL_GetWindowID(SDL_Window* w) { return 1; }
+inline int SDL_GetWindowDisplayIndex(SDL_Window* w) { return 0; }
+inline void SDL_SetWindowFullscreen(SDL_Window* w, Uint32 f) {}
+inline void SDL_SetWindowSize(SDL_Window* w, int w1, int h1) { if (w) { w->w = w1; w->h = h1; } }
+inline void SDL_GetWindowSize(SDL_Window* w, int* w1, int* h1) { if (w) { if (w1) *w1 = w->w; if (h1) *h1 = w->h; } else { if (w1) *w1 = 1280; if (h1) *h1 = 720; } }
+inline void SDL_SetWindowPosition(SDL_Window* w, int x, int y) {}
+inline void SDL_SetWindowResizable(SDL_Window* w, int r) {}
+inline void SDL_SetWindowBordered(SDL_Window* w, int b) {}
+inline int SDL_ShowCursor(int t) { return 0; }
+struct SDL_Rect { int x, y, w, h; };
+inline int SDL_GetDisplayBounds(int i, SDL_Rect* r) { if (r) { r->x = r->y = 0; r->w = 1920; r->h = 1080; } return 0; }
+struct SDL_DisplayMode { int w, h; };
+inline int SDL_GetDesktopDisplayMode(int i, SDL_DisplayMode* m) { if (m) { m->w = 1920; m->h = 1080; } return 0; }
+#define SDL_QUIT 1
+#define SDL_WINDOWEVENT 2
+#define SDL_WINDOWEVENT_RESIZED 3
+#define SDL_WINDOWEVENT_SIZE_CHANGED 4
+#define SDL_KEYDOWN 5
+#define SDL_KEYUP 6
+#define SDL_TEXTINPUT 7
+#define SDL_MOUSEBUTTONDOWN 8
+#define SDL_MOUSEBUTTONUP 9
+#define SDL_MOUSEWHEEL 10
+#define SDL_MOUSEMOTION 11
+#define SDL_JOYDEVICEADDED 12
+#define SDL_JOYDEVICEREMOVED 13
+#define SDL_APP_WILLENTERBACKGROUND 14
+
+#define SDL_FALSE 0
+#define SDL_TRUE 1
+#define SDL_PRESSED 1
+
+#ifndef CELL_KB_MAX_KEYCODES
+#define CELL_KB_MAX_KEYCODES 62
+#endif
+#ifndef CELL_KB_CODETYPE_RAW
+#define CELL_KB_CODETYPE_RAW 0
+#endif
+#ifndef CELL_KB_RMODE_PACKET
+#define CELL_KB_RMODE_PACKET 1
+#endif
+#ifndef CELL_KB_MKEY_L_SHIFT
+#define CELL_KB_MKEY_L_SHIFT  (1<<1)
+#endif
+#ifndef CELL_KB_MKEY_R_SHIFT
+#define CELL_KB_MKEY_R_SHIFT  (1<<5)
+#endif
+#ifndef CELL_KB_MKEY_L_CTRL
+#define CELL_KB_MKEY_L_CTRL   (1<<0)
+#endif
+#ifndef CELL_KB_MKEY_R_CTRL
+#define CELL_KB_MKEY_R_CTRL   (1<<4)
+#endif
+#ifndef CELL_KB_MKEY_L_ALT
+#define CELL_KB_MKEY_L_ALT    (1<<2)
+#endif
+#ifndef CELL_KB_MKEY_R_ALT
+#define CELL_KB_MKEY_R_ALT    (1<<6)
+#endif
+#ifndef CELL_KB_MKEY_L_GUI
+#define CELL_KB_MKEY_L_GUI    (1<<3)
+#endif
+#ifndef CELL_KB_MKEY_R_GUI
+#define CELL_KB_MKEY_R_GUI    (1<<7)
+#endif
+
+#define PS3_KB_MAX 2
+struct _SDL_PS3_KbState {
+	uint8_t connected;
+	CellKbData last_data;
+};
+static _SDL_PS3_KbState _ps3_kb_connected[PS3_KB_MAX];
+static uint8_t _ps3_keyboard_state[256];
+static uint32_t _ps3_keyboard_modifiers;
+static uint8_t _ps3_kb_initialized = 0;
+
+#define PS3_EV_QUEUE_SIZE 64
+static SDL_Event _ps3_ev_queue[PS3_EV_QUEUE_SIZE];
+static int _ps3_ev_queue_head = 0;
+static int _ps3_ev_queue_tail = 0;
+
+static inline void _ps3_push_event(const SDL_Event& ev) {
+	int next = (_ps3_ev_queue_head + 1) % PS3_EV_QUEUE_SIZE;
+	if (next != _ps3_ev_queue_tail) {
+		_ps3_ev_queue[_ps3_ev_queue_head] = ev;
+		_ps3_ev_queue_head = next;
+	}
+}
+
+static inline bool _ps3_pop_event(SDL_Event* ev) {
+	if (_ps3_ev_queue_head == _ps3_ev_queue_tail) return false;
+	*ev = _ps3_ev_queue[_ps3_ev_queue_tail];
+	_ps3_ev_queue_tail = (_ps3_ev_queue_tail + 1) % PS3_EV_QUEUE_SIZE;
+	return true;
+}
+
+static inline void _SDL_PS3_InitKeyboard() {
+	if (!_ps3_kb_initialized) {
+		int ret = cellKbInit(PS3_KB_MAX);
+		if (ret == 0) {
+			_ps3_kb_initialized = 1;
+			memset(_ps3_keyboard_state, 0, sizeof(_ps3_keyboard_state));
+			_ps3_keyboard_modifiers = 0;
+			memset(_ps3_kb_connected, 0, sizeof(_ps3_kb_connected));
+		}
+	}
+}
+
+static inline int _SDL_PS3_HID_To_Keycode(uint8_t code) {
+	if (code >= 0x04 && code <= 0x1D) return SDLK_a + (code - 0x04);
+	if (code >= 0x1E && code <= 0x26) return SDLK_1 + (code - 0x1E);
+	if (code == 0x27) return SDLK_0;
+	if (code >= 0x3A && code <= 0x43) return SDLK_F1 + (code - 0x3A);
+	if (code == 0x44) return SDLK_F11;
+	if (code == 0x45) return SDLK_F12;
+
+	switch (code) {
+	case 0x28: return SDLK_RETURN;
+	case 0x29: return SDLK_ESCAPE;
+	case 0x2A: return SDLK_BACKSPACE;
+	case 0x2B: return SDLK_TAB;
+	case 0x2C: return SDLK_SPACE;
+	case 0x2D: return SDLK_MINUS;
+	case 0x2E: return SDLK_EQUALS;
+	case 0x2F: return SDLK_LEFTBRACKET;
+	case 0x30: return SDLK_RIGHTBRACKET;
+	case 0x31: return SDLK_BACKSLASH;
+	case 0x33: return SDLK_SEMICOLON;
+	case 0x34: return SDLK_QUOTE;
+	case 0x35: return SDLK_BACKQUOTE;
+	case 0x36: return SDLK_COMMA;
+	case 0x37: return SDLK_PERIOD;
+	case 0x38: return SDLK_SLASH;
+	case 0x39: return SDLK_CAPSLOCK;
+	case 0x46: return SDLK_PRINTSCREEN;
+	case 0x47: return SDLK_SCROLLLOCK;
+	case 0x48: return SDLK_PAUSE;
+	case 0x49: return SDLK_INSERT;
+	case 0x4A: return SDLK_HOME;
+	case 0x4B: return SDLK_PAGEUP;
+	case 0x4C: return SDLK_DELETE;
+	case 0x4D: return SDLK_END;
+	case 0x4E: return SDLK_PAGEDOWN;
+	case 0x4F: return SDLK_RIGHT;
+	case 0x50: return SDLK_LEFT;
+	case 0x51: return SDLK_DOWN;
+	case 0x52: return SDLK_UP;
+	case 0x53: return SDLK_NUMLOCKCLEAR;
+	case 0x54: return SDLK_KP_DIVIDE;
+	case 0x55: return SDLK_KP_MULTIPLY;
+	case 0x56: return SDLK_KP_MINUS;
+	case 0x57: return SDLK_KP_PLUS;
+	case 0x58: return SDLK_KP_ENTER;
+	case 0x59: return SDLK_KP_1;
+	case 0x5A: return SDLK_KP_2;
+	case 0x5B: return SDLK_KP_3;
+	case 0x5C: return SDLK_KP_4;
+	case 0x5D: return SDLK_KP_5;
+	case 0x5E: return SDLK_KP_6;
+	case 0x5F: return SDLK_KP_7;
+	case 0x60: return SDLK_KP_8;
+	case 0x61: return SDLK_KP_9;
+	case 0x62: return SDLK_KP_0;
+	case 0x63: return SDLK_KP_PERIOD;
+	default:   break;
+	}
+	return 0;
+}
+static inline int SDL_IsTextInputActive() { return 0; }
+static inline void SDL_StartTextInput() {}
+static inline void SDL_StopTextInput() {}
+
+static inline int SDL_SetClipboardText(const char*) { return -1; }
+static inline char* SDL_GetClipboardText() { return nullptr; }
+static inline SDL_bool SDL_HasClipboardText() { return SDL_FALSE; }
+static inline void SDL_free(void*) {}
+
+static inline char _SDL_PS3_Get_Text_Char(int key, bool shift_held) {
+	if (key >= SDLK_a && key <= SDLK_z) {
+		return shift_held ? (char)(key - SDLK_a + 'A') : (char)key;
+	}
+	if (!shift_held) return (char)key;
+
+	switch (key) {
+	case '1': return '!';
+	case '2': return '@';
+	case '3': return '#';
+	case '4': return '$';
+	case '5': return '%';
+	case '6': return '^';
+	case '7': return '&';
+	case '8': return '*';
+	case '9': return '(';
+	case '0': return ')';
+	case '-': return '_';
+	case '=': return '+';
+	case '[': return '{';
+	case ']': return '}';
+	case '\\': return '|';
+	case ';': return ':';
+	case '\'': return '"';
+	case '`': return '~';
+	case ',': return '<';
+	case '.': return '>';
+	case '/': return '?';
+	default:  break;
+	}
+	return (char)key;
+}
+
+static inline int _SDL_PS3_PollKeyboardEvents(SDL_Event* e) {
+	if (_ps3_pop_event(e)) return 1;
+
+	if (!_ps3_kb_initialized) {
+		_SDL_PS3_InitKeyboard();
+		if (!_ps3_kb_initialized) return 0;
+	}
+
+	CellKbInfo kbInfo;
+	if (cellKbGetInfo(&kbInfo) != 0) return 0;
+
+	uint8_t current_held[256];
+	uint32_t current_modifiers = 0;
+	memset(current_held, 0, sizeof(current_held));
+
+	for (int i = 0; i < PS3_KB_MAX; i++) {
+		if (i < (int)kbInfo.max_connect && kbInfo.status[i] != 0) {
+			if (!_ps3_kb_connected[i].connected) {
+				cellKbSetCodeType(i, CELL_KB_CODETYPE_RAW);
+				cellKbSetReadMode(i, CELL_KB_RMODE_PACKET);
+				_ps3_kb_connected[i].connected = 1;
+				memset(&_ps3_kb_connected[i].last_data, 0, sizeof(CellKbData));
+			}
+
+			int safety = 0;
+			CellKbData kbData;
+			while (safety < 64) {
+				kbData.len = 0xFFFFFFFF;
+				kbData.mkey = 0xFFFFFFFF;
+				int readRes = cellKbRead(i, &kbData);
+				if (readRes == CELL_KB_ERROR_NO_DEVICE || readRes == CELL_KB_ERROR_UNINITIALIZED) {
+					memset(&_ps3_kb_connected[i].last_data, 0, sizeof(CellKbData));
+					_ps3_kb_connected[i].connected = 0;
+					break;
+				}
+				if (readRes != 0) break;
+				if (kbData.len == 0xFFFFFFFF || kbData.mkey == 0xFFFFFFFF) break;
+
+				_ps3_kb_connected[i].last_data = kbData;
+				safety++;
+			}
+		}
+		else {
+			if (_ps3_kb_connected[i].connected) {
+				memset(&_ps3_kb_connected[i].last_data, 0, sizeof(CellKbData));
+				_ps3_kb_connected[i].connected = 0;
+			}
+		}
+
+		if (_ps3_kb_connected[i].connected) {
+			int len = _ps3_kb_connected[i].last_data.len;
+			if (len > CELL_KB_MAX_KEYCODES) len = CELL_KB_MAX_KEYCODES;
+			for (int k = 0; k < len; k++) {
+				uint8_t code = _ps3_kb_connected[i].last_data.keycode[k] & 0xFF;
+				if (code > 0) current_held[code] = 1;
+			}
+			if (_ps3_kb_connected[i].last_data.mkey != 0xFFFFFFFF) {
+				current_modifiers |= _ps3_kb_connected[i].last_data.mkey;
+			}
+		}
+	}
+
+	// Process key transitions
+	for (int i = 0; i < 256; i++) {
+		if (current_held[i] && !_ps3_keyboard_state[i]) {
+			int sdl_key = _SDL_PS3_HID_To_Keycode((uint8_t)i);
+			if (sdl_key != 0) {
+				SDL_Event ev;
+				memset(&ev, 0, sizeof(ev));
+				ev.type = SDL_KEYDOWN;
+				ev.key.state = SDL_PRESSED;
+				ev.key.keysym.sym = sdl_key;
+				ev.key.keysym.scancode = i;
+				_ps3_push_event(ev);
+
+				if ((sdl_key >= SDLK_a && sdl_key <= SDLK_z) ||
+					(sdl_key >= SDLK_0 && sdl_key <= SDLK_9) ||
+					sdl_key == SDLK_SPACE || sdl_key == SDLK_MINUS || sdl_key == SDLK_EQUALS ||
+					sdl_key == SDLK_LEFTBRACKET || sdl_key == SDLK_RIGHTBRACKET || sdl_key == SDLK_BACKSLASH ||
+					sdl_key == SDLK_SEMICOLON || sdl_key == SDLK_QUOTE || sdl_key == SDLK_BACKQUOTE ||
+					sdl_key == SDLK_COMMA || sdl_key == SDLK_PERIOD || sdl_key == SDLK_SLASH) {
+					bool shift_held = (current_modifiers & (CELL_KB_MKEY_L_SHIFT | CELL_KB_MKEY_R_SHIFT)) != 0;
+					SDL_Event text_ev;
+					memset(&text_ev, 0, sizeof(text_ev));
+					text_ev.type = SDL_TEXTINPUT;
+					text_ev.text.text[0] = _SDL_PS3_Get_Text_Char(sdl_key, shift_held);
+					text_ev.text.text[1] = '\0';
+					_ps3_push_event(text_ev);
+				}
+			}
+		}
+		else if (!current_held[i] && _ps3_keyboard_state[i]) {
+			int sdl_key = _SDL_PS3_HID_To_Keycode((uint8_t)i);
+			if (sdl_key != 0) {
+				SDL_Event ev;
+				memset(&ev, 0, sizeof(ev));
+				ev.type = SDL_KEYUP;
+				ev.key.state = 0;
+				ev.key.keysym.sym = sdl_key;
+				ev.key.keysym.scancode = i;
+				_ps3_push_event(ev);
+			}
+		}
+		_ps3_keyboard_state[i] = current_held[i];
+	}
+
+	// Process modifier key transitions
+	static const struct { uint32_t mask; int sdl_key; } modifiers_map[8] = {
+		{ CELL_KB_MKEY_L_SHIFT, SDLK_LSHIFT },
+		{ CELL_KB_MKEY_R_SHIFT, SDLK_RSHIFT },
+		{ CELL_KB_MKEY_L_CTRL, SDLK_LCTRL },
+		{ CELL_KB_MKEY_R_CTRL, SDLK_RCTRL },
+		{ CELL_KB_MKEY_L_ALT, SDLK_LALT },
+		{ CELL_KB_MKEY_R_ALT, SDLK_RALT },
+		{ CELL_KB_MKEY_L_GUI, SDLK_LGUI },
+		{ CELL_KB_MKEY_R_GUI, SDLK_RGUI }
+	};
+
+	for (int m = 0; m < 8; m++) {
+		uint8_t new_state = (current_modifiers & modifiers_map[m].mask) ? 1 : 0;
+		uint8_t old_state = (_ps3_keyboard_modifiers & modifiers_map[m].mask) ? 1 : 0;
+		if (new_state != old_state) {
+			SDL_Event ev;
+			memset(&ev, 0, sizeof(ev));
+			ev.type = new_state ? SDL_KEYDOWN : SDL_KEYUP;
+			ev.key.state = new_state ? SDL_PRESSED : 0;
+			ev.key.keysym.sym = modifiers_map[m].sdl_key;
+			_ps3_push_event(ev);
+		}
+	}
+	_ps3_keyboard_modifiers = current_modifiers;
+
+	return _ps3_pop_event(e) ? 1 : 0;
+}
+
+inline int SDL_PollEvent(SDL_Event* e) {
+	if (_SDL_PS3_PollKeyboardEvents(e))
+		return 1;
+	return 0;
+}
+#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "SDL_VIDEO_ALLOW_SCREENSAVER"
+#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "SDL_ACCELEROMETER_AS_JOYSTICK"
+#define SDL_HINT_RENDER_VSYNC "SDL_RENDER_VSYNC"
+#define SDL_WINDOWEVENT_FOCUS_LOST 14
+
+#define SDL_PIXELFORMAT_INDEX1LSB 0
+#define SDL_PIXELFORMAT_INDEX1MSB 1
+#define SDL_PIXELFORMAT_INDEX4LSB 2
+#define SDL_PIXELFORMAT_INDEX4MSB 3
+#define SDL_PIXELFORMAT_INDEX8 4
+#define SDL_PIXELFORMAT_RGB332 5
+#define SDL_PIXELFORMAT_RGB444 6
+#define SDL_PIXELFORMAT_RGB555 7
+#define SDL_PIXELFORMAT_BGR555 8
+#define SDL_PIXELFORMAT_ARGB4444 9
+#define SDL_PIXELFORMAT_RGBA4444 10
+#define SDL_PIXELFORMAT_ABGR4444 11
+#define SDL_PIXELFORMAT_BGRA4444 12
+#define SDL_PIXELFORMAT_ARGB1555 13
+#define SDL_PIXELFORMAT_RGBA5551 14
+#define SDL_PIXELFORMAT_ABGR1555 15
+#define SDL_PIXELFORMAT_BGRA5551 16
+#define SDL_PIXELFORMAT_RGB565 17
+#define SDL_PIXELFORMAT_BGR565 18
+#define SDL_PIXELFORMAT_RGB24 19
+#define SDL_PIXELFORMAT_BGR24 20
+#define SDL_PIXELFORMAT_RGB888 21
+#define SDL_PIXELFORMAT_RGBX8888 22
+#define SDL_PIXELFORMAT_BGR888 23
+#define SDL_PIXELFORMAT_BGRX8888 24
+#define SDL_PIXELFORMAT_ARGB8888 25
+#define SDL_PIXELFORMAT_RGBA8888 26
+#define SDL_PIXELFORMAT_ABGR8888 27
+#define SDL_PIXELFORMAT_BGRA8888 28
+#define SDL_PIXELFORMAT_ARGB2101010 29
+#define SDL_PIXELFORMAT_YV12 30
+#define SDL_PIXELFORMAT_IYUV 31
+#define SDL_PIXELFORMAT_YUY2 32
+#define SDL_PIXELFORMAT_UYVY 33
+#define SDL_PIXELFORMAT_YVYU 34
+#define SDL_PIXELFORMAT_NV12 35
+#define SDL_PIXELFORMAT_NV21 36
+
+#define SDL_BUTTON_LEFT 1
+#define SDL_BUTTON_RIGHT 2
+#define SDL_BUTTON_MIDDLE 3
+#define SDL_BUTTON_X1 4
+#define SDL_BUTTON_X2 5
+
+#define SDL_MESSAGEBOX_ERROR 0x00000010
+#define SDL_MESSAGEBOX_WARNING 0x00000020
+#define SDL_MESSAGEBOX_INFORMATION 0x00000040
+#define SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT 0x00000001
+#define SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT 0x00000002
+#define SDL_WINDOW_FULLSCREEN_DESKTOP 0x1000
+#define SDL_WINDOWPOS_CENTERED_MASK 0x2FFF0000u
+#define SDL_WINDOWPOS_CENTERED_DISPLAY(X) (SDL_WINDOWPOS_CENTERED_MASK|(X))
+
+inline void SDL_CloseAudioDevice(SDL_AudioDeviceID d) {}
+inline void SDL_DisableScreenSaver() {}
+#define SDL_AUDIO_ALLOW_ANY_CHANGE 0
+inline SDL_AudioDeviceID SDL_OpenAudioDevice(const char* d, int is, SDL_AudioSpec* des, SDL_AudioSpec* obt, int f) { return 1; }
+inline void SDL_Delay(unsigned int ms) { sys_timer_usleep(ms * 1000); }
+
+// Missing OpenGL identifiers / shims for PS3 (Guarded)
+#ifndef GL_TEXTURE_BUFFER
+#define GL_TEXTURE_BUFFER 0x8C2A
+#endif
+#ifndef GL_R8UI
+#define GL_R8UI 0x8232
+#endif
+#ifndef GL_R16I
+#define GL_R16I 0x8233
+#endif
+#ifndef GL_R16UI
+#define GL_R16UI 0x8234
+#endif
+#ifndef GL_FRAMEBUFFER
+#define GL_FRAMEBUFFER 0x8D40
+#endif
+#ifndef GL_FRAMEBUFFER_BINDING
+#define GL_FRAMEBUFFER_BINDING 0x8CA6
+#endif
+#ifndef GL_RENDERBUFFER
+#define GL_RENDERBUFFER 0x8D41
+#endif
+#ifndef GL_FRAMEBUFFER_COMPLETE
+#define GL_FRAMEBUFFER_COMPLETE 0x8CD5
+#endif
+#ifndef GL_COLOR_ATTACHMENT0
+#define GL_COLOR_ATTACHMENT0 0x8CE0
+#endif
+#ifndef GL_DEPTH_ATTACHMENT
+#define GL_DEPTH_ATTACHMENT 0x8D00
+#endif
+#ifndef GL_VIEWPORT
+#define GL_VIEWPORT 0x0BA2
+#endif
+#ifndef GL_INVALID_FRAMEBUFFER_OPERATION
+#define GL_INVALID_FRAMEBUFFER_OPERATION 0x0506
+#endif
+#ifndef GL_VERTEX_SHADER
+#define GL_VERTEX_SHADER 0x8B31
+#endif
+#ifndef GL_FRAGMENT_SHADER
+#define GL_FRAGMENT_SHADER 0x8B30
+#endif
+#ifndef GL_COMPILE_STATUS
+#define GL_COMPILE_STATUS 0x8B81
+#endif
+#ifndef GL_LINK_STATUS
+#define GL_LINK_STATUS 0x8B82
+#endif
+#ifndef GL_INFO_LOG_LENGTH
+#define GL_INFO_LOG_LENGTH 0x8B84
+#endif
+#ifndef GL_MIN
+#define GL_MIN 0
+#endif
+#ifndef GL_MAX
+#define GL_MAX 0
+#endif
+#ifndef GL_DEPTH_COMPONENT16
+#define GL_DEPTH_COMPONENT16 0x81A5
+#endif
+
+typedef char GLchar;
+
+inline void glGenVertexArrays(GLsizei n, GLuint* a) {}
+inline void glDeleteVertexArrays(GLsizei n, const GLuint* a) {}
+inline void glBindVertexArray(GLuint a) {}
+inline void glTexBuffer(GLenum target, GLenum internalformat, GLuint buffer) {}
+inline void glBindFramebuffer(GLenum target, GLuint framebuffer) { glBindFramebufferOES(target, framebuffer); }
+inline void glBlendEquation(GLenum mode) {}
+inline void glGenRenderbuffers(GLsizei n, GLuint* b) { glGenRenderbuffersOES(n, b); }
+inline void glBindRenderbuffer(GLenum t, GLuint b) { glBindRenderbufferOES(t, b); }
+inline void glRenderbufferStorage(GLenum t, GLenum i, GLsizei w, GLsizei h) { glRenderbufferStorageOES(t, i, w, h); }
+inline void glDeleteRenderbuffers(GLsizei n, const GLuint* b) { glDeleteRenderbuffersOES(n, b); }
+inline void glGenFramebuffers(GLsizei n, GLuint* b) { glGenFramebuffersOES(n, b); }
+inline GLenum glCheckFramebufferStatus(GLenum t) { return glCheckFramebufferStatusOES(t); }
+inline void glDeleteFramebuffers(GLsizei n, const GLuint* b) { glDeleteFramebuffersOES(n, b); }
+inline unsigned char glIsRenderbuffer(GLuint b) { return glIsRenderbufferOES(b); }
+inline unsigned char glIsFramebuffer(GLuint b) { return glIsFramebufferOES(b); }
+inline void glFramebufferTexture2D(GLenum t, GLenum a, GLenum tt, GLuint te, GLint l) { glFramebufferTexture2DOES(t, a, tt, te, l); }
+inline void glFramebufferRenderbuffer(GLenum t, GLenum a, GLenum rt, GLuint r) { glFramebufferRenderbufferOES(t, a, rt, r); }
+inline void glDeleteProgram(GLuint p) {}
+inline void glDeleteShader(GLuint s) {}
+inline GLint glGetUniformLocation(GLuint p, const char* n) { return 0; }
+inline GLint glGetAttribLocation(GLuint p, const char* n) { return 0; }
+inline void glUniform1i(GLint l, GLint v) {}
+inline void glUniform2iv(GLint l, GLsizei c, const GLint* v) {}
+inline void glUniform3iv(GLint l, GLsizei c, const GLint* v) {}
+inline void glUniform4iv(GLint l, GLsizei c, const GLint* v) {}
+inline void glUniform1f(GLint l, GLfloat v) {}
+inline void glUniform2fv(GLint l, GLsizei c, const GLfloat* v) {}
+inline void glUniform3fv(GLint l, GLsizei c, const GLfloat* v) {}
+inline void glUniform4fv(GLint l, GLsizei c, const GLfloat* v) {}
+inline void glUniformMatrix3fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
+inline void glUniformMatrix4fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
+inline void glUseProgram(GLuint p) {}
+inline GLuint glCreateShader(GLenum t) { return 0; }
+inline void glShaderSource(GLuint s, GLsizei c, const GLchar** st, const GLint* l) {}
+inline void glCompileShader(GLuint s) {}
+inline void glGetShaderiv(GLuint s, GLenum p, GLint* v) { if (v) *v = 0; }
+inline void glGetShaderInfoLog(GLuint s, GLsizei b, GLsizei* l, GLchar* i) {}
+inline GLuint glCreateProgram() { return 0; }
+inline void glAttachShader(GLuint p, GLuint s) {}
+inline void glBindAttribLocation(GLuint p, GLuint i, const GLchar* n) {}
+inline void glLinkProgram(GLuint p) {}
+inline void glGetProgramiv(GLuint p, GLenum n, GLint* v) { if (v) *v = 0; }
+inline void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) {}
+inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
+inline void glClearDepth(float d) {}
+inline void glDepthRange(float n, float f) {}
+inline void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) {}
+inline void glEnableVertexAttribArray(GLuint index) {}
+inline void glDisableVertexAttribArray(GLuint index) {}
+inline void glGenerateMipmap(GLenum target) {}
+
+inline void SDL_GL_SwapWindow(SDL_Window* w) {}
+#define SDL_WINDOW_OPENGL 0x01
+#define SDL_WINDOW_SHOWN 0x02
+#define SDL_WINDOW_FULLSCREEN 0x04
+#define SDL_WINDOW_RESIZABLE 0x08
+#define SDL_WINDOW_BORDERLESS 0x10
+#define SDL_WINDOWPOS_CENTERED 0
+typedef void* SDL_GLContext;
+inline SDL_GLContext SDL_GL_CreateContext(SDL_Window* w) { return 0; }
+inline void SDL_GL_SetSwapInterval(int i) {}
+inline int SDL_GL_SetAttribute(int a, int v) { return 0; }
+#define SDL_GL_RED_SIZE 1
+#define SDL_GL_GREEN_SIZE 2
+#define SDL_GL_BLUE_SIZE 3
+#define SDL_GL_DEPTH_SIZE 4
+#define SDL_GL_DOUBLEBUFFER 5
+#define SDL_GL_MULTISAMPLESAMPLES 6
+#define SDL_GL_CONTEXT_PROFILE_MASK 7
+#define SDL_GL_CONTEXT_PROFILE_CORE 8
+#define SDL_GL_CONTEXT_MAJOR_VERSION 9
+#define SDL_GL_CONTEXT_MINOR_VERSION 10
+
+struct SDL_PixelFormat { uint32 format; };
+struct SDL_Surface { int w, h; void* pixels; SDL_PixelFormat* format; };
+inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void* p, int w, int h, int d, int s, Uint32 r, Uint32 g, Uint32 b, Uint32 a) {
+	SDL_Surface* surf = new SDL_Surface;
+	surf->w = w; surf->h = h; surf->pixels = p;
+	surf->format = new SDL_PixelFormat;
+	surf->format->format = SDL_PIXELFORMAT_ARGB8888;
+	return surf;
+}
+inline SDL_Surface* SDL_GetWindowSurface(SDL_Window* w) {
+	if (!w) return nullptr;
+	if (!w->surface_buffer) w->surface_buffer = malloc(w->w * w->h * 4);
+	return SDL_CreateRGBSurfaceFrom(w->surface_buffer, w->w, w->h, 32, w->w * 4, 0, 0, 0, 0);
+}
+inline int SDL_LockSurface(SDL_Surface* s) { return 0; }
+inline void SDL_UnlockSurface(SDL_Surface* s) {}
+inline int SDL_UpdateWindowSurface(SDL_Window* w) { return 0; }
+inline void SDL_SetWindowIcon(SDL_Window* w, SDL_Surface* i) {}
+inline void SDL_FreeSurface(SDL_Surface* s) { if (s) { delete s->format; delete s; } }
+
+#elif defined(PLATFORM_WINDOWS)
+// Needed for MSYS2
+#if defined(__GNUC__)
+#include <SDL2/SDL.h>
+#else
+#include <SDL/SDL.h>
+#endif
+#else
+#include <SDL.h>
 #endif
 
 
 // OpenGL
-#if defined(PLATFORM_WINDOWS)
-	#define ALLOW_LEGACY_OPENGL
-	#define RMX_USE_GLEW
+#if defined(PLATFORM_PS3)
+// Already included above
+#elif defined(PLATFORM_WINDOWS)
+#define ALLOW_LEGACY_OPENGL
+#define RMX_USE_GLEW
 
 #elif defined(PLATFORM_LINUX)
-	#if defined(RMX_LINUX_ENFORCE_GLES2)	// Build option: Use OpenGL ES 2
-		#define RMX_USE_GLES2
-		#define GL_GLEXT_PROTOTYPES
-		#include <GLES2/gl2.h>
-		#include <GLES2/gl2ext.h>
-	#else
-		#define RMX_USE_GLEW
-	#endif
+#if defined(RMX_LINUX_ENFORCE_GLES2)	// Build option: Use OpenGL ES 2
+#define ALLOW_LEGACY_OPENGL
+#define RMX_USE_GLES2
+#include <GLES3/gl3.h>		// We need the ES 3 headers for e.g. glBindVertexArray
+#include <GLES3/gl3ext.h>
+#else
+#define RMX_USE_GLEW
+#endif
 
 #elif defined(PLATFORM_MAC)
-	#define ALLOW_LEGACY_OPENGL		// Should be removed for macOS I guess?
-	#include <OpenGL/gl3.h>
-	#include <OpenGL/glu.h>
+#define ALLOW_LEGACY_OPENGL		// Should be removed for macOS I guess?
+#include <OpenGL/gl3.h>
+#include <OpenGL/glu.h>
 
 #elif defined(PLATFORM_WEB)
-	#include <GL/glew.h>
+#include <GL/glew.h>
 
 #elif defined(PLATFORM_ANDROID)
-	#define RMX_USE_GLES2
-	#define GL_GLEXT_PROTOTYPES
-	#include <GLES2/gl2.h>
-	#include <GLES2/gl2ext.h>
+#define RMX_USE_GLES2
+#define GL_GLEXT_PROTOTYPES
+#include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 
 #elif defined(PLATFORM_IOS)
-	#define RMX_USE_GLES2
-	#define GL_GLEXT_PROTOTYPES
-	#include <OpenGLES/ES2/gl.h>
-	#include <OpenGLES/ES2/glext.h>
+#define RMX_USE_GLES2
+#define GL_GLEXT_PROTOTYPES
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
 
 #elif defined(PLATFORM_SWITCH)
-	#include <EGL/egl.h>    // EGL library
-	#include <EGL/eglext.h> // EGL extensions
-	#include <glad/glad.h>  // glad library (OpenGL loader)
-	#define RMX_USE_GLAD
-	#define GL_LUMINANCE GL_RED
+#include <EGL/egl.h>    // EGL library
+#include <EGL/eglext.h> // EGL extensions
+#include <glad/glad.h>  // glad library (OpenGL loader)
+#define RMX_USE_GLAD
+#define GL_LUMINANCE GL_RED
 
-#elif defined(PLATFORM_VITA)
-	#include <vitaGL.h>
-	#define RMX_USE_GLES2
-
-#elif defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	#define RMX_USE_GLES2
-	#include <PSGL/psgl.h>
-	#include <PSGL/psglu.h>
-
-	#ifndef GL_FRAMEBUFFER
-	#define GL_FRAMEBUFFER            GL_FRAMEBUFFER_OES
-	#endif
-	#ifndef GL_RENDERBUFFER
-	#define GL_RENDERBUFFER           GL_RENDERBUFFER_OES
-	#endif
-	#ifndef GL_FRAMEBUFFER_COMPLETE
-	#define GL_FRAMEBUFFER_COMPLETE   GL_FRAMEBUFFER_COMPLETE_OES
-	#endif
-	#ifndef GL_COLOR_ATTACHMENT0_OES
-	#define GL_COLOR_ATTACHMENT0_OES  0x8CE0
-	#endif
-	#ifndef GL_COLOR_ATTACHMENT0
-	#define GL_COLOR_ATTACHMENT0      GL_COLOR_ATTACHMENT0_OES
-	#endif
-	#ifndef GL_DEPTH_ATTACHMENT
-	#define GL_DEPTH_ATTACHMENT       GL_DEPTH_ATTACHMENT_OES
-	#endif
-	#ifndef GL_FRAMEBUFFER_BINDING
-	#define GL_FRAMEBUFFER_BINDING    GL_FRAMEBUFFER_BINDING_OES
-	#endif
-
-	#define glIsRenderbuffer          glIsRenderbufferOES
-	#define glGenRenderbuffers        glGenRenderbuffersOES
-	#define glBindRenderbuffer       glBindRenderbufferOES
-	#define glRenderbufferStorage     glRenderbufferStorageOES
-	#define glDeleteRenderbuffers     glDeleteRenderbuffersOES
-	#define glGenFramebuffers         glGenFramebuffersOES
-	#define glCheckFramebufferStatus  glCheckFramebufferStatusOES
-	#define glDeleteFramebuffers      glDeleteFramebuffersOES
-	#define glFramebufferTexture2D    glFramebufferTexture2DOES
-	#define glFramebufferRenderbuffer glFramebufferRenderbufferOES
-	#define glIsFramebuffer           glIsFramebufferOES
-	#define glBindFramebuffer         glBindFramebufferOES
-	static inline void glGenerateMipmap(unsigned int) {}
-
-	#ifndef GL_INVALID_FRAMEBUFFER_OPERATION
-	#define GL_INVALID_FRAMEBUFFER_OPERATION 0x0506
-	#endif
-	#ifndef GL_VIEWPORT
-	#define GL_VIEWPORT               0x0BA2
-	#endif
-	#ifndef GL_COMPILE_STATUS
-	#define GL_COMPILE_STATUS         0x8B81
-	#endif
-	#ifndef GL_LINK_STATUS
-	#define GL_LINK_STATUS            0x8B82
-	#endif
-	#ifndef GL_VERTEX_SHADER
-	#define GL_VERTEX_SHADER          0x8B31
-	#endif
-	#ifndef GL_FRAGMENT_SHADER
-	#define GL_FRAGMENT_SHADER        0x8B30
-	#endif
-	#ifndef GL_INFO_LOG_LENGTH
-	#define GL_INFO_LOG_LENGTH        0x8B84
-	#endif
-
-	typedef char GLchar;
-	typedef int GLsizei;
-
-	static inline void glUseProgram(unsigned int) {}
-	static inline void glActiveTexture(unsigned int) {}
-	static inline void glDeleteProgram(unsigned int) {}
-	static inline void glDeleteShader(unsigned int) {}
-	static inline unsigned int glGetUniformLocation(unsigned int, const char*) { return 0; }
-	static inline unsigned int glGetAttribLocation(unsigned int, const char*) { return 0; }
-	static inline void glUniform1i(unsigned int, int) {}
-	static inline void glUniform2iv(unsigned int, int, const int*) {}
-	static inline void glUniform3iv(unsigned int, int, const int*) {}
-	static inline void glUniform4iv(unsigned int, int, const int*) {}
-	static inline void glUniform1f(unsigned int, float) {}
-	static inline void glUniform2fv(unsigned int, int, const float*) {}
-	static inline void glUniform3fv(unsigned int, int, const float*) {}
-	static inline void glUniform4fv(unsigned int, int, const float*) {}
-	static inline void glUniformMatrix3fv(unsigned int, int, unsigned char, const float*) {}
-	static inline void glUniformMatrix4fv(unsigned int, int, unsigned char, const float*) {}
-	static inline unsigned int glCreateShader(unsigned int) { static unsigned int shader_id = 1; return shader_id++; }
-	static inline void glShaderSource(unsigned int, int, const char**, const int*) {}
-	static inline void glCompileShader(unsigned int) {}
-	static inline void glGetShaderiv(unsigned int, unsigned int pname, int* params)
-	{
-		if (params)
-		{
-			if (pname == GL_COMPILE_STATUS)
-				*params = 1;
-			else
-				*params = 0;
-		}
-	}
-	static inline void glGetShaderInfoLog(unsigned int, int, int*, char*) {}
-	static inline unsigned int glCreateProgram() { static unsigned int program_id = 1; return program_id++; }
-	static inline void glAttachShader(unsigned int, unsigned int) {}
-	static inline void glBindAttribLocation(unsigned int, unsigned int, const char*) {}
-	static inline void glLinkProgram(unsigned int) {}
-	static inline void glGetProgramiv(unsigned int, unsigned int pname, int* params)
-	{
-		if (params)
-		{
-			if (pname == GL_LINK_STATUS)
-				*params = 1;
-			else
-				*params = 0;
-		}
-	}
-	static inline void glGetProgramInfoLog(unsigned int, int, int*, char*) {}
-
-	#ifndef GL_ARRAY_BUFFER
-	#define GL_ARRAY_BUFFER           0x8892
-	#endif
-	#ifndef GL_STATIC_DRAW
-	#define GL_STATIC_DRAW            0x88E4
-	#endif
-	#ifndef GL_FLOAT
-	#define GL_FLOAT                  0x1406
-	#endif
-	#ifndef GL_FALSE
-	#define GL_FALSE                  0
-	#endif
-	#ifndef GL_TRUE
-	#define GL_TRUE                   1
-	#endif
-
-	static inline void glDeleteVertexArrays(int, const unsigned int*) {}
-	static inline void glDeleteBuffers(int, const unsigned int*) {}
-	static inline void glGenVertexArrays(int n, unsigned int* arrays)
-	{
-		if (arrays)
-		{
-			static unsigned int id = 1;
-			for (int i = 0; i < n; ++i)
-				arrays[i] = id++;
-		}
-	}
-	static inline void glGenBuffers(int n, unsigned int* buffers)
-	{
-		if (buffers)
-		{
-			static unsigned int id = 1;
-			for (int i = 0; i < n; ++i)
-				buffers[i] = id++;
-		}
-	}
-	static inline void glBindVertexArray(unsigned int) {}
-	static inline void glBindBuffer(unsigned int, unsigned int) {}
-	static inline void glBufferData(unsigned int, long, const void*, unsigned int) {}
-	static inline void glBufferSubData(unsigned int, long, long, const void*) {}
-	static inline void glDrawArrays(unsigned int, int, int) {}
-	static inline void glVertexAttribPointer(unsigned int, int, unsigned int, unsigned char, int, const void*) {}
-	static inline void glEnableVertexAttribArray(unsigned int) {}
-	static inline void glDisableVertexAttribArray(unsigned int) {}
-
-	#ifndef SDL_VERSION_ATLEAST
-		#define SDL_VERSION_ATLEAST(X, Y, Z) 0
-	#endif
-	typedef struct SDL_mutex SDL_mutex;
-	typedef struct SDL_Thread SDL_Thread;
-	typedef struct SDL_cond SDL_cond;
-	typedef struct SDL_Window { int dummy; } SDL_Window;
-	typedef struct _SDL_Joystick SDL_Joystick;
-	typedef struct _SDL_GameController SDL_GameController;
-	typedef int64_t SDL_TouchID;
-	typedef int64_t SDL_FingerID;
-
-	typedef struct SDL_Finger {
-		SDL_FingerID id;
-		float x;
-		float y;
-		float pressure;
-	} SDL_Finger;
-
-	typedef enum {
-		SDL_CONTROLLER_BINDTYPE_NONE = 0,
-		SDL_CONTROLLER_BINDTYPE_BUTTON = 1,
-		SDL_CONTROLLER_BINDTYPE_AXIS = 2,
-		SDL_CONTROLLER_BINDTYPE_HAT = 3
-	} SDL_GameControllerBindType;
-
-	typedef struct SDL_GameControllerButtonBind {
-		SDL_GameControllerBindType bindType;
-		union {
-			int button;
-			int axis;
-			struct {
-				int hat;
-				int hat_mask;
-			} hat;
-		} value;
-	} SDL_GameControllerButtonBind;
-
-	typedef int SDL_AudioDeviceID;
-	typedef void* SDL_GLContext;
-	typedef int32_t SDL_Keycode;
-	
-	struct SDL_AudioSpec {
-		int freq;
-		int format;
-		int channels;
-		int samples;
-		void (*callback)(void*, unsigned char*, int);
-		void* userdata;
-	};
-	
-	typedef struct SDL_Keysym {
-		int sym;
-		int scancode;
-		int mod;
-	} SDL_Keysym;
-
-	struct SDL_KeyboardEvent {
-		int type;
-		int repeat;
-		unsigned char state;
-		SDL_Keysym keysym;
-	};
-
-	#define SDL_PRESSED 1
-	#define SDL_RELEASED 0
-	
-	struct SDL_TextInputEvent {
-		char text[32];
-	};
-	
-	struct SDL_MouseButtonEvent {
-		int type;
-		int button;
-		int x;
-		int y;
-	};
-	
-	struct SDL_MouseWheelEvent {
-		int y;
-	};
-	
-	typedef struct SDL_WindowEvent {
-		int event;
-		int data1;
-		int data2;
-		unsigned int windowID;
-	} SDL_WindowEvent;
-
-	typedef struct SDL_Rect {
-		int x;
-		int y;
-		int w;
-		int h;
-	} SDL_Rect;
-
-	typedef struct SDL_DisplayMode {
-		int w;
-		int h;
-	} SDL_DisplayMode;
-	
-	typedef struct SDL_MouseMotionEvent {
-		int x;
-		int y;
-	} SDL_MouseMotionEvent;
-	
-	union SDL_Event {
-		int type;
-		SDL_KeyboardEvent key;
-		SDL_TextInputEvent text;
-		SDL_MouseButtonEvent button;
-		SDL_MouseWheelEvent wheel;
-		SDL_WindowEvent window;
-		SDL_MouseMotionEvent motion;
-	};
-	
-	#define SDLK_SCANCODE_MASK 0
-	
-	static inline SDL_mutex* SDL_CreateMutex() { return nullptr; }
-	static inline void SDL_DestroyMutex(SDL_mutex*) {}
-	static inline int SDL_LockMutex(SDL_mutex*) { return 0; }
-	static inline int SDL_UnlockMutex(SDL_mutex*) { return 0; }
-	static inline SDL_cond* SDL_CreateCond() { return nullptr; }
-	static inline void SDL_DestroyCond(SDL_cond*) {}
-	static inline int SDL_CondSignal(SDL_cond*) { return 0; }
-	static inline void SDL_Delay(unsigned int) {}
-	static inline int SDL_CondWaitTimeout(SDL_cond*, SDL_mutex*, unsigned int) { return 0; }
-	static inline SDL_Thread* SDL_CreateThread(int (*)(void*), const char*, void*) { return nullptr; }
-	static inline void SDL_WaitThread(SDL_Thread*, int*) {}
-
-	#define SDL_INIT_AUDIO 0
-	#define SDL_INIT_VIDEO 0
-	static inline int SDL_Init(unsigned int) { return 0; }
-	static inline void SDL_Quit() {}
-	static inline int SDL_InitSubSystem(unsigned int) { return 0; }
-	
-	#define SDL_QUIT 1
-	#define SDL_WINDOWEVENT 2
-	#define SDL_WINDOWEVENT_RESIZED 3
-	#define SDL_WINDOWEVENT_SIZE_CHANGED 4
-	#define SDL_KEYDOWN 5
-	#define SDL_KEYUP 6
-	#define SDL_TEXTINPUT 7
-	#define SDL_MOUSEBUTTONDOWN 8
-	#define SDL_MOUSEBUTTONUP 9
-	#define SDL_MOUSEWHEEL 10
-	#define SDL_MOUSEMOTION 11
-	#define SDL_WINDOWEVENT_FOCUS_LOST 12
-	#define SDL_APP_WILLENTERBACKGROUND 13
-	#define SDL_JOYDEVICEADDED 14
-	#define SDL_JOYDEVICEREMOVED 15
-
-	#define SDLK_LALT 1001
-	#define SDLK_RALT 1002
-	#define SDLK_RETURN 1003
-	#define SDLK_LSHIFT 1004
-	#define SDLK_RSHIFT 1005
-	#define SDLK_END 1006
-	#define SDLK_F1 1007
-	#define SDLK_F2 1008
-	#define SDLK_F3 1009
-	#define SDLK_F4 1010
-	#define SDLK_F5 1011
-	#define SDLK_F8 1012
-	#define SDLK_PRINTSCREEN 1013
-	#define SDLK_KP_PLUS 1014
-	#define SDLK_KP_MINUS 1015
-	#define SDLK_KP_DIVIDE 1016
-	#define SDLK_KP_MULTIPLY 1017
-	#define SDLK_KP_0 1018
-	#define SDLK_KP_1 1019
-	#define SDLK_KP_2 1020
-	#define SDLK_KP_3 1021
-	#define SDLK_KP_4 1022
-	#define SDLK_KP_5 1023
-	#define SDLK_KP_6 1024
-	#define SDLK_KP_7 1025
-	#define SDLK_KP_8 1035
-	#define SDLK_KP_9 1026
-	#define SDLK_KP_PERIOD 1027
-	#define SDLK_KP_ENTER 1036
-	#define SDLK_LCTRL 1028
-	#define SDLK_RCTRL 1037
-	#define SDLK_F7 1029
-	#define SDLK_F10 1030
-	#define SDLK_F11 1031
-	#define SDLK_F12 1050
-	#define SDLK_LGUI 1051
-	#define SDLK_RGUI 1052
-	#define SDLK_SCROLLLOCK 1053
-	#define SDLK_PAUSE 1054
-	#define SDLK_NUMLOCKCLEAR 1055
-	#define SDLK_CLEAR 1032
-	#define SDLK_BACKQUOTE 1033
-	#define SDLK_TAB 1034
-	#define SDLK_ESCAPE 1038
-	#define SDLK_BACKSPACE 1039
-	#define SDLK_SPACE ' '
-	#define SDLK_EXCLAIM '!'
-	#define SDLK_QUOTEDBL '"'
-	#define SDLK_HASH '#'
-	#define SDLK_PERCENT '%'
-	#define SDLK_DOLLAR '$'
-	#define SDLK_AMPERSAND '&'
-	#define SDLK_QUOTE '\''
-	#define SDLK_LEFTPAREN '('
-	#define SDLK_RIGHTPAREN ')'
-	#define SDLK_ASTERISK '*'
-	#define SDLK_PLUS '+'
-	#define SDLK_COMMA ','
-	#define SDLK_MINUS '-'
-	#define SDLK_PERIOD '.'
-	#define SDLK_SLASH '/'
-	#define SDLK_0 '0'
-	#define SDLK_1 '1'
-	#define SDLK_2 '2'
-	#define SDLK_3 '3'
-	#define SDLK_4 '4'
-	#define SDLK_5 '5'
-	#define SDLK_6 '6'
-	#define SDLK_7 '7'
-	#define SDLK_8 '8'
-	#define SDLK_9 '9'
-	#define SDLK_COLON ':'
-	#define SDLK_SEMICOLON ';'
-	#define SDLK_LESS '<'
-	#define SDLK_EQUALS '='
-	#define SDLK_GREATER '>'
-	#define SDLK_QUESTION '?'
-	#define SDLK_AT '@'
-	#define SDLK_LEFTBRACKET '['
-	#define SDLK_BACKSLASH '\\'
-	#define SDLK_RIGHTBRACKET ']'
-	#define SDLK_CARET '^'
-	#define SDLK_UNDERSCORE '_'
-	#define SDLK_a 'a'
-	#define SDLK_b 'b'
-	#define SDLK_c 'c'
-	#define SDLK_d 'd'
-	#define SDLK_e 'e'
-	#define SDLK_f 'f'
-	#define SDLK_g 'g'
-	#define SDLK_h 'h'
-	#define SDLK_i 'i'
-	#define SDLK_j 'j'
-	#define SDLK_k 'k'
-	#define SDLK_l 'l'
-	#define SDLK_m 'm'
-	#define SDLK_n 'n'
-	#define SDLK_o 'o'
-	#define SDLK_p 'p'
-	#define SDLK_q 'q'
-	#define SDLK_r 'r'
-	#define SDLK_s 's'
-	#define SDLK_t 't'
-	#define SDLK_u 'u'
-	#define SDLK_v 'v'
-	#define SDLK_w 'w'
-	#define SDLK_x 'x'
-	#define SDLK_y 'y'
-	#define SDLK_z 'z'
-	#define SDLK_CAPSLOCK 1040
-	#define SDLK_INSERT 1041
-	#define SDLK_HOME 1042
-	#define SDLK_PAGEUP 1043
-	#define SDLK_DELETE 1044
-	#define SDLK_PAGEDOWN 1045
-	#define SDLK_UP 1046
-	#define SDLK_DOWN 1047
-	#define SDLK_LEFT 1048
-	#define SDLK_RIGHT 1049
-
-	#define KMOD_LSHIFT 0x0001
-	#define KMOD_RSHIFT 0x0002
-	#define KMOD_LCTRL  0x0040
-	#define KMOD_RCTRL  0x0080
-	#define KMOD_CTRL   (KMOD_LCTRL | KMOD_RCTRL)
-	#define KMOD_SHIFT  (KMOD_LSHIFT | KMOD_RSHIFT)
-	static inline int SDL_GetModState() { return 0; }
-
-	#define SDL_INIT_JOYSTICK 0
-
-	#define SDL_CONTROLLER_AXIS_LEFTX 0
-	#define SDL_CONTROLLER_AXIS_LEFTY 1
-
-	#define SDL_CONTROLLER_BUTTON_A 0
-	#define SDL_CONTROLLER_BUTTON_B 1
-	#define SDL_CONTROLLER_BUTTON_X 2
-	#define SDL_CONTROLLER_BUTTON_Y 3
-	#define SDL_CONTROLLER_BUTTON_BACK 4
-	#define SDL_CONTROLLER_BUTTON_GUIDE 5
-	#define SDL_CONTROLLER_BUTTON_START 6
-	#define SDL_CONTROLLER_BUTTON_LEFTSHOULDER 7
-	#define SDL_CONTROLLER_BUTTON_RIGHTSHOULDER 8
-	#define SDL_CONTROLLER_BUTTON_DPAD_UP 9
-	#define SDL_CONTROLLER_BUTTON_DPAD_DOWN 10
-	#define SDL_CONTROLLER_BUTTON_DPAD_LEFT 11
-	#define SDL_CONTROLLER_BUTTON_DPAD_RIGHT 12
-
-	static inline const char* SDL_JoystickName(SDL_Joystick*) { return nullptr; }
-	static inline const char* SDL_GameControllerName(SDL_GameController*) { return nullptr; }
-	static inline SDL_Joystick* SDL_JoystickOpen(int) { return nullptr; }
-	static inline SDL_GameController* SDL_GameControllerOpen(int) { return nullptr; }
-	static inline int SDL_NumJoysticks() { return 0; }
-	static inline int32_t SDL_JoystickInstanceID(SDL_Joystick*) { return -1; }
-	static inline int SDL_JoystickNumButtons(SDL_Joystick*) { return 0; }
-	static inline unsigned char SDL_JoystickGetButton(SDL_Joystick*, int) { return 0; }
-	static inline int SDL_JoystickNumAxes(SDL_Joystick*) { return 0; }
-	static inline int16_t SDL_JoystickGetAxis(SDL_Joystick*, int) { return 0; }
-	static inline int SDL_JoystickNumHats(SDL_Joystick*) { return 0; }
-	static inline unsigned char SDL_JoystickGetHat(SDL_Joystick*, int) { return 0; }
-	static inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForAxis(SDL_GameController*, int) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
-	static inline SDL_GameControllerButtonBind SDL_GameControllerGetBindForButton(SDL_GameController*, int) { SDL_GameControllerButtonBind b; b.bindType = SDL_CONTROLLER_BINDTYPE_NONE; return b; }
-	static inline int SDL_GetNumTouchDevices() { return 0; }
-	static inline SDL_TouchID SDL_GetTouchDevice(int) { return 0; }
-	static inline int SDL_GetNumTouchFingers(SDL_TouchID) { return 0; }
-	static inline const SDL_Finger* SDL_GetTouchFinger(SDL_TouchID, int) { return nullptr; }
-
-	typedef int SDL_bool;
-	#define SDL_TRUE 1
-	#define SDL_FALSE 0
-	#define SDL_WINDOW_FULLSCREEN_DESKTOP 0
-	#define SDL_WINDOWPOS_CENTERED 0
-
-	#define SDL_HINT_VIDEO_ALLOW_SCREENSAVER "1"
-	#define SDL_HINT_ACCELEROMETER_AS_JOYSTICK "2"
-	#define SDL_HINT_RENDER_VSYNC "3"
-
-	#define SDL_GL_CONTEXT_PROFILE_MASK 1
-	#define SDL_GL_CONTEXT_PROFILE_CORE 1
-	#define SDL_GL_CONTEXT_PROFILE_ES 4
-	#define SDL_GL_CONTEXT_MAJOR_VERSION 2
-	#define SDL_GL_CONTEXT_MINOR_VERSION 3
-
-	static inline int SDL_SetHint(const char*, const char*) { return 0; }
-	static inline void SDL_DisableScreenSaver() {}
-	static inline int SDL_IsTextInputActive() { return 0; }
-	static inline void SDL_StartTextInput() {}
-	static inline void SDL_StopTextInput() {}
-	static inline unsigned int SDL_GetWindowID(SDL_Window*) { return 0; }
-	static inline int SDL_GetWindowDisplayIndex(SDL_Window*) { return 0; }
-	static inline int SDL_SetWindowFullscreen(SDL_Window*, unsigned int) { return 0; }
-	static inline void SDL_SetWindowSize(SDL_Window*, int, int) {}
-	static inline void SDL_SetWindowPosition(SDL_Window*, int, int) {}
-	static inline void SDL_SetWindowResizable(SDL_Window*, unsigned char) {}
-	static inline void SDL_SetWindowBordered(SDL_Window*, unsigned char) {}
-	static inline int SDL_GetDisplayBounds(int, SDL_Rect* rect)
-	{
-		if (rect) { rect->x = 0; rect->y = 0; rect->w = 1280; rect->h = 720; }
-		return 0;
-	}
-	static inline int SDL_GetDesktopDisplayMode(int, SDL_DisplayMode* mode)
-	{
-		if (mode) { mode->w = 1280; mode->h = 720; }
-		return 0;
-	}
-
-	static inline int SDL_PollEvent(SDL_Event*) { return 0; }
-	static inline unsigned int SDL_GetTicks() { return 0; }
-	static inline void SDL_WarpMouseInWindow(SDL_Window*, int, int) {}
-	#define AUDIO_S16LSB 0
-	static inline int SDL_OpenAudioDevice(const char*, int, const SDL_AudioSpec*, SDL_AudioSpec*, int) { return 0; }
-	static inline int SDL_GetNumAudioDevices(int) { return 0; }
-	static inline const char* SDL_GetAudioDeviceName(int, int) { return nullptr; }
-	static inline const char* SDL_GetError() { return ""; }
-
-	#define SDL_arraysize(array) (sizeof(array) / sizeof((array)[0]))
-
-	#define SDL_MESSAGEBOX_ERROR 0x00000010
-	#define SDL_MESSAGEBOX_WARNING 0x00000020
-	#define SDL_MESSAGEBOX_INFORMATION 0x00000040
-
-	#define SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT 0x00000001
-	#define SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT 0x00000002
-
-	typedef struct SDL_MessageBoxButtonData {
-		uint32_t flags;
-		int buttonid;
-		const char* text;
-	} SDL_MessageBoxButtonData;
-
-	typedef struct SDL_MessageBoxData {
-		uint32_t flags;
-		SDL_Window* window;
-		const char* title;
-		const char* message;
-		int numbuttons;
-		const SDL_MessageBoxButtonData* buttons;
-		void* colorScheme;
-	} SDL_MessageBoxData;
-
-	static inline int SDL_ShowSimpleMessageBox(uint32_t, const char*, const char*, SDL_Window*) { return 0; }
-	static inline int SDL_ShowMessageBox(const SDL_MessageBoxData*, int*) { return 0; }
-
-	static inline int SDL_SetClipboardText(const char*) { return -1; }
-	static inline char* SDL_GetClipboardText() { return nullptr; }
-	static inline SDL_bool SDL_HasClipboardText() { return SDL_FALSE; }
-	static inline void SDL_free(void*) {}
-	static inline void SDL_CloseAudioDevice(int) {}
-	static inline void SDL_PauseAudioDevice(int, int) {}
-	typedef int SDL_AudioStatus;
-	#define SDL_AUDIO_PLAYING 0
-	static inline SDL_AudioStatus SDL_GetAudioStatus() { return SDL_AUDIO_PLAYING; }
-	static inline void SDL_LockAudioDevice(int) {}
-	static inline void SDL_UnlockAudioDevice(int) {}
-	
-	struct SDL_AudioCVT {
-		int needed;
-		int src_format;
-		int dst_format;
-		double rate_incr;
-		unsigned char* buf;
-		int len;
-		int len_cvt;
-		int len_mult;
-		double len_ratio;
-		void* filters[10];
-		int filter_index;
-	};
-	
-	static inline int SDL_BuildAudioCVT(SDL_AudioCVT*, int, int, int, int, int, int) { return 0; }
-	static inline int SDL_ConvertAudio(SDL_AudioCVT*) { return 0; }
-	static inline void* SDL_LoadWAV(const char*, SDL_AudioSpec*, unsigned char**, unsigned int*) { return nullptr; }
-	static inline void SDL_FreeWAV(unsigned char*) {}
-
-#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	// OpenGL types
-	typedef int GLint;
-	typedef unsigned int GLenum;
-	typedef unsigned int GLuint;
-	typedef unsigned char GLboolean;
-	typedef unsigned int GLbitfield;
-	
-	#define GL_TRIANGLES 0x0004
-	#define GL_RGB8 0
-	#define GL_RGBA8 0
-	#define GL_DEPTH_COMPONENT 0
-	#define GL_TEXTURE_2D 0
-	#define GL_TEXTURE0 0x84C0
-	#define GL_TEXTURE1 0x84C1
-	#define GL_TEXTURE2 0x84C2
-	#define GL_TEXTURE3 0x84C3
-	#define GL_TEXTURE4 0x84C4
-	#define GL_TEXTURE5 0x84C5
-	#define GL_TEXTURE6 0x84C6
-	#define GL_TEXTURE7 0x84C7
-	#define GL_TEXTURE_BUFFER 0x8C2A
-	#define GL_LUMINANCE 0x1909
-	#define GL_R8UI 0x8232
-	#define GL_R16I 0x8233
-	#define GL_R16UI 0x8234
-	
-	static inline void glTexBuffer(unsigned int, unsigned int, unsigned int) {}
-	static inline void glEnable(unsigned int) {}
-	static inline void glDisable(unsigned int) {}
-	static inline void glViewport(int, int, int, int) {}
-#endif
-	
-	// More SDL Video types
-	#define SDL_WINDOW_OPENGL 0
-	#define SDL_WINDOW_FULLSCREEN 0
-	#define SDL_WINDOW_BORDERLESS 0
-	#define SDL_WINDOW_RESIZABLE 0
-	#define SDL_WINDOWPOS_CENTERED_DISPLAY(x) 0
-	
-	typedef struct SDL_PixelFormat {
-		uint32_t format;
-	} SDL_PixelFormat;
-
-	typedef struct SDL_Surface {
-		SDL_PixelFormat* format;
-		int w;
-		int h;
-		int pitch;
-		void* pixels;
-	} SDL_Surface;
-
-	#define SDL_PIXELFORMAT_UNKNOWN 0
-	#define SDL_PIXELFORMAT_INDEX1LSB 1
-	#define SDL_PIXELFORMAT_INDEX1MSB 2
-	#define SDL_PIXELFORMAT_INDEX4LSB 3
-	#define SDL_PIXELFORMAT_INDEX4MSB 4
-	#define SDL_PIXELFORMAT_INDEX8 5
-	#define SDL_PIXELFORMAT_RGB332 6
-	#define SDL_PIXELFORMAT_RGB444 7
-	#define SDL_PIXELFORMAT_RGB555 8
-	#define SDL_PIXELFORMAT_BGR555 9
-	#define SDL_PIXELFORMAT_ARGB4444 10
-	#define SDL_PIXELFORMAT_RGBA4444 11
-	#define SDL_PIXELFORMAT_ABGR4444 12
-	#define SDL_PIXELFORMAT_BGRA4444 13
-	#define SDL_PIXELFORMAT_ARGB1555 14
-	#define SDL_PIXELFORMAT_RGBA5551 15
-	#define SDL_PIXELFORMAT_ABGR1555 16
-	#define SDL_PIXELFORMAT_BGRA5551 17
-	#define SDL_PIXELFORMAT_RGB565 18
-	#define SDL_PIXELFORMAT_BGR565 19
-	#define SDL_PIXELFORMAT_RGB24 20
-	#define SDL_PIXELFORMAT_BGR24 21
-	#define SDL_PIXELFORMAT_RGB888 22
-	#define SDL_PIXELFORMAT_RGBX8888 23
-	#define SDL_PIXELFORMAT_BGR888 24
-	#define SDL_PIXELFORMAT_BGRX8888 25
-	#define SDL_PIXELFORMAT_ARGB8888 26
-	#define SDL_PIXELFORMAT_RGBA8888 27
-	#define SDL_PIXELFORMAT_ABGR8888 28
-	#define SDL_PIXELFORMAT_BGRA8888 29
-	#define SDL_PIXELFORMAT_ARGB2101010 30
-	#define SDL_PIXELFORMAT_YV12 31
-	#define SDL_PIXELFORMAT_IYUV 32
-	#define SDL_PIXELFORMAT_YUY2 33
-	#define SDL_PIXELFORMAT_UYVY 34
-	#define SDL_PIXELFORMAT_YVYU 35
-	#define SDL_PIXELFORMAT_NV12 36
-	#define SDL_PIXELFORMAT_NV21 37
-
-	static inline SDL_Surface* SDL_GetWindowSurface(SDL_Window*) { return nullptr; }
-	static inline int SDL_LockSurface(SDL_Surface*) { return 0; }
-	static inline void SDL_UnlockSurface(SDL_Surface*) {}
-	static inline int SDL_UpdateWindowSurface(SDL_Window*) { return 0; }
-	
-	static inline void SDL_DestroyWindow(SDL_Window*) {}
-	static inline SDL_Window* SDL_CreateWindow(const char*, int, int, int, int, unsigned int)
-	{
-		return (SDL_Window*)1;
-	}
-	static inline void* SDL_GL_CreateContext(SDL_Window*)
-	{
-		static int dummy_context = 1;
-		return &dummy_context;
-	}
-	static inline int SDL_GL_SetSwapInterval(int) { return 0; }
-	static inline void SDL_GetWindowSize(SDL_Window*, int* w, int* h)
-	{
-		if (w) *w = 1280;
-		if (h) *h = 720;
-	}
-	static inline int SDL_ShowCursor(int) { return 0; }
-	
-	#define SDL_GL_RED_SIZE 0
-	#define SDL_GL_GREEN_SIZE 0
-	#define SDL_GL_BLUE_SIZE 0
-	#define SDL_GL_DEPTH_SIZE 0
-	#define SDL_GL_DOUBLEBUFFER 0
-	#define SDL_GL_MULTISAMPLESAMPLES 0
-	
-	static inline int SDL_GL_SetAttribute(int, int) { return 0; }
-	static inline SDL_Surface* SDL_CreateRGBSurfaceFrom(void*, int, int, int, int, unsigned int, unsigned int, unsigned int, unsigned int) { return nullptr; }
-	static inline void SDL_SetWindowIcon(SDL_Window*, SDL_Surface*) {}
-	static inline void SDL_FreeSurface(SDL_Surface*) {}
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	#ifdef __cplusplus
-	extern "C" void psglSwap(void);
-	#else
-	void psglSwap(void);
-	#endif
-	static inline void SDL_GL_SwapWindow(SDL_Window*)
-	{
-		psglSwap();
-	}
 #else
-	static inline void SDL_GL_SwapWindow(SDL_Window*) {}
-#endif
-
-#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	// More OpenGL stubs
-	#define GL_BLEND 0
-	#define GL_SRC_ALPHA 0
-	#define GL_ONE_MINUS_SRC_ALPHA 0
-	#define GL_COLOR_BUFFER_BIT 0
-	#define GL_DEPTH_BUFFER_BIT 0
-	#define GL_RGBA 0
-	#define GL_UNSIGNED_BYTE 0
-	
-	#define GL_FUNC_ADD 0x8006
-	#define GL_FUNC_REVERSE_SUBTRACT 0x800B
-	#define GL_DST_COLOR 0x0306
-	#define GL_MIN 0x8007
-	#define GL_MAX 0x8008
-
-	static inline void glBlendEquation(unsigned int) {}
-	static inline void glBlendFunc(unsigned int, unsigned int) {}
-	#define GL_DEPTH_ATTACHMENT 0x8D00
-	#define GL_DEPTH_TEST 0x0B71
-	#define GL_FRAMEBUFFER_BINDING 0x8CA6
-	#define GL_VIEWPORT 0x0BA2
-	#define GL_ALWAYS 0x0207
-	#define GL_GEQUAL 0x0206
-
-	static inline void glClearColor(float, float, float, float) {}
-	static inline void glClearDepth(double) {}
-	static inline void glDepthRange(double, double) {}
-	static inline void glDepthMask(unsigned char) {}
-	static inline void glDepthFunc(unsigned int) {}
-	static inline void glGetIntegerv(unsigned int, int*) {}
-	static inline void glClear(unsigned int) {}
-	static inline void glReadPixels(int, int, int, int, unsigned int, unsigned int, void*) {}
-	
-	// Framebuffer / Renderbuffer stubs
-	#define GL_RENDERBUFFER 0
-	#define GL_FRAMEBUFFER 0
-	#define GL_FRAMEBUFFER_COMPLETE 0
-	#define GL_COLOR_ATTACHMENT0 0x8CE0
-	
-	// OpenGL Error constants (with unique values to prevent case label collisions)
-	#define GL_NONE 100
-	#define GL_INVALID_OPERATION 101
-	#define GL_INVALID_ENUM 102
-	#define GL_INVALID_VALUE 103
-	#define GL_OUT_OF_MEMORY 104
-	#define GL_INVALID_FRAMEBUFFER_OPERATION 105
-	
-#if !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	static inline unsigned char glIsRenderbuffer(unsigned int) { return 0; }
-	static inline void glGenRenderbuffers(int, unsigned int*) {}
-	static inline void glBindRenderbuffer(unsigned int, unsigned int) {}
-	static inline void glRenderbufferStorage(unsigned int, unsigned int, int, int) {}
-	static inline void glDeleteRenderbuffers(int, const unsigned int*) {}
-	static inline void glGenFramebuffers(int, unsigned int*) {}
-	static inline unsigned int glCheckFramebufferStatus(unsigned int) { return 0; }
-	static inline unsigned int glGetError() { return 0; }
-	static inline void glDeleteFramebuffers(int, const unsigned int*) {}
-	static inline void glFramebufferTexture2D(unsigned int, unsigned int, unsigned int, unsigned int, int) {}
-	static inline void glFramebufferRenderbuffer(unsigned int, unsigned int, unsigned int, unsigned int) {}
-	static inline unsigned char glIsFramebuffer(unsigned int) { return 0; }
-	static inline void glBindFramebuffer(unsigned int, unsigned int) {}
-#endif
-	
-	// Scissor / Blend stubs
-	#define GL_SCISSOR_TEST 0
-	static inline void glScissor(int, int, int, int) {}
-
-	// Shader OpenGL stubs
-	typedef char GLchar;
-	typedef int GLsizei;
-
-	#define GL_VERTEX_SHADER 0
-	#define GL_FRAGMENT_SHADER 1
-	#define GL_ONE 1
-	#define GL_ZERO 0
-	#define GL_COMPILE_STATUS 0
-	#define GL_INFO_LOG_LENGTH 0
-	#define GL_LINK_STATUS 0
-
-	static inline void glUseProgram(unsigned int) {}
-	static inline void glActiveTexture(unsigned int) {}
-	static inline void glDeleteProgram(unsigned int) {}
-	static inline void glDeleteShader(unsigned int) {}
-	static inline unsigned int glGetUniformLocation(unsigned int, const char*) { return 0; }
-	static inline unsigned int glGetAttribLocation(unsigned int, const char*) { return 0; }
-	static inline void glUniform1i(unsigned int, int) {}
-	static inline void glUniform2iv(unsigned int, int, const int*) {}
-	static inline void glUniform3iv(unsigned int, int, const int*) {}
-	static inline void glUniform4iv(unsigned int, int, const int*) {}
-	static inline void glUniform1f(unsigned int, float) {}
-	static inline void glUniform2fv(unsigned int, int, const float*) {}
-	static inline void glUniform3fv(unsigned int, int, const float*) {}
-	static inline void glUniform4fv(unsigned int, int, const float*) {}
-	static inline void glUniformMatrix3fv(unsigned int, int, unsigned char, const float*) {}
-	static inline void glUniformMatrix4fv(unsigned int, int, unsigned char, const float*) {}
-	static inline void glBindTexture(unsigned int, unsigned int) {}
-	static inline unsigned int glCreateShader(unsigned int) { static unsigned int shader_id = 1; return shader_id++; }
-	static inline void glShaderSource(unsigned int, int, const char**, const int*) {}
-	static inline void glCompileShader(unsigned int) {}
-	static inline void glGetShaderiv(unsigned int, unsigned int pname, int* params)
-	{
-		if (params)
-		{
-			if (pname == GL_COMPILE_STATUS)
-				*params = 1;
-			else
-				*params = 0;
-		}
-	}
-	static inline void glGetShaderInfoLog(unsigned int, int, int*, char*) {}
-	static inline unsigned int glCreateProgram() { static unsigned int program_id = 1; return program_id++; }
-	static inline void glAttachShader(unsigned int, unsigned int) {}
-	static inline void glBindAttribLocation(unsigned int, unsigned int, const char*) {}
-	static inline void glLinkProgram(unsigned int) {}
-	static inline void glGetProgramiv(unsigned int, unsigned int pname, int* params)
-	{
-		if (params)
-		{
-			if (pname == GL_LINK_STATUS)
-				*params = 1;
-			else
-				*params = 0;
-		}
-	}
-	static inline void glGetProgramInfoLog(unsigned int, int, int*, char*) {}
-
-	// Texture OpenGL stubs and constants
-	#define GL_TEXTURE_CUBE_MAP 0
-	#define GL_TEXTURE_CUBE_MAP_POSITIVE_X 0
-	#define GL_TEXTURE_MIN_FILTER 0
-	#define GL_TEXTURE_MAG_FILTER 0
-	#define GL_LINEAR_MIPMAP_LINEAR 0
-	#define GL_NEAREST_MIPMAP_NEAREST 0
-	#define GL_NEAREST 0
-	#define GL_LINEAR 0
-	#define GL_TEXTURE_WRAP_S 0
-	#define GL_TEXTURE_WRAP_T 0
-	#define GL_CLAMP_TO_EDGE 0
-	#define GL_REPEAT 0
-	#define GL_MIRRORED_REPEAT 0
-
-	static inline void glDeleteTextures(int, const unsigned int*) {}
-	static inline void glGenTextures(int, unsigned int*) {}
-	static inline void glTexImage2D(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*) {}
-	static inline void glTexSubImage2D(unsigned int, int, int, int, int, int, unsigned int, unsigned int, const void*) {}
-	static inline void glCopyTexImage2D(unsigned int, int, unsigned int, int, int, int, int, int) {}
-	static inline void glTexParameteri(unsigned int, unsigned int, int) {}
-	static inline void glGetTexImage(unsigned int, int, unsigned int, unsigned int, void*) {}
-	static inline void glGenerateMipmap(unsigned int) {}
-
-	// VertexArrayObject OpenGL stubs and constants
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
-	typedef long GLsizeiptr;
-#endif
-	typedef float GLfloat;
-
-	#define GL_ARRAY_BUFFER 0
-	#define GL_STATIC_DRAW 0
-	#define GL_FLOAT 0
-	#define GL_FALSE 0
-	#define GL_TRUE 1
-
-	static inline void glDeleteVertexArrays(int, const unsigned int*) {}
-	static inline void glDeleteBuffers(int, const unsigned int*) {}
-	static inline void glGenVertexArrays(int, unsigned int*) {}
-	static inline void glGenBuffers(int, unsigned int*) {}
-	static inline void glBindVertexArray(unsigned int) {}
-	static inline void glBindBuffer(unsigned int, unsigned int) {}
-	static inline void glBufferData(unsigned int, long, const void*, unsigned int) {}
-	static inline void glBufferSubData(unsigned int, long, long, const void*) {}
-	static inline void glDrawArrays(unsigned int, int, int) {}
-	static inline void glVertexAttribPointer(unsigned int, int, unsigned int, unsigned char, int, const void*) {}
-	static inline void glEnableVertexAttribArray(unsigned int) {}
-	static inline void glDisableVertexAttribArray(unsigned int) {}
-#endif
-#else
-	#error Unsupported platform
+#error Unsupported platform
 #endif
 
 
 #if defined(RMX_USE_GLES2) && !defined(__EMSCRIPTEN__)
-	#if !defined(PLATFORM_LINUX) && !defined(__vita__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3) && !defined(__CELLOS_LV2__) && !defined(__SNC__)
-		#define GL_RGB8				 GL_RGB
-		#define GL_RGBA8			 GL_RGBA
-		#define glGenVertexArrays	 glGenVertexArraysOES
-		#define glDeleteVertexArrays glDeleteVertexArraysOES
-		#define glBindVertexArray	 glBindVertexArrayOES
-	#endif
-	#define glClearDepth glClearDepthf
-	#define glDepthRange glDepthRangef
+#if !defined(PLATFORM_LINUX)
+#define GL_RGB8				 GL_RGB
+#define GL_RGBA8			 GL_RGBA
+#define glGenVertexArrays	 glGenVertexArraysOES
+#define glDeleteVertexArrays glDeleteVertexArraysOES
+#define glBindVertexArray	 glBindVertexArrayOES
+#endif
+#define glClearDepth glClearDepthf
+#define glDepthRange glDepthRangef
 #endif
 
 
 #ifdef RMX_USE_GLEW
-	#ifndef GLEW_STATIC
-		#define GLEW_STATIC
-	#endif
-	#define GLEW_NO_GLU
-	#include "rmxmedia/_glew/GL/glew.h"
+#ifndef GLEW_STATIC
+#define GLEW_STATIC
+#endif
+#define GLEW_NO_GLU
+#include "rmxmedia/_glew/GL/glew.h"
 #endif

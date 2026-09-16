@@ -41,7 +41,7 @@ void OpenGLDrawerTexture::writeContentToBitmap(Bitmap& outBitmap)
 {
 	outBitmap.create(mTexture.getSize().x, mTexture.getSize().y);
 
-#if !defined(RMX_USE_GLES2)
+#if !defined(RMX_USE_GLES2) && !defined(PLATFORM_PS3)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mTexture.getHandle());
 	glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, outBitmap.getData());

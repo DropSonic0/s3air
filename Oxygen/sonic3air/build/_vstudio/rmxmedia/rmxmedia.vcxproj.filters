@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.cpp" />
@@ -25,41 +25,39 @@
     <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\_glew\glew.c" />
     <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\file\FileInputStreamSDL.cpp" />
     <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\file\FileProviderSDL.cpp" />
-    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\framework\FTX_System.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioManager.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioMixer.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioReference.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\VideoBuffer.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\file\FileInputStreamSDL.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\file\FileProviderSDL.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\Font.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontProcessor.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontSource.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\AppFramework.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\FTX_System.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\GuiBase.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Framebuffer.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\GLTools.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLFontOutput.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLHelper.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Painter.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Shader.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\SpriteAtlas.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Texture.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\VertexArrayObject.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\JobManager.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\Thread.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\eglew.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\glew.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\glxew.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\wglew.h" />
-    <ClInclude Include="..\..\..\..\..\..\librmx\source\rmxmedia_externals.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioManager.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioMixer.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioReference.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\VideoBuffer.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\file\FileInputStreamSDL.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\file\FileProviderSDL.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\font\Font.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\font\FontProcessor.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\font\FontSource.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\framework\AppFramework.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\framework\GuiBase.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Framebuffer.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\GLTools.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLFontOutput.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLHelper.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Painter.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Shader.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\SpriteAtlas.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Texture.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\VertexArrayObject.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\threads\JobManager.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\threads\Thread.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\eglew.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\glew.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\glxew.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia\_glew\GL\wglew.h" />
+    <ClInclude Include="..\..\..\..\..\librmx\source\rmxmedia_externals.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\StdFontData.inc" />
+    <None Include="..\..\..\..\..\librmx\source\rmxmedia\font\StdFontData.inc" />
   </ItemGroup>
 </Project>

@@ -148,14 +148,14 @@ static const constexpr uint32 CYCLES_PER_FRAME = SoundDriver::MCYCLES_PER_FRAME 
 
 //#define VERIFY_AGAINST_DUMPS		// Enable verification against dumped data from Gensx
 #ifndef VERIFY_AGAINST_DUMPS
-	#define SOUNDDRIVER_FIX_BUGS	// Apply some of the bug fixes from the disassembly
+#define SOUNDDRIVER_FIX_BUGS	// Apply some of the bug fixes from the disassembly
 #endif
 
 //#define SOUNDDRIVER_DEBUG_CYCLES
 #ifdef SOUNDDRIVER_DEBUG_CYCLES
-	#define IMPLEMENT_CYCLES(x) RMX_ERROR("Implement cycles", );
+#define IMPLEMENT_CYCLES(x) RMX_ERROR("Implement cycles", );
 #else
-	#define IMPLEMENT_CYCLES(x)
+#define IMPLEMENT_CYCLES(x)
 #endif
 
 
@@ -171,40 +171,40 @@ static const constexpr uint32 CYCLES_PER_FRAME = SoundDriver::MCYCLES_PER_FRAME 
 
 
 // Constants
-const uint8 zID_MusicPointers	= 0;
-const uint8 zID_SFXPointers		= 2;
-const uint8 zID_ModEnvPointers	= 4;
-const uint8 zID_VolEnvPointers	= 6;
+const uint8 zID_MusicPointers = 0;
+const uint8 zID_SFXPointers = 2;
+const uint8 zID_ModEnvPointers = 4;
+const uint8 zID_VolEnvPointers = 6;
 
 // ZRAM addresses
-const uint16 zSpecialFreqCommands	 = 0x0272;
-const uint16 zFMInstrumentRegTable	 = 0x049c;
-const uint16 zFMInstrumentTLTable	 = 0x04b1;
-const uint16 zFMDACInitBytes		 = 0x0695;
-const uint16 zSFXChannelData		 = 0x07df;
-const uint16 zSFXOverriddenChannel	 = 0x07ef;
-const uint16 zPSGFrequencies		 = 0x0aa5;
-const uint16 zFMFrequencies			 = 0x0b4d;
-const uint16 z80_MusicBanks			 = 0x0b65;
-const uint16 zPSGInitBytes			 = 0x06a3;
+const uint16 zSpecialFreqCommands = 0x0272;
+const uint16 zFMInstrumentRegTable = 0x049c;
+const uint16 zFMInstrumentTLTable = 0x04b1;
+const uint16 zFMDACInitBytes = 0x0695;
+const uint16 zSFXChannelData = 0x07df;
+const uint16 zSFXOverriddenChannel = 0x07ef;
+const uint16 zPSGFrequencies = 0x0aa5;
+const uint16 zFMFrequencies = 0x0b4d;
+const uint16 z80_MusicBanks = 0x0b65;
+const uint16 zPSGInitBytes = 0x06a3;
 const uint16 z80_SoundDriverPointers = 0x1300 + 4;		// Modified to be compatible with original RAM dump
-const uint16 z80_MusicPointers		 = 0x1618;
-const uint16 z80_SFXPointers		 = 0x167e;
-const uint16 z80_ModEnvPointers		 = 0x130e;
-const uint16 z80_VolEnvPointers		 = 0x1387;
-const uint16 zSpecFM3Freqs			 = 0x1bf0;
-const uint16 zSpecFM3FreqsSFX		 = 0x1bf8;
-const uint16 zTempVariablesStart	 = 0x1c0d;
-const uint16 zSoundQueue0			 = 0x1c05;
-const uint16 zTracksStart			 = 0x1c40;
-const uint16 zSongFM6_DAC			 = zTracksStart + 0 * 0x30;
-const uint16 zSongFM1				 = zTracksStart + 1 * 0x30;
-const uint16 zSongPSG1				 = zTracksStart + 6 * 0x30;
-const uint16 zSongPSG2				 = zTracksStart + 7 * 0x30;
-const uint16 zSongPSG3				 = zTracksStart + 8 * 0x30;
-const uint16 zTracksSFXStart		 = 0x1df0;
-const uint16 zTracksSaveStart		 = 0x1df0;
-const uint16 zTracksSaveEnd			 = 0x1fa0;
+const uint16 z80_MusicPointers = 0x1618;
+const uint16 z80_SFXPointers = 0x167e;
+const uint16 z80_ModEnvPointers = 0x130e;
+const uint16 z80_VolEnvPointers = 0x1387;
+const uint16 zSpecFM3Freqs = 0x1bf0;
+const uint16 zSpecFM3FreqsSFX = 0x1bf8;
+const uint16 zTempVariablesStart = 0x1c0d;
+const uint16 zSoundQueue0 = 0x1c05;
+const uint16 zTracksStart = 0x1c40;
+const uint16 zSongFM6_DAC = zTracksStart + 0 * 0x30;
+const uint16 zSongFM1 = zTracksStart + 1 * 0x30;
+const uint16 zSongPSG1 = zTracksStart + 6 * 0x30;
+const uint16 zSongPSG2 = zTracksStart + 7 * 0x30;
+const uint16 zSongPSG3 = zTracksStart + 8 * 0x30;
+const uint16 zTracksSFXStart = 0x1df0;
+const uint16 zTracksSaveStart = 0x1df0;
+const uint16 zTracksSaveEnd = 0x1fa0;
 
 
 class Internal
@@ -268,7 +268,7 @@ public:
 		{
 			mSoundChipWritesCalculated.clear();
 
-		#ifdef VERIFY_AGAINST_DUMPS
+#ifdef VERIFY_AGAINST_DUMPS
 			static FileHandle file("../gensx/z80_ram_dumps.bin");
 			{
 				if (mFrameNumber == 0)
@@ -284,7 +284,7 @@ public:
 					_asm nop;
 				}
 			}
-		#endif
+#endif
 
 			// Run V-Int
 			zVInt();
@@ -298,7 +298,7 @@ public:
 			// Run DAC update
 			zPlayDigitalAudio();
 
-		#ifdef VERIFY_AGAINST_DUMPS
+#ifdef VERIFY_AGAINST_DUMPS
 			{
 				// Read and compare ZRAM
 				uint8 zram[0x2000];
@@ -367,7 +367,7 @@ public:
 				}
 				_asm nop;
 			}
-		#endif
+#endif
 
 			++mFrameNumber;
 		}
@@ -707,12 +707,12 @@ private:
 		mCycles += 2220;
 		if (a == 0xff)
 		{
-		#if 0
+#if 0
 			RMX_ERROR("Not implemented", );
 			zFadeInToPrevious();
-		#else
+#else
 			mStopped = true;
-		#endif
+#endif
 			return;
 		}
 
@@ -1131,11 +1131,11 @@ private:
 			return;
 		}
 
-	#ifdef SOUNDDRIVER_FIX_BUGS
+#ifdef SOUNDDRIVER_FIX_BUGS
 		if (track.PlaybackControl & 0x16)
-	#else
+#else
 		if (track.PlaybackControl & 0x06)
-	#endif
+#endif
 		{
 			mCycles += 1200;
 			return;
@@ -1257,9 +1257,9 @@ private:
 		hl = ix + 0x24;		// Pointer to track.ModulationWait
 
 		std::swap(de, hl);
-		mRam[de]   = read8(hl);
-		mRam[de+1] = read8(hl+1);
-		mRam[de+2] = read8(hl+2);
+		mRam[de] = read8(hl);
+		mRam[de + 1] = read8(hl + 1);
+		mRam[de + 2] = read8(hl + 2);
 		de += 3;
 		hl += 3;
 		a = read8(hl) / 2;
@@ -1531,7 +1531,7 @@ private:
 	void zCycleSoundQueue()
 	{
 		zNextSound = read8(zSoundQueue0);
-		mRam[zSoundQueue0]     = mRam[zSoundQueue0 + 1];
+		mRam[zSoundQueue0] = mRam[zSoundQueue0 + 1];
 		mRam[zSoundQueue0 + 1] = mRam[zSoundQueue0 + 2];
 		mRam[zSoundQueue0 + 2] = 0;
 		a = zNextSound;
@@ -1578,12 +1578,12 @@ private:
 		else
 		{
 			// TODO
-/*
+			/*
 			a -= 0xe1;
 			hl = zFadeEffects;
 			PointerTableOffset();
 			call hl;
-*/
+			*/
 		}
 	}
 
@@ -1678,9 +1678,10 @@ private:
 		hl += a;
 		a = read8(hl);
 
-	#ifdef VERIFY_AGAINST_DUMPS
-		*(uint16*)&mRam[0x05ec] = hl;	// Actually only needed for verification (thanks to self-modifying code in the original)
-	#endif
+#ifdef VERIFY_AGAINST_DUMPS
+		mRam[0x05ec] = (uint8)(hl & 0xff);
+		mRam[0x05ed] = (uint8)(hl >> 8);
+#endif
 
 		zSongBank = a;
 		bankswitch();
@@ -1734,23 +1735,23 @@ private:
 			const uint16 backup_bc = bc;
 
 			hl = zTrackInitPos;
-			mRam[de]   = read8(hl);
-			mRam[de+1] = read8(hl+1);
-			mRam[de+2] = a;
+			mRam[de] = read8(hl);
+			mRam[de + 1] = read8(hl + 1);
+			mRam[de + 2] = a;
 			hl += 2;
 			de += 3;
 			zTrackInitPos = hl;
 
 			hl = zSongPosition;
-			mRam[de]   = read8(hl);
-			mRam[de+1] = read8(hl+1);
-			mRam[de+2] = read8(hl+2);
-			mRam[de+3] = read8(hl+3);
+			mRam[de] = read8(hl);
+			mRam[de + 1] = read8(hl + 1);
+			mRam[de + 2] = read8(hl + 2);
+			mRam[de + 3] = read8(hl + 3);
 			hl += 4;
 			de += 4;
 			zSongPosition = hl;
 
-			mCycles += 2760+255;
+			mCycles += 2760 + 255;
 			zInitFMDACTrack();
 
 			bc = backup_bc;
@@ -1773,20 +1774,20 @@ private:
 				const uint16 backup_bc = bc;
 
 				hl = zTrackInitPos;
-				mRam[de]   = read8(hl);
-				mRam[de+1] = read8(hl+1);
-				mRam[de+2] = a;
+				mRam[de] = read8(hl);
+				mRam[de + 1] = read8(hl + 1);
+				mRam[de + 2] = a;
 				hl += 2;
 				de += 3;
 				zTrackInitPos = hl;
 
 				hl = zSongPosition;
-				mRam[de]   = read8(hl);
-				mRam[de+1] = read8(hl+1);
-				mRam[de+2] = read8(hl+2);
-				mRam[de+3] = read8(hl+3);
-				mRam[de+4] = read8(hl+4);
-				mRam[de+5] = read8(hl+5);
+				mRam[de] = read8(hl);
+				mRam[de + 1] = read8(hl + 1);
+				mRam[de + 2] = read8(hl + 2);
+				mRam[de + 3] = read8(hl + 3);
+				mRam[de + 4] = read8(hl + 4);
+				mRam[de + 5] = read8(hl + 5);
 				hl += 6;
 				de += 6;
 				zSongPosition = hl;
@@ -1884,9 +1885,9 @@ private:
 			const uint16 backup_hl = hl;
 			ReadPointer();
 			zSFXVoiceTblPtr = hl;
-		#ifndef SOUNDDRIVER_FIX_BUGS
+#ifndef SOUNDDRIVER_FIX_BUGS
 			mRam[0x1c15] = 0;
-		#endif
+#endif
 			hl = backup_hl;
 			iy = hl;
 		}
@@ -1935,10 +1936,10 @@ private:
 			a = zSFXTempoDivider;
 			mRam[de] = a;
 			++de;
-			mRam[de]   = read8(hl);
-			mRam[de+1] = read8(hl+1);
-			mRam[de+2] = read8(hl+2);
-			mRam[de+3] = read8(hl+3);
+			mRam[de] = read8(hl);
+			mRam[de + 1] = read8(hl + 1);
+			mRam[de + 2] = read8(hl + 2);
+			mRam[de + 3] = read8(hl + 3);
 			de += 4;
 			hl += 4;
 
@@ -1955,9 +1956,9 @@ private:
 			mCycles += 2820;
 			zKeyOffIfActive();
 
-		#ifdef SOUNDDRIVER_FIX_BUGS
+#ifdef SOUNDDRIVER_FIX_BUGS
 			if (track.VoiceControl & 0x80)	// The check is added as a fix in disassembly, but it breaks verification
-		#endif
+#endif
 			{
 				mCycles += 255;
 				zFMClearSSGEGOps();
@@ -1992,9 +1993,9 @@ private:
 			zSilencePSGChannel();
 
 			mCycles += 105;
-		#ifndef SOUNDDRIVERFIX_BUGS
+#ifndef SOUNDDRIVERFIX_BUGS
 			writePSG(0xff);
-		#endif
+#endif
 
 			a = (c >> 5) & 0x07;	// No +1 here as in the disassembly, as we don't have the "filler" in zSFXChannelData
 			mCycles += 1065;
@@ -2019,7 +2020,7 @@ private:
 	void zInitFMDACTrack()
 	{
 		mRam[de] = 0;
-		mRam[de+1] = 0;
+		mRam[de + 1] = 0;
 		de += 2;
 
 		mCycles += 570;
@@ -2029,9 +2030,9 @@ private:
 	// Locations 0x07cc - ?
 	void zZeroFillTrackRAM()
 	{
-		mRam[de]   = 0x30;	// sizeof(zTrack)
-		mRam[de+1] = 0xc0;	// Default Panning / AMS / FMS settings (only stereo L/R enabled)
-		mRam[de+2] = 1;		// Current note duration timeout
+		mRam[de] = 0x30;	// sizeof(zTrack)
+		mRam[de + 1] = 0xc0;	// Default Panning / AMS / FMS settings (only stereo L/R enabled)
+		mRam[de + 2] = 1;		// Current note duration timeout
 		de += 3;
 		memset(&mRam[de], 0, 0x24);		// Clear everything from track.DurationTimeout on
 		de += 0x24;
@@ -2278,14 +2279,14 @@ private:
 	{
 		hl = 0x1c0a;		// Address of zMusicNumber
 		de = zSoundQueue0;
-		mRam[de]   = read8(hl);
-		mRam[de+1] = read8(hl+1);
-		mRam[de+2] = read8(hl+2);
+		mRam[de] = read8(hl);
+		mRam[de + 1] = read8(hl + 1);
+		mRam[de + 2] = read8(hl + 2);
 		de += 3;
 		a = 0;
-		mRam[hl]   = 0;
-		mRam[hl+1] = 0;
-		mRam[hl+2] = 0;
+		mRam[hl] = 0;
+		mRam[hl + 1] = 0;
+		mRam[hl + 2] = 0;
 		mCycles += 1815;
 	}
 
@@ -2466,41 +2467,41 @@ private:
 		// TODO: What's not implemented, is out-commented here
 		switch (coordFlag)
 		{
-			case 0xe0:  cfPanningAMSFMS();		 break;
-			case 0xe1:  cfDetune();				 break;
-			case 0xe2:  cfFadeInToPrevious();	 break;
-			case 0xe3:  cfSilenceStopTrack();	 break;
-			case 0xe4:  cfSetVolume();			 break;
-			case 0xe5:  cfChangeVolume2();		 break;
-			case 0xe6:  cfChangeVolume();		 break;
-			case 0xe7:  cfPreventAttack();		 break;
-			case 0xe8:  cfNoteFill();			 break;
-			case 0xe9:  cfSpindashRev();		 break;
-		//	case 0xea:  cfPlayDACSample();		 break;
-		//	case 0xeb:  cfConditionalJump();	 break;
-			case 0xec:  cfChangePSGVolume();	 break;
-			case 0xed:  cfSetKey();				 break;
-		//	case 0xee:  cfSendFMI();			 break;
-			case 0xef:  cfSetVoice();			 break;
-			case 0xf0:  cfModulation();			 break;
-		//	case 0xf1:  cfAlterModulation();	 break;
-			case 0xf2:  cfStopTrack();			 break;
-			case 0xf3:  cfSetPSGNoise();		 break;
-			case 0xf4:  cfSetModulation();		 break;
-			case 0xf5:  cfSetPSGVolEnv();		 break;
-			case 0xf6:  cfJumpTo();				 break;
-			case 0xf7:  cfRepeatAtPos();		 break;
-			case 0xf8:  cfJumpToGosub();		 break;
-			case 0xf9:  cfJumpReturn();			 break;
-			case 0xfa:  cfDisableModulation();	 break;
-			case 0xfb:  cfChangeTransposition(); break;
-			case 0xfc:  cfLoopContinuousSFX();	 break;
-		//	case 0xfd:  cfToggleAltFreqMode();	 break;
-		//	case 0xfe:  cfFM3SpecialMode();		 break;
-			case 0xff:  cfMetaCF();				 break;
+		case 0xe0:  cfPanningAMSFMS();		 break;
+		case 0xe1:  cfDetune();				 break;
+		case 0xe2:  cfFadeInToPrevious();	 break;
+		case 0xe3:  cfSilenceStopTrack();	 break;
+		case 0xe4:  cfSetVolume();			 break;
+		case 0xe5:  cfChangeVolume2();		 break;
+		case 0xe6:  cfChangeVolume();		 break;
+		case 0xe7:  cfPreventAttack();		 break;
+		case 0xe8:  cfNoteFill();			 break;
+		case 0xe9:  cfSpindashRev();		 break;
+			//	case 0xea:  cfPlayDACSample();		 break;
+			//	case 0xeb:  cfConditionalJump();	 break;
+		case 0xec:  cfChangePSGVolume();	 break;
+		case 0xed:  cfSetKey();				 break;
+			//	case 0xee:  cfSendFMI();			 break;
+		case 0xef:  cfSetVoice();			 break;
+		case 0xf0:  cfModulation();			 break;
+			//	case 0xf1:  cfAlterModulation();	 break;
+		case 0xf2:  cfStopTrack();			 break;
+		case 0xf3:  cfSetPSGNoise();		 break;
+		case 0xf4:  cfSetModulation();		 break;
+		case 0xf5:  cfSetPSGVolEnv();		 break;
+		case 0xf6:  cfJumpTo();				 break;
+		case 0xf7:  cfRepeatAtPos();		 break;
+		case 0xf8:  cfJumpToGosub();		 break;
+		case 0xf9:  cfJumpReturn();			 break;
+		case 0xfa:  cfDisableModulation();	 break;
+		case 0xfb:  cfChangeTransposition(); break;
+		case 0xfc:  cfLoopContinuousSFX();	 break;
+			//	case 0xfd:  cfToggleAltFreqMode();	 break;
+			//	case 0xfe:  cfFM3SpecialMode();		 break;
+		case 0xff:  cfMetaCF();				 break;
 
-			default:
-				RMX_ERROR("Not implemented: coordFlag = " << rmx::hexString(coordFlag, 2), );
+		default:
+			RMX_ERROR("Not implemented: coordFlag = " << rmx::hexString(coordFlag, 2), );
 		}
 	}
 
@@ -2554,14 +2555,14 @@ private:
 	{
 		// No fading over please, as that is already handled outside of this sound driver
 		//  -> Instead just stop here
-	#if 0
+#if 0
 		zFadeToPrevFlag = a;
-	#else
+#else
 		// There's two situations that need different handling:
 		//  -> Last frame of sound effect 0x2a (extra life)	-> Stop immediately, otherwise a drum sound will be heard at the end that does not belong there
 		//  -> First frame of sound effects 0x2b and 0x31	-> Do not stop, as these sound would not play at all
 		mStopped = (mFrameNumber > 0);
-	#endif
+#endif
 		mCycles += 345;
 	}
 
@@ -2794,9 +2795,9 @@ private:
 		zTrack& track0 = *(zTrack*)&mRam[ix];
 
 		track0.PlaybackControl &= ~0x80;
-	#ifndef SOUNDDRIVER_FIX_BUGS
+#ifndef SOUNDDRIVER_FIX_BUGS
 		mRam[0x1c15] = 0x1f;
-	#endif
+#endif
 		mCycles += 900;
 		zKeyOffIfActive();
 
@@ -2831,46 +2832,46 @@ private:
 			{
 				// TODO: Out-commented for now due to too many missing functions yet
 				RMX_ERROR("Not implemented", );
-/*
+				/*
 				if (track.VoiceControl == 2)	// FM3 track?
 				{
-					a = 0x4f;
-					if ((track.PlaybackControl & 0x01) == 0)
-						a &= 0x0f;
+				a = 0x4f;
+				if ((track.PlaybackControl & 0x01) == 0)
+				a &= 0x0f;
 
-					zWriteFM3Settings();
+				zWriteFM3Settings();
 				}
 
 				a = track.VoiceIndex;
 				if ((int8)a < 0)
 				{
-					zSetVoiceUploadAlter();
-					zSendSSGEGData();
+				zSetVoiceUploadAlter();
+				zSendSSGEGData();
 				}
 				else
 				{
-					// .switch_to_music:
-					b = a;
+				// .switch_to_music:
+				b = a;
 
-					const uint16 backup_hl2 = hl;
-					bankswitchToMusic();
-					hl = backup_hl2;
+				const uint16 backup_hl2 = hl;
+				bankswitchToMusic();
+				hl = backup_hl2;
 
-					zGetFMInstrumentOffset();
-					zSendFMInstrument();
+				zGetFMInstrumentOffset();
+				zSendFMInstrument();
 
-					a = 0x1f;
-					bankswitch();
+				a = 0x1f;
+				bankswitch();
 
-					a = track.HaveSSGEGFlag;
-					if ((int8)a < 0)
-					{
-						e = track.SSGEGPointerLow;
-						d = track.SSGEGPointerHigh;
-						zSendSSGEGData();
-					}
+				a = track.HaveSSGEGFlag;
+				if ((int8)a < 0)
+				{
+				e = track.SSGEGPointerLow;
+				d = track.SSGEGPointerHigh;
+				zSendSSGEGData();
 				}
-*/
+				}
+				*/
 			}
 			else
 			{
@@ -2892,7 +2893,7 @@ private:
 		zTrack& track = *(zTrack*)&mRam[ix];
 
 		// Using the original code here to get the cycles right
-	#if 1
+#if 1
 		// Original code
 		if (track.VoiceControl & 0x04)
 		{
@@ -2920,7 +2921,7 @@ private:
 		writePSG(a);
 		mCycles += 345;
 
-	#else
+#else
 		// Fixed code, see disassembly
 		if ((track.VoiceControl & 0x80) == 0)
 		{
@@ -2951,7 +2952,7 @@ private:
 		IMPLEMENT_CYCLES("mCycles += ?");
 		writePSG(a);
 		writePSG(read8(de));
-	#endif
+#endif
 	}
 
 	// Locations 0x0e58 - ?
@@ -3102,17 +3103,17 @@ private:
 		// TODO: What's not implemented, is out-commented here
 		switch (extraCoordFlag)
 		{
-			case 0x00:  cfSetTempo();		  break;
-		//	case 0x01:  cfPlaySoundByIndex(); break;
-		//	case 0x02:  cfHaltSound();		  break;
-		//	case 0x03:  cfCopyData();		  break;
-		//	case 0x04:  cfSetTempoDivider();  break;
-		//	case 0x05:  cfSetSSGEG();		  break;
-		//	case 0x06:  cfFMVolEnv();		  break;
-			case 0x07:  cfResetSpindashRev(); break;
+		case 0x00:  cfSetTempo();		  break;
+			//	case 0x01:  cfPlaySoundByIndex(); break;
+			//	case 0x02:  cfHaltSound();		  break;
+			//	case 0x03:  cfCopyData();		  break;
+			//	case 0x04:  cfSetTempoDivider();  break;
+			//	case 0x05:  cfSetSSGEG();		  break;
+			//	case 0x06:  cfFMVolEnv();		  break;
+		case 0x07:  cfResetSpindashRev(); break;
 
-			default:
-				RMX_ERROR("Not implemented: extraCoordFlag = " << rmx::hexString(extraCoordFlag, 2), );
+		default:
+			RMX_ERROR("Not implemented: extraCoordFlag = " << rmx::hexString(extraCoordFlag, 2), );
 		}
 	}
 
@@ -3368,113 +3369,113 @@ private:
 		{
 			switch (mDACPlaybackState)
 			{
-				case DACPlaybackState::IDLE:
-				{
-					// .dac_idle_loop:
+			case DACPlaybackState::IDLE:
+			{
+										   // .dac_idle_loop:
 
-					// Missing here: SEGA PCM check
+										   // Missing here: SEGA PCM check
 
-					if (zDACIndex == 0)
-					{
-						// Do nothing and stay in this state
-						return;
-					}
+										   if (zDACIndex == 0)
+										   {
+											   // Do nothing and stay in this state
+											   return;
+										   }
 
-					// Enable DAC
-					mCycles += 1200;
-					writeFMI(0x2b, 0x80, 0x10a5);
+										   // Enable DAC
+										   mCycles += 1200;
+										   writeFMI(0x2b, 0x80, 0x10a5);
 
-					iy = 0x1116;			// Start address of "DecTable"
-					a = zDACIndex - 1;
-					zDACIndex |= 0x80;		// Mark as playing
+										   iy = 0x1116;			// Start address of "DecTable"
+										   a = zDACIndex - 1;
+										   zDACIndex |= 0x80;		// Mark as playing
 
-					hl = 0x8000;
-					PointerTableOffset();
+										   hl = 0x8000;
+										   PointerTableOffset();
 
-					c = 0x80;
-					a = read8(hl);
-					sample1_rate = a;
-					sample2_rate = a;
-				#ifdef VERIFY_AGAINST_DUMPS
-					mRam[0x10cb] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
-					mRam[0x10e8] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
-				#endif
+										   c = 0x80;
+										   a = read8(hl);
+										   sample1_rate = a;
+										   sample2_rate = a;
+#ifdef VERIFY_AGAINST_DUMPS
+										   mRam[0x10cb] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
+										   mRam[0x10e8] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
+#endif
 
-					mDACSampleLength = read16(hl+1);	// DAC sample's length
-					mDACSampleDataPtr = read16(hl+3);	// Pointer to DAC data
-					mCycles += 4560;
+										   mDACSampleLength = read16(hl + 1);	// DAC sample's length
+										   mDACSampleDataPtr = read16(hl + 3);	// Pointer to DAC data
+										   mCycles += 4560;
 
-					mDACPlaybackState = DACPlaybackState::PLAYBACK;
-					break;
-				}
+										   mDACPlaybackState = DACPlaybackState::PLAYBACK;
+										   break;
+			}
 
-				case DACPlaybackState::PLAYBACK:
-				{
-					if ((zDACIndex & 0x80) == 0)	// Playing flag was cleared
-					{
-						mDACPlaybackState = DACPlaybackState::IDLE;
-						break;
-					}
+			case DACPlaybackState::PLAYBACK:
+			{
+											   if ((zDACIndex & 0x80) == 0)	// Playing flag was cleared
+											   {
+												   mDACPlaybackState = DACPlaybackState::IDLE;
+												   break;
+											   }
 
-					const uint32 maxCycleCount = mNumFramesCalculated * CYCLES_PER_FRAME;
-					while (mCycles < maxCycleCount)
-					{
-						de = mDACSampleLength;
-						hl = mDACSampleDataPtr;
+											   const uint32 maxCycleCount = mNumFramesCalculated * CYCLES_PER_FRAME;
+											   while (mCycles < maxCycleCount)
+											   {
+												   de = mDACSampleLength;
+												   hl = mDACSampleDataPtr;
 
-						// Reached the end?
-						if (de == 0)
-						{
-							zDACIndex = 0;
+												   // Reached the end?
+												   if (de == 0)
+												   {
+													   zDACIndex = 0;
 
-							// zPlayDigitalAudio:
+													   // zPlayDigitalAudio:
 
-							// Disable DAC
-							writeFMI(0x2b, 0, 0x108f);
+													   // Disable DAC
+													   writeFMI(0x2b, 0, 0x108f);
 
-							mDACPlaybackState = DACPlaybackState::IDLE;
-							return;
-						}
+													   mDACPlaybackState = DACPlaybackState::IDLE;
+													   return;
+												   }
 
-						// .dac_playback_loop:
+												   // .dac_playback_loop:
 
-						// Sample 1
-						mCycles += 90 + sample1_rate * 195;
+												   // Sample 1
+												   mCycles += 90 + sample1_rate * 195;
 
-						a = read8(hl) >> 4;
-						sample1_index = a;
-					#ifdef VERIFY_AGAINST_DUMPS
-						mRam[0x10e2] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
-					#endif
-						a = c;
-						a += read8(iy + sample1_index);
+												   a = read8(hl) >> 4;
+												   sample1_index = a;
+#ifdef VERIFY_AGAINST_DUMPS
+												   mRam[0x10e2] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
+#endif
+												   a = c;
+												   a += read8(iy + sample1_index);
 
-						// Set DAC
-						writeFMI(0x2a, a, 0x10e3);
-						c = a;
-						mCycles += 1605;
+												   // Set DAC
+												   writeFMI(0x2a, a, 0x10e3);
+												   c = a;
+												   mCycles += 1605;
 
-						// Sample 2
-						mCycles += 90 + sample1_rate * 195;
+												   // Sample 2
+												   mCycles += 90 + sample1_rate * 195;
 
-						a = read8(hl) & 0x0f;
-						sample2_index = a;
-					#ifdef VERIFY_AGAINST_DUMPS
-						mRam[0x10fb] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
-					#endif
-						a = c;
-						a += read8(iy + sample2_index);
+												   a = read8(hl) & 0x0f;
+												   sample2_index = a;
+#ifdef VERIFY_AGAINST_DUMPS
+												   mRam[0x10fb] = a;	// Actually only needed for verification (thanks to self-modifying code in the original)
+#endif
+												   a = c;
+												   a += read8(iy + sample2_index);
 
-						writeFMI(0x2a, a, 0x10fc);
-						c = a;
-						mCycles += 1425;
+												   writeFMI(0x2a, a, 0x10fc);
+												   c = a;
+												   mCycles += 1425;
 
-						++mDACSampleDataPtr;
-						--mDACSampleLength;
-						mCycles += 855;
-					}
-					return;
-				}
+												   ++mDACSampleDataPtr;
+												   --mDACSampleLength;
+												   mCycles += 855;
+											   }
+											   return;
+			}
 			}
 
 			// Loop once more in case of a state transition
@@ -3482,7 +3483,7 @@ private:
 	}
 
 private:
-	#pragma pack(1)
+#pragma pack(1)
 	struct zTrack
 	{
 		// Playback control bits:
@@ -3569,14 +3570,51 @@ private:
 		// ---------------------------------
 		uint8 ModulationDelta;		// S&K: 26h
 		uint8 ModulationSteps;		// S&K: 27h
-		uint16 LoopCounters;		// S&K: 28h		; Might overflow into the following data
+		uint8 LoopCounters[2];		// S&K: 28h		; Might overflow into the following data
 		uint8 VoicesLow;			// S&K: 2Ah		; Low byte of pointer to track's voices, used only if zUpdatingSFX is set
 		uint8 VoicesHigh;			// S&K: 2Bh		; High byte of pointer to track's voices, used only if zUpdatingSFX is set
-		uint32 Stack_top;			// S&K: 2Ch-2Fh	; Track stack; can be used by LoopCounters
+		uint8 Stack_top[4];			// S&K: 2Ch-2Fh	; Track stack; can be used by LoopCounters
 	};
 
 private:
+	struct ZRamUint16
+	{
+		uint8* ptr;
+		ZRamUint16(uint8* p) : ptr(p) {}
+		operator uint16() const
+		{
+			return (uint16)ptr[0] | ((uint16)ptr[1] << 8);
+		}
+		ZRamUint16& operator=(uint16 val)
+		{
+			ptr[0] = (uint8)(val & 0xff);
+			ptr[1] = (uint8)(val >> 8);
+			return *this;
+		}
+		ZRamUint16& operator+=(uint16 val)
+		{
+			*this = (uint16)*this + val;
+			return *this;
+		}
+	};
+
 	uint8 mRegisters[0x20] = { 0 };
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	uint8& a = mRegisters[0];
+	uint8& f = mRegisters[1];
+	uint16& af = *(uint16*)&mRegisters[0];
+	uint8& b = mRegisters[2];
+	uint8& c = mRegisters[3];
+	uint16& bc = *(uint16*)&mRegisters[2];
+	uint8& d = mRegisters[4];
+	uint8& e = mRegisters[5];
+	uint16& de = *(uint16*)&mRegisters[4];
+	uint8& h = mRegisters[6];
+	uint8& l = mRegisters[7];
+	uint16& hl = *(uint16*)&mRegisters[6];
+	uint16& ix = *(uint16*)&mRegisters[8];
+	uint16& iy = *(uint16*)&mRegisters[10];
+#else
 	uint8& f = mRegisters[0];
 	uint8& a = mRegisters[1];
 	uint16& af = *(uint16*)&mRegisters[0];
@@ -3591,6 +3629,7 @@ private:
 	uint16& hl = *(uint16*)&mRegisters[6];
 	uint16& ix = *(uint16*)&mRegisters[8];
 	uint16& iy = *(uint16*)&mRegisters[10];
+#endif
 
 	const uint8* mFixedContentData = nullptr;
 	uint32 mFixedContentSize = 0;
@@ -3605,41 +3644,41 @@ private:
 	std::vector<SoundChipWrite> mSoundChipWritesCalculated;		// All sound chip writes created in last "performSoundDriverUpdate"; this includes the current and potentially future frames
 
 	uint8 mRam[0x2000] = { 0 };
-	uint8& zSoundQueueEntry0  = mRam[0x1c05];
-	uint8& zSoundQueueEntry1  = mRam[0x1c06];
-	uint8& zSoundQueueEntry2  = mRam[0x1c07];
-	uint8& zTempoSpeedup	  = mRam[0x1c08];		// Higher values mean less speedup (!) -- it's usually 0, Speed Shoes and DDZ set this to 8, Blue Spheres to one of 0x20, 0x18, 0x10, 0x08
-	uint8& zNextSound		  = mRam[0x1c09];
-	uint8& zMusicNumber		  = mRam[0x1c0a];
-	uint8& zSFXNumber0		  = mRam[0x1c0b];
-	uint8& zSFXNumber1		  = mRam[0x1c0c];
-	uint8& zFadeOutTimeout	  = mRam[0x1c0d];
-	uint8& zFadeDelay		  = mRam[0x1c0e];
-	uint8& zFadeDelayTimeout  = mRam[0x1c0f];
-	uint8& zPauseFlag		  = mRam[0x1c10];
-	uint8& zHaltFlag		  = mRam[0x1c11];
-	uint8& zTempoAccumulator  = mRam[0x1c13];
-	uint8& zUpdatingSFX		  = mRam[0x1c19];
-	uint8& zCurrentTempo	  = mRam[0x1c24];
-	uint8& zContinuousSFX	  = mRam[0x1c25];
+	uint8& zSoundQueueEntry0 = mRam[0x1c05];
+	uint8& zSoundQueueEntry1 = mRam[0x1c06];
+	uint8& zSoundQueueEntry2 = mRam[0x1c07];
+	uint8& zTempoSpeedup = mRam[0x1c08];		// Higher values mean less speedup (!) -- it's usually 0, Speed Shoes and DDZ set this to 8, Blue Spheres to one of 0x20, 0x18, 0x10, 0x08
+	uint8& zNextSound = mRam[0x1c09];
+	uint8& zMusicNumber = mRam[0x1c0a];
+	uint8& zSFXNumber0 = mRam[0x1c0b];
+	uint8& zSFXNumber1 = mRam[0x1c0c];
+	uint8& zFadeOutTimeout = mRam[0x1c0d];
+	uint8& zFadeDelay = mRam[0x1c0e];
+	uint8& zFadeDelayTimeout = mRam[0x1c0f];
+	uint8& zPauseFlag = mRam[0x1c10];
+	uint8& zHaltFlag = mRam[0x1c11];
+	uint8& zTempoAccumulator = mRam[0x1c13];
+	uint8& zUpdatingSFX = mRam[0x1c19];
+	uint8& zCurrentTempo = mRam[0x1c24];
+	uint8& zContinuousSFX = mRam[0x1c25];
 	uint8& zContinuousSFXFlag = mRam[0x1c26];
-	uint8& zSpindashRev		  = mRam[0x1c27];
-	uint8& zRingSpeaker		  = mRam[0x1c28];
-	uint8& zFadeInTimeout	  = mRam[0x1c29];
-	uint16& zVoiceTblPtrSave  = *(uint16*)&mRam[0x1c2a];
-	uint8& zCurrentTempoSave  = mRam[0x1c2c];
-	uint8& zSongBankSave	  = mRam[0x1c2d];
-	uint8& zTempoSpeedupSave  = mRam[0x1c2e];
-	uint8& zSpeedupTimeout	  = mRam[0x1c2f];
-	uint8& zDACIndex		  = mRam[0x1c30];
-	uint8& zContSFXLoopCnt	  = mRam[0x1c31];
-	uint8& zSFXSaveIndex	  = mRam[0x1c32];
-	uint16& zSongPosition	  = *(uint16*)&mRam[0x1c33];
-	uint16& zTrackInitPos	  = *(uint16*)&mRam[0x1c35];
-	uint16& zVoiceTblPtr	  = *(uint16*)&mRam[0x1c37];
-	uint16& zSFXVoiceTblPtr	  = *(uint16*)&mRam[0x1c39];
-	uint8& zSFXTempoDivider	  = mRam[0x1c3b];
-	uint8& zSongBank		  = mRam[0x1c3e];	//mRam[0x1c3f];			// Bits 15 to 22 of M68K bank address
+	uint8& zSpindashRev = mRam[0x1c27];
+	uint8& zRingSpeaker = mRam[0x1c28];
+	uint8& zFadeInTimeout = mRam[0x1c29];
+	ZRamUint16 zVoiceTblPtrSave = ZRamUint16(&mRam[0x1c2a]);
+	uint8& zCurrentTempoSave = mRam[0x1c2c];
+	uint8& zSongBankSave = mRam[0x1c2d];
+	uint8& zTempoSpeedupSave = mRam[0x1c2e];
+	uint8& zSpeedupTimeout = mRam[0x1c2f];
+	uint8& zDACIndex = mRam[0x1c30];
+	uint8& zContSFXLoopCnt = mRam[0x1c31];
+	uint8& zSFXSaveIndex = mRam[0x1c32];
+	ZRamUint16 zSongPosition = ZRamUint16(&mRam[0x1c33]);
+	ZRamUint16 zTrackInitPos = ZRamUint16(&mRam[0x1c35]);
+	ZRamUint16 zVoiceTblPtr = ZRamUint16(&mRam[0x1c37]);
+	ZRamUint16 zSFXVoiceTblPtr = ZRamUint16(&mRam[0x1c39]);
+	uint8& zSFXTempoDivider = mRam[0x1c3b];
+	uint8& zSongBank = mRam[0x1c3e];	//mRam[0x1c3f];			// Bits 15 to 22 of M68K bank address
 	uint8 zFadeToPrevFlag = 0;
 
 	enum class DACPlaybackState
@@ -3660,7 +3699,7 @@ private:
 
 
 SoundDriver::SoundDriver() :
-	mInternal(*new Internal())
+mInternal(*new Internal())
 {
 }
 

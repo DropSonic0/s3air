@@ -49,67 +49,8 @@
     <ClCompile Include="..\..\..\source\sonic3air\resources\DynamicSprites.cpp" />
     <ClCompile Include="..\..\..\source\sonic3air\scriptimpl\ScriptImplementations.cpp" />
     <ClCompile Include="..\..\..\source\sonic3air\_nativized\NativizedCode.cpp" />
-    <ClCompile Include="..\..\..\source\sonic3air\menu\ActSelectMenu.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Endian\inttypes.hpp" />
-    <ClInclude Include="..\..\..\..\..\Endian\S3AIREndian.hpp" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\audio\AudioOut.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\audio\CustomAudioMixer.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\audio\RemasteredMusicDownload.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\client\crowdcontrol\CrowdControlClient.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\client\GameClient.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\client\GhostSync.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\client\UpdateCheck.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\ConfigurationImpl.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\data\PlayerProgress.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\data\PlayerRecorder.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\data\SharedDatabase.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\data\TimeAttackData.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\EngineDelegate.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\Game.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\generator\ResourceScriptGenerator.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\ArgumentsReader.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\BlueSpheresRendering.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\CommandForwarder.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\DiscordIntegration.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\DrawingUtils.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\GameUtils.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\helper\PackageBuilder.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\ActSelectMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\context\ApplicationContextMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\entries\GeneralMenuEntries.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\ExtrasMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\GameApp.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\GameMenuBase.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\GameMenuManager.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\helper\GameMenuControlsDisplay.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\helper\GameMenuScrolling.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\MainMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\MenuBackground.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\mods\ModResources.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\mods\ModsMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\mods\ModsMenuEntries.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\options\ControllerSetupMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\options\OptionsEntry.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\options\OptionsMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\options\OptionsMenuEntries.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\overlays\SecretUnlockedWindow.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\overlays\SkippableCutsceneWindow.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\PauseMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\SharedResources.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\TimeAttackMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\menu\TimeAttackResultsMenu.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\pch.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\resources\DynamicSprites.h" />
-    <ClInclude Include="..\..\..\..\source\sonic3air\scriptimpl\ScriptImplementations.h" />
-    <ClInclude Include="..\..\..\_vstudio\resource.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\..\config.json" />
-    <None Include="..\..\..\..\source\sonic3air\version.inc" />
-    <None Include="..\..\..\..\source\sonic3air\_nativized\NativizedCode.inc" />
-    <None Include="..\..\..\..\___internal\icon\app-no-border.ico" />
-    <None Include="..\..\..\_vstudio\sonic3air.rc" />
+    <ClCompile Include="..\..\..\source\sonic3air\menu\mods\ModsStartPage.cpp" />
+    <ClCompile Include="..\..\..\source\sonic3air\menu\options\OptionsConfig.cpp" />
+    <ClCompile Include="..\..\..\source\sonic3air\platform\PlatformSpecifics.cpp" />
   </ItemGroup>
 </Project>

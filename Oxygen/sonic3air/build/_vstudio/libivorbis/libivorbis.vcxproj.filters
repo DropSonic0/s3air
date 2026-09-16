@@ -14,6 +14,7 @@
     <ClCompile Include="..\..\..\..\libs\tremor\synthesis.c" />
     <ClCompile Include="..\..\..\..\libs\tremor\vorbisfile.c" />
     <ClCompile Include="..\..\..\..\libs\tremor\window.c" />
+    <ClCompile Include="..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\info.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\libs\tremor\block.h" />

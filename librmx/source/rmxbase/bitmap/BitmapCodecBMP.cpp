@@ -11,7 +11,7 @@
 
 namespace rmx
 {
-	#pragma pack(1)
+#pragma pack(1)
 	struct BmpHeader
 	{
 		uint8  signature[2];
@@ -31,17 +31,17 @@ namespace rmx
 		uint32 numColors;
 		uint32 importantColors;
 	};
-	#pragma pack()
+#pragma pack()
 
 	inline uint32 swapRedBlue(uint32 color)
 	{
 		return (color & 0xff00ff00) | ((color & 0x00ff0000) >> 16) | ((color & 0x000000ff) << 16);
 	}
 
-	#define RETURN(errcode) \
+#define RETURN(errcode) \
 	{ \
-		outResult.mError = errcode; \
-		return (errcode == Bitmap::LoadResult::Error::OK); \
+	outResult.mError = errcode; \
+	return (errcode == Bitmap::LoadResult::Error::OK); \
 	}
 
 
@@ -58,124 +58,8 @@ namespace rmx
 
 	bool BitmapCodecBMP::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult)
 	{
-		// Read header
-		BmpHeader header;
-		stream >> header;
-		if (memcmp(header.signature, "BM", 2) != 0)
-			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
-
-#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
-		header.fileSize = swapBytes32(header.fileSize);
-		header.creator1 = swapBytes16(header.creator1);
-		header.creator2 = swapBytes16(header.creator2);
-		header.headerSize = swapBytes32(header.headerSize);
-		header.dibHeaderSize = swapBytes32(header.dibHeaderSize);
-		header.width = swapBytes32(header.width);
-		header.height = swapBytes32(header.height);
-		header.numPlanes = swapBytes16(header.numPlanes);
-		header.bpp = swapBytes16(header.bpp);
-		header.compression = swapBytes32(header.compression);
-		header.dataSize = swapBytes32(header.dataSize);
-		header.resolutionX = swapBytes32(header.resolutionX);
-		header.resolutionY = swapBytes32(header.resolutionY);
-		header.numColors = swapBytes32(header.numColors);
-		header.importantColors = swapBytes32(header.importantColors);
-#endif
-
-		// Size
-		const int width = header.width;
-		const int height = header.height;
-		const int bitdepth = header.bpp;
-		const int stride = (width * bitdepth + 31) / 32 * 4;
-
-		// Skip unrecognized parts of the header
-		if (header.dibHeaderSize > 0x28)
-		{
-			stream.skip(header.dibHeaderSize - 0x28);
-		}
-
-		// Load palette
-		int palSize = 0;
-		if (bitdepth == 1 || bitdepth == 4 || bitdepth == 8)
-		{
-			palSize = (header.numColors != 0) ? header.numColors : (1 << bitdepth);
-		}
-
-		// Read and convert palette
-		uint32 palette[256];
-		stream.read(palette, palSize * sizeof(uint32));
-		for (int i = 0; i < palSize; ++i)
-		{
-			palette[i] = swapRedBlue(palette[i] | 0xff000000);
-		}
-
-		// Skip unrecognized parts of the header
-		if (header.headerSize > stream.getPosition())
-		{
-			stream.skip(header.headerSize - stream.getPosition());
-		}
-
-		// Create data buffer
-		bitmap.create(width, height);
-		uint32* data = bitmap.getData();
 		MemInputStream mstream(stream);
-		const uint8* buffer = mstream.getCursor();
-
-		// Load image data
-		for (int y = 0; y < height; ++y)
-		{
-			uint32* dataPtr = &data[(height-y-1)*width];
-			switch (bitdepth)
-			{
-				case 1:
-					for (int x = 0; x < width; ++x)
-						dataPtr[x] = palette[(buffer[x/8] >> (x%8)) & 0x01];
-					break;
-
-				case 4:
-					for (int x = 0; x < width; ++x)
-						dataPtr[x] = palette[(buffer[x/2] >> ((1-x%2)*4)) & 0x0f];
-					break;
-
-				case 8:
-					for (int x = 0; x < width; ++x)
-						dataPtr[x] = palette[buffer[x]];
-					break;
-
-				case 24:
-					for (int x = 0; x < width; ++x)
-						dataPtr[x] = ((uint32)buffer[x*3] << 16) | ((uint32)buffer[x*3+1] << 8) | ((uint32)buffer[x*3+2]) | 0xff000000;
-					break;
-
-				case 32:
-					for (int x = 0; x < width; ++x)
-						dataPtr[x] = swapRedBlue(*(uint32*)&buffer[x*4]);
-					break;
-			}
-			buffer += stride;
-		}
-
-		// 32bit-BMP with or without alpha channel?
-		if (bitdepth == 32)
-		{
-			bool noAlpha = true;
-			const int size = width * height;
-			for (int i = 0; i < size; ++i)
-			{
-				if (data[i] >= 0x01000000)
-				{
-					noAlpha = false;
-					break;
-				}
-			}
-			if (noAlpha)
-			{
-				for (int i = 0; i < size; ++i)
-					data[i] |= 0xff000000;
-			}
-		}
-
-		RETURN(Bitmap::LoadResult::Error::OK);
+		return decodeWithStbImage(bitmap, mstream.getCursor(), mstream.getRemaining(), outResult);
 	}
 
 	bool BitmapCodecBMP::encode(const Bitmap& bitmap, OutputStream& stream)
@@ -205,15 +89,15 @@ namespace rmx
 
 		for (int y = 0; y < height; ++y)
 		{
-			const uint32* src = bitmap.getPixelPointer(0, height-y-1);
+			const uint32* src = bitmap.getPixelPointer(0, height - y - 1);
 			for (int x = 0; x < width; ++x)
 				output[x] = swapRedBlue(src[x]);
-			stream.write(output, width*4);
+			stream.write(output, width * 4);
 		}
 
 		delete[] output;
 		return true;
 	}
 
-	#undef RETURN
+#undef RETURN
 }

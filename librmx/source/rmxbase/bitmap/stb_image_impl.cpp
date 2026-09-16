@@ -8,11 +8,9 @@
 
 #include "rmxbase.h"
 
-#if defined(PLATFORM_PS3)
-
-// PS3 PlatformDefinitions.h defines "final" as empty, which conflicts with stb_image's local variables
+// PlatformDefinitions.h on some platforms may define "final" as empty, which conflicts with stb_image's local variables
 #ifdef final
-	#undef final
+#undef final
 #endif
 
 #define STB_IMAGE_IMPLEMENTATION
@@ -36,14 +34,12 @@ bool rmx::decodeWithStbImage(Bitmap& bitmap, const void* data, size_t size, Bitm
 			dst[i] = src[i];
 		}
 		stbi_image_free(data_stb);
-		outResult.mError = (Bitmap::LoadResult::Error_t)Bitmap::LoadResult::Error::OK;
+		outResult.mError = Bitmap::LoadResult::Error::OK;
 		return true;
 	}
 	else
 	{
-		outResult.mError = (Bitmap::LoadResult::Error_t)Bitmap::LoadResult::Error::INVALID_FILE;
+		outResult.mError = Bitmap::LoadResult::Error::INVALID_FILE;
 		return false;
 	}
 }
-
-#endif

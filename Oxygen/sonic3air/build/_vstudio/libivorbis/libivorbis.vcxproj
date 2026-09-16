@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\..\..\framework\external\ogg-vorbis\libvorbis\lib\info.c" />
     <ClCompile Include="..\..\..\..\libs\tremor\block.c" />
     <ClCompile Include="..\..\..\..\libs\tremor\codebook.c" />
     <ClCompile Include="..\..\..\..\libs\tremor\floor0.c" />

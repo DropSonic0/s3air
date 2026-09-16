@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|PS3">
@@ -11,43 +11,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_reader.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_value.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_writer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\base\Basics.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\base\ErrorHandler.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\Bitmap.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecBMP.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecICO.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecJPG.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecPNG.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\Color.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\bitmap\PaletteBitmap.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\data\WeakPtr.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\FileCrawler.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\FileHandle.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\FileIO.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\FileProvider.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\FileSystem.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\JsonHelper.cpp">
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\stb_image_impl.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_reader.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_value.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\_jsoncpp\json_writer.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\base\Basics.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\base\ErrorHandler.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\Bitmap.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecBMP.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecICO.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecJPG.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\BitmapCodecPNG.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\Color.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\bitmap\PaletteBitmap.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\data\WeakPtr.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\FileCrawler.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\FileHandle.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\FileIO.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\FileProvider.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\FileSystem.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\JsonHelper.cpp">
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\file\RealFileProvider.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\math\Math.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\BinarySerializer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\InputStream.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\OneTimeAllocPool.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\OutputStream.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\RC4Encryption.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\RmxDeflate.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\String.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\UTF8Conversion.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\UnalignedMemory.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\VectorBinarySerializer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\memory\ZlibDeflate.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\rmxbase.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\tools\Logging.cpp">
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\file\RealFileProvider.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\math\Math.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\BinarySerializer.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\InputStream.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\OneTimeAllocPool.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\OutputStream.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\RC4Encryption.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\RmxDeflate.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\String.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\UTF8Conversion.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\UnalignedMemory.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\VectorBinarySerializer.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\memory\ZlibDeflate.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\rmxbase.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\tools\Logging.cpp">
     </ClCompile>
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxbase\tools\Tools.cpp" />
+    <ClCompile Include="..\..\..\..\librmx\source\rmxbase\tools\Tools.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>

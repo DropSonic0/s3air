@@ -18,8 +18,8 @@ namespace rmx
 	class OpenGLHelper
 	{
 	public:
-	#ifdef RMX_USE_GLES2
-		static const constexpr GLint FORMAT_RGB   = GL_RGBA;				// OpenGL ES 2.0 does not have GL_RGB, so we have to use GL_RGBA instead (and just don't use the alpha channel)
+	#ifdef __PS3__
+		static const constexpr GLint FORMAT_RGB   = GL_ARGB_SCE;				// OpenGL ES 2.0 does not have GL_RGB, so we have to use GL_RGBA instead (and just don't use the alpha channel)
 		static const constexpr GLint FORMAT_RGBA  = GL_RGBA;
 		static const constexpr GLint FORMAT_DEPTH = GL_DEPTH_COMPONENT16;	// OpenGL ES 2.0 does not have the more general GL_DEPTH_COMPONENT, only GL_DEPTH_COMPONENT16, which is fine for us as well
 	#else

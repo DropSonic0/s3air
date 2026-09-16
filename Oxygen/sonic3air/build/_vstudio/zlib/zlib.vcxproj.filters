@@ -15,6 +15,8 @@
     <ClCompile Include="..\..\..\..\libs\zlib\trees.c" />
     <ClCompile Include="..\..\..\..\libs\zlib\uncompr.c" />
     <ClCompile Include="..\..\..\..\libs\zlib\zutil.c" />
+    <ClCompile Include="..\..\..\..\..\framework\external\zlib\zlib\contrib\minizip\ioapi.c" />
+    <ClCompile Include="..\..\..\..\..\framework\external\zlib\zlib\contrib\minizip\unzip.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\..\libs\zlib\crc32.h" />

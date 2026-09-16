@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|PS3">
@@ -11,34 +11,34 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\_glew\glew.c" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioManager.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioMixer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioReference.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\audiovideo\VideoBuffer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\Font.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontProcessor.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\font\FontSource.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\AppFramework.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\GuiBase.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\InputContext.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\SystemManager.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\framework\VideoManager.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Framebuffer.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\GLTools.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLFontOutput.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Painter.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Shader.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\SpriteAtlas.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\Texture.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\opengl\VertexArrayObject.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\rmxmedia.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\JobManager.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\librmx\source\rmxmedia\threads\Thread.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\_glew\glew.c" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioMixer.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\AudioReference.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\audiovideo\VideoBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\font\Font.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\font\FontProcessor.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\font\FontSource.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\framework\AppFramework.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\framework\GuiBase.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\framework\InputContext.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\framework\SystemManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\framework\VideoManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Framebuffer.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\GLTools.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\OpenGLFontOutput.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Painter.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Shader.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\SpriteAtlas.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\Texture.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\opengl\VertexArrayObject.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\rmxmedia.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\threads\JobManager.cpp" />
+    <ClCompile Include="..\..\..\..\..\librmx\source\rmxmedia\threads\Thread.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\rmxbase\rmxbase.vcxproj">
+    <ProjectReference Include="..\..\rmxbase\rmxbase.vcxproj">
       <Project>{5b2a91f1-44ff-4b13-8f6d-3e0699c6e6d0}</Project>
     </ProjectReference>
   </ItemGroup>

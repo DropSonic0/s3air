@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|PS3">
@@ -66,16 +66,16 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\ConnectionManager.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\NetConnection.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\RequestBase.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\Sockets.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\CryptoFunctions.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\ReceivedPacketCache.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\SentPacketCache.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketClient.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketWrapper.cpp" />
-    <ClCompile Include="..\..\..\..\..\oxygenengine\source\oxygen_netcore\pch.cpp">
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\ConnectionManager.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\NetConnection.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\RequestBase.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\Sockets.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\CryptoFunctions.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\ReceivedPacketCache.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\SentPacketCache.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketClient.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\network\internal\WebSocketWrapper.cpp" />
+    <ClCompile Include="..\..\..\..\oxygenengine\source\oxygen_netcore\pch.cpp">
     </ClCompile>
   </ItemGroup>
   <Import Condition="'$(ConfigurationType)' == 'Makefile' and Exists('$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets')" Project="$(VCTargetsPath)\Platforms\$(Platform)\SCE.Makefile.$(Platform).targets" />

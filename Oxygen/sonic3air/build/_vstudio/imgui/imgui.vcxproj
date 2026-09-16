@@ -11,11 +11,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\..\framework\external\imgui\imgui\backends\imgui_impl_opengl3.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\framework\external\imgui\imgui\imgui.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\framework\external\imgui\imgui\imgui_draw.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\framework\external\imgui\imgui\imgui_tables.cpp" />
-    <ClCompile Include="..\..\..\..\..\..\framework\external\imgui\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="..\..\..\..\..\framework\external\imgui\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\..\..\..\framework\external\imgui\imgui\imgui.cpp" />
+    <ClCompile Include="..\..\..\..\..\framework\external\imgui\imgui\imgui_draw.cpp" />
+    <ClCompile Include="..\..\..\..\..\framework\external\imgui\imgui\imgui_tables.cpp" />
+    <ClCompile Include="..\..\..\..\..\framework\external\imgui\imgui\imgui_widgets.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCTargetsPath Condition="'$(VCTargetsPath11)' != '' and '$(VSVersion)' == '' and '$(VisualStudioVersion)' == ''">$(VCTargetsPath11)</VCTargetsPath>
@@ -69,7 +69,7 @@
       <PreprocessorDefinitions>PPU;__CELLOS_LV2__;__ppc__;__PPU__;RMX_PLATFORM_PS3;RMX_NO_GLEW;RMX_NO_IMGUI;USE_GLES;IMGUI_DISABLE_DEFAULT_SHELL_FUNCTIONS;JSONCPP_NO_LOCALE_SUPPORT;JSON_USE_EXCEPTION=0;_NDEBUG;__CELL_ASSERT__;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <OptimizationLevel>Level2</OptimizationLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <AdditionalIncludeDirectories>C:\s3air\Oxygen\libs\zlib;C:\s3air\librmx\source;C:\s3air\Oxygen;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\s3air\Oxygen\libs\zlib;C:\s3air\librmx\source;C:\s3air\Oxygen;C:\s3air\framework\external\imgui\imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SystemIncludeDirectories>
       </SystemIncludeDirectories>
       <CppLanguageStd>Cpp11</CppLanguageStd>
