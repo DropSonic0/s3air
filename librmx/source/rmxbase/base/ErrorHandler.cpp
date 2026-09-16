@@ -9,36 +9,36 @@
 #include "rmxbase.h"
 
 #if defined(__CELLOS_LV2__) || defined(__SNC__)
-	rmx::ErrorHandling::LoggerInterface* rmx::ErrorHandling::mLogger = nullptr;
-	rmx::ErrorHandling::MessageBoxInterface* rmx::ErrorHandling::mMessageBoxImplementation = nullptr;
-	rmx::ErrorHandling::NativeWindowHandleProviderFn rmx::ErrorHandling::mNativeWindowHandleProvider = nullptr;
-	bool rmx::ErrorHandling::mShowAssertMessageBox = true;
+rmx::ErrorHandling::LoggerInterface* rmx::ErrorHandling::mLogger = nullptr;
+rmx::ErrorHandling::MessageBoxInterface* rmx::ErrorHandling::mMessageBoxImplementation = nullptr;
+rmx::ErrorHandling::NativeWindowHandleProviderFn rmx::ErrorHandling::mNativeWindowHandleProvider = nullptr;
+bool rmx::ErrorHandling::mShowAssertMessageBox = true;
 #endif
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 #include <locale>
 #endif
 
 #ifdef PLATFORM_WINDOWS
-	#define WIN32_LEAN_AND_MEAN
-	#include "CleanWindowsInclude.h"
+#define WIN32_LEAN_AND_MEAN
+#include "CleanWindowsInclude.h"
 
-	//#define USE_VISTA_STYLE	// Not defined to reduce external dependencies -- espcially considering that the Vista-style message box code does not even seem to work!
-	#ifdef USE_VISTA_STYLE
-		// This redefinition is a bit hacky, but seems to be necessary
-		#undef NTDDI_VERSION
-		#define NTDDI_VERSION NTDDI_VISTA
-		#include <Commctrl.h>
+//#define USE_VISTA_STYLE	// Not defined to reduce external dependencies -- espcially considering that the Vista-style message box code does not even seem to work!
+#ifdef USE_VISTA_STYLE
+// This redefinition is a bit hacky, but seems to be necessary
+#undef NTDDI_VERSION
+#define NTDDI_VERSION NTDDI_VISTA
+#include <Commctrl.h>
 
-		#pragma comment(lib, "Dbghelp.lib")
-		#pragma warning(push)
-		#pragma warning(disable: 4091)	// Disable warning "C:\Program Files (x86)\Windows Kits\8.1\Include\um\DbgHelp.h(1544): warning C4091: 'typedef ': ignored on left of '' when no variable is declared"
-		#include <DbgHelp.h>
-		#pragma warning(pop)
-	#endif
+#pragma comment(lib, "Dbghelp.lib")
+#pragma warning(push)
+#pragma warning(disable: 4091)	// Disable warning "C:\Program Files (x86)\Windows Kits\8.1\Include\um\DbgHelp.h(1544): warning C4091: 'typedef ': ignored on left of '' when no variable is declared"
+#include <DbgHelp.h>
+#pragma warning(pop)
+#endif
 #endif
 
 #ifdef PLATFORM_VITA
-	#include <psp2/kernel/clib.h>
+#include <psp2/kernel/clib.h>
 #endif
 
 
@@ -90,8 +90,8 @@ namespace
 
 		static const TASKDIALOG_BUTTON buttonArray[] =
 		{
-			{ IDABORT,  L"&Break here\nBreak into source code, if a debugger is attached." },
-			{ IDRETRY,  L"&Continue execution\nIgnore this message." },
+			{ IDABORT, L"&Break here\nBreak into source code, if a debugger is attached." },
+			{ IDRETRY, L"&Continue execution\nIgnore this message." },
 		};
 		buttons = buttonArray;
 		numButtons = ARRAYSIZE(buttonArray);
@@ -128,7 +128,7 @@ namespace
 		stringBuilder << message << "\n\n";
 
 		const uint32 type = (dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::YES_NO_CANCEL) ? MB_YESNOCANCEL :
-							(dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::OK_CANCEL) ? MB_OKCANCEL : MB_OK;
+			(dialogType == rmx::ErrorHandling::MessageBoxInterface::DialogType::OK_CANCEL) ? MB_OKCANCEL : MB_OK;
 		const uint32 icon = (errorSeverity == rmx::ErrorSeverity::ERROR) ? MB_ICONERROR : MB_ICONWARNING;
 
 		std::string caption;
@@ -150,7 +150,7 @@ namespace
 	int showWindowsMessageBox(rmx::ErrorHandling::MessageBoxInterface::DialogType dialogType, rmx::ErrorSeverity errorSeverity, const std::string& message)
 	{
 		// Show a message box, preferably Vista-style
-	#ifdef USE_VISTA_STYLE
+#ifdef USE_VISTA_STYLE
 		if (canShowVistaStyleMessageBox())
 		{
 			const auto size_needed = MultiByteToWideChar(CP_UTF8, 0, &message.at(0), (int)message.size(), nullptr, 0);
@@ -162,7 +162,7 @@ namespace
 			return showVistaStyleMessageBox(result);
 		}
 		else
-	#endif
+#endif
 		{
 			// Fallback for Windows XP and below: Show default message box
 			return showFallbackMessageBox(dialogType, errorSeverity, message);
@@ -179,29 +179,55 @@ namespace rmx
 
 	bool ErrorHandling::isDebuggerAttached()
 	{
-	#if defined(PLATFORM_WINDOWS)
+#if defined(PLATFORM_WINDOWS)
 		return IsDebuggerPresent();
-	#else
+#else
 		return false;
-	#endif
+#endif
 	}
 
 	void ErrorHandling::printToLog(ErrorSeverity errorSeverity, const std::string& message)
 	{
-	#if !defined(PLATFORM_VITA)
+#if !defined(PLATFORM_VITA)
 		if (nullptr != mLogger)
 		{
 			mLogger->logMessage(errorSeverity, message);
 		}
-	#else
+		else
+		{
+			switch (errorSeverity)
+			{
+			default:
+			case ErrorSeverity::INFO:	  Logging::log(LogLevel::INFO, message);	 break;
+			case ErrorSeverity::WARNING: Logging::log(LogLevel::WARNING, message); break;
+			case ErrorSeverity::ERROR:	  Logging::log(LogLevel::ERROR, message);	 break;
+			}
+		}
+#else
 		sceClibPrintf("[ERROR] %s\n", message.c_str());
-	#endif
+#endif
 	}
 
 	bool ErrorHandling::handleAssertBreak(ErrorSeverity errorSeverity, const std::string& message, const char* filename, int line)
 	{
+		std::string formattedMessage = message;
+		if (nullptr != filename)
+		{
+			std::string name;
+			std::string ext;
+			FileIO::splitPath(filename, nullptr, &name, &ext);
+			if (!name.empty())
+			{
+				formattedMessage = message + " [" + name + (ext.empty() ? "" : "." + ext) + ", line " + std::to_string(line) + "]";
+			}
+			else
+			{
+				formattedMessage = message + " [" + std::string(filename) + ", line " + std::to_string(line) + "]";
+			}
+		}
+
 		// Log message in any case
-		printToLog(errorSeverity, message);
+		printToLog(errorSeverity, formattedMessage);
 
 		// Check if ignored
 		const uint64 hash = getMurmur2_64(filename) ^ (uint64)line;
@@ -227,15 +253,15 @@ namespace rmx
 		{
 			result = mMessageBoxImplementation->showMessageBox(dialogType, errorSeverity, message, filename, line);
 		}
-	#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
 		// Fallback, for Windows only
 		else
 		{
 			const int mbResult = showWindowsMessageBox(dialogType, errorSeverity, message);
 			result = (mbResult == IDCANCEL) ? MessageBoxInterface::Result::IGNORE :
-					 (mbResult == IDYES) ? MessageBoxInterface::Result::ACCEPT : MessageBoxInterface::Result::ABORT;	// Both IDOK and IDNO count as ABORT
+				(mbResult == IDYES) ? MessageBoxInterface::Result::ACCEPT : MessageBoxInterface::Result::ABORT;	// Both IDOK and IDNO count as ABORT
 		}
-	#endif
+#endif
 
 		// Ignore from now on?
 		if (result == MessageBoxInterface::Result::IGNORE)
