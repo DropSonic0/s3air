@@ -10,13 +10,9 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
-#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(RMX_PLATFORM_PS3)
-	#include <PSGL/psgl.h>
-	#include <PSGL/psglu.h>
-	#define glOrthoPlatform glOrthof
-#else
-	#define glOrthoPlatform glOrtho
-#endif
+#include <PSGL/psgl.h>
+#include <PSGL/psglu.h>
+#define glOrthoPlatform glOrthof
 
 #include "oxygen/drawing/opengl/FixedFunctionDrawer.h"
 #include "oxygen/drawing/opengl/OpenGLDrawerTexture.h"
@@ -212,10 +208,8 @@ namespace fixedfunctiondrawer
 			fontOutput.buildVertexGroups(vertexGroups, typeInfos);
 
 			setBlendMode(BlendMode::ALPHA);
-		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 			glEnable(GL_ALPHA_TEST);
 			glAlphaFunc(GL_GREATER, 0.05f);
-		#endif
 
 			glEnable(GL_TEXTURE_2D);
 			const Color& tintColor = printOptions.mTintColor;
@@ -249,9 +243,7 @@ namespace fixedfunctiondrawer
 				glDrawArrays(GL_TRIANGLES, 0, vertexGroup.mNumVertices);
 			}
 
-		#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 			glDisable(GL_ALPHA_TEST);
-		#endif
 
 			glDisableClientState(GL_VERTEX_ARRAY);
 			glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -329,13 +321,13 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 			case DrawCommand::Type::SET_RENDER_TARGET:
 			{
 				SetRenderTargetDrawCommand& dc = drawCommand->as<SetRenderTargetDrawCommand>();
-				OpenGLDrawerTexture& drawerTexture = *dc.mTexture->getImplementation<OpenGLDrawerTexture>();
-				glBindFramebuffer(GL_FRAMEBUFFER, drawerTexture.getFrameBufferHandle());
-				glViewport(dc.mViewport.x, dc.mViewport.y, dc.mViewport.width, dc.mViewport.height);
+				glBindFramebuffer(GL_FRAMEBUFFER, 0);
+				const Vec2i screenSize = FTX::Video->getScreenSize();
+				glViewport(0, 0, screenSize.x, screenSize.y);
 
 				glMatrixMode(GL_PROJECTION);
 				glLoadIdentity();
-				glOrthoPlatform(0, (float)dc.mViewport.width, 0, (float)dc.mViewport.height, -1, 1);
+				glOrthoPlatform(0, (float)dc.mViewport.width, (float)dc.mViewport.height, 0, -1, 1);
 				glMatrixMode(GL_MODELVIEW);
 				glLoadIdentity();
 				break;
@@ -354,9 +346,7 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 
 			case DrawCommand::Type::UPSCALED_RECT:
 			{
-				UpscaledRectDrawCommand& dc = drawCommand->as<UpscaledRectDrawCommand>();
-				GLuint textureHandle = dc.mTexture->getImplementation<OpenGLDrawerTexture>()->getTextureHandle();
-				mInternal.drawRect(dc.mRect, textureHandle, Color::WHITE);
+				// On PS3, rendering is performed directly on the main window backbuffer during SET_RENDER_TARGET
 				break;
 			}
 
@@ -538,11 +528,7 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 
 void FixedFunctionDrawer::presentScreen()
 {
-#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
 	psglSwap();
-#else
-	SDL_GL_SwapWindow(mInternal.mOutputWindow);
-#endif
 }
 
 #endif

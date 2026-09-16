@@ -210,6 +210,58 @@ bool OggLoader::updateStreaming()
 	if (nullptr != mAudioBuffer)
 	{
 		// Read fully decoded data if possible
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		ogg_int32_t** pcm = nullptr;
+		const int memcount = vorbis_synthesis_pcmout(&mVorbisDspState, (float***)&pcm);
+		if (memcount > 0 && nullptr != pcm)
+		{
+			// Fill output audio buffer
+			int samples = memcount;
+			ogg_int32_t* source[2];
+			source[0] = pcm[0];
+			source[1] = (mVorbisInfo.channels >= 2) ? pcm[1] : pcm[0];
+
+			if (mSkipAudioSampleOutput >= samples)
+			{
+				mSkipAudioSampleOutput -= samples;
+			}
+			else
+			{
+				if (mSkipAudioSampleOutput > 0)
+				{
+					source[0] += mSkipAudioSampleOutput;
+					source[1] += mSkipAudioSampleOutput;
+					samples -= mSkipAudioSampleOutput;
+					mSkipAudioSampleOutput = 0;
+				}
+
+				// Convert Tremor 32-bit fixed point Q24 PCM samples to float [-1.0f, +1.0f]
+				static std::vector<float> floatPcm[2];
+				floatPcm[0].resize(samples);
+				floatPcm[1].resize(samples);
+
+				const float invQ24 = 1.0f / (float)(1 << 24);	// Tremor Q24 scaling to [-1.0, +1.0] range
+				for (int ch = 0; ch < 2; ++ch)
+				{
+					const ogg_int32_t* srcChannel = source[ch];
+					float* dstChannel = &floatPcm[ch][0];
+					for (int i = 0; i < samples; ++i)
+					{
+						dstChannel[i] = (float)srcChannel[i] * invQ24;
+					}
+				}
+
+				float* floatSource[2] = { &floatPcm[0][0], &floatPcm[1][0] };
+
+				mAudioBuffer->lock();
+				mAudioBuffer->addData(floatSource, samples);
+				mAudioBuffer->unlock();
+			}
+
+			vorbis_synthesis_read(&mVorbisDspState, memcount);
+			return true;
+		}
+#else
 		float** pcm;
 		const int memcount = vorbis_synthesis_pcmout(&mVorbisDspState, &pcm);
 		if (memcount > 0)
@@ -242,6 +294,7 @@ bool OggLoader::updateStreaming()
 			vorbis_synthesis_read(&mVorbisDspState, memcount);
 			return true;
 		}
+#endif
 
 		// Decode next Vorbis packet
 		ogg_packet oggPacket;
