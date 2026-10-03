@@ -8,6 +8,7 @@
 
 #pragma once
 
+#include <cstring>
 #include "lemon/program/Opcode.h"
 #include "lemon/runtime/Runtime.h"
 
@@ -62,6 +63,13 @@ namespace lemon
 		template<typename T> FORCE_INLINE T getParameter(size_t offset) const
 		{
 			return *reinterpret_cast<const T*>((uint8*)this + PARAMETER_OFFSET + offset);
+		}
+
+		template<typename T> FORCE_INLINE T getIntParameter(size_t offset = 0) const
+		{
+			int64 value = 0;
+			memcpy(&value, (const uint8*)this + PARAMETER_OFFSET + offset, sizeof(value));
+			return (T)value;
 		}
 
 		template<typename T> void setParameter(T value)

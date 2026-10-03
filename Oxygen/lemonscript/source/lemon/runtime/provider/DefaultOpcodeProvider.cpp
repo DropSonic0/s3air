@@ -417,8 +417,23 @@ namespace lemon
 		}
 
 		RuntimeOpcode& runtimeOpcode = buffer.addOpcode(parameterSize);
-		if (parameterSize >= 8)
-			runtimeOpcode.setParameter(opcode.mParameter);		// Default usage, parameter might be used differently depending on the opcode type
+                if (parameterSize >= 8)
+                {
+                        runtimeOpcode.setParameter(opcode.mParameter);          // Default usage, parameter might be used differently depending on the opcode type
+                #if defined(__CELLOS_LV2__) || defined(__SNC__)
+                        switch (opcode.mType)
+                        {
+                                case Opcode::Type::MOVE_STACK:
+                                case Opcode::Type::MOVE_VAR_STACK:
+                                {
+                                        runtimeOpcode.setParameter((int16)opcode.mParameter);
+                                        break;
+                                }
+                                default:
+                                        break;
+                        }
+                #endif
+                }
 		runtimeOpcode.mExecFunc = &OpcodeExec::exec_NOT_HANDLED;
 		runtimeOpcode.mOpcodeType = opcode.mType;
 
@@ -473,6 +488,7 @@ namespace lemon
 
 					case Variable::Type::USER:
 					{
+						runtimeOpcode.setParameter(variableId);
 						runtimeOpcode.mExecFunc = &OpcodeExec::exec_GET_VARIABLE_VALUE_USER;
 						break;
 					}
@@ -527,6 +543,7 @@ namespace lemon
 
 					case Variable::Type::USER:
 					{
+						runtimeOpcode.setParameter(variableId);
 						runtimeOpcode.mExecFunc = &OpcodeExec::exec_SET_VARIABLE_VALUE_USER;
 						break;
 					}
@@ -710,7 +727,7 @@ namespace lemon
 					if (nullptr != function && function->isA<NativeFunction>() && function->hasFlag(Function::Flag::ALLOW_INLINE_EXECUTION))
 					{
 						runtimeOpcode.mExecFunc = &OpcodeExec::exec_INLINE_NATIVE_CALL;
-						runtimeOpcode.setParameter((uint64)function);
+						runtimeOpcode.setParameter(static_cast<const NativeFunction*>(function));
 						return;
 					}
 				}

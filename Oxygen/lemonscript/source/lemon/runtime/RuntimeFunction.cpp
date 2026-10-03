@@ -35,7 +35,7 @@ namespace lemon
 
 	void RuntimeOpcodeBuffer::reserveForOpcodes(size_t numOpcodes)
 	{
-		const size_t memoryRequired = numOpcodes * (sizeof(RuntimeOpcode) + 16);	// Estimate for maximum size
+		const size_t memoryRequired = numOpcodes * (sizeof(RuntimeOpcode)+16);	// Estimate for maximum size
 		if (memoryRequired > mReserved)
 		{
 			if (mSelfManagedBuffer)
@@ -49,7 +49,7 @@ namespace lemon
 
 	RuntimeOpcode& RuntimeOpcodeBuffer::addOpcode(size_t parameterSize)
 	{
-		const size_t size = sizeof(RuntimeOpcode) + parameterSize;
+		const size_t size = sizeof(RuntimeOpcode)+parameterSize;
 		RMX_ASSERT(mSize + size <= mReserved, "Exceeding reserved size of runtime opcode buffer");
 		RMX_ASSERT(size <= 0xc0, "Got large parameter size of " << parameterSize << " bytes");		// Actual hard limit is 0xff, but everything larger than 0xc0 is suspicious and a hint that the limit might be too low
 
@@ -116,7 +116,7 @@ namespace lemon
 #endif
 				// Let the opcode providers create runtime opcodes
 				//  -> They may choose to merge more than one opcode into a runtime opcode, where that's feasible
-				for (size_t i = 0; i < numOpcodes; )
+				for (size_t i = 0; i < numOpcodes;)
 				{
 					const size_t start = tempBuffer.size();
 					int numOpcodesConsumed = 1;
@@ -145,25 +145,31 @@ namespace lemon
 		{
 			// Translation of jumps
 			const std::vector<RuntimeOpcode*>& runtimeOpcodePointers = mRuntimeOpcodeBuffer.getOpcodePointers();
+			auto readTargetIndex = [](const RuntimeOpcode& op) -> uint32
+			{
+				int64 value = 0;
+				memcpy(&value, (const uint8*)&op + RuntimeOpcode::PARAMETER_OFFSET, sizeof(value));
+				return (uint32)value;
+			};
 			for (size_t i = 0; i < runtimeOpcodePointers.size(); ++i)
 			{
 				RuntimeOpcode& runtimeOpcode = *runtimeOpcodePointers[i];
 				if (runtimeOpcode.mOpcodeType == Opcode::Type::JUMP || runtimeOpcode.mOpcodeType == Opcode::Type::JUMP_SWITCH)
 				{
-					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>()));
+					runtimeOpcode.setParameter(translateJumpTarget(readTargetIndex(runtimeOpcode)));
 				}
 				else if (runtimeOpcode.mOpcodeType == Opcode::Type::JUMP_CONDITIONAL)
 				{
-					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>(0)), 0);
-				#ifdef USE_JUMP_CONDITIONAL_RUNTIME_EXEC
+					runtimeOpcode.setParameter(translateJumpTarget(readTargetIndex(runtimeOpcode)), 0);
+#ifdef USE_JUMP_CONDITIONAL_RUNTIME_EXEC
 					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>(8)), 8);
-				#endif
+#endif
 				}
 			}
 
 			// Update successive handled opcode counts
 			uint8 sequenceLength = 0;
-			for (int i = (int)runtimeOpcodePointers.size()-1; i >= 0; --i)
+			for (int i = (int)runtimeOpcodePointers.size() - 1; i >= 0; --i)
 			{
 				if (runtimeOpcodePointers[i]->mSuccessiveHandledOpcodes == 0)
 				{

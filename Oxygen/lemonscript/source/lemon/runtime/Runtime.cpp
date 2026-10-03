@@ -84,20 +84,20 @@ namespace lemon
 
 
 
-	template<> int8   MemoryAccessHandler::read(uint64 address)  { return read8 (address); }
+	template<> int8   MemoryAccessHandler::read(uint64 address)  { return read8(address); }
 	template<> int16  MemoryAccessHandler::read(uint64 address)  { return read16(address); }
 	template<> int32  MemoryAccessHandler::read(uint64 address)  { return read32(address); }
 	template<> int64  MemoryAccessHandler::read(uint64 address)  { return read64(address); }
-	template<> uint8  MemoryAccessHandler::read(uint64 address)  { return read8 (address); }
+	template<> uint8  MemoryAccessHandler::read(uint64 address)  { return read8(address); }
 	template<> uint16 MemoryAccessHandler::read(uint64 address)  { return read16(address); }
 	template<> uint32 MemoryAccessHandler::read(uint64 address)  { return read32(address); }
 	template<> uint64 MemoryAccessHandler::read(uint64 address)  { return read64(address); }
 
-	template<> void MemoryAccessHandler::write(uint64 address, int8 value)   { write8 (address, value); }
+	template<> void MemoryAccessHandler::write(uint64 address, int8 value)   { write8(address, value); }
 	template<> void MemoryAccessHandler::write(uint64 address, int16 value)  { write16(address, value); }
 	template<> void MemoryAccessHandler::write(uint64 address, int32 value)  { write32(address, value); }
 	template<> void MemoryAccessHandler::write(uint64 address, int64 value)  { write64(address, value); }
-	template<> void MemoryAccessHandler::write(uint64 address, uint8 value)  { write8 (address, value); }
+	template<> void MemoryAccessHandler::write(uint64 address, uint8 value)  { write8(address, value); }
 	template<> void MemoryAccessHandler::write(uint64 address, uint16 value) { write16(address, value); }
 	template<> void MemoryAccessHandler::write(uint64 address, uint32 value) { write32(address, value); }
 	template<> void MemoryAccessHandler::write(uint64 address, uint64 value) { write64(address, value); }
@@ -303,20 +303,20 @@ namespace lemon
 	{
 		switch (function.getType())
 		{
-			case Function::Type::SCRIPT:
-			{
-				const ScriptFunction& func = function.as<ScriptFunction>();
-				callRuntimeFunction(*getRuntimeFunction(func));
-				break;
-			}
+		case Function::Type::SCRIPT:
+		{
+									   const ScriptFunction& func = function.as<ScriptFunction>();
+									   callRuntimeFunction(*getRuntimeFunction(func));
+									   break;
+		}
 
-			case Function::Type::NATIVE:
-			{
-				// Directly execute it
-				const NativeFunction& func = function.as<NativeFunction>();
-				func.execute(NativeFunction::Context(*mSelectedControlFlow));
-				break;
-			}
+		case Function::Type::NATIVE:
+		{
+									   // Directly execute it
+									   const NativeFunction& func = function.as<NativeFunction>();
+									   func.execute(NativeFunction::Context(*mSelectedControlFlow));
+									   break;
+		}
 		}
 	}
 
@@ -458,7 +458,7 @@ namespace lemon
 		{
 			ControlFlow::State& state = mSelectedControlFlow->mCallStack.back();
 
-		#ifdef DEBUG
+#ifdef DEBUG
 			// Reached the end already?
 			//  -> Should not happen actually, as all functions end with a return opcode
 			//  -> That's why this check is only active in debug builds
@@ -470,7 +470,7 @@ namespace lemon
 				mActiveControlFlow = nullptr;
 				return;
 			}
-		#endif
+#endif
 
 			RMX_CHECK(mSelectedControlFlow->mValueStackPtr >= mSelectedControlFlow->mValueStackStart, "Value stack error: Removed elements from empty stack", mSelectedControlFlow->mValueStackPtr = mSelectedControlFlow->mValueStackStart);
 			RMX_CHECK(mSelectedControlFlow->mValueStackPtr < &mSelectedControlFlow->mValueStackBuffer[ControlFlow::VALUE_STACK_LAST_INDEX], "Value stack error: Too many elements", mSelectedControlFlow->mValueStackPtr = &mSelectedControlFlow->mValueStackBuffer[0x77]);
@@ -519,145 +519,145 @@ namespace lemon
 
 				switch (context.mOpcode->mOpcodeType)
 				{
-					case Opcode::Type::JUMP_CONDITIONAL:
-					{
-						--mSelectedControlFlow->mValueStackPtr;
-						if (*mSelectedControlFlow->mValueStackPtr != 0)
-						{
-							context.mOpcode = context.mOpcode->mNext;
-							++result.mStepsExecuted;
-							break;
-						}
+				case Opcode::Type::JUMP_CONDITIONAL:
+				{
+													   --mSelectedControlFlow->mValueStackPtr;
+													   if (*mSelectedControlFlow->mValueStackPtr != 0)
+													   {
+														   context.mOpcode = context.mOpcode->mNext;
+														   ++result.mStepsExecuted;
+														   break;
+													   }
 
-						// Fallthrough to unconditional jump
-					}
+													   // Fallthrough to unconditional jump
+				}
 
-					case Opcode::Type::JUMP:
-					{
-						state.mProgramCounter = reinterpret_cast<const uint8*>(static_cast<uintptr_t>(context.mOpcode->getParameter<uint64>()));
+				case Opcode::Type::JUMP:
+				{
+										   state.mProgramCounter = context.mOpcode->getParameter<const uint8*>();
 
-						// Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
-						//  -> This is needed to prevent endless loops
-						++result.mStepsExecuted;
-						if (result.mStepsExecuted >= stepsLimit)
-						{
-							mActiveControlFlow = nullptr;
-							return;
-						}
+										   // Check if steps limit is reached (this usually means the limit was exceeded already, but that's okay)
+										   //  -> This is needed to prevent endless loops
+										   ++result.mStepsExecuted;
+										   if (result.mStepsExecuted >= stepsLimit)
+										   {
+											   mActiveControlFlow = nullptr;
+											   return;
+										   }
 
-						context.mOpcode = (const RuntimeOpcode*)state.mProgramCounter;
-						break;
-					}
+										   context.mOpcode = (const RuntimeOpcode*)state.mProgramCounter;
+										   break;
+				}
 
-					case Opcode::Type::JUMP_SWITCH:
-					{
-						// Jump if top of stack is zero
-						if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
-						{
-							--mSelectedControlFlow->mValueStackPtr;
-							context.mOpcode = reinterpret_cast<const RuntimeOpcode*>(static_cast<uintptr_t>(context.mOpcode->getParameter<uint64>()));
-						}
-						else
-						{
-							// Otherwise decrease it and go on with the next opcode
-							--mSelectedControlFlow->mValueStackPtr[-1];
-							context.mOpcode = context.mOpcode->mNext;
-							++result.mStepsExecuted;
-						}
-						break;
-					}
+				case Opcode::Type::JUMP_SWITCH:
+				{
+												  // Jump if top of stack is zero
+												  if (mSelectedControlFlow->mValueStackPtr[-1] == 0)
+												  {
+													  --mSelectedControlFlow->mValueStackPtr;
+													  context.mOpcode = context.mOpcode->getParameter<const RuntimeOpcode*>();
+												  }
+												  else
+												  {
+													  // Otherwise decrease it and go on with the next opcode
+													  --mSelectedControlFlow->mValueStackPtr[-1];
+													  context.mOpcode = context.mOpcode->mNext;
+													  ++result.mStepsExecuted;
+												  }
+												  break;
+				}
 
-					case Opcode::Type::CALL:
-					{
-						state.mProgramCounter = (uint8*)context.mOpcode->mNext;
-						const uint64 callTarget = context.mOpcode->getParameter<uint64>();
-						++result.mStepsExecuted;
+				case Opcode::Type::CALL:
+				{
+										   state.mProgramCounter = (uint8*)context.mOpcode->mNext;
+										   const uint64 callTarget = context.mOpcode->getParameter<uint64>();
+										   ++result.mStepsExecuted;
 
-						const Function* func = handleResultCall(*context.mOpcode);
-						if (result.handleCall(func, callTarget))
-						{
-							// Restart the outer loop now that the running function has changed
-							stayInsideInnerLoop = false;
-							break;
-						}
-						else
-						{
-							// Call handling failed, return control to the caller
-							mActiveControlFlow = nullptr;
-							return;
-						}
-					}
+										   const Function* func = handleResultCall(*context.mOpcode);
+										   if (result.handleCall(func, callTarget))
+										   {
+											   // Restart the outer loop now that the running function has changed
+											   stayInsideInnerLoop = false;
+											   break;
+										   }
+										   else
+										   {
+											   // Call handling failed, return control to the caller
+											   mActiveControlFlow = nullptr;
+											   return;
+										   }
+				}
 
-					case Opcode::Type::RETURN:
-					{
-						mSelectedControlFlow->mLocalVariablesSize = mSelectedControlFlow->mCallStack.back().mLocalVariablesStart;
-						mSelectedControlFlow->mCallStack.pop_back();
-						++result.mStepsExecuted;
+				case Opcode::Type::RETURN:
+				{
+											 mSelectedControlFlow->mLocalVariablesSize = mSelectedControlFlow->mCallStack.back().mLocalVariablesStart;
+											 mSelectedControlFlow->mCallStack.pop_back();
+											 ++result.mStepsExecuted;
 
-						if (result.handleReturn())
-						{
-							// Check stop conditions
-							if (mSelectedControlFlow->mCallStack.count > minimumCallStackSize && result.mStepsExecuted < stepsLimit)
-							{
-								// Restart the outer loop now that the running function has changed
-								stayInsideInnerLoop = false;
-								break;
-							}
-						}
+											 if (result.handleReturn())
+											 {
+												 // Check stop conditions
+												 if (mSelectedControlFlow->mCallStack.count > minimumCallStackSize && result.mStepsExecuted < stepsLimit)
+												 {
+													 // Restart the outer loop now that the running function has changed
+													 stayInsideInnerLoop = false;
+													 break;
+												 }
+											 }
 
-						// Handling failed or a stop condition triggered, return control to the caller
-						mActiveControlFlow = nullptr;
-						return;
-					}
+											 // Handling failed or a stop condition triggered, return control to the caller
+											 mActiveControlFlow = nullptr;
+											 return;
+				}
 
-					case Opcode::Type::EXTERNAL_CALL:
-					{
-						state.mProgramCounter = (uint8*)context.mOpcode + context.mOpcode->mSize;
-						--mSelectedControlFlow->mValueStackPtr;
-						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
-						++result.mStepsExecuted;
+				case Opcode::Type::EXTERNAL_CALL:
+				{
+													state.mProgramCounter = (uint8*)context.mOpcode + context.mOpcode->mSize;
+													--mSelectedControlFlow->mValueStackPtr;
+													const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
+													++result.mStepsExecuted;
 
-						if (result.handleExternalCall(targetAddress))
-						{
-							// Restart the outer loop now that the running function has changed
-							stayInsideInnerLoop = false;
-							break;
-						}
-						else
-						{
-							mActiveControlFlow = nullptr;
-							return;
-						}
-					}
+													if (result.handleExternalCall(targetAddress))
+													{
+														// Restart the outer loop now that the running function has changed
+														stayInsideInnerLoop = false;
+														break;
+													}
+													else
+													{
+														mActiveControlFlow = nullptr;
+														return;
+													}
+				}
 
-					case Opcode::Type::EXTERNAL_JUMP:
-					{
-						state.mProgramCounter = (uint8*)context.mOpcode + context.mOpcode->mSize;
-						--mSelectedControlFlow->mValueStackPtr;
-						returnFromFunction();
-						const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
-						++result.mStepsExecuted;
+				case Opcode::Type::EXTERNAL_JUMP:
+				{
+													state.mProgramCounter = (uint8*)context.mOpcode + context.mOpcode->mSize;
+													--mSelectedControlFlow->mValueStackPtr;
+													returnFromFunction();
+													const uint64 targetAddress = *mSelectedControlFlow->mValueStackPtr;
+													++result.mStepsExecuted;
 
-						if (result.handleExternalJump(targetAddress))
-						{
-							// Check stop conditions
-							if (mSelectedControlFlow->mCallStack.count > minimumCallStackSize && result.mStepsExecuted < stepsLimit)
-							{
-								// Restart the outer loop now that the running function has changed
-								stayInsideInnerLoop = false;
-								break;
-							}
-						}
+													if (result.handleExternalJump(targetAddress))
+													{
+														// Check stop conditions
+														if (mSelectedControlFlow->mCallStack.count > minimumCallStackSize && result.mStepsExecuted < stepsLimit)
+														{
+															// Restart the outer loop now that the running function has changed
+															stayInsideInnerLoop = false;
+															break;
+														}
+													}
 
-						mActiveControlFlow = nullptr;
-						return;
-					}
+													mActiveControlFlow = nullptr;
+													return;
+				}
 
-					default:
+				default:
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-						throw std::runtime_error("Unhandled opcode");
+					throw std::runtime_error("Unhandled opcode");
 #else
-						RMX_ERROR("Unhandled opcode", break);
+					RMX_ERROR("Unhandled opcode", break);
 #endif
 				}
 			}
@@ -782,14 +782,14 @@ namespace lemon
 					uint32 signatureHash = serializer.read<uint32>();
 					const Function* function = mProgram->getFunctionBySignature(nameHash + signatureHash, 0);	// Note that this does not support function overloading, but maybe that's no problem at all
 
-				#if 1
+#if 1
 					// This is only added (in early 2022) for compatibility with older save states and can be removed again somewhere down the line
 					if (nullptr == function && signatureHash == 0xd202ef8d)		// Signature hash for void functions has changed
 					{
 						signatureHash = 0x76e88724;
 						function = mProgram->getFunctionBySignature(nameHash + signatureHash, 0);	// Note that this does not support function overloading, but maybe that's no problem at all
 					}
-				#endif
+#endif
 
 					if (nullptr == function || !function->isA<ScriptFunction>())
 					{
@@ -829,7 +829,7 @@ namespace lemon
 					serializer.writeAs<uint32>(controlFlow.mCallStack[i].mRuntimeFunction->translateFromRuntimeProgramCounter(controlFlow.mCallStack[i].mProgramCounter));
 
 					const size_t localVarsStart = controlFlow.mCallStack[i].mLocalVariablesStart;
-					const size_t localVarsEnd = ((size_t)(i+1) < controlFlow.mCallStack.count) ? controlFlow.mCallStack[i+1].mLocalVariablesStart : controlFlow.mLocalVariablesSize;
+					const size_t localVarsEnd = ((size_t)(i + 1) < controlFlow.mCallStack.count) ? controlFlow.mCallStack[i + 1].mLocalVariablesStart : controlFlow.mLocalVariablesSize;
 					serializer.writeAs<uint32>(localVarsEnd - localVarsStart);
 					for (size_t k = localVarsStart; k < localVarsEnd; ++k)
 					{
