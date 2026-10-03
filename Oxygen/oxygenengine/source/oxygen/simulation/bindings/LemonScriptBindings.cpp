@@ -1164,16 +1164,17 @@ void LemonScriptBindings::registerBindings(lemon::Module& module)
 #if defined(__CELLOS_LV2__) || defined(__SNC__)
 			struct RegisterAccessor {
 				size_t idx;
-				RegisterAccessor(size_t index) : idx(index) {}
-				int64* operator()() const { return accessRegister(idx); }
+				size_t byteOffset;
+				RegisterAccessor(size_t index, size_t offset) : idx(index), byteOffset(offset) {}
+				int64* operator()() const { return (int64*)((uint8*)accessRegister(idx) + byteOffset); }
 			};
-			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, RegisterAccessor(i));
-			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  RegisterAccessor(i));
-			module.addExternalVariable(registerNamesDAR[i] + ".s8",  &lemon::PredefinedDataTypes::INT_8,   RegisterAccessor(i));
-			module.addExternalVariable(registerNamesDAR[i] + ".u16", &lemon::PredefinedDataTypes::UINT_16, RegisterAccessor(i));
-			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16,  RegisterAccessor(i));
-			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, RegisterAccessor(i));
-			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  RegisterAccessor(i));
+			module.addExternalVariable(registerNamesDAR[i], &lemon::PredefinedDataTypes::UINT_32, RegisterAccessor(i, 0));
+			module.addExternalVariable(registerNamesDAR[i] + ".u8", &lemon::PredefinedDataTypes::UINT_8, RegisterAccessor(i, 3));
+			module.addExternalVariable(registerNamesDAR[i] + ".s8", &lemon::PredefinedDataTypes::INT_8, RegisterAccessor(i, 3));
+			module.addExternalVariable(registerNamesDAR[i] + ".u16", &lemon::PredefinedDataTypes::UINT_16, RegisterAccessor(i, 2));
+			module.addExternalVariable(registerNamesDAR[i] + ".s16", &lemon::PredefinedDataTypes::INT_16, RegisterAccessor(i, 2));
+			module.addExternalVariable(registerNamesDAR[i] + ".u32", &lemon::PredefinedDataTypes::UINT_32, RegisterAccessor(i, 0));
+			module.addExternalVariable(registerNamesDAR[i] + ".s32", &lemon::PredefinedDataTypes::INT_32,  RegisterAccessor(i, 0));
 #else
 			module.addExternalVariable(registerNamesDAR[i],			 &lemon::PredefinedDataTypes::UINT_32, std::bind(accessRegister, i));
 			module.addExternalVariable(registerNamesDAR[i] + ".u8",  &lemon::PredefinedDataTypes::UINT_8,  std::bind(accessRegister, i));

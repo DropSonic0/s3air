@@ -145,24 +145,29 @@ namespace lemon
 		{
 			// Translation of jumps
 			const std::vector<RuntimeOpcode*>& runtimeOpcodePointers = mRuntimeOpcodeBuffer.getOpcodePointers();
-			auto readTargetIndex = [](const RuntimeOpcode& op) -> uint32
+
+			auto readTargetIndex = [](const RuntimeOpcode& op, size_t offset) -> uint32
 			{
 				int64 value = 0;
-				memcpy(&value, (const uint8*)&op + RuntimeOpcode::PARAMETER_OFFSET, sizeof(value));
+				memcpy(&value, (const uint8*)&op + RuntimeOpcode::PARAMETER_OFFSET + offset, sizeof(value));
 				return (uint32)value;
 			};
+
 			for (size_t i = 0; i < runtimeOpcodePointers.size(); ++i)
 			{
 				RuntimeOpcode& runtimeOpcode = *runtimeOpcodePointers[i];
+
 				if (runtimeOpcode.mOpcodeType == Opcode::Type::JUMP || runtimeOpcode.mOpcodeType == Opcode::Type::JUMP_SWITCH)
 				{
-					runtimeOpcode.setParameter(translateJumpTarget(readTargetIndex(runtimeOpcode)));
+					runtimeOpcode.setParameter(translateJumpTarget(readTargetIndex(runtimeOpcode, 0)));
 				}
 				else if (runtimeOpcode.mOpcodeType == Opcode::Type::JUMP_CONDITIONAL)
 				{
-					runtimeOpcode.setParameter(translateJumpTarget(readTargetIndex(runtimeOpcode)), 0);
 #ifdef USE_JUMP_CONDITIONAL_RUNTIME_EXEC
+					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>(0)), 0);
 					runtimeOpcode.setParameter(translateJumpTarget(runtimeOpcode.getParameter<uint32>(8)), 8);
+#else
+					runtimeOpcode.setParameter(translateJumpTarget(readTargetIndex(runtimeOpcode, 0)), 0);
 #endif
 				}
 			}

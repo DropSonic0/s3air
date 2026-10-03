@@ -19,13 +19,21 @@ Color PaletteManager::unpackColor(uint16 packedColor)
 	// Note that extended packed colors can be matched to the original packed colors when not using the lowermost 2 bits of each channel
 	//  -> That also means when using these bits as well, they can even go higher than pure white at 0xff, but they will get clamped at that point
 
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+	// On PS3 (Big Endian, PSGL expects ARGB bytes in memory: A, R, G, B at bytes 0, 1, 2, 3)
+	uint32 color = 0xff000000;
+	uint8& r = ((uint8*)&color)[1];
+	uint8& g = ((uint8*)&color)[2];
+	uint8& b = ((uint8*)&color)[3];
+#else
 	uint32 color = 0xff000000;
 	uint8& r = ((uint8*)&color)[0];
 	uint8& g = ((uint8*)&color)[1];
 	uint8& b = ((uint8*)&color)[2];
+#endif
 	if (packedColor & 0x8000)
 	{
-		r = (uint8)std::min(((packedColor) & 0x1f) * 0x09, 0xff);
+		r = (uint8)std::min(((packedColor)& 0x1f) * 0x09, 0xff);
 		g = (uint8)std::min(((packedColor >> 5) & 0x1f) * 0x09, 0xff);
 		b = (uint8)std::min(((packedColor >> 10) & 0x1f) * 0x09, 0xff);
 	}
@@ -98,20 +106,37 @@ void PaletteManager::writePaletteEntryPacked(int paletteIndex, uint16 colorIndex
 
 	unsigned int color = (colorIndex & 0x0f) ? 0xff000000 : 0;
 	unsigned int packed = (unsigned int)packedColor;
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
 	if (packed & 0x8000)
 	{
 		static const unsigned int CONV[0x20] = { 0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 255, 255, 255 };
-		color = color | (CONV[((packed))       & 0x1f])
-					  | (CONV[((packed) >> 5)  & 0x1f] << 8)
-					  | (CONV[((packed) >> 10) & 0x1f] << 16);
+		color = color | (CONV[((packed) >> 10) & 0x1f])
+			| (CONV[((packed) >> 5) & 0x1f] << 8)
+			| (CONV[((packed)) & 0x1f] << 16);
+	}
+	else
+	{
+		static const unsigned int CONV[8] = { 0, 36, 72, 108, 144, 180, 216, 252 };
+		color = color | (CONV[(packed >> 9) & 0x07])
+			| (CONV[(packed >> 5) & 0x07] << 8)
+			| (CONV[(packed >> 1) & 0x07] << 16);
+	}
+#else
+	if (packed & 0x8000)
+	{
+		static const unsigned int CONV[0x20] = { 0, 9, 18, 27, 36, 45, 54, 63, 72, 81, 90, 99, 108, 117, 126, 135, 144, 153, 162, 171, 180, 189, 198, 207, 216, 225, 234, 243, 252, 255, 255, 255 };
+		color = color | (CONV[((packed)) & 0x1f])
+			| (CONV[((packed) >> 5) & 0x1f] << 8)
+			| (CONV[((packed) >> 10) & 0x1f] << 16);
 	}
 	else
 	{
 		static const unsigned int CONV[8] = { 0, 36, 72, 108, 144, 180, 216, 252 };
 		color = color | (CONV[(packed >> 1) & 0x07])
-					  | (CONV[(packed >> 5) & 0x07] << 8)
-					  | (CONV[(packed >> 9) & 0x07] << 16);
+			| (CONV[(packed >> 5) & 0x07] << 8)
+			| (CONV[(packed >> 9) & 0x07] << 16);
 	}
+#endif
 
 	if (paletteIndex == 0)
 	{
