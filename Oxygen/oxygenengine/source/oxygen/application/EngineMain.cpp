@@ -841,11 +841,11 @@ bool EngineMain::createWindow()
 			options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE;
 			options.maxSPUs = 1;
 			options.initializeSPUs = GL_TRUE;
-			options.persistentMemorySize = 32 * 1024 * 1024;
-			options.transientMemorySize = 8 * 1024 * 1024;
+			options.persistentMemorySize = 0;
+			options.transientMemorySize = 0;
 			options.errorConsole = 0;
-			options.fifoSize = 2 * 1024 * 1024;
-			options.hostMemorySize = 64 * 1024 * 1024;
+			options.fifoSize = 16 * 1024 * 1024;
+			options.hostMemorySize = 16 * 1024 * 1024;
 			psglInit(&options);
 
 			PSGLdeviceParameters params;

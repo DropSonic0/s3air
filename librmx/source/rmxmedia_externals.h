@@ -386,27 +386,25 @@ inline unsigned char SDL_JoystickGetButton(SDL_Joystick* j, int b) {
 	if (!j) return 0;
 	CellPadData data;
 	if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
-	// Standard digital buttons are at indices 2 and 3
-	uint16 buttons = (data.button[2] << 8) | (data.button[3] & 0xff);
-	// Fallback to button[0] if it seems to contain the mask
-	if (buttons == 0 && data.button[0] != 0) buttons = data.button[0];
+	uint16 digital1 = data.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+	uint16 digital2 = data.button[CELL_PAD_BTN_OFFSET_DIGITAL2];
 	switch (b) {
-	case SDL_CONTROLLER_BUTTON_A: return (buttons & CELL_PAD_CTRL_CROSS) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_B: return (buttons & CELL_PAD_CTRL_CIRCLE) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_X: return (buttons & CELL_PAD_CTRL_SQUARE) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_Y: return (buttons & CELL_PAD_CTRL_TRIANGLE) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_BACK: return (buttons & CELL_PAD_CTRL_SELECT) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_GUIDE: return 0;
-	case SDL_CONTROLLER_BUTTON_START: return (buttons & CELL_PAD_CTRL_START) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_LEFTSTICK: return (buttons & CELL_PAD_CTRL_L3) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_RIGHTSTICK: return (buttons & CELL_PAD_CTRL_R3) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_LEFTSHOULDER: return (buttons & CELL_PAD_CTRL_L1) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_RIGHTSHOULDER: return (buttons & CELL_PAD_CTRL_R1) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_DPAD_UP: return (buttons & CELL_PAD_CTRL_UP) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_DPAD_DOWN: return (buttons & CELL_PAD_CTRL_DOWN) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_DPAD_LEFT: return (buttons & CELL_PAD_CTRL_LEFT) ? 1 : 0;
-	case SDL_CONTROLLER_BUTTON_DPAD_RIGHT: return (buttons & CELL_PAD_CTRL_RIGHT) ? 1 : 0;
-	case 15: return (buttons & (CELL_PAD_CTRL_L2 | CELL_PAD_CTRL_R2)) ? 1 : 0; // Fallback or extra
+	case 0: return (digital2 & CELL_PAD_CTRL_CROSS) ? 1 : 0;
+	case 1: return (digital2 & CELL_PAD_CTRL_CIRCLE) ? 1 : 0;
+	case 2: return (digital2 & CELL_PAD_CTRL_SQUARE) ? 1 : 0;
+	case 3: return (digital2 & CELL_PAD_CTRL_TRIANGLE) ? 1 : 0;
+	case 4: return (digital1 & CELL_PAD_CTRL_START) ? 1 : 0;
+	case 5: return (digital1 & CELL_PAD_CTRL_SELECT) ? 1 : 0;
+	case 6: return (digital2 & CELL_PAD_CTRL_L1) ? 1 : 0;
+	case 7: return (digital2 & CELL_PAD_CTRL_R1) ? 1 : 0;
+	case 8: return (digital2 & CELL_PAD_CTRL_L2) ? 1 : 0;
+	case 9: return (digital2 & CELL_PAD_CTRL_R2) ? 1 : 0;
+	case 10: return (digital1 & CELL_PAD_CTRL_L3) ? 1 : 0;
+	case 11: return (digital1 & CELL_PAD_CTRL_R3) ? 1 : 0;
+	case 12: return (digital1 & CELL_PAD_CTRL_UP) ? 1 : 0;
+	case 13: return (digital1 & CELL_PAD_CTRL_DOWN) ? 1 : 0;
+	case 14: return (digital1 & CELL_PAD_CTRL_LEFT) ? 1 : 0;
+	case 15: return (digital1 & CELL_PAD_CTRL_RIGHT) ? 1 : 0;
 	}
 	return 0;
 }
@@ -417,16 +415,27 @@ inline short SDL_JoystickGetAxis(SDL_Joystick* j, int a) {
 	if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
 	int ps3_axis = -1;
 	switch (a) {
-	case 0: ps3_axis = 6; break; // LX
-	case 1: ps3_axis = 7; break; // LY
-	case 2: ps3_axis = 4; break; // RX
-	case 3: ps3_axis = 5; break; // RY
+	case 0: ps3_axis = CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X; break; // LX
+	case 1: ps3_axis = CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y; break; // LY
+	case 2: ps3_axis = CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X; break; // RX
+	case 3: ps3_axis = CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y; break; // RY
 	}
-	if (ps3_axis != -1) return (short)((data.button[ps3_axis] - 128) * 256);
+	if (ps3_axis != -1) return (short)(((int)(data.button[ps3_axis] & 0xFF) - 128) * 256);
 	return 0;
 }
-inline int SDL_JoystickNumHats(SDL_Joystick* j) { return 0; }
-inline unsigned char SDL_JoystickGetHat(SDL_Joystick* j, int h) { return 0; }
+inline int SDL_JoystickNumHats(SDL_Joystick* j) { return 1; }
+inline unsigned char SDL_JoystickGetHat(SDL_Joystick* j, int h) {
+	if (!j) return 0;
+	CellPadData data;
+	if (!_SDL_PS3_GetJoystickData(j->port, &data)) return 0;
+	uint16 digital1 = data.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+	uint8 hatMask = 0;
+	if (digital1 & CELL_PAD_CTRL_UP) hatMask |= 1;
+	if (digital1 & CELL_PAD_CTRL_RIGHT) hatMask |= 2;
+	if (digital1 & CELL_PAD_CTRL_DOWN) hatMask |= 4;
+	if (digital1 & CELL_PAD_CTRL_LEFT) hatMask |= 8;
+	return hatMask;
+}
 inline int SDL_NumJoysticks() {
 	CellPadInfo2 info;
 	return (cellPadGetInfo2(&info) == CELL_OK) ? info.now_connect : 0;

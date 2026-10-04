@@ -16,23 +16,23 @@
 #endif
 
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
-	#include <stdlib.h>
-	#include <unistd.h>
-	#include <sys/timer.h>
-	#include <sysutil/sysutil_msgdialog.h>
-	extern "C" void psglSwap(void);
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/timer.h>
+#include <sysutil/sysutil_msgdialog.h>
+extern "C" void psglSwap(void);
 #elif defined(PLATFORM_WINDOWS)
-	#include <CleanWindowsInclude.h>
-	#include <shlobj.h>		// For "SHGetKnownFolderPath"
+#include <CleanWindowsInclude.h>
+#include <shlobj.h>		// For "SHGetKnownFolderPath"
 #elif defined(PLATFORM_LINUX) || defined(PLATFORM_MAC) || defined(PLATFORM_ANDROID) || defined(PLATFORM_SWITCH) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
-	#include <stdlib.h>
-	#include <unistd.h>
-	#include <sys/types.h>
-	#include <pwd.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
 #endif
 #ifdef PLATFORM_WEB
-	#include <emscripten.h>
-	#include <emscripten/html5.h>
+#include <emscripten.h>
+#include <emscripten/html5.h>
 #endif
 
 
@@ -215,12 +215,10 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		if (timeLeft <= 0.0)
 			break;
 
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		const double sleepTimeLeft = timeLeft - timerGranularity;
-#endif
 
 		// Don't spin on mobile platforms, accept some imprecision to avoid battery drain
-		#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MACOS) || defined(PLATFORM_LINUX)
+#if defined(PLATFORM_WINDOWS) || defined(PLATFORM_MACOS) || defined(PLATFORM_LINUX)
 		{
 			// Spin if below granularity
 			if (sleepTimeLeft < 0.0)
@@ -243,7 +241,7 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 				break;
 			}
 		}
-		#endif
+#endif
 
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		// Is the remaining time rounded down to full milliseconds above the timer granularity?
@@ -256,6 +254,15 @@ void PlatformFunctions::preciseDelay(double milliseconds)
 		{
 			// Yield the thread if below granularity
 			std::this_thread::yield();
+		}
+#else
+		if (sleepTimeLeft >= 1.0)
+		{
+			sys_timer_usleep(static_cast<useconds_t>(sleepTimeLeft * 1000.0));
+		}
+		else
+		{
+			sys_timer_usleep(1);
 		}
 #endif
 	}
@@ -270,7 +277,7 @@ double PlatformFunctions::getTimerGranularityMilliseconds()
 	static bool initialized = false;
 	if (!initialized)
 	{
-	#ifdef PLATFORM_WINDOWS
+#ifdef PLATFORM_WINDOWS
 		// Query range of possible timer granularities and use the minimum if possible
 		const HINSTANCE hLibrary = LoadLibrary("NTDLL.dll");
 		if (nullptr != hLibrary)
@@ -293,7 +300,7 @@ double PlatformFunctions::getTimerGranularityMilliseconds()
 				}
 			}
 		}
-	#endif
+#endif
 
 		// For other platforms, or when something went wrong, assume a timer granularity of 1 millisecond
 		if (!initialized)
@@ -331,7 +338,7 @@ void PlatformFunctions::changeWorkingDirectory(std::wstring_view executableCallP
 				++pos;
 
 			// Get part as string
-			parts.push_back(path.substr(start, pos-start));
+			parts.push_back(path.substr(start, pos - start));
 		}
 
 		for (size_t index = 0; index < parts.size(); ++index)
@@ -387,7 +394,7 @@ void PlatformFunctions::setAppIcon(int iconResource)
 }
 
 #if defined(PLATFORM_MAC) || defined(PLATFORM_IOS)
-	std::wstring PlatformFunctions::mExAppDataPath = L"";
+std::wstring PlatformFunctions::mExAppDataPath = L"";
 #endif
 
 std::wstring PlatformFunctions::getAppDataPath()
@@ -550,26 +557,26 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 	uint32 type = 0;
 	switch (dialogButtons)
 	{
-		case DialogButtons::OK:			type |= MB_OK;			break;
-		case DialogButtons::OK_CANCEL:	type |= MB_OKCANCEL;	break;
-		default:						type |= MB_YESNOCANCEL;	break;
+	case DialogButtons::OK:			type |= MB_OK;			break;
+	case DialogButtons::OK_CANCEL:	type |= MB_OKCANCEL;	break;
+	default:						type |= MB_YESNOCANCEL;	break;
 	}
 	switch (severity)
 	{
-		case rmx::ErrorSeverity::ERROR:		type |= MB_ICONEXCLAMATION;	break;
-		case rmx::ErrorSeverity::WARNING:	type |= MB_ICONWARNING;		break;
-		default:							type |= MB_ICONINFORMATION;	break;
+	case rmx::ErrorSeverity::ERROR:		type |= MB_ICONEXCLAMATION;	break;
+	case rmx::ErrorSeverity::WARNING:	type |= MB_ICONWARNING;		break;
+	default:							type |= MB_ICONINFORMATION;	break;
 	}
 
 	const int result = MessageBoxA((HWND)FTX::Video->getNativeWindowHandle(), text.c_str(), caption.c_str(), type);
 	switch (result)
 	{
-		case IDOK:		return DialogResult::OK;
-		case IDABORT:	return DialogResult::NO;
-		case IDCANCEL:	return DialogResult::CANCEL;
-		case IDIGNORE:	return DialogResult::CANCEL;
-		case IDYES:		return DialogResult::OK;
-		case IDNO:		return DialogResult::NO;
+	case IDOK:		return DialogResult::OK;
+	case IDABORT:	return DialogResult::NO;
+	case IDCANCEL:	return DialogResult::CANCEL;
+	case IDIGNORE:	return DialogResult::CANCEL;
+	case IDYES:		return DialogResult::OK;
+	case IDNO:		return DialogResult::NO;
 	}
 	return DialogResult::OK;
 
@@ -590,13 +597,13 @@ PlatformFunctions::DialogResult PlatformFunctions::showDialogBox(rmx::ErrorSever
 	const SDL_MessageBoxButtonData buttons_YesNoCancel[] =
 	{
 		{ SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "Yes" },
-		{ 0,									   1, "No" },
+		{ 0, 1, "No" },
 		{ SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 2, "Cancel" }
 	};
 	const SDL_MessageBoxButtonData* buttons = (dialogButtons == DialogButtons::OK) ? buttons_Ok :
-											  (dialogButtons == DialogButtons::OK_CANCEL) ? buttons_OkCancel : buttons_YesNoCancel;
+		(dialogButtons == DialogButtons::OK_CANCEL) ? buttons_OkCancel : buttons_YesNoCancel;
 	const int numButtons = (dialogButtons == DialogButtons::OK) ? SDL_arraysize(buttons_Ok) :
-						   (dialogButtons == DialogButtons::OK_CANCEL) ? SDL_arraysize(buttons_OkCancel) : SDL_arraysize(buttons_YesNoCancel);
+		(dialogButtons == DialogButtons::OK_CANCEL) ? SDL_arraysize(buttons_OkCancel) : SDL_arraysize(buttons_YesNoCancel);
 
 	uint32 flags = 0;
 	if (severity == rmx::ErrorSeverity::ERROR)

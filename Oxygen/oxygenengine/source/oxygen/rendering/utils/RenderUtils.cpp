@@ -64,37 +64,58 @@ Recti RenderUtils::getScaleToFillRect(const Recti& frameRect, float aspectRatio)
 
 void RenderUtils::expandPatternDataFromVRAM(uint8* dst, const void* src_)
 {
-	uint32* src = (uint32*)src_;
+	const uint8* src = (const uint8*)src_;
 	for (uint8 y = 0; y < 8; ++y)
 	{
-		const uint32 bp = src[y];
-		dst[0] = (bp >> 12) & 0x0f;
-		dst[1] = (bp >> 8)  & 0x0f;
-		dst[2] = (bp >> 4)  & 0x0f;
-		dst[3] = (bp >> 0)  & 0x0f;
-		dst[4] = (bp >> 28) & 0x0f;
-		dst[5] = (bp >> 24) & 0x0f;
-		dst[6] = (bp >> 20) & 0x0f;
-		dst[7] = (bp >> 16) & 0x0f;
+		// Genesis VRAM tile row: 4 bytes (8 pixels, 4 bits per pixel).
+		// On Genesis/M68k (Big Endian), the bytes in VRAM row are [B0, B1, B2, B3].
+		// On Little Endian hosts, copyFromMemoryToVRam swaps 16-bit words (B1 B0 B3 B2).
+		// Reading byte-by-byte handles endianness cleanly:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+		const uint8 b0 = src[0];
+		const uint8 b1 = src[1];
+		const uint8 b2 = src[2];
+		const uint8 b3 = src[3];
+#else
+		const uint8 b0 = src[1];
+		const uint8 b1 = src[0];
+		const uint8 b2 = src[3];
+		const uint8 b3 = src[2];
+#endif
+		dst[0] = (b0 >> 4) & 0x0f;
+		dst[1] = (b0 >> 0) & 0x0f;
+		dst[2] = (b1 >> 4) & 0x0f;
+		dst[3] = (b1 >> 0) & 0x0f;
+		dst[4] = (b2 >> 4) & 0x0f;
+		dst[5] = (b2 >> 0) & 0x0f;
+		dst[6] = (b3 >> 4) & 0x0f;
+		dst[7] = (b3 >> 0) & 0x0f;
 		dst += 8;
+		src += 4;
 	}
 }
 
 void RenderUtils::expandPatternDataFromROM(uint8* dst, const void* src_)
 {
-	uint32* src = (uint32*)src_;
+	const uint8* src = (const uint8*)src_;
 	for (uint8 y = 0; y < 8; ++y)
 	{
-		const uint32 bp = src[y];
-		dst[0] = (bp >> 4)  & 0x0f;
-		dst[1] = (bp >> 0)  & 0x0f;
-		dst[2] = (bp >> 12) & 0x0f;
-		dst[3] = (bp >> 8)  & 0x0f;
-		dst[4] = (bp >> 20) & 0x0f;
-		dst[5] = (bp >> 16) & 0x0f;
-		dst[6] = (bp >> 28) & 0x0f;
-		dst[7] = (bp >> 24) & 0x0f;
+		// MegaDrive ROM tile row: 4 bytes [B0, B1, B2, B3] in Big Endian order.
+		const uint8 b0 = src[0];
+		const uint8 b1 = src[1];
+		const uint8 b2 = src[2];
+		const uint8 b3 = src[3];
+
+		dst[0] = (b0 >> 4) & 0x0f;
+		dst[1] = (b0 >> 0) & 0x0f;
+		dst[2] = (b1 >> 4) & 0x0f;
+		dst[3] = (b1 >> 0) & 0x0f;
+		dst[4] = (b2 >> 4) & 0x0f;
+		dst[5] = (b2 >> 0) & 0x0f;
+		dst[6] = (b3 >> 4) & 0x0f;
+		dst[7] = (b3 >> 0) & 0x0f;
 		dst += 8;
+		src += 4;
 	}
 }
 

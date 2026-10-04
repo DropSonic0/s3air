@@ -19,7 +19,7 @@
 
 namespace
 {
-	static const constexpr int LOOKUP_WIDTH  = 496;
+	static const constexpr int LOOKUP_WIDTH = 496;
 	static const constexpr int LOOKUP_HEIGHT = 224;
 
 	static float CAMERA_POSITION_HEIGHT = 0.196f;
@@ -99,17 +99,17 @@ namespace
 		const bool isRotating = (rotation & 0x3f) != 0;
 
 		position.x = -(float)px / 256.0f;
-		position.y =  (float)py / 256.0f;
+		position.y = (float)py / 256.0f;
 		if (isRotating || (rotation & 0x40) == 0)
 			position.x = roundToFloat(position.x);
 		if (isRotating || (rotation & 0x40) != 0)
 			position.y = roundToFloat(position.y);
 
 		const float angle = (float)rotation / 128.0f * PI_FLOAT;
-		transform.x =  std::cos(angle);
+		transform.x = std::cos(angle);
 		transform.y = -std::sin(angle);
-		transform.z =  std::sin(angle);
-		transform.w =  std::cos(angle);
+		transform.z = std::sin(angle);
+		transform.w = std::cos(angle);
 	}
 
 	uint8 getPaletteIndex(float intensity, float opacity)
@@ -136,14 +136,14 @@ void BlueSpheresRendering::startup()
 {
 	if (!mInitializedLookups)
 	{
-	#ifndef OUTPUT_FOG_BITMAPS
+#ifndef OUTPUT_FOG_BITMAPS
 		// Try to load lookup data from a cache file, otherwise calculate the data
 		if (loadLookupData())
 		{
 			mInitializedLookups = true;
 		}
 		else
-	#endif
+#endif
 		{
 			performLookupCalculations();
 		}
@@ -170,7 +170,7 @@ void BlueSpheresRendering::createSprites(Vec2i screenSize)
 	const int offsetX = (LOOKUP_WIDTH - maxX) / 2;
 
 	int numPureGroundRows = 0;
-	for (int row = LOOKUP_HEIGHT - 1; ; --row)
+	for (int row = LOOKUP_HEIGHT - 1;; --row)
 	{
 		if (mNonOpaquePixelIndent[row] > offsetX)
 			break;
@@ -270,17 +270,27 @@ void BlueSpheresRendering::writeVisibleSpheresData(uint32 targetAddress, uint32 
 			if (size < 0x1400)
 				continue;
 
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+			*(uint16*)(&outputPtr[0]) = roundToInt(199.5f + viewCoords.x);
+			*(uint16*)(&outputPtr[2]) = roundToInt(111.5f - viewCoords.z);
+			*(uint16*)(&outputPtr[4]) = size;
+#else
 			*(uint16*)(&outputPtr[0]) = swapBytes16(roundToInt(199.5f + viewCoords.x));
 			*(uint16*)(&outputPtr[2]) = swapBytes16(roundToInt(111.5f - viewCoords.z));
 			*(uint16*)(&outputPtr[4]) = swapBytes16(size);
-			*(uint8*) (&outputPtr[6]) = sphereType;
+#endif
+			*(uint8*)(&outputPtr[6]) = sphereType;
 
 			outputPtr += 7;
 			++count;
 		}
 	}
 
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	*(uint16*)(&originalOutputPtr[0]) = count;
+#else
 	*(uint16*)(&originalOutputPtr[0]) = swapBytes16(count);
+#endif
 }
 
 bool BlueSpheresRendering::loadLookupData()
@@ -303,7 +313,10 @@ bool BlueSpheresRendering::loadLookupData()
 			return false;
 
 		mNumPureSkyRows = serializer.read<uint8>();
-		serializer.read(&mNonOpaquePixelIndent[0], sizeof(mNonOpaquePixelIndent));
+		for (int row = 0; row < 224; ++row)
+		{
+			mNonOpaquePixelIndent[row] = serializer.read<int32>();
+		}
 
 		std::vector<uint8> compressed;
 
@@ -322,7 +335,7 @@ bool BlueSpheresRendering::loadLookupData()
 
 void BlueSpheresRendering::performLookupCalculations()
 {
-	const int width  = LOOKUP_WIDTH;
+	const int width = LOOKUP_WIDTH;
 	const int height = LOOKUP_HEIGHT;
 	const int pixels = width * height;
 
@@ -347,12 +360,12 @@ void BlueSpheresRendering::performLookupCalculations()
 		Vec3f cameraUp;
 		getCameraTransform(cameraPosition, cameraFront, cameraRight, cameraUp);
 
-	#ifdef OUTPUT_FOG_BITMAPS
+#ifdef OUTPUT_FOG_BITMAPS
 		Bitmap fogBackgroundBitmap;
 		Bitmap fogForegroundBitmap;
 		fogBackgroundBitmap.create(width, height, 0);
 		fogForegroundBitmap.create(width, height, 0);
-	#endif
+#endif
 
 		for (int pixelIndex = 0; pixelIndex < pixels; ++pixelIndex)
 		{
@@ -401,9 +414,9 @@ void BlueSpheresRendering::performLookupCalculations()
 				const float alpha = saturate(1.0f - exp * exp);
 				pixelData.mFogAlpha = alpha;
 
-			#ifdef OUTPUT_FOG_BITMAPS
+#ifdef OUTPUT_FOG_BITMAPS
 				fogForegroundBitmap.getData()[pixelIndex] = 0xffffff + (roundToInt(alpha * groundVisibility * 192.0f) << 24);
-			#endif
+#endif
 			}
 
 			if (groundVisibility < 1.0f)
@@ -412,9 +425,9 @@ void BlueSpheresRendering::performLookupCalculations()
 				const float alpha = saturate(1.0f - horizonDistance * 50.0f) * 0.4f;
 				pixelData.mFogAlpha = interpolate(alpha, pixelData.mFogAlpha, groundVisibility);
 
-			#ifdef OUTPUT_FOG_BITMAPS
+#ifdef OUTPUT_FOG_BITMAPS
 				fogBackgroundBitmap.getData()[pixelIndex] = 0xffffff + (roundToInt(alpha * 255.0f) << 24);
-			#endif
+#endif
 			}
 
 			visibilityLookup[pixelIndex] = groundVisibility;
@@ -458,10 +471,10 @@ void BlueSpheresRendering::performLookupCalculations()
 			mNonOpaquePixelIndent[row] = indent;
 		}
 
-	#ifdef OUTPUT_FOG_BITMAPS
+#ifdef OUTPUT_FOG_BITMAPS
 		fogForegroundBitmap.save(L"glow_foreground.png");
 		fogBackgroundBitmap.save(L"glow_background.png");
-	#endif
+#endif
 	}
 
 	// Calculate lookups for straight movement
@@ -486,10 +499,10 @@ void BlueSpheresRendering::performLookupCalculations()
 					Vec2f gridExtendY;
 					gridPosition.x = pixelData.mHitPosition.x * GRID_SIZE;
 					gridPosition.y = pixelData.mHitPosition.y * GRID_SIZE + characterPositionY;
-					gridExtendX.x  = pixelData.mHitTangentX.x * GRID_SIZE;
-					gridExtendX.y  = pixelData.mHitTangentX.y * GRID_SIZE;
-					gridExtendY.x  = pixelData.mHitTangentY.x * GRID_SIZE;
-					gridExtendY.y  = pixelData.mHitTangentY.y * GRID_SIZE;
+					gridExtendX.x = pixelData.mHitTangentX.x * GRID_SIZE;
+					gridExtendX.y = pixelData.mHitTangentX.y * GRID_SIZE;
+					gridExtendY.x = pixelData.mHitTangentY.x * GRID_SIZE;
+					gridExtendY.y = pixelData.mHitTangentY.y * GRID_SIZE;
 
 					constexpr float extendsFactor = 0.9f;	// Slightly shorten the extends to reduce the filter's blurriness
 					const float cutFractionX = getIntegerCutFraction(gridPosition.x, gridExtendX.x * extendsFactor, gridExtendY.x * extendsFactor);
@@ -513,7 +526,7 @@ void BlueSpheresRendering::performLookupCalculations()
 			uint8* lookupData = &lookupTable.mData[0];
 
 			const float angle = (float)rotationStep / 32.0f * PI_FLOAT;
-			const float sine   = std::sin(angle) * GRID_SIZE;
+			const float sine = std::sin(angle) * GRID_SIZE;
 			const float cosine = std::cos(angle) * GRID_SIZE;
 
 			for (int pixelIndex = 0; pixelIndex < pixels; ++pixelIndex)
@@ -525,11 +538,11 @@ void BlueSpheresRendering::performLookupCalculations()
 					Vec2f gridExtendX;
 					Vec2f gridExtendY;
 					gridPosition.x = pixelData.mHitPosition.x * cosine - pixelData.mHitPosition.y * sine;
-					gridPosition.y = pixelData.mHitPosition.x * sine   + pixelData.mHitPosition.y * cosine;
-					gridExtendX.x  = pixelData.mHitTangentX.x * cosine - pixelData.mHitTangentX.y * sine;
-					gridExtendX.y  = pixelData.mHitTangentX.x * sine   + pixelData.mHitTangentX.y * cosine;
-					gridExtendY.x  = pixelData.mHitTangentY.x * cosine - pixelData.mHitTangentY.y * sine;
-					gridExtendY.y  = pixelData.mHitTangentY.x * sine   + pixelData.mHitTangentY.y * cosine;
+					gridPosition.y = pixelData.mHitPosition.x * sine + pixelData.mHitPosition.y * cosine;
+					gridExtendX.x = pixelData.mHitTangentX.x * cosine - pixelData.mHitTangentX.y * sine;
+					gridExtendX.y = pixelData.mHitTangentX.x * sine + pixelData.mHitTangentX.y * cosine;
+					gridExtendY.x = pixelData.mHitTangentY.x * cosine - pixelData.mHitTangentY.y * sine;
+					gridExtendY.y = pixelData.mHitTangentY.x * sine + pixelData.mHitTangentY.y * cosine;
 
 					constexpr float extendsFactor = 0.9f;	// Slightly shorten the extends to reduce the filter's blurriness
 					const float cutFractionX = getIntegerCutFraction(gridPosition.x, gridExtendX.x * extendsFactor, gridExtendY.x * extendsFactor);
@@ -551,7 +564,10 @@ void BlueSpheresRendering::performLookupCalculations()
 		serializer.write<uint16>(LOOKUP_WIDTH);
 		serializer.write<uint16>(LOOKUP_HEIGHT);
 		serializer.write<uint8>(mNumPureSkyRows);
-		serializer.write(&mNonOpaquePixelIndent[0], sizeof(mNonOpaquePixelIndent));
+		for (int row = 0; row < 224; ++row)
+		{
+			serializer.writeAs<int32>(mNonOpaquePixelIndent[row]);
+		}
 
 		std::vector<uint8> compressed;
 		for (int i = 0; i < 0x2f; ++i)

@@ -92,23 +92,23 @@ namespace
 	{
 		switch (binding.bindType)
 		{
-			case SDL_CONTROLLER_BINDTYPE_NONE:
-				return false;
+		case SDL_CONTROLLER_BINDTYPE_NONE:
+			return false;
 
-			case SDL_CONTROLLER_BINDTYPE_AXIS:
-				output.mType = InputConfig::Assignment::Type::AXIS;
-				output.mIndex = binding.value.axis * 2 + axisDirection;
-				return true;
+		case SDL_CONTROLLER_BINDTYPE_AXIS:
+			output.mType = InputConfig::Assignment::Type::AXIS;
+			output.mIndex = binding.value.axis * 2 + axisDirection;
+			return true;
 
-			case SDL_CONTROLLER_BINDTYPE_BUTTON:
-				output.mType = InputConfig::Assignment::Type::BUTTON;
-				output.mIndex = binding.value.button;
-				return true;
+		case SDL_CONTROLLER_BINDTYPE_BUTTON:
+			output.mType = InputConfig::Assignment::Type::BUTTON;
+			output.mIndex = binding.value.button;
+			return true;
 
-			case SDL_CONTROLLER_BINDTYPE_HAT:
-				output.mType = InputConfig::Assignment::Type::POV;
-				output.mIndex = (binding.value.hat.hat * 0x100) + binding.value.hat.hat_mask;
-				return true;
+		case SDL_CONTROLLER_BINDTYPE_HAT:
+			output.mType = InputConfig::Assignment::Type::POV;
+			output.mIndex = (binding.value.hat.hat * 0x100) + binding.value.hat.hat_mask;
+			return true;
 		}
 		return false;
 	}
@@ -127,24 +127,24 @@ namespace
 		using Button = InputConfig::DeviceDefinition::Button;
 		std::vector<SDL_GameControllerButtonBind> bindings[InputConfig::DeviceDefinition::NUM_BUTTONS];
 
-		bindings[(size_t)Button::UP]   .push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTY));
-		bindings[(size_t)Button::UP]   .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_UP));
-		bindings[(size_t)Button::DOWN] .push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTY));
-		bindings[(size_t)Button::DOWN] .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_DOWN));
-		bindings[(size_t)Button::LEFT] .push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTX));
-		bindings[(size_t)Button::LEFT] .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_LEFT));
-		bindings[(size_t)Button::RIGHT].push_back(SDL_GameControllerGetBindForAxis  (&gameController, SDL_CONTROLLER_AXIS_LEFTX));
+		bindings[(size_t)Button::UP].push_back(SDL_GameControllerGetBindForAxis(&gameController, SDL_CONTROLLER_AXIS_LEFTY));
+		bindings[(size_t)Button::UP].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_UP));
+		bindings[(size_t)Button::DOWN].push_back(SDL_GameControllerGetBindForAxis(&gameController, SDL_CONTROLLER_AXIS_LEFTY));
+		bindings[(size_t)Button::DOWN].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_DOWN));
+		bindings[(size_t)Button::LEFT].push_back(SDL_GameControllerGetBindForAxis(&gameController, SDL_CONTROLLER_AXIS_LEFTX));
+		bindings[(size_t)Button::LEFT].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_LEFT));
+		bindings[(size_t)Button::RIGHT].push_back(SDL_GameControllerGetBindForAxis(&gameController, SDL_CONTROLLER_AXIS_LEFTX));
 		bindings[(size_t)Button::RIGHT].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_DPAD_RIGHT));
 
-		bindings[(size_t)Button::A]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_A));
-		bindings[(size_t)Button::B]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_B));
-		bindings[(size_t)Button::X]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_X));
-		bindings[(size_t)Button::Y]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_Y));
+		bindings[(size_t)Button::A].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_A));
+		bindings[(size_t)Button::B].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_B));
+		bindings[(size_t)Button::X].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_X));
+		bindings[(size_t)Button::Y].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_Y));
 		bindings[(size_t)Button::START].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_START));
 		bindings[(size_t)Button::START].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_GUIDE));
-		bindings[(size_t)Button::BACK] .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_BACK));
-		bindings[(size_t)Button::L]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
-		bindings[(size_t)Button::R]    .push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
+		bindings[(size_t)Button::BACK].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_BACK));
+		bindings[(size_t)Button::L].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_LEFTSHOULDER));
+		bindings[(size_t)Button::R].push_back(SDL_GameControllerGetBindForButton(&gameController, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER));
 
 		device.mControlMappings.resize(InputConfig::DeviceDefinition::NUM_BUTTONS);
 		for (size_t controlIndex = 0; controlIndex < device.mControlMappings.size(); ++controlIndex)
@@ -183,13 +183,13 @@ namespace
 		if (controllerName.nonEmpty() && controllerName != joystickName)
 		{
 			if (index >= 0)
-				RMX_LOG_INFO("Controller #" << (index+1) << ": \"" << *joystickName << "\" (alternative name: \"" << *controllerName << "\")");
+				RMX_LOG_INFO("Controller #" << (index + 1) << ": \"" << *joystickName << "\" (alternative name: \"" << *controllerName << "\")");
 			controllerName.lowerCase();
 		}
 		else
 		{
 			if (index >= 0)
-				RMX_LOG_INFO("Controller #" << (index+1) << ": \"" << *joystickName << "\"");
+				RMX_LOG_INFO("Controller #" << (index + 1) << ": \"" << *joystickName << "\"");
 			controllerName.clear();
 		}
 		joystickName.lowerCase();
@@ -321,6 +321,13 @@ InputManager::InputManager()
 }
 
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+static void ps3_sysutil_callback(uint64_t status, uint64_t param, void* userdata)
+{
+	(void)status;
+	(void)param;
+	(void)userdata;
+}
+
 #ifndef CELL_KB_MAX_KEYCODES
 #define CELL_KB_MAX_KEYCODES 62
 #endif
@@ -377,7 +384,7 @@ static struct {
 
 int32_t InputManager::getPS3Axis(const CellPadData* data, int offset)
 {
-	int val = (int)data->button[offset];
+	int val = (int)(data->button[offset] & 0xFF);
 	int centered = val - 128;
 	if (centered > -20 && centered < 20)
 		return 0;
@@ -395,59 +402,61 @@ int32_t InputManager::convertPS3HIDToKeycode(uint8_t code)
 
 	switch (code)
 	{
-		case 0x28: return SDLK_RETURN;
-		case 0x29: return SDLK_ESCAPE;
-		case 0x2A: return SDLK_BACKSPACE;
-		case 0x2B: return SDLK_TAB;
-		case 0x2C: return SDLK_SPACE;
-		case 0x2D: return SDLK_MINUS;
-		case 0x2E: return SDLK_EQUALS;
-		case 0x2F: return '[';
-		case 0x30: return ']';
-		case 0x31: return '\\';
-		case 0x33: return ';';
-		case 0x34: return '\'';
-		case 0x35: return '`';
-		case 0x36: return ',';
-		case 0x37: return '.';
-		case 0x38: return '/';
-		case 0x39: return SDLK_CAPSLOCK;
-		case 0x47: return SDLK_SCROLLLOCK;
-		case 0x48: return SDLK_PAUSE;
-		case 0x49: return SDLK_INSERT;
-		case 0x4A: return SDLK_HOME;
-		case 0x4B: return SDLK_PAGEUP;
-		case 0x4C: return SDLK_DELETE;
-		case 0x4D: return SDLK_END;
-		case 0x4E: return SDLK_PAGEDOWN;
-		case 0x4F: return SDLK_RIGHT;
-		case 0x50: return SDLK_LEFT;
-		case 0x51: return SDLK_DOWN;
-		case 0x52: return SDLK_UP;
-		case 0x53: return SDLK_NUMLOCKCLEAR;
-		case 0x54: return SDLK_KP_DIVIDE;
-		case 0x55: return SDLK_KP_MULTIPLY;
-		case 0x56: return SDLK_KP_MINUS;
-		case 0x57: return SDLK_KP_PLUS;
-		case 0x58: return SDLK_KP_ENTER;
-		case 0x59: return SDLK_KP_1;
-		case 0x5A: return SDLK_KP_2;
-		case 0x5B: return SDLK_KP_3;
-		case 0x5C: return SDLK_KP_4;
-		case 0x5D: return SDLK_KP_5;
-		case 0x5E: return SDLK_KP_6;
-		case 0x5F: return SDLK_KP_7;
-		case 0x60: return SDLK_KP_8;
-		case 0x61: return SDLK_KP_9;
-		case 0x62: return SDLK_KP_0;
-		case 0x63: return SDLK_KP_PERIOD;
-		default:   break;
+	case 0x28: return SDLK_RETURN;
+	case 0x29: return SDLK_ESCAPE;
+	case 0x2A: return SDLK_BACKSPACE;
+	case 0x2B: return SDLK_TAB;
+	case 0x2C: return SDLK_SPACE;
+	case 0x2D: return SDLK_MINUS;
+	case 0x2E: return SDLK_EQUALS;
+	case 0x2F: return '[';
+	case 0x30: return ']';
+	case 0x31: return '\\';
+	case 0x33: return ';';
+	case 0x34: return '\'';
+	case 0x35: return '`';
+	case 0x36: return ',';
+	case 0x37: return '.';
+	case 0x38: return '/';
+	case 0x39: return SDLK_CAPSLOCK;
+	case 0x47: return SDLK_SCROLLLOCK;
+	case 0x48: return SDLK_PAUSE;
+	case 0x49: return SDLK_INSERT;
+	case 0x4A: return SDLK_HOME;
+	case 0x4B: return SDLK_PAGEUP;
+	case 0x4C: return SDLK_DELETE;
+	case 0x4D: return SDLK_END;
+	case 0x4E: return SDLK_PAGEDOWN;
+	case 0x4F: return SDLK_RIGHT;
+	case 0x50: return SDLK_LEFT;
+	case 0x51: return SDLK_DOWN;
+	case 0x52: return SDLK_UP;
+	case 0x53: return SDLK_NUMLOCKCLEAR;
+	case 0x54: return SDLK_KP_DIVIDE;
+	case 0x55: return SDLK_KP_MULTIPLY;
+	case 0x56: return SDLK_KP_MINUS;
+	case 0x57: return SDLK_KP_PLUS;
+	case 0x58: return SDLK_KP_ENTER;
+	case 0x59: return SDLK_KP_1;
+	case 0x5A: return SDLK_KP_2;
+	case 0x5B: return SDLK_KP_3;
+	case 0x5C: return SDLK_KP_4;
+	case 0x5D: return SDLK_KP_5;
+	case 0x5E: return SDLK_KP_6;
+	case 0x5F: return SDLK_KP_7;
+	case 0x60: return SDLK_KP_8;
+	case 0x61: return SDLK_KP_9;
+	case 0x62: return SDLK_KP_0;
+	case 0x63: return SDLK_KP_PERIOD;
+	default:   break;
 	}
 	return 0;
 }
 
 void InputManager::initPS3Input()
 {
+	cellSysutilRegisterCallback(0, ps3_sysutil_callback, NULL);
+
 	if (!mPS3PadsInitialized)
 	{
 		ps3_log("[PS3] InputManager - Initializing CellPad...");
@@ -497,10 +506,6 @@ void InputManager::pollPS3Input()
 			{
 				mPS3CachedPadData[port] = data;
 				mPS3CachedPadValid[port] = true;
-			}
-			else
-			{
-				mPS3CachedPadValid[port] = false;
 			}
 		}
 	}
@@ -724,32 +729,32 @@ void InputManager::updateInput(float timeElapsed)
 	{
 		switch (mWaitingForSingleInput)
 		{
-			case WaitInputState::WAIT_FOR_RELEASE:
-			{
-				if (!mAnythingPressed)
-				{
-					mWaitingForSingleInput = WaitInputState::WAIT_FOR_PRESS;
-				}
-				mAnythingPressed = false;
-				break;
-			}
+		case WaitInputState::WAIT_FOR_RELEASE:
+		{
+												 if (!mAnythingPressed)
+												 {
+													 mWaitingForSingleInput = WaitInputState::WAIT_FOR_PRESS;
+												 }
+												 mAnythingPressed = false;
+												 break;
+		}
 
-			case WaitInputState::WAIT_FOR_PRESS:
-			{
-				if (mAnythingPressed)
-				{
-					// Inject a Start button press
-					mPlayers[0].mController.Start.mState = true;
-					mPlayers[0].mController.Start.mChange = true;
+		case WaitInputState::WAIT_FOR_PRESS:
+		{
+											   if (mAnythingPressed)
+											   {
+												   // Inject a Start button press
+												   mPlayers[0].mController.Start.mState = true;
+												   mPlayers[0].mController.Start.mChange = true;
 
-					// Leave this touch input mode, and by default show controls now (this may be overwritten later in the frame again)
-					setTouchInputMode(TouchInputMode::NORMAL_CONTROLS);
-				}
-				break;
-			}
+												   // Leave this touch input mode, and by default show controls now (this may be overwritten later in the frame again)
+												   setTouchInputMode(TouchInputMode::NORMAL_CONTROLS);
+											   }
+											   break;
+		}
 
-			default:
-				break;
+		default:
+			break;
 		}
 	}
 
@@ -776,17 +781,17 @@ void InputManager::injectSDLInputEvent(const SDL_Event& ev)
 {
 	switch (ev.type)
 	{
-		case SDL_KEYDOWN:
-		{
-			if (ev.key.state == SDL_PRESSED)	// This check may be unnecessary
-			{
-				// Add as one-frame input
-				//  -> This is done so that very short key pressed get registered for one frame even if there is no "updateInput" call between key down and key up
-				mOneFrameKeyboardInputs.insert(ev.key.keysym.sym);
-				mHasKeyboard = true;
-			}
-			break;
-		}
+	case SDL_KEYDOWN:
+	{
+						if (ev.key.state == SDL_PRESSED)	// This check may be unnecessary
+						{
+							// Add as one-frame input
+							//  -> This is done so that very short key pressed get registered for one frame even if there is no "updateInput" call between key down and key up
+							mOneFrameKeyboardInputs.insert(ev.key.keysym.sym);
+							mHasKeyboard = true;
+						}
+						break;
+	}
 	}
 }
 
@@ -808,6 +813,68 @@ void InputManager::getPressedGamepadInputs(std::vector<InputConfig::Assignment>&
 	if (device.mType != InputConfig::DeviceType::GAMEPAD)
 		return;
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+	int port = (nullptr != device.mSDLJoystick) ? device.mSDLJoystick->port : device.mAssignedPlayer;
+	if (port < 0 || port >= 7) port = 0;
+	if (mPS3CachedPadValid[port] && mPS3CachedPadData[port].len > 0)
+	{
+		const CellPadData& padData = mPS3CachedPadData[port];
+		uint16_t digital1 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+		uint16_t digital2 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2];
+
+		// Check buttons
+		if (digital2 & CELL_PAD_CTRL_CROSS)    outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 0));
+		if (digital2 & CELL_PAD_CTRL_CIRCLE)   outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 1));
+		if (digital2 & CELL_PAD_CTRL_SQUARE)   outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 2));
+		if (digital2 & CELL_PAD_CTRL_TRIANGLE) outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 3));
+		if (digital1 & CELL_PAD_CTRL_START)    outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 4));
+		if (digital1 & CELL_PAD_CTRL_SELECT)   outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 5));
+		if (digital2 & CELL_PAD_CTRL_L1)       outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 6));
+		if (digital2 & CELL_PAD_CTRL_R1)       outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 7));
+		if (digital2 & CELL_PAD_CTRL_L2)       outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 8));
+		if (digital2 & CELL_PAD_CTRL_R2)       outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 9));
+		if (digital1 & CELL_PAD_CTRL_L3)       outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 10));
+		if (digital1 & CELL_PAD_CTRL_R3)       outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 11));
+
+		// Check axes
+		int axes[4] = {
+			getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X),
+			getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y),
+			getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X),
+			getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y)
+		};
+		for (int a = 0; a < 4; ++a)
+		{
+			if (axes[a] < -0x3000)
+			{
+				outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, a * 2));
+			}
+			else if (axes[a] > 0x3000)
+			{
+				outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, a * 2 + 1));
+			}
+		}
+
+		// Check D-Pad (POV)
+		uint8 hatMask = 0;
+		if (digital1 & CELL_PAD_CTRL_UP)    hatMask |= 1;
+		if (digital1 & CELL_PAD_CTRL_RIGHT) hatMask |= 2;
+		if (digital1 & CELL_PAD_CTRL_DOWN)  hatMask |= 4;
+		if (digital1 & CELL_PAD_CTRL_LEFT)  hatMask |= 8;
+		if (hatMask != 0)
+		{
+			for (int bit = 1; bit < 0x100; bit *= 2)
+			{
+				if (hatMask & bit)
+				{
+					outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::POV, bit));
+				}
+			}
+		}
+		return;
+	}
+#endif
+
 	for (int k = 0; k < SDL_JoystickNumButtons(device.mSDLJoystick); ++k)
 	{
 		if (SDL_JoystickGetButton(device.mSDLJoystick, k) != 0)
@@ -821,11 +888,11 @@ void InputManager::getPressedGamepadInputs(std::vector<InputConfig::Assignment>&
 		const int16 value = SDL_JoystickGetAxis(device.mSDLJoystick, k);
 		if (value < -0x6000)
 		{
-			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, k*2));
+			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, k * 2));
 		}
 		else if (value > 0x6000)
 		{
-			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, k*2+1));
+			outInputs.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, k * 2 + 1));
 		}
 	}
 
@@ -843,7 +910,8 @@ void InputManager::getPressedGamepadInputs(std::vector<InputConfig::Assignment>&
 				}
 			}
 		}
-	}}
+	}
+}
 
 InputManager::RescanResult InputManager::rescanRealDevices()
 {
@@ -926,9 +994,9 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 		device.mSDLJoystick = joystick;
 		device.mSDLGameController = controller;
 		device.mSDLJoystickInstanceId = joystickInstanceId;
-	#if SDL_VERSION_ATLEAST(2, 0, 18)
+#if SDL_VERSION_ATLEAST(2, 0, 18)
 		device.mSupportsRumble = SDL_JoystickHasRumble(joystick);
-	#endif
+#endif
 
 		// Try to find a matching device definition in configuration
 		InputConfig::DeviceDefinition* matchingInputDeviceDefinition = nullptr;
@@ -954,7 +1022,26 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 		}
 		else
 		{
-			continue;
+			// Default fallback mappings for raw PS3 / unidentified controllers
+			using Button = InputConfig::DeviceDefinition::Button;
+			device.mControlMappings.resize(InputConfig::DeviceDefinition::NUM_BUTTONS);
+			device.mControlMappings[(size_t)Button::UP].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::POV, 1));
+			device.mControlMappings[(size_t)Button::UP].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, 2));
+			device.mControlMappings[(size_t)Button::DOWN].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::POV, 4));
+			device.mControlMappings[(size_t)Button::DOWN].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, 3));
+			device.mControlMappings[(size_t)Button::LEFT].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::POV, 8));
+			device.mControlMappings[(size_t)Button::LEFT].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, 0));
+			device.mControlMappings[(size_t)Button::RIGHT].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::POV, 2));
+			device.mControlMappings[(size_t)Button::RIGHT].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::AXIS, 1));
+
+			device.mControlMappings[(size_t)Button::A].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 0));
+			device.mControlMappings[(size_t)Button::B].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 1));
+			device.mControlMappings[(size_t)Button::X].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 2));
+			device.mControlMappings[(size_t)Button::Y].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 3));
+			device.mControlMappings[(size_t)Button::START].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 4));
+			device.mControlMappings[(size_t)Button::BACK].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 5));
+			device.mControlMappings[(size_t)Button::L].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 6));
+			device.mControlMappings[(size_t)Button::R].mAssignments.push_back(InputConfig::Assignment(InputConfig::Assignment::Type::BUTTON, 7));
 		}
 
 		// Log input mapping as JSON
@@ -974,21 +1061,21 @@ InputManager::RescanResult InputManager::rescanRealDevices()
 
 					switch (assignment.mType)
 					{
-						case InputConfig::Assignment::Type::AXIS:
-						{
-							line << "\"Axis" << assignment.mIndex << '"';
-							break;
-						}
-						case InputConfig::Assignment::Type::BUTTON:
-						{
-							line << "\"Button" << assignment.mIndex << '"';
-							break;
-						}
-						case InputConfig::Assignment::Type::POV:
-						{
-							line << "\"Pov" << rmx::log2(assignment.mIndex & 0xff) << '"';
-							break;
-						}
+					case InputConfig::Assignment::Type::AXIS:
+					{
+																line << "\"Axis" << assignment.mIndex << '"';
+																break;
+					}
+					case InputConfig::Assignment::Type::BUTTON:
+					{
+																  line << "\"Button" << assignment.mIndex << '"';
+																  break;
+					}
+					case InputConfig::Assignment::Type::POV:
+					{
+															   line << "\"Pov" << rmx::log2(assignment.mIndex & 0xff) << '"';
+															   break;
+					}
 					}
 				}
 				line << " ]";
@@ -1242,15 +1329,15 @@ void InputManager::setControllerLEDsForPlayer(int playerIndex, const Color& colo
 {
 #if SDL_VERSION_ATLEAST(2, 0, 14)
 	// TODO: Remove some of these exclusions where possible
-	#if !defined(PLATFORM_WEB) && !defined(PLATFORM_SWITCH) && !defined(PLATFORM_VITA) && !(defined(PLATFORM_WINDOWS) && defined(__GNUC__))
-		for (size_t i = 0; i < mGamepads.size(); ++i)
+#if !defined(PLATFORM_WEB) && !defined(PLATFORM_SWITCH) && !defined(PLATFORM_VITA) && !(defined(PLATFORM_WINDOWS) && defined(__GNUC__))
+	for (size_t i = 0; i < mGamepads.size(); ++i)
+	{
+		if (mGamepads[i].mAssignedPlayer == playerIndex && nullptr != mGamepads[i].mSDLGameController)
 		{
-			if (mGamepads[i].mAssignedPlayer == playerIndex && nullptr != mGamepads[i].mSDLGameController)
-			{
-				SDL_GameControllerSetLED(mGamepads[i].mSDLGameController, (uint8)roundToInt(color.r * 255.0f), (uint8)roundToInt(color.g * 255.0f), (uint8)roundToInt(color.b * 255.0f));
-			}
+			SDL_GameControllerSetLED(mGamepads[i].mSDLGameController, (uint8)roundToInt(color.r * 255.0f), (uint8)roundToInt(color.g * 255.0f), (uint8)roundToInt(color.b * 255.0f));
 		}
-	#endif
+	}
+#endif
 #endif
 }
 
@@ -1314,26 +1401,26 @@ bool InputManager::isPressed(const ControlInput& input)
 
 	switch (input.mDevice->mType)
 	{
-		case InputConfig::DeviceType::KEYBOARD:
-		{
-			if (FTX::keyState(input.mIndex) || mOneFrameKeyboardInputs.count(input.mIndex) > 0)
-			{
-				// Ignore key presses while Alt is down
-				if (!FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
-				{
-					if (!ImGuiIntegration::instance().isCapturingKeyboard())
-						return true;
-				}
-			}
-			break;
-		}
+	case InputConfig::DeviceType::KEYBOARD:
+	{
+											  if (FTX::keyState(input.mIndex) || mOneFrameKeyboardInputs.count(input.mIndex) > 0)
+											  {
+												  // Ignore key presses while Alt is down
+												  if (!FTX::keyState(SDLK_LALT) && !FTX::keyState(SDLK_RALT))
+												  {
+													  if (!ImGuiIntegration::instance().isCapturingKeyboard())
+														  return true;
+												  }
+											  }
+											  break;
+	}
 
-		case InputConfig::DeviceType::GAMEPAD:
-		{
-			if (isPressed(input.mDevice->mSDLJoystick, input))
-				return true;
-			break;
-		}
+	case InputConfig::DeviceType::GAMEPAD:
+	{
+											 if (isPressed(input.mDevice->mSDLJoystick, input))
+												 return true;
+											 break;
+	}
 	}
 	return false;
 }
@@ -1341,59 +1428,58 @@ bool InputManager::isPressed(const ControlInput& input)
 bool InputManager::isPressed(SDL_Joystick* joystick, const ControlInput& input)
 {
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
-	CellPadData padData;
-	int port = (nullptr != input.mDevice) ? input.mDevice->mAssignedPlayer : 0;
+	int port = (nullptr != joystick) ? joystick->port : ((nullptr != input.mDevice) ? input.mDevice->mAssignedPlayer : 0);
 	if (port < 0 || port >= 7) port = 0;
-	if (cellPadGetData(port, &padData) == CELL_PAD_OK && padData.len > 0)
+	if (mPS3CachedPadValid[port] && mPS3CachedPadData[port].len > 0)
 	{
-		uint16_t buttons = ((uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2] << 8) | (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+		const CellPadData& padData = mPS3CachedPadData[port];
+		uint16_t digital1 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
+		uint16_t digital2 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2];
 		switch (input.mType)
 		{
-			case InputConfig::Assignment::Type::AXIS:
-			{
-				int axisIndex = input.mIndex / 2;
-				int axisVal = 0;
-				if (axisIndex == 0) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X);
-				else if (axisIndex == 1) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y);
-				else if (axisIndex == 2) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X);
-				else if (axisIndex == 3) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y);
+		case InputConfig::Assignment::Type::AXIS:
+		{
+													int axisIndex = input.mIndex / 2;
+													int axisVal = 0;
+													if (axisIndex == 0) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_X);
+													else if (axisIndex == 1) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_LEFT_Y);
+													else if (axisIndex == 2) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_X);
+													else if (axisIndex == 3) axisVal = getPS3Axis(&padData, CELL_PAD_BTN_OFFSET_ANALOG_RIGHT_Y);
 
-				const float value = (float)axisVal / 32767.0f;
-				if ((input.mIndex % 2) == 0)
-					return (value < -0.25f);
-				else
-					return (value > 0.25f);
-			}
-			case InputConfig::Assignment::Type::BUTTON:
-			{
-				uint16_t digital1 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL1];
-				uint16_t digital2 = (uint16_t)padData.button[CELL_PAD_BTN_OFFSET_DIGITAL2];
-				switch (input.mIndex)
-				{
-					case 0: return (digital2 & CELL_PAD_CTRL_CROSS) != 0;    // A / Cross
-					case 1: return (digital2 & CELL_PAD_CTRL_CIRCLE) != 0;   // B / Circle
-					case 2: return (digital2 & CELL_PAD_CTRL_SQUARE) != 0;   // X / Square
-					case 3: return (digital2 & CELL_PAD_CTRL_TRIANGLE) != 0; // Y / Triangle
-					case 4: return (digital1 & CELL_PAD_CTRL_START) != 0;    // Start
-					case 5: return (digital1 & CELL_PAD_CTRL_SELECT) != 0;   // Back / Select
-					case 6: return (digital2 & CELL_PAD_CTRL_L1) != 0;       // L1
-					case 7: return (digital2 & CELL_PAD_CTRL_R1) != 0;       // R1
-					case 8: return (digital2 & CELL_PAD_CTRL_L2) != 0;       // L2
-					case 9: return (digital2 & CELL_PAD_CTRL_R2) != 0;       // R2
-					case 10: return (digital1 & CELL_PAD_CTRL_L3) != 0;      // L3
-					case 11: return (digital1 & CELL_PAD_CTRL_R3) != 0;      // R3
-				}
-				return (SDL_JoystickGetButton(joystick, input.mIndex) > 0);
-			}
-			case InputConfig::Assignment::Type::POV:
-			{
-				uint8 hatMask = 0;
-				if (buttons & CELL_PAD_CTRL_UP) hatMask |= 1;
-				if (buttons & CELL_PAD_CTRL_RIGHT) hatMask |= 2;
-				if (buttons & CELL_PAD_CTRL_DOWN) hatMask |= 4;
-				if (buttons & CELL_PAD_CTRL_LEFT) hatMask |= 8;
-				return (hatMask & (input.mIndex & 0xff)) != 0;
-			}
+													const float value = (float)axisVal / 32767.0f;
+													if ((input.mIndex % 2) == 0)
+														return (value < -0.25f);
+													else
+														return (value > 0.25f);
+		}
+		case InputConfig::Assignment::Type::BUTTON:
+		{
+													  switch (input.mIndex)
+													  {
+													  case 0: return (digital2 & CELL_PAD_CTRL_CROSS) != 0;    // A / Cross
+													  case 1: return (digital2 & CELL_PAD_CTRL_CIRCLE) != 0;   // B / Circle
+													  case 2: return (digital2 & CELL_PAD_CTRL_SQUARE) != 0;   // X / Square
+													  case 3: return (digital2 & CELL_PAD_CTRL_TRIANGLE) != 0; // Y / Triangle
+													  case 4: return (digital1 & CELL_PAD_CTRL_START) != 0;    // Start
+													  case 5: return (digital1 & CELL_PAD_CTRL_SELECT) != 0;   // Back / Select
+													  case 6: return (digital2 & CELL_PAD_CTRL_L1) != 0;       // L1
+													  case 7: return (digital2 & CELL_PAD_CTRL_R1) != 0;       // R1
+													  case 8: return (digital2 & CELL_PAD_CTRL_L2) != 0;       // L2
+													  case 9: return (digital2 & CELL_PAD_CTRL_R2) != 0;       // R2
+													  case 10: return (digital1 & CELL_PAD_CTRL_L3) != 0;      // L3
+													  case 11: return (digital1 & CELL_PAD_CTRL_R3) != 0;      // R3
+													  }
+													  return (SDL_JoystickGetButton(joystick, input.mIndex) > 0);
+		}
+		case InputConfig::Assignment::Type::POV:
+		{
+												   uint8 hatMask = 0;
+												   if (digital1 & CELL_PAD_CTRL_UP) hatMask |= 1;
+												   if (digital1 & CELL_PAD_CTRL_RIGHT) hatMask |= 2;
+												   if (digital1 & CELL_PAD_CTRL_DOWN) hatMask |= 4;
+												   if (digital1 & CELL_PAD_CTRL_LEFT) hatMask |= 8;
+												   return (hatMask & (input.mIndex & 0xff)) != 0;
+		}
 		}
 	}
 #endif
@@ -1402,30 +1488,30 @@ bool InputManager::isPressed(SDL_Joystick* joystick, const ControlInput& input)
 	{
 		switch (input.mType)
 		{
-			case InputConfig::Assignment::Type::AXIS:
-			{
-				// Use even number for negative axis direction, odd number for positive axis direction
-				const float value = (float)SDL_JoystickGetAxis(joystick, input.mIndex / 2) / 32767.0f;
-				if ((input.mIndex % 2) == 0)
-				{
-					return (value < -0.25f);
-				}
-				else
-				{
-					return (value > 0.25f);
-				}
-			}
+		case InputConfig::Assignment::Type::AXIS:
+		{
+													// Use even number for negative axis direction, odd number for positive axis direction
+													const float value = (float)SDL_JoystickGetAxis(joystick, input.mIndex / 2) / 32767.0f;
+													if ((input.mIndex % 2) == 0)
+													{
+														return (value < -0.25f);
+													}
+													else
+													{
+														return (value > 0.25f);
+													}
+		}
 
-			case InputConfig::Assignment::Type::BUTTON:
-			{
-				return (SDL_JoystickGetButton(joystick, input.mIndex) > 0);
-			}
+		case InputConfig::Assignment::Type::BUTTON:
+		{
+													  return (SDL_JoystickGetButton(joystick, input.mIndex) > 0);
+		}
 
-			case InputConfig::Assignment::Type::POV:
-			{
-				const uint8 hatMask = SDL_JoystickGetHat(joystick, input.mIndex >> 8);
-				return (hatMask & input.mIndex) != 0;
-			}
+		case InputConfig::Assignment::Type::POV:
+		{
+												   const uint8 hatMask = SDL_JoystickGetHat(joystick, input.mIndex >> 8);
+												   return (hatMask & input.mIndex) != 0;
+		}
 		}
 	}
 	return false;

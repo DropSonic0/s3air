@@ -7,6 +7,7 @@
 */
 
 #include "oxygen/pch.h"
+#include "ProfDebug.h"
 #include "oxygen/application/video/VideoOut.h"
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/EngineMain.h"
@@ -219,7 +220,11 @@ bool VideoOut::updateGameScreen()
 	refreshParameters.mHasNewSimulationFrame = hasNewSimulationFrame;
 	refreshParameters.mUsingFrameInterpolation = mFrameInterpolation.mCurrentlyInterpolating;
 	refreshParameters.mInterFramePosition = mFrameInterpolation.mInterFramePosition;
-	mRenderParts->refresh(refreshParameters);
+	{
+		static ProfSlot sSlot("RenderParts refresh");
+		ProfScope scope(sSlot);
+		mRenderParts->refresh(refreshParameters);
+	}
 
 	// Render a new image
 	renderGameScreen();
@@ -508,11 +513,17 @@ void VideoOut::renderGameScreen()
 	clearGeometries();
 	if (mRenderParts->getActiveDisplay())
 	{
+		static ProfSlot sCollectSlot("collectGeometries");
+		ProfScope scope(sCollectSlot);
 		collectGeometries(mGeometries);
 	}
 
 	// Render them
-	mActiveRenderer->renderGameScreen(mGeometries);
+	{
+		static ProfSlot sRenderSlot("Renderer::renderGameScreen");
+		ProfScope scope(sRenderSlot);
+		mActiveRenderer->renderGameScreen(mGeometries);
+	}
 }
 
 void VideoOut::preRefreshDebugging()

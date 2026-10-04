@@ -132,110 +132,110 @@ namespace
 		static inline const std::vector<std::pair<String, uint32>> KEYS_AND_IDENTIFIERS =
 		{
 			// This list uses the same sorting as the SDLK_* definitions
-			{ "Enter",			SDLK_RETURN },
-			{ "Esc",			SDLK_ESCAPE },
-			{ "Backspace",		SDLK_BACKSPACE },
-			{ "Tab",			SDLK_TAB },
-			{ "Space",			SDLK_SPACE },
-			{ "Exclaim",		SDLK_EXCLAIM },
-			{ "QuoteDbl",		SDLK_QUOTEDBL },
-			{ "Hash",			SDLK_HASH },
-			{ "Percent",		SDLK_PERCENT },
-			{ "Dollar",			SDLK_DOLLAR },
-			{ "Ampersand",		SDLK_AMPERSAND },
-			{ "Quote",			SDLK_QUOTE },
-			{ "LeftParen",		SDLK_LEFTPAREN },
-			{ "RightParen",		SDLK_RIGHTPAREN },
-			{ "Asterisk",		SDLK_ASTERISK },
-			{ "Plus",			SDLK_PLUS },
-			{ "Comma",			SDLK_COMMA },
-			{ "Minus",			SDLK_MINUS },
-			{ "Period",			SDLK_PERIOD },
-			{ "Slash",			SDLK_SLASH },
-			{ "0",				SDLK_0 },
-			{ "1",				SDLK_1 },
-			{ "2",				SDLK_2 },
-			{ "3",				SDLK_3 },
-			{ "4",				SDLK_4 },
-			{ "5",				SDLK_5 },
-			{ "6",				SDLK_6 },
-			{ "7",				SDLK_7 },
-			{ "8",				SDLK_8 },
-			{ "9",				SDLK_9 },
-			{ "Colon",			SDLK_COLON },
-			{ "Semicolon",		SDLK_SEMICOLON },
-			{ "Less",			SDLK_LESS },
-			{ "Equals",			SDLK_EQUALS },
-			{ "Greater",		SDLK_GREATER },
-			{ "Question",		SDLK_QUESTION },
-			{ "At",				SDLK_AT },
-			{ "LeftBracket",	SDLK_LEFTBRACKET },
-			{ "Backslash",		SDLK_BACKSLASH },
-			{ "RightBracket",	SDLK_RIGHTBRACKET },
-			{ "Caret",			SDLK_CARET },
-			{ "Underscore",		SDLK_UNDERSCORE },
-			{ "BackQuote",		SDLK_BACKQUOTE },
-			{ "A",				SDLK_a },
-			{ "B",				SDLK_b },
-			{ "C",				SDLK_c },
-			{ "D",				SDLK_d },
-			{ "E",				SDLK_e },
-			{ "F",				SDLK_f },
-			{ "G",				SDLK_g },
-			{ "H",				SDLK_h },
-			{ "I",				SDLK_i },
-			{ "J",				SDLK_j },
-			{ "K",				SDLK_k },
-			{ "L",				SDLK_l },
-			{ "M",				SDLK_m },
-			{ "N",				SDLK_n },
-			{ "O",				SDLK_o },
-			{ "P",				SDLK_p },
-			{ "Q",				SDLK_q },
-			{ "R",				SDLK_r },
-			{ "S",				SDLK_s },
-			{ "T",				SDLK_t },
-			{ "U",				SDLK_u },
-			{ "V",				SDLK_v },
-			{ "W",				SDLK_w },
-			{ "X",				SDLK_x },
-			{ "Y",				SDLK_y },
-			{ "Z",				SDLK_z },
-			{ "CapsLock",		SDLK_CAPSLOCK },
+			{ "Enter", SDLK_RETURN },
+			{ "Esc", SDLK_ESCAPE },
+			{ "Backspace", SDLK_BACKSPACE },
+			{ "Tab", SDLK_TAB },
+			{ "Space", SDLK_SPACE },
+			{ "Exclaim", SDLK_EXCLAIM },
+			{ "QuoteDbl", SDLK_QUOTEDBL },
+			{ "Hash", SDLK_HASH },
+			{ "Percent", SDLK_PERCENT },
+			{ "Dollar", SDLK_DOLLAR },
+			{ "Ampersand", SDLK_AMPERSAND },
+			{ "Quote", SDLK_QUOTE },
+			{ "LeftParen", SDLK_LEFTPAREN },
+			{ "RightParen", SDLK_RIGHTPAREN },
+			{ "Asterisk", SDLK_ASTERISK },
+			{ "Plus", SDLK_PLUS },
+			{ "Comma", SDLK_COMMA },
+			{ "Minus", SDLK_MINUS },
+			{ "Period", SDLK_PERIOD },
+			{ "Slash", SDLK_SLASH },
+			{ "0", SDLK_0 },
+			{ "1", SDLK_1 },
+			{ "2", SDLK_2 },
+			{ "3", SDLK_3 },
+			{ "4", SDLK_4 },
+			{ "5", SDLK_5 },
+			{ "6", SDLK_6 },
+			{ "7", SDLK_7 },
+			{ "8", SDLK_8 },
+			{ "9", SDLK_9 },
+			{ "Colon", SDLK_COLON },
+			{ "Semicolon", SDLK_SEMICOLON },
+			{ "Less", SDLK_LESS },
+			{ "Equals", SDLK_EQUALS },
+			{ "Greater", SDLK_GREATER },
+			{ "Question", SDLK_QUESTION },
+			{ "At", SDLK_AT },
+			{ "LeftBracket", SDLK_LEFTBRACKET },
+			{ "Backslash", SDLK_BACKSLASH },
+			{ "RightBracket", SDLK_RIGHTBRACKET },
+			{ "Caret", SDLK_CARET },
+			{ "Underscore", SDLK_UNDERSCORE },
+			{ "BackQuote", SDLK_BACKQUOTE },
+			{ "A", SDLK_a },
+			{ "B", SDLK_b },
+			{ "C", SDLK_c },
+			{ "D", SDLK_d },
+			{ "E", SDLK_e },
+			{ "F", SDLK_f },
+			{ "G", SDLK_g },
+			{ "H", SDLK_h },
+			{ "I", SDLK_i },
+			{ "J", SDLK_j },
+			{ "K", SDLK_k },
+			{ "L", SDLK_l },
+			{ "M", SDLK_m },
+			{ "N", SDLK_n },
+			{ "O", SDLK_o },
+			{ "P", SDLK_p },
+			{ "Q", SDLK_q },
+			{ "R", SDLK_r },
+			{ "S", SDLK_s },
+			{ "T", SDLK_t },
+			{ "U", SDLK_u },
+			{ "V", SDLK_v },
+			{ "W", SDLK_w },
+			{ "X", SDLK_x },
+			{ "Y", SDLK_y },
+			{ "Z", SDLK_z },
+			{ "CapsLock", SDLK_CAPSLOCK },
 			// Function keys and some others like PrintScreen intentionally not available
-			{ "Insert",			SDLK_INSERT },
-			{ "Home",			SDLK_HOME },
-			{ "PageUp",			SDLK_PAGEUP },
-			{ "Delete",			SDLK_DELETE },
-			{ "End",			SDLK_END },
-			{ "PageDown",		SDLK_PAGEDOWN },
-			{ "Up",				SDLK_UP },
-			{ "Down",			SDLK_DOWN },
-			{ "Left",			SDLK_LEFT },
-			{ "Right",			SDLK_RIGHT },
-			{ "NumpadDivide",	SDLK_KP_DIVIDE },
+			{ "Insert", SDLK_INSERT },
+			{ "Home", SDLK_HOME },
+			{ "PageUp", SDLK_PAGEUP },
+			{ "Delete", SDLK_DELETE },
+			{ "End", SDLK_END },
+			{ "PageDown", SDLK_PAGEDOWN },
+			{ "Up", SDLK_UP },
+			{ "Down", SDLK_DOWN },
+			{ "Left", SDLK_LEFT },
+			{ "Right", SDLK_RIGHT },
+			{ "NumpadDivide", SDLK_KP_DIVIDE },
 			{ "NumpadMultiply", SDLK_KP_MULTIPLY },
-			{ "NumpadMinus",	SDLK_KP_MINUS },
-			{ "NumpadPlus",		SDLK_KP_PLUS },
-			{ "NumpadEnter",	SDLK_KP_ENTER },
-			{ "Numpad1",		SDLK_KP_1 },
-			{ "Numpad2",		SDLK_KP_2 },
-			{ "Numpad3",		SDLK_KP_3 },
-			{ "Numpad4",		SDLK_KP_4 },
-			{ "Numpad5",		SDLK_KP_5 },
-			{ "Numpad6",		SDLK_KP_6 },
-			{ "Numpad7",		SDLK_KP_7 },
-			{ "Numpad8",		SDLK_KP_8 },
-			{ "Numpad9",		SDLK_KP_9 },
-			{ "Numpad0",		SDLK_KP_0 },
-			{ "NumpadPeriod",	SDLK_KP_PERIOD },
+			{ "NumpadMinus", SDLK_KP_MINUS },
+			{ "NumpadPlus", SDLK_KP_PLUS },
+			{ "NumpadEnter", SDLK_KP_ENTER },
+			{ "Numpad1", SDLK_KP_1 },
+			{ "Numpad2", SDLK_KP_2 },
+			{ "Numpad3", SDLK_KP_3 },
+			{ "Numpad4", SDLK_KP_4 },
+			{ "Numpad5", SDLK_KP_5 },
+			{ "Numpad6", SDLK_KP_6 },
+			{ "Numpad7", SDLK_KP_7 },
+			{ "Numpad8", SDLK_KP_8 },
+			{ "Numpad9", SDLK_KP_9 },
+			{ "Numpad0", SDLK_KP_0 },
+			{ "NumpadPeriod", SDLK_KP_PERIOD },
 			// Most of the rest here is left out, as it does not seem important enough
-			{ "LeftShift",		SDLK_LSHIFT },
-			{ "RightShift",		SDLK_RSHIFT },
-			{ "LeftCtrl",		SDLK_LCTRL },
-			{ "RightCtrl",		SDLK_RCTRL },
-			{ "LeftAlt",		SDLK_LALT },
-			{ "RightAlt",		SDLK_RALT },
+			{ "LeftShift", SDLK_LSHIFT },
+			{ "RightShift", SDLK_RSHIFT },
+			{ "LeftCtrl", SDLK_LCTRL },
+			{ "RightCtrl", SDLK_RCTRL },
+			{ "LeftAlt", SDLK_LALT },
+			{ "RightAlt", SDLK_RALT },
 		};
 		static inline std::map<String, uint32> mKeyByIdentifier;	// Uses lowercase strings for better comparability
 		static inline std::map<uint32, String> mIdentifierByKey;
@@ -330,24 +330,24 @@ namespace
 #else
 	static const std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>> DEFAULT_KB1_FIXED_ASSIGNMENTS =
 	{
-		{ InputConfig::DeviceDefinition::Button::UP,	{ InputConfig::Assignment::Type::BUTTON, SDLK_UP     } },
-		{ InputConfig::DeviceDefinition::Button::DOWN,	{ InputConfig::Assignment::Type::BUTTON, SDLK_DOWN   } },
-		{ InputConfig::DeviceDefinition::Button::LEFT,	{ InputConfig::Assignment::Type::BUTTON, SDLK_LEFT   } },
-		{ InputConfig::DeviceDefinition::Button::RIGHT,	{ InputConfig::Assignment::Type::BUTTON, SDLK_RIGHT  } },
-		{ InputConfig::DeviceDefinition::Button::START,	{ InputConfig::Assignment::Type::BUTTON, SDLK_RETURN } },
-		{ InputConfig::DeviceDefinition::Button::BACK,	{ InputConfig::Assignment::Type::BUTTON, SDLK_ESCAPE } },
+		{ InputConfig::DeviceDefinition::Button::UP, { InputConfig::Assignment::Type::BUTTON, SDLK_UP } },
+		{ InputConfig::DeviceDefinition::Button::DOWN, { InputConfig::Assignment::Type::BUTTON, SDLK_DOWN } },
+		{ InputConfig::DeviceDefinition::Button::LEFT, { InputConfig::Assignment::Type::BUTTON, SDLK_LEFT } },
+		{ InputConfig::DeviceDefinition::Button::RIGHT, { InputConfig::Assignment::Type::BUTTON, SDLK_RIGHT } },
+		{ InputConfig::DeviceDefinition::Button::START, { InputConfig::Assignment::Type::BUTTON, SDLK_RETURN } },
+		{ InputConfig::DeviceDefinition::Button::BACK, { InputConfig::Assignment::Type::BUTTON, SDLK_ESCAPE } },
 	};
 
 	static const std::vector<std::pair<InputConfig::DeviceDefinition::Button, InputConfig::Assignment>> DEFAULT_KB1_MODIFYABLE_ASSIGNMENTS =
 	{
-		{ InputConfig::DeviceDefinition::Button::A,		{ InputConfig::Assignment::Type::BUTTON, SDLK_a } },
-		{ InputConfig::DeviceDefinition::Button::B,		{ InputConfig::Assignment::Type::BUTTON, SDLK_s } },
-		{ InputConfig::DeviceDefinition::Button::X,		{ InputConfig::Assignment::Type::BUTTON, SDLK_d } },
-		{ InputConfig::DeviceDefinition::Button::X,		{ InputConfig::Assignment::Type::BUTTON, SDLK_q } },
-		{ InputConfig::DeviceDefinition::Button::Y,		{ InputConfig::Assignment::Type::BUTTON, SDLK_w } },
-		{ InputConfig::DeviceDefinition::Button::BACK,	{ InputConfig::Assignment::Type::BUTTON, SDLK_BACKSPACE } },
-		{ InputConfig::DeviceDefinition::Button::L,		{ InputConfig::Assignment::Type::BUTTON, SDLK_e } },
-		{ InputConfig::DeviceDefinition::Button::R,		{ InputConfig::Assignment::Type::BUTTON, SDLK_r } },
+		{ InputConfig::DeviceDefinition::Button::A, { InputConfig::Assignment::Type::BUTTON, SDLK_a } },
+		{ InputConfig::DeviceDefinition::Button::B, { InputConfig::Assignment::Type::BUTTON, SDLK_s } },
+		{ InputConfig::DeviceDefinition::Button::X, { InputConfig::Assignment::Type::BUTTON, SDLK_d } },
+		{ InputConfig::DeviceDefinition::Button::X, { InputConfig::Assignment::Type::BUTTON, SDLK_q } },
+		{ InputConfig::DeviceDefinition::Button::Y, { InputConfig::Assignment::Type::BUTTON, SDLK_w } },
+		{ InputConfig::DeviceDefinition::Button::BACK, { InputConfig::Assignment::Type::BUTTON, SDLK_BACKSPACE } },
+		{ InputConfig::DeviceDefinition::Button::L, { InputConfig::Assignment::Type::BUTTON, SDLK_e } },
+		{ InputConfig::DeviceDefinition::Button::R, { InputConfig::Assignment::Type::BUTTON, SDLK_r } },
 	};
 #endif
 }
@@ -361,38 +361,38 @@ void InputConfig::Assignment::getMappingString(String& outString, DeviceType dev
 {
 	switch (deviceType)
 	{
-		case DeviceType::KEYBOARD:
-		{
-			outString = AssignmentLookup::getIdentifierByKey(mIndex);
-			if (outString.empty())
-			{
-				outString << "Key" << mIndex;
-			}
-			break;
-		}
+	case DeviceType::KEYBOARD:
+	{
+								 outString = AssignmentLookup::getIdentifierByKey(mIndex);
+								 if (outString.empty())
+								 {
+									 outString << "Key" << mIndex;
+								 }
+								 break;
+	}
 
-		case DeviceType::GAMEPAD:
-		{
-			switch (mType)
-			{
-				case Type::AXIS:
-				{
-					outString.clear() << "Axis" << mIndex;
-					break;
-				}
-				case Type::BUTTON:
-				{
-					outString.clear() << "Button" << mIndex;
-					break;
-				}
-				case Type::POV:
-				{
-					outString.clear() << "Pov" << rmx::log2(mIndex & 0xff);
-					break;
-				}
-			}
-			break;
-		}
+	case DeviceType::GAMEPAD:
+	{
+								switch (mType)
+								{
+								case Type::AXIS:
+								{
+												   outString.clear() << "Axis" << mIndex;
+												   break;
+								}
+								case Type::BUTTON:
+								{
+													 outString.clear() << "Button" << mIndex;
+													 break;
+								}
+								case Type::POV:
+								{
+												  outString.clear() << "Pov" << rmx::log2(mIndex & 0xff);
+												  break;
+								}
+								}
+								break;
+	}
 	}
 }
 
@@ -400,45 +400,45 @@ bool InputConfig::Assignment::setFromMappingString(Assignment& output, const Str
 {
 	switch (deviceType)
 	{
-		case DeviceType::KEYBOARD:
-		{
-			const uint32 key = AssignmentLookup::getKeyByIdentifier(mappingString);
-			if (key != 0)
-			{
-				output = Assignment(Type::BUTTON, key);
-				return true;
-			}
-			else if (mappingString.startsWith("Key"))
-			{
-				String str = mappingString.getSubString(3, mappingString.length() - 3);
-				output = Assignment(Type::BUTTON, str.parseInt());
-				return true;
-			}
-			break;
-		}
+	case DeviceType::KEYBOARD:
+	{
+								 const uint32 key = AssignmentLookup::getKeyByIdentifier(mappingString);
+								 if (key != 0)
+								 {
+									 output = Assignment(Type::BUTTON, key);
+									 return true;
+								 }
+								 else if (mappingString.startsWith("Key"))
+								 {
+									 String str = mappingString.getSubString(3, mappingString.length() - 3);
+									 output = Assignment(Type::BUTTON, str.parseInt());
+									 return true;
+								 }
+								 break;
+	}
 
-		case DeviceType::GAMEPAD:
-		{
-			if (mappingString.startsWith("Axis"))
-			{
-				String str = mappingString.getSubString(4, mappingString.length() - 4);
-				output = Assignment(Type::AXIS, str.parseInt());
-				return true;
-			}
-			else if (mappingString.startsWith("Button"))
-			{
-				String str = mappingString.getSubString(6, mappingString.length() - 6);
-				output = Assignment(Type::BUTTON, str.parseInt());
-				return true;
-			}
-			else if (mappingString.startsWith("Pov"))
-			{
-				String str = mappingString.getSubString(3, mappingString.length() - 3);
-				output = Assignment(Type::POV, (1 << str.parseInt()));
-				return true;
-			}
-			break;
-		}
+	case DeviceType::GAMEPAD:
+	{
+								if (mappingString.startsWith("Axis"))
+								{
+									String str = mappingString.getSubString(4, mappingString.length() - 4);
+									output = Assignment(Type::AXIS, str.parseInt());
+									return true;
+								}
+								else if (mappingString.startsWith("Button"))
+								{
+									String str = mappingString.getSubString(6, mappingString.length() - 6);
+									output = Assignment(Type::BUTTON, str.parseInt());
+									return true;
+								}
+								else if (mappingString.startsWith("Pov"))
+								{
+									String str = mappingString.getSubString(3, mappingString.length() - 3);
+									output = Assignment(Type::POV, (1 << str.parseInt()));
+									return true;
+								}
+								break;
+	}
 	}
 	return false;
 }
@@ -454,6 +454,34 @@ void InputConfig::setupDefaultDeviceDefinitions(std::vector<DeviceDefinition>& o
 		deviceDefinition.mDeviceType = DeviceType::KEYBOARD;
 		deviceDefinition.mIdentifier = InputManager::KEYBOARD_DEVICE_NAMES[keyboardIndex];
 		setupDefaultKeyboardMappings(deviceDefinition, keyboardIndex);
+	}
+
+	// Default PS3 / Fallback Gamepad Definition
+	{
+		DeviceDefinition& deviceDefinition = vectorAdd(outDeviceDefinitions);
+		deviceDefinition.mDeviceType = DeviceType::GAMEPAD;
+		deviceDefinition.mIdentifier = "PLAYSTATION(R)3 Controller";
+		deviceDefinition.mDeviceNames[rmx::getMurmur2_64("playstation(r)3 controller")] = "PLAYSTATION(R)3 Controller";
+		deviceDefinition.mDeviceNames[rmx::getMurmur2_64("*")] = "*";
+
+		using Button = DeviceDefinition::Button;
+		deviceDefinition.mMappings[(size_t)Button::UP].mAssignments.push_back(Assignment(Assignment::Type::POV, 1));
+		deviceDefinition.mMappings[(size_t)Button::UP].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 2));
+		deviceDefinition.mMappings[(size_t)Button::DOWN].mAssignments.push_back(Assignment(Assignment::Type::POV, 4));
+		deviceDefinition.mMappings[(size_t)Button::DOWN].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 3));
+		deviceDefinition.mMappings[(size_t)Button::LEFT].mAssignments.push_back(Assignment(Assignment::Type::POV, 8));
+		deviceDefinition.mMappings[(size_t)Button::LEFT].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 0));
+		deviceDefinition.mMappings[(size_t)Button::RIGHT].mAssignments.push_back(Assignment(Assignment::Type::POV, 2));
+		deviceDefinition.mMappings[(size_t)Button::RIGHT].mAssignments.push_back(Assignment(Assignment::Type::AXIS, 1));
+
+		deviceDefinition.mMappings[(size_t)Button::A].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 0));
+		deviceDefinition.mMappings[(size_t)Button::B].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 1));
+		deviceDefinition.mMappings[(size_t)Button::X].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 2));
+		deviceDefinition.mMappings[(size_t)Button::Y].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 3));
+		deviceDefinition.mMappings[(size_t)Button::START].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 4));
+		deviceDefinition.mMappings[(size_t)Button::BACK].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 5));
+		deviceDefinition.mMappings[(size_t)Button::L].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 6));
+		deviceDefinition.mMappings[(size_t)Button::R].mAssignments.push_back(Assignment(Assignment::Type::BUTTON, 7));
 	}
 }
 

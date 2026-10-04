@@ -76,30 +76,30 @@ namespace lemon
 				const Keyword keyword = parserTokens[0].as<KeywordParserToken>().mKeyword;
 				switch (keyword)
 				{
-					case Keyword::BLOCK_BEGIN:
-					{
-						CHECK_ERROR(parserTokens.size() == 1, "Curly brace must use its own line", lineNumber);
+				case Keyword::BLOCK_BEGIN:
+				{
+											 CHECK_ERROR(parserTokens.size() == 1, "Curly brace must use its own line", lineNumber);
 
-						// Start new block
-						blockNodeStack.pushBlockNode(lineNumber);
+											 // Start new block
+											 blockNodeStack.pushBlockNode(lineNumber);
 
-						isUndefined = false;
-						break;
-					}
+											 isUndefined = false;
+											 break;
+				}
 
-					case Keyword::BLOCK_END:
-					{
-						CHECK_ERROR(parserTokens.size() == 1, "Curly brace must use its own line", lineNumber);
+				case Keyword::BLOCK_END:
+				{
+										   CHECK_ERROR(parserTokens.size() == 1, "Curly brace must use its own line", lineNumber);
 
-						// Close block
-						blockNodeStack.popBlockNode(lineNumber);
+										   // Close block
+										   blockNodeStack.popBlockNode(lineNumber);
 
-						isUndefined = false;
-						break;
-					}
+										   isUndefined = false;
+										   break;
+				}
 
-					default:
-						break;
+				default:
+					break;
 				}
 			}
 
@@ -125,67 +125,67 @@ namespace lemon
 					ParserToken& parserToken = parserTokens[i];
 					switch (parserToken.getType())
 					{
-						case ParserToken::Type::KEYWORD:
-						{
-							node.mTokenList.createBack<KeywordToken>().mKeyword = parserToken.as<KeywordParserToken>().mKeyword;
-							break;
-						}
+					case ParserToken::Type::KEYWORD:
+					{
+													   node.mTokenList.createBack<KeywordToken>().mKeyword = parserToken.as<KeywordParserToken>().mKeyword;
+													   break;
+					}
 
-						case ParserToken::Type::VARTYPE:
-						{
-							node.mTokenList.createBack<VarTypeToken>().mDataType = parserToken.as<VarTypeParserToken>().mDataType;
-							break;
-						}
+					case ParserToken::Type::VARTYPE:
+					{
+													   node.mTokenList.createBack<VarTypeToken>().mDataType = parserToken.as<VarTypeParserToken>().mDataType;
+													   break;
+					}
 
-						case ParserToken::Type::OPERATOR:
-						{
-							node.mTokenList.createBack<OperatorToken>().mOperator = parserToken.as<OperatorParserToken>().mOperator;
-							break;
-						}
+					case ParserToken::Type::OPERATOR:
+					{
+														node.mTokenList.createBack<OperatorToken>().mOperator = parserToken.as<OperatorParserToken>().mOperator;
+														break;
+					}
 
-						case ParserToken::Type::LABEL:
-						{
-							node.mTokenList.createBack<LabelToken>().mName = parserToken.as<LabelParserToken>().mName;
-							break;
-						}
+					case ParserToken::Type::LABEL:
+					{
+													 node.mTokenList.createBack<LabelToken>().mName = parserToken.as<LabelParserToken>().mName;
+													 break;
+					}
 
-						case ParserToken::Type::PRAGMA:
-						{
-							// Just ignore this one
-							break;
-						}
+					case ParserToken::Type::PRAGMA:
+					{
+													  // Just ignore this one
+													  break;
+					}
 
-						case ParserToken::Type::CONSTANT:
-						{
-							const ConstantParserToken& input = parserToken.as<ConstantParserToken>();
-							ConstantToken& constantToken = node.mTokenList.createBack<ConstantToken>();
-							constantToken.mValue = input.mValue;
-							constantToken.mDataType = (input.mBaseType == BaseType::FLOAT)  ? &PredefinedDataTypes::FLOAT.as<DataTypeDefinition>() :
-													  (input.mBaseType == BaseType::DOUBLE) ? &PredefinedDataTypes::DOUBLE.as<DataTypeDefinition>() : &PredefinedDataTypes::CONST_INT.as<DataTypeDefinition>();
-							break;
-						}
+					case ParserToken::Type::CONSTANT:
+					{
+														const ConstantParserToken& input = parserToken.as<ConstantParserToken>();
+														ConstantToken& constantToken = node.mTokenList.createBack<ConstantToken>();
+														constantToken.mValue = input.mValue;
+														constantToken.mDataType = (input.mBaseType == BaseType::FLOAT) ? &PredefinedDataTypes::FLOAT.as<DataTypeDefinition>() :
+															(input.mBaseType == BaseType::DOUBLE) ? &PredefinedDataTypes::DOUBLE.as<DataTypeDefinition>() : &PredefinedDataTypes::CONST_INT.as<DataTypeDefinition>();
+														break;
+					}
 
-						case ParserToken::Type::STRING_LITERAL:
-						{
-							const FlyweightString str = parserToken.as<StringLiteralParserToken>().mString;
-							const FlyweightString* existingString = mGlobalsLookup.getStringLiteralByHash(str.getHash());
-							if (nullptr == existingString)
-							{
-								// Add as a new string literal to the module
-								mModule.addStringLiteral(str);
-							}
-							ConstantToken& constantToken = node.mTokenList.createBack<ConstantToken>();
-							constantToken.mValue.set(str.getHash());
-							constantToken.mDataType = &PredefinedDataTypes::STRING;
-							break;
-						}
+					case ParserToken::Type::STRING_LITERAL:
+					{
+															  const FlyweightString str = parserToken.as<StringLiteralParserToken>().mString;
+															  const FlyweightString* existingString = mGlobalsLookup.getStringLiteralByHash(str.getHash());
+															  if (nullptr == existingString)
+															  {
+																  // Add as a new string literal to the module
+																  mModule.addStringLiteral(str);
+															  }
+															  ConstantToken& constantToken = node.mTokenList.createBack<ConstantToken>();
+															  constantToken.mValue.set(str.getHash());
+															  constantToken.mDataType = &PredefinedDataTypes::STRING;
+															  break;
+					}
 
-						case ParserToken::Type::IDENTIFIER:
-						{
-							IdentifierToken& token = node.mTokenList.createBack<IdentifierToken>();
-							token.mName = parserToken.as<IdentifierParserToken>().mName;
-							break;
-						}
+					case ParserToken::Type::IDENTIFIER:
+					{
+														  IdentifierToken& token = node.mTokenList.createBack<IdentifierToken>();
+														  token.mName = parserToken.as<IdentifierParserToken>().mName;
+														  break;
+					}
 					}
 				}
 			}
@@ -218,210 +218,205 @@ namespace lemon
 
 					switch (tokens[0].as<KeywordToken>().mKeyword)
 					{
-						case Keyword::FUNCTION:
-						{
-							// Next node must be a block node
-							const size_t nodeIndex = nodesIterator.mCurrentIndex;
-							CHECK_ERROR(nodeIndex+1 < nodes.size(), "Function definition as last node is not allowed", lineNumber);
-							CHECK_ERROR(nodes[nodeIndex+1].isA<BlockNode>(), "Expected block node after function header", lineNumber);
+					case Keyword::FUNCTION:
+					{
+											  // Next node must be a block node
+											  const size_t nodeIndex = nodesIterator.mCurrentIndex;
+											  CHECK_ERROR(nodeIndex + 1 < nodes.size(), "Function definition as last node is not allowed", lineNumber);
+											  CHECK_ERROR(nodes[nodeIndex + 1].isA<BlockNode>(), "Expected block node after function header", lineNumber);
 
-							// Process tokens
-							ScriptFunction& function = processFunctionHeader(node, tokens);
+											  // Process tokens
+											  ScriptFunction& function = processFunctionHeader(node, tokens);
 
-							// Create function node, replacing the undefined node
-							FunctionNode& newNode = nodes.createReplaceAt<FunctionNode>(nodeIndex);
-							newNode.mFunction = &function;
-							newNode.mContent = nodes[nodeIndex+1].as<BlockNode>();
-							newNode.setLineNumber(lineNumber);
+											  // Create function node, replacing the undefined node
+											  FunctionNode& newNode = nodes.createReplaceAt<FunctionNode>(nodeIndex);
+											  newNode.mFunction = &function;
+											  newNode.mContent = nodes[nodeIndex + 1].as<BlockNode>();
+											  newNode.setLineNumber(lineNumber);
 
-							mFunctionNodes.push_back(&newNode);
+											  mFunctionNodes.push_back(&newNode);
 
-							// Erase block node pointer
-							++nodesIterator;
-							nodesIterator.eraseCurrent();
+											  // Erase block node pointer
+											  ++nodesIterator;
+											  nodesIterator.eraseCurrent();
 
-							// Add all pragmas associated with this function, i.e. all pragma nodes in front
-							for (PragmaNode* pragmaNode : currentPragmas)
-							{
-								function.addOrProcessPragma(pragmaNode->mContent, mCompileOptions.mConsumeProcessedPragmas);
-							}
+											  // Add all pragmas associated with this function, i.e. all pragma nodes in front
+											  for (PragmaNode* pragmaNode : currentPragmas)
+											  {
+												  function.addOrProcessPragma(pragmaNode->mContent, mCompileOptions.mConsumeProcessedPragmas);
+											  }
 
-							// Now register the function
-							mGlobalsLookup.registerFunction(function);
-							break;
-						}
+											  // Now register the function
+											  mGlobalsLookup.registerFunction(function);
+											  break;
+					}
 
-						case Keyword::GLOBAL:
-						{
-							size_t offset = 1;
-							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<VarTypeToken>(), "Expected a typename after 'global' keyword", lineNumber);
-							const DataTypeDefinition* dataType = tokens[offset].as<VarTypeToken>().mDataType;
-							++offset;
+					case Keyword::GLOBAL:
+					{
+											size_t offset = 1;
+											CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<VarTypeToken>(), "Expected a typename after 'global' keyword", lineNumber);
+											const DataTypeDefinition* dataType = tokens[offset].as<VarTypeToken>().mDataType;
+											++offset;
 
-							CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier in global variable definition", lineNumber);
-							const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
-							++offset;
+											CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier in global variable definition", lineNumber);
+											const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
+											++offset;
 
-							// Check for array definition
-							if (offset+3 <= tokens.size() && isOperator(tokens[offset], Operator::BRACKET_LEFT) &&
-								tokens[offset+1].isA<ConstantToken>() && isOperator(tokens[offset+2], Operator::BRACKET_RIGHT))
-							{
-								CHECK_ERROR(tokens[offset+1].as<ConstantToken>().mDataType == &PredefinedDataTypes::CONST_INT, "Expected an integer as array size", lineNumber);
-								const int arraySize = tokens[offset+1].as<ConstantToken>().mValue.get<int32>();
-								CHECK_ERROR(arraySize >= 1, "Invalid array size of " << arraySize, lineNumber);
-								CHECK_ERROR(arraySize <= 0x10000, "Too large array size of " << arraySize, lineNumber);
-								CHECK_ERROR(offset+3 == tokens.size(), "Syntax error after array definition", lineNumber);
+											// Check for array definition
+											if (offset + 3 <= tokens.size() && isOperator(tokens[offset], Operator::BRACKET_LEFT) &&
+												tokens[offset + 1].isA<ConstantToken>() && isOperator(tokens[offset + 2], Operator::BRACKET_RIGHT))
+											{
+												CHECK_ERROR(tokens[offset + 1].as<ConstantToken>().mDataType == &PredefinedDataTypes::CONST_INT, "Expected an integer as array size", lineNumber);
+												const int arraySize = tokens[offset + 1].as<ConstantToken>().mValue.get<int32>();
+												CHECK_ERROR(arraySize >= 1, "Invalid array size of " << arraySize, lineNumber);
+												CHECK_ERROR(arraySize <= 0x10000, "Too large array size of " << arraySize, lineNumber);
+												CHECK_ERROR(offset + 3 == tokens.size(), "Syntax error after array definition", lineNumber);
 
-								// Get or create array data type
-								const DataTypeDefinition& arrayDataType = mTokenProcessing.getArrayDataType(*dataType, arraySize);
+												// Get or create array data type
+												const DataTypeDefinition& arrayDataType = mTokenProcessing.getArrayDataType(*dataType, arraySize);
 
-								// Create global variable
-								GlobalVariable& variable = mModule.addGlobalVariable(identifier, &arrayDataType);
-								mGlobalsLookup.registerGlobalVariable(variable);
-							}
-							else
-							{
-								// Create global variable
-								GlobalVariable& variable = mModule.addGlobalVariable(identifier, dataType);
-								mGlobalsLookup.registerGlobalVariable(variable);
+												// Create global variable
+												GlobalVariable& variable = mModule.addGlobalVariable(identifier, &arrayDataType);
+												mGlobalsLookup.registerGlobalVariable(variable);
+											}
+											else
+											{
+												// Create global variable
+												GlobalVariable& variable = mModule.addGlobalVariable(identifier, dataType);
+												mGlobalsLookup.registerGlobalVariable(variable);
 
-								if (offset+2 <= tokens.size() && isOperator(tokens[offset], Operator::ASSIGN))
-								{
-									++offset;
-									variable.mInitialValue = readConstantExpression(tokens, offset, tokens.size(), dataType, lineNumber);
-								}
-							}
-							break;
-						}
+												if (offset + 2 <= tokens.size() && isOperator(tokens[offset], Operator::ASSIGN))
+												{
+													++offset;
+													variable.mInitialValue = readConstantExpression(tokens, offset, tokens.size(), dataType, lineNumber);
+												}
+											}
+											break;
+					}
 
-						case Keyword::CONSTANT:
-						{
-							processConstantDefinition(tokens, nodesIterator, nullptr);
-							break;
-						}
+					case Keyword::CONSTANT:
+					{
+											  processConstantDefinition(tokens, nodesIterator, nullptr);
+											  break;
+					}
 
-						case Keyword::DEFINE:
-						{
-							// Check for copy(...) to(...) variant
-							CHECK_ERROR(tokens.size() >= 2, "Expected anything after define", lineNumber);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-							constexpr uint64 COPY_HASH = rmx::constMurmur2_64("copy");
-							constexpr uint64 TO_HASH = rmx::constMurmur2_64("to");
-#else
-							constexpr uint64 COPY_HASH = 2037411643ULL;
-							constexpr uint64 TO_HASH = 28532ULL;
-#endif
-							if (isIdentifier(tokens[1], COPY_HASH))
-							{
-								CHECK_ERROR(tokens.size() == 13, "Syntax error after define copy", lineNumber);
-								CHECK_ERROR(isOperator(tokens[2], Operator::PARENTHESIS_LEFT), "Expected parenthesis after 'copy' in define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[3].isA<IdentifierToken>(), "Expected identifier as first argument of 'copy' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[4], Operator::COMMA_SEPARATOR), "Expected comma between arguments in 'copy' part of define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[5].isA<IdentifierToken>(), "Expected identifier as second argument of 'copy' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[6], Operator::PARENTHESIS_RIGHT), "Expected parenthesis after 'copy' in define copy() to()", lineNumber);
+					case Keyword::DEFINE:
+					{
+											// Check for copy(...) to(...) variant
+											CHECK_ERROR(tokens.size() >= 2, "Expected anything after define", lineNumber);
+											constexpr uint64 COPY_HASH = rmx::constMurmur2_64("copy");
+											constexpr uint64 TO_HASH = rmx::constMurmur2_64("to");
+											if (isIdentifier(tokens[1], COPY_HASH))
+											{
+												CHECK_ERROR(tokens.size() == 13, "Syntax error after define copy", lineNumber);
+												CHECK_ERROR(isOperator(tokens[2], Operator::PARENTHESIS_LEFT), "Expected parenthesis after 'copy' in define copy() to()", lineNumber);
+												CHECK_ERROR(tokens[3].isA<IdentifierToken>(), "Expected identifier as first argument of 'copy' part of in define copy() to()", lineNumber);
+												CHECK_ERROR(isOperator(tokens[4], Operator::COMMA_SEPARATOR), "Expected comma between arguments in 'copy' part of define copy() to()", lineNumber);
+												CHECK_ERROR(tokens[5].isA<IdentifierToken>(), "Expected identifier as second argument of 'copy' part of in define copy() to()", lineNumber);
+												CHECK_ERROR(isOperator(tokens[6], Operator::PARENTHESIS_RIGHT), "Expected parenthesis after 'copy' in define copy() to()", lineNumber);
 
-								CHECK_ERROR(isIdentifier(tokens[7], TO_HASH), "Expected 'to' in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[8], Operator::PARENTHESIS_LEFT), "Expected parenthesis after 'to' in define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[9].isA<IdentifierToken>(), "Expected identifier as first argument of 'to' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[10], Operator::COMMA_SEPARATOR), "Expected comma between arguments in 'to' part of define copy() to()", lineNumber);
-								CHECK_ERROR(tokens[11].isA<IdentifierToken>(), "Expected identifier as second argument of 'to' part of in define copy() to()", lineNumber);
-								CHECK_ERROR(isOperator(tokens[12], Operator::PARENTHESIS_RIGHT), "Expected parenthesis after 'to' in define copy() to()", lineNumber);
+												CHECK_ERROR(isIdentifier(tokens[7], TO_HASH), "Expected 'to' in define copy() to()", lineNumber);
+												CHECK_ERROR(isOperator(tokens[8], Operator::PARENTHESIS_LEFT), "Expected parenthesis after 'to' in define copy() to()", lineNumber);
+												CHECK_ERROR(tokens[9].isA<IdentifierToken>(), "Expected identifier as first argument of 'to' part of in define copy() to()", lineNumber);
+												CHECK_ERROR(isOperator(tokens[10], Operator::COMMA_SEPARATOR), "Expected comma between arguments in 'to' part of define copy() to()", lineNumber);
+												CHECK_ERROR(tokens[11].isA<IdentifierToken>(), "Expected identifier as second argument of 'to' part of in define copy() to()", lineNumber);
+												CHECK_ERROR(isOperator(tokens[12], Operator::PARENTHESIS_RIGHT), "Expected parenthesis after 'to' in define copy() to()", lineNumber);
 
-								const FlyweightString prefixBefore = tokens[3].as<IdentifierToken>().mName;
-								const FlyweightString identifierBefore = tokens[5].as<IdentifierToken>().mName;
-								const FlyweightString prefixAfter = tokens[9].as<IdentifierToken>().mName;
-								const FlyweightString identifierAfter = tokens[11].as<IdentifierToken>().mName;
+												const FlyweightString prefixBefore = tokens[3].as<IdentifierToken>().mName;
+												const FlyweightString identifierBefore = tokens[5].as<IdentifierToken>().mName;
+												const FlyweightString prefixAfter = tokens[9].as<IdentifierToken>().mName;
+												const FlyweightString identifierAfter = tokens[11].as<IdentifierToken>().mName;
 
-								std::vector<const Define*> definesToCopy;
-								for (const Define* existingDefine : mModule.getDefines())
-								{
-									if (rmx::startsWith(existingDefine->getName().getString(), prefixBefore.getString()))
-									{
-										definesToCopy.push_back(existingDefine);
-									}
-								}
+												std::vector<const Define*> definesToCopy;
+												for (const Define* existingDefine : mModule.getDefines())
+												{
+													if (rmx::startsWith(existingDefine->getName().getString(), prefixBefore.getString()))
+													{
+														definesToCopy.push_back(existingDefine);
+													}
+												}
 
-								for (const Define* existingDefine : definesToCopy)
-								{
-									// Copy that define into a new one
-									std::string newDefineName(prefixAfter.getString());
-									newDefineName += existingDefine->getName().getString().substr(prefixBefore.getString().length());
+												for (const Define* existingDefine : definesToCopy)
+												{
+													// Copy that define into a new one
+													std::string newDefineName(prefixAfter.getString());
+													newDefineName += existingDefine->getName().getString().substr(prefixBefore.getString().length());
 
-									Define& newDefine = mModule.addDefine(newDefineName, existingDefine->getDataType());
-									newDefine.mContent.copyFrom(existingDefine->mContent);		// Note that this is only a shallow copy, still pointing to the same token instances
+													Define& newDefine = mModule.addDefine(newDefineName, existingDefine->getDataType());
+													newDefine.mContent.copyFrom(existingDefine->mContent);		// Note that this is only a shallow copy, still pointing to the same token instances
 
-									// Deep copy and replace
-									for (size_t k = 0; k < newDefine.mContent.size(); ++k)
-									{
-										const IdentifierToken* identifierToken = newDefine.mContent[k].cast<IdentifierToken>();
-										if (nullptr != identifierToken && identifierToken->mName == identifierBefore)
-										{
-											// Replace token with a new one
-											//  -> Don't just change the existing one because it's still shared with the define that it was copied from
-											IdentifierToken& newToken = newDefine.mContent.createReplaceAt<IdentifierToken>(k);
-											newToken.mName = identifierAfter;
-											newToken.mDataType = identifierToken->mDataType;
-										}
-									}
+													// Deep copy and replace
+													for (size_t k = 0; k < newDefine.mContent.size(); ++k)
+													{
+														const IdentifierToken* identifierToken = newDefine.mContent[k].cast<IdentifierToken>();
+														if (nullptr != identifierToken && identifierToken->mName == identifierBefore)
+														{
+															// Replace token with a new one
+															//  -> Don't just change the existing one because it's still shared with the define that it was copied from
+															IdentifierToken& newToken = newDefine.mContent.createReplaceAt<IdentifierToken>(k);
+															newToken.mName = identifierAfter;
+															newToken.mDataType = identifierToken->mDataType;
+														}
+													}
 
-									mGlobalsLookup.registerDefine(newDefine);
-								}
-							}
-							else
-							{
-								size_t offset = 1;
-								const DataTypeDefinition* dataType = nullptr;	// Not specified
+													mGlobalsLookup.registerDefine(newDefine);
+												}
+											}
+											else
+											{
+												size_t offset = 1;
+												const DataTypeDefinition* dataType = nullptr;	// Not specified
 
-								// Typename is optional
-								if (offset < tokens.size() && tokens[offset].isA<VarTypeToken>())
-								{
-									dataType = tokens[offset].as<VarTypeToken>().mDataType;
-									++offset;
-								}
+												// Typename is optional
+												if (offset < tokens.size() && tokens[offset].isA<VarTypeToken>())
+												{
+													dataType = tokens[offset].as<VarTypeToken>().mDataType;
+													++offset;
+												}
 
-								CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier for define", lineNumber);
-								const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
-								++offset;
+												CHECK_ERROR(offset < tokens.size() && tokens[offset].isA<IdentifierToken>(), "Expected an identifier for define", lineNumber);
+												const FlyweightString identifier = tokens[offset].as<IdentifierToken>().mName;
+												++offset;
 
-								CHECK_ERROR(offset < tokens.size() && isOperator(tokens[offset], Operator::ASSIGN), "Expected '=' in define", lineNumber);
-								++offset;
+												CHECK_ERROR(offset < tokens.size() && isOperator(tokens[offset], Operator::ASSIGN), "Expected '=' in define", lineNumber);
+												++offset;
 
-								// Rest is define content
-								CHECK_ERROR(offset < tokens.size(), "Missing define content", lineNumber);
+												// Rest is define content
+												CHECK_ERROR(offset < tokens.size(), "Missing define content", lineNumber);
 
-								// Find out the data type if not specified yet
-								if (nullptr == dataType)
-								{
-									if (tokens[offset].isA<VarTypeToken>())
-									{
-										dataType = tokens[offset].as<VarTypeToken>().mDataType;
-									}
-									else
-									{
-										CHECK_ERROR(false, "Data type of define could not be determined", lineNumber);
-									}
-								}
+												// Find out the data type if not specified yet
+												if (nullptr == dataType)
+												{
+													if (tokens[offset].isA<VarTypeToken>())
+													{
+														dataType = tokens[offset].as<VarTypeToken>().mDataType;
+													}
+													else
+													{
+														CHECK_ERROR(false, "Data type of define could not be determined", lineNumber);
+													}
+												}
 
-								// Create define
-								Define& define = mModule.addDefine(identifier, dataType);
-								for (size_t i = offset; i < tokens.size(); ++i)
-								{
-									define.mContent.add(tokens[i]);
-								}
-								mGlobalsLookup.registerDefine(define);
-							}
-							break;
-						}
+												// Create define
+												Define& define = mModule.addDefine(identifier, dataType);
+												for (size_t i = offset; i < tokens.size(); ++i)
+												{
+													define.mContent.add(tokens[i]);
+												}
+												mGlobalsLookup.registerDefine(define);
+											}
+											break;
+					}
 
-						case Keyword::DECLARE:
-						{
-							// Completely ignore this line, we don't evaluate declarations at all (yet)
-							// TODO: However, it could make sense to check them just to see if there's a matching function definition at all
-							break;
-						}
+					case Keyword::DECLARE:
+					{
+											 // Completely ignore this line, we don't evaluate declarations at all (yet)
+											 // TODO: However, it could make sense to check them just to see if there's a matching function definition at all
+											 break;
+					}
 
-						default:
-							break;
+					default:
+						break;
 					}
 				}
 
@@ -432,7 +427,7 @@ namespace lemon
 		// Do some post-processing on the defines, to resolve situations where one define uses another one
 		for (Define* define : mModule.getDefines())
 		{
-			for (int iterationDepth = 0; ; ++iterationDepth)
+			for (int iterationDepth = 0;; ++iterationDepth)
 			{
 				if (!mTokenProcessing.resolveIdentifiers(define->mContent))
 					break;
@@ -542,35 +537,35 @@ namespace lemon
 
 			switch (node.getType())
 			{
-				case Node::Type::BLOCK:
-				{
-					processUndefinedNodesInBlock(node.as<BlockNode>(), function, scopeContext);
-					break;
-				}
+			case Node::Type::BLOCK:
+			{
+									  processUndefinedNodesInBlock(node.as<BlockNode>(), function, scopeContext);
+									  break;
+			}
 
-				case Node::Type::PRAGMA:
-				{
-					mCurrentPragmas.push_back(&node.as<PragmaNode>());
-					break;
-				}
+			case Node::Type::PRAGMA:
+			{
+									   mCurrentPragmas.push_back(&node.as<PragmaNode>());
+									   break;
+			}
 
-				case Node::Type::UNDEFINED:
-				{
-					UndefinedNode& un = node.as<UndefinedNode>();
-					Node* newNode = processUndefinedNode(un, function, scopeContext, nodesIterator);
-					if (nullptr != newNode)
-					{
-						newNode->setLineNumber(node.getLineNumber());
+			case Node::Type::UNDEFINED:
+			{
+										  UndefinedNode& un = node.as<UndefinedNode>();
+										  Node* newNode = processUndefinedNode(un, function, scopeContext, nodesIterator);
+										  if (nullptr != newNode)
+										  {
+											  newNode->setLineNumber(node.getLineNumber());
 
-						// Replace undefined node
-						blockNode.mNodes.replace(*newNode, nodeIndex);
-					}
-					mCurrentPragmas.clear();
-					break;
-				}
+											  // Replace undefined node
+											  blockNode.mNodes.replace(*newNode, nodeIndex);
+										  }
+										  mCurrentPragmas.clear();
+										  break;
+			}
 
-				default:
-					break;
+			default:
+				break;
 			}
 		}
 
@@ -590,211 +585,211 @@ namespace lemon
 			const Keyword keyword = tokens[0].as<KeywordToken>().mKeyword;
 			switch (keyword)
 			{
-				case Keyword::RETURN:
-				{
-					// Process tokens
-					processTokens(tokens, function, scopeContext, lineNumber);
+			case Keyword::RETURN:
+			{
+									// Process tokens
+									processTokens(tokens, function, scopeContext, lineNumber);
 
-					if (tokens.size() > 1)
-					{
-						CHECK_ERROR(tokens.size() <= 2, "Return can have up to one statement", lineNumber);
-						CHECK_ERROR(tokens[1].isStatement(), "Token after 'return' must be a statement", lineNumber);
-					}
+									if (tokens.size() > 1)
+									{
+										CHECK_ERROR(tokens.size() <= 2, "Return can have up to one statement", lineNumber);
+										CHECK_ERROR(tokens[1].isStatement(), "Token after 'return' must be a statement", lineNumber);
+									}
 
-					// Note that return type is not known here yet
-					ReturnNode& node = NodeFactory::create<ReturnNode>();
-					node.setLineNumber(lineNumber);
+									// Note that return type is not known here yet
+									ReturnNode& node = NodeFactory::create<ReturnNode>();
+									node.setLineNumber(lineNumber);
 
-					if (tokens.size() > 1)
-					{
-						node.mStatementToken = tokens[1].as<StatementToken>();
-						tokens.erase(1);
-					}
-					return &node;
-				}
+									if (tokens.size() > 1)
+									{
+										node.mStatementToken = tokens[1].as<StatementToken>();
+										tokens.erase(1);
+									}
+									return &node;
+			}
 
-				case Keyword::CALL:
-				case Keyword::JUMP:
-				{
-					// Process tokens
-					processTokens(tokens, function, scopeContext, lineNumber, mCompileOptions.mExternalAddressType);
+			case Keyword::CALL:
+			case Keyword::JUMP:
+			{
+								  // Process tokens
+								  processTokens(tokens, function, scopeContext, lineNumber, mCompileOptions.mExternalAddressType);
 
-					// Special case: Indirect jump
-					if (keyword == Keyword::JUMP && tokens.size() == 1 && tokens[0].isA<CommaSeparatedListToken>())
-					{
-						const CommaSeparatedListToken& cslt = tokens[0].as<CommaSeparatedListToken>();
-						if (cslt.mContent.size() >= 2 && cslt.mContent[0].size() == 2 && cslt.mContent[0][1].isStatement())
-						{
-							JumpIndirectNode& node = NodeFactory::create<JumpIndirectNode>();
-							node.mIndexToken = cslt.mContent[0][1].as<StatementToken>();
+								  // Special case: Indirect jump
+								  if (keyword == Keyword::JUMP && tokens.size() == 1 && tokens[0].isA<CommaSeparatedListToken>())
+								  {
+									  const CommaSeparatedListToken& cslt = tokens[0].as<CommaSeparatedListToken>();
+									  if (cslt.mContent.size() >= 2 && cslt.mContent[0].size() == 2 && cslt.mContent[0][1].isStatement())
+									  {
+										  JumpIndirectNode& node = NodeFactory::create<JumpIndirectNode>();
+										  node.mIndexToken = cslt.mContent[0][1].as<StatementToken>();
 
-							size_t index = 1;
-							while (index < cslt.mContent.size())
-							{
-								CHECK_ERROR(cslt.mContent[index].size() == 1, "Invalid syntax for indirect 'jump'", lineNumber);
-								CHECK_ERROR(cslt.mContent[index][0].isA<LabelToken>(), "Invalid syntax for indirect 'jump'", lineNumber);
-								vectorAdd(node.mLabelTokens) = cslt.mContent[index][0].as<LabelToken>();
-								++index;
-							}
-							node.setLineNumber(lineNumber);
-							return &node;
-						}
-					}
+										  size_t index = 1;
+										  while (index < cslt.mContent.size())
+										  {
+											  CHECK_ERROR(cslt.mContent[index].size() == 1, "Invalid syntax for indirect 'jump'", lineNumber);
+											  CHECK_ERROR(cslt.mContent[index][0].isA<LabelToken>(), "Invalid syntax for indirect 'jump'", lineNumber);
+											  vectorAdd(node.mLabelTokens) = cslt.mContent[index][0].as<LabelToken>();
+											  ++index;
+										  }
+										  node.setLineNumber(lineNumber);
+										  return &node;
+									  }
+								  }
 
-					CHECK_ERROR(tokens.size() == 2, "'call' and 'jump' need an additional token after them", lineNumber);
-					if (tokens[1].isStatement())
-					{
-						// Note that argument type is not known here yet
-						ExternalNode& node = NodeFactory::create<ExternalNode>();
-						node.mStatementToken = tokens[1].as<StatementToken>();
-						node.mSubType = (keyword == Keyword::CALL) ? ExternalNode::SubType::EXTERNAL_CALL : ExternalNode::SubType::EXTERNAL_JUMP;
-						node.setLineNumber(lineNumber);
-						tokens.erase(1);
-						return &node;
-					}
-					else if (tokens[1].isA<LabelToken>())
-					{
-						CHECK_ERROR(keyword == Keyword::JUMP, "Label is not allowed after 'call' keyword", lineNumber);
+								  CHECK_ERROR(tokens.size() == 2, "'call' and 'jump' need an additional token after them", lineNumber);
+								  if (tokens[1].isStatement())
+								  {
+									  // Note that argument type is not known here yet
+									  ExternalNode& node = NodeFactory::create<ExternalNode>();
+									  node.mStatementToken = tokens[1].as<StatementToken>();
+									  node.mSubType = (keyword == Keyword::CALL) ? ExternalNode::SubType::EXTERNAL_CALL : ExternalNode::SubType::EXTERNAL_JUMP;
+									  node.setLineNumber(lineNumber);
+									  tokens.erase(1);
+									  return &node;
+								  }
+								  else if (tokens[1].isA<LabelToken>())
+								  {
+									  CHECK_ERROR(keyword == Keyword::JUMP, "Label is not allowed after 'call' keyword", lineNumber);
 
-						JumpNode& node = NodeFactory::create<JumpNode>();
-						node.mLabelToken = tokens[1].as<LabelToken>();
-						node.setLineNumber(lineNumber);
-						tokens.erase(1);
-						return &node;
-					}
+									  JumpNode& node = NodeFactory::create<JumpNode>();
+									  node.mLabelToken = tokens[1].as<LabelToken>();
+									  node.setLineNumber(lineNumber);
+									  tokens.erase(1);
+									  return &node;
+								  }
 
-					CHECK_ERROR(false, "Token after 'call' and 'jump' must be a statement or a label", lineNumber);
-					return nullptr;
-				}
+								  CHECK_ERROR(false, "Token after 'call' and 'jump' must be a statement or a label", lineNumber);
+								  return nullptr;
+			}
 
-				case Keyword::BREAK:
-				{
-					CHECK_ERROR(tokens.size() == 1, "There must be no token after 'break' keyword", lineNumber);
-					BreakNode& newNode = NodeFactory::create<BreakNode>();
-					newNode.setLineNumber(lineNumber);
-					return &newNode;
-				}
+			case Keyword::BREAK:
+			{
+								   CHECK_ERROR(tokens.size() == 1, "There must be no token after 'break' keyword", lineNumber);
+								   BreakNode& newNode = NodeFactory::create<BreakNode>();
+								   newNode.setLineNumber(lineNumber);
+								   return &newNode;
+			}
 
-				case Keyword::CONTINUE:
-				{
-					CHECK_ERROR(tokens.size() == 1, "There must be no token after 'continue' keyword", lineNumber);
-					ContinueNode& newNode = NodeFactory::create<ContinueNode>();
-					newNode.setLineNumber(lineNumber);
-					return &newNode;
-				}
+			case Keyword::CONTINUE:
+			{
+									  CHECK_ERROR(tokens.size() == 1, "There must be no token after 'continue' keyword", lineNumber);
+									  ContinueNode& newNode = NodeFactory::create<ContinueNode>();
+									  newNode.setLineNumber(lineNumber);
+									  return &newNode;
+			}
 
-				case Keyword::IF:
-				{
-					return processIfBlock(tokens, function, scopeContext, nodesIterator, lineNumber);
-				}
+			case Keyword::IF:
+			{
+								return processIfBlock(tokens, function, scopeContext, nodesIterator, lineNumber);
+			}
 
-				case Keyword::ELSE:
-				{
-					CHECK_ERROR(false, "Found 'else' without a corresponding 'if'", lineNumber);
-					break;
-				}
+			case Keyword::ELSE:
+			{
+								  CHECK_ERROR(false, "Found 'else' without a corresponding 'if'", lineNumber);
+								  break;
+			}
 
-				case Keyword::WHILE:
-				{
-					// Process tokens
-					processTokens(tokens, function, scopeContext, lineNumber);
+			case Keyword::WHILE:
+			{
+								   // Process tokens
+								   processTokens(tokens, function, scopeContext, lineNumber);
 
-					CHECK_ERROR(tokens.size() == 2, "Expected single statement after 'while' keyword", lineNumber);
-					CHECK_ERROR(tokens[1].isStatement(), "Expected statement after 'while' keyword", lineNumber);
+								   CHECK_ERROR(tokens.size() == 2, "Expected single statement after 'while' keyword", lineNumber);
+								   CHECK_ERROR(tokens[1].isStatement(), "Expected statement after 'while' keyword", lineNumber);
 
-					WhileStatementNode& node = NodeFactory::create<WhileStatementNode>();
-					node.mConditionToken = tokens[1].as<StatementToken>();
-					node.setLineNumber(lineNumber);
-					tokens.erase(1);
+								   WhileStatementNode& node = NodeFactory::create<WhileStatementNode>();
+								   node.mConditionToken = tokens[1].as<StatementToken>();
+								   node.setLineNumber(lineNumber);
+								   tokens.erase(1);
 
-					// Go on with the next node, which must be either a block or a statement
-					{
-						Node* newNode = gatherNextStatement(nodesIterator, function, scopeContext);
-						CHECK_ERROR(nullptr != newNode, "Expected a block or statement after 'while' line", node.getLineNumber());
-						newNode->setLineNumber(node.getLineNumber());
-						node.mContent = newNode;
-						nodesIterator.eraseCurrent();
-					}
-					return &node;
-				}
+								   // Go on with the next node, which must be either a block or a statement
+								   {
+									   Node* newNode = gatherNextStatement(nodesIterator, function, scopeContext);
+									   CHECK_ERROR(nullptr != newNode, "Expected a block or statement after 'while' line", node.getLineNumber());
+									   newNode->setLineNumber(node.getLineNumber());
+									   node.mContent = newNode;
+									   nodesIterator.eraseCurrent();
+								   }
+								   return &node;
+			}
 
-				case Keyword::FOR:
-				{
-					// Check for braces
-					CHECK_ERROR(tokens.size() >= 3, "Not enough tokens found after 'for' keyword", lineNumber);
-					CHECK_ERROR(isOperator(tokens[1], Operator::PARENTHESIS_LEFT), "Expected opening parenthesis after 'for' keyword", lineNumber);
-					CHECK_ERROR(isOperator(tokens.back(), Operator::PARENTHESIS_RIGHT), "Expected closing parenthesis as last token after 'for' keyword", lineNumber);
+			case Keyword::FOR:
+			{
+								 // Check for braces
+								 CHECK_ERROR(tokens.size() >= 3, "Not enough tokens found after 'for' keyword", lineNumber);
+								 CHECK_ERROR(isOperator(tokens[1], Operator::PARENTHESIS_LEFT), "Expected opening parenthesis after 'for' keyword", lineNumber);
+								 CHECK_ERROR(isOperator(tokens.back(), Operator::PARENTHESIS_RIGHT), "Expected closing parenthesis as last token after 'for' keyword", lineNumber);
 
-					// Split by semicolons
-					const size_t firstIndex = 2;
-					const size_t endIndex = tokens.size() - 1;
-					size_t numSemicolons = 0;
-					size_t splitPosition[4] = { 1, 0, 0, endIndex };
-					for (size_t i = firstIndex; i < endIndex; ++i)
-					{
-						if (isOperator(tokens[i], Operator::SEMICOLON_SEPARATOR))
-						{
-							++numSemicolons;
-							if (numSemicolons <= 2)
-							{
-								splitPosition[numSemicolons] = i;
-							}
-						}
-					}
-					CHECK_ERROR(numSemicolons == 2, "Expected exactly two semicolons in 'for' loop header", lineNumber);
+								 // Split by semicolons
+								 const size_t firstIndex = 2;
+								 const size_t endIndex = tokens.size() - 1;
+								 size_t numSemicolons = 0;
+								 size_t splitPosition[4] = { 1, 0, 0, endIndex };
+								 for (size_t i = firstIndex; i < endIndex; ++i)
+								 {
+									 if (isOperator(tokens[i], Operator::SEMICOLON_SEPARATOR))
+									 {
+										 ++numSemicolons;
+										 if (numSemicolons <= 2)
+										 {
+											 splitPosition[numSemicolons] = i;
+										 }
+									 }
+								 }
+								 CHECK_ERROR(numSemicolons == 2, "Expected exactly two semicolons in 'for' loop header", lineNumber);
 
-					// Create new scope, should end after the next node (counting both this and the next one)
-					scopeContext.beginScope();
+								 // Create new scope, should end after the next node (counting both this and the next one)
+								 scopeContext.beginScope();
 
-					TokenPtr<StatementToken> statements[3];
-					for (int i = 0; i < 3; ++i)
-					{
-						const size_t numTokens = splitPosition[i+1] - splitPosition[i] - 1;
-						if (numTokens > 0)
-						{
-							TokenList innerTokenList;
-							for (size_t k = splitPosition[i] + 1; k < splitPosition[i+1]; ++k)
-							{
-								innerTokenList.add(tokens[k]);
-							}
+								 TokenPtr<StatementToken> statements[3];
+								 for (int i = 0; i < 3; ++i)
+								 {
+									 const size_t numTokens = splitPosition[i + 1] - splitPosition[i] - 1;
+									 if (numTokens > 0)
+									 {
+										 TokenList innerTokenList;
+										 for (size_t k = splitPosition[i] + 1; k < splitPosition[i + 1]; ++k)
+										 {
+											 innerTokenList.add(tokens[k]);
+										 }
 
-							// Process tokens
-							processTokens(innerTokenList, function, scopeContext, lineNumber);
+										 // Process tokens
+										 processTokens(innerTokenList, function, scopeContext, lineNumber);
 
-							CHECK_ERROR(innerTokenList.size() == 1, "Tokens in 'for' loop header do not evaluate to a single statement", lineNumber);
-							CHECK_ERROR(innerTokenList[0].isStatement(), "Tokens in 'for' loop header do not evaluate to a statement", lineNumber);
+										 CHECK_ERROR(innerTokenList.size() == 1, "Tokens in 'for' loop header do not evaluate to a single statement", lineNumber);
+										 CHECK_ERROR(innerTokenList[0].isStatement(), "Tokens in 'for' loop header do not evaluate to a statement", lineNumber);
 
-							statements[i] = innerTokenList[0].as<StatementToken>();
-						}
-					}
+										 statements[i] = innerTokenList[0].as<StatementToken>();
+									 }
+								 }
 
-					ForStatementNode& node = NodeFactory::create<ForStatementNode>();
-					node.mInitialToken   = statements[0];
-					node.mConditionToken = statements[1];
-					node.mIterationToken = statements[2];
-					node.setLineNumber(lineNumber);
+								 ForStatementNode& node = NodeFactory::create<ForStatementNode>();
+								 node.mInitialToken = statements[0];
+								 node.mConditionToken = statements[1];
+								 node.mIterationToken = statements[2];
+								 node.setLineNumber(lineNumber);
 
-					// Go on with the next node, which must be either a block or a statement
-					{
-						Node* newNode = gatherNextStatement(nodesIterator, function, scopeContext);
-						CHECK_ERROR(nullptr != newNode, "Expected a block or statement after 'for' line", node.getLineNumber());
-						newNode->setLineNumber(node.getLineNumber());
-						node.mContent = newNode;
-						nodesIterator.eraseCurrent();
-					}
+								 // Go on with the next node, which must be either a block or a statement
+								 {
+									 Node* newNode = gatherNextStatement(nodesIterator, function, scopeContext);
+									 CHECK_ERROR(nullptr != newNode, "Expected a block or statement after 'for' line", node.getLineNumber());
+									 newNode->setLineNumber(node.getLineNumber());
+									 node.mContent = newNode;
+									 nodesIterator.eraseCurrent();
+								 }
 
-					scopeContext.endScope();
-					return &node;
-				}
+								 scopeContext.endScope();
+								 return &node;
+			}
 
-				case Keyword::CONSTANT:
-				{
-					processConstantDefinition(tokens, nodesIterator, &scopeContext);
-					break;
-				}
+			case Keyword::CONSTANT:
+			{
+									  processConstantDefinition(tokens, nodesIterator, &scopeContext);
+									  break;
+			}
 
-				default:
-					break;
+			default:
+				break;
 			}
 		}
 		else if (tokens[0].isA<LabelToken>())
@@ -869,25 +864,25 @@ namespace lemon
 			Node& nextNode = *nodesIterator;
 			switch (nextNode.getType())
 			{
-				case Node::Type::BLOCK:
-				{
-					processUndefinedNodesInBlock(nextNode.as<BlockNode>(), function, scopeContext);
-					return &nextNode;
-				}
+			case Node::Type::BLOCK:
+			{
+									  processUndefinedNodesInBlock(nextNode.as<BlockNode>(), function, scopeContext);
+									  return &nextNode;
+			}
 
-				case Node::Type::UNDEFINED:
-				{
-					UndefinedNode& un = nextNode.as<UndefinedNode>();
-					Node* newNode = processUndefinedNode(un, function, scopeContext, nodesIterator);
-					if (nullptr != newNode)
-					{
-						newNode->setLineNumber(un.getLineNumber());
-					}
-					return newNode;
-				}
+			case Node::Type::UNDEFINED:
+			{
+										  UndefinedNode& un = nextNode.as<UndefinedNode>();
+										  Node* newNode = processUndefinedNode(un, function, scopeContext, nodesIterator);
+										  if (nullptr != newNode)
+										  {
+											  newNode->setLineNumber(un.getLineNumber());
+										  }
+										  return newNode;
+			}
 
-				default:
-					break;
+			default:
+				break;
 			}
 		}
 		return nullptr;
@@ -907,11 +902,7 @@ namespace lemon
 		const uint32 lineNumber = nodesIterator->getLineNumber();
 		const bool isGlobalDefinition = (nullptr == scopeContext);
 		CHECK_ERROR(tokens.size() >= 5, "Syntax error in constant definition", lineNumber);
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__)
 		constexpr uint64 ARRAY_NAME_HASH = rmx::constMurmur2_64("array");
-#else
-		constexpr uint64 ARRAY_NAME_HASH = 526084931169ULL;
-#endif
 
 		// Check for "constant array"
 		if (isIdentifier(tokens[1], ARRAY_NAME_HASH))
@@ -1186,17 +1177,17 @@ namespace lemon
 
 		switch (tokens[pos].getType())
 		{
-			case ConstantToken::TYPE:
-			{
-				const ConstantToken& constantToken = tokens[pos].as<ConstantToken>();
-				constantValue = constantToken.mValue;
-				constantDataType = constantToken.mDataType;
-				break;
-			}
+		case ConstantToken::TYPE:
+		{
+									const ConstantToken& constantToken = tokens[pos].as<ConstantToken>();
+									constantValue = constantToken.mValue;
+									constantDataType = constantToken.mDataType;
+									break;
+		}
 
-			default:
-				CHECK_ERROR(tokens[pos].isA<ConstantToken>(), "Expected constant value", lineNumber);
-				break;
+		default:
+			CHECK_ERROR(tokens[pos].isA<ConstantToken>(), "Expected constant value", lineNumber);
+			break;
 		}
 
 		++pos;
