@@ -13,8 +13,6 @@
 
 namespace rmx
 {
-	bool API_EXPORT decodeWithStbImage(Bitmap& bitmap, const void* data, size_t size, Bitmap::LoadResult& outResult);
-
 	class API_EXPORT BitmapCodecBMP : public IBitmapCodec
 	{
 	public:

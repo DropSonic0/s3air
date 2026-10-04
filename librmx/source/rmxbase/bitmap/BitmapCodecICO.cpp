@@ -11,7 +11,7 @@
 
 namespace rmx
 {
-	#pragma pack(1)
+#pragma pack(1)
 	struct IcoHeader
 	{
 		uint16 idReserved;
@@ -30,12 +30,12 @@ namespace rmx
 		uint32 bytesInRes;
 		uint32 imageOffset;
 	};
-	#pragma pack()
+#pragma pack()
 
-	#define RETURN(errcode) \
+#define RETURN(errcode) \
 	{ \
-		outResult.mError = errcode; \
-		return (errcode == Bitmap::LoadResult::Error::OK); \
+	outResult.mError = errcode; \
+	return (errcode == Bitmap::LoadResult::Error::OK); \
 	}
 
 
@@ -66,7 +66,7 @@ namespace rmx
 		mstream.skip(imageCount * sizeof(IconDirEntry));
 
 		// Choose the best fitting one from the icons
-		const int optimalWidth = (bitmap.getWidth() > 0)  ? bitmap.getWidth()  : 32;
+		const int optimalWidth = (bitmap.getWidth() > 0) ? bitmap.getWidth() : 32;
 		const int optimalHeight = (bitmap.getHeight() > 0) ? bitmap.getHeight() : 32;
 		int optimalBpp = 32;
 		int bestImageIndex = -1;
@@ -98,20 +98,20 @@ namespace rmx
 		unsigned int size = bestEntry.bytesInRes;
 		unsigned int offset = bestEntry.imageOffset;
 
-		uint8* mem = new uint8[size+14];
+		uint8* mem = new uint8[size + 14];
 		memcpy(&mem[14], &buffer[offset], size);
 		mem[0] = 'B';
 		mem[1] = 'M';
-		*(unsigned int*)&mem[2]  = 54 + *(unsigned int*)&mem[34];
-		*(unsigned int*)&mem[6]  = 0;
+		*(unsigned int*)&mem[2] = 54 + *(unsigned int*)&mem[34];
+		*(unsigned int*)&mem[6] = 0;
 		*(unsigned int*)&mem[10] = 54;
 		*(unsigned int*)&mem[22] /= 2;		// File contains double image height for some reason
-		const int width  = *(unsigned int*)&mem[18];
+		const int width = *(unsigned int*)&mem[18];
 		const int height = *(unsigned int*)&mem[22];
-		const int bpp    = *(unsigned short*)&mem[28];
+		const int bpp = *(unsigned short*)&mem[28];
 
 		// Decode as BMP
-		MemInputStream bmpstream(mem, size+14, true);
+		MemInputStream bmpstream(mem, size + 14, true);
 		rmx::BitmapCodecBMP codec;
 		bool result = codec.decode(bitmap, bmpstream, outResult);
 		if (!result)
@@ -129,7 +129,7 @@ namespace rmx
 				uint32* src = bitmap.getPixelPointer(0, y);
 				for (int x = 0; x < width; ++x)
 				{
-					if ((bitmask[x/8 + (height-1-y) * mask_line] >> (7-x%8)) & 1)
+					if ((bitmask[x / 8 + (height - 1 - y) * mask_line] >> (7 - x % 8)) & 1)
 						src[x] &= 0x00ffffff;
 				}
 			}

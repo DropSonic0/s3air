@@ -69,8 +69,284 @@ namespace rmx
 
 	bool BitmapCodecPNG::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult)
 	{
+		// Load from PNG image data in memory
 		MemInputStream mstream(stream);
-		return decodeWithStbImage(bitmap, mstream.getCursor(), mstream.getRemaining(), outResult);
+		if (mstream.getRemaining() < 8)
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+		const uint8* mem = mstream.getCursor();
+		const uint8* end = mstream.getCursor() + mstream.getRemaining();
+		if (memcmp(mem, PNGSignature, 8) != 0)
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+		mem += 8;
+
+		// Read header
+		PNGHeader header;
+		int width = 0;
+		int height = 0;
+		uint32 palette[0x100];
+		int palette_size = 0;
+
+		// Temporary buffer for the image data
+		std::vector<uint8> content;
+		content.reserve(mstream.getRemaining());
+
+		// Read chunks
+		bool finished = false;
+		while (!finished)
+		{
+			// Length & chunk type
+			if ((size_t)(end - mem) < 8)
+				RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+			const uint8* chunkStart = mem;
+			const uint32 length = readUint32BE(mem);
+			const uint32 type = readUint32BE(mem + 4);
+			mem += 8;
+			if ((size_t)(end - mem) < length + 4)
+				RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+			switch (type)
+			{
+				// IHDR
+			case PNG_IHDR:
+			{
+							 if (length != 13)
+								 RETURN(Bitmap::LoadResult::Error::FILE_ERROR);
+							 memcpy(&header, mem, length);
+							 width = readUint32BE((const uint8*)&header.width);
+							 height = readUint32BE((const uint8*)&header.height);
+							 break;
+			}
+
+				// IEND
+			case PNG_IEND:
+			{
+							 finished = true;
+							 break;
+			}
+
+				// IDAT
+			case PNG_IDAT:
+			{
+							 const size_t position = content.size();
+							 content.resize(position + length);
+							 memcpy(&content[position], &mem[0], length);
+							 break;
+			}
+
+				// PLTE
+			case PNG_PLTE:
+			{
+							 palette_size = length / 3;
+							 for (int i = 0; i < palette_size; ++i)
+								 palette[i] = 0xff000000 + (readUint32LE(mem + i * 3) & 0xffffff);
+							 for (int i = palette_size; i < 0x100; ++i)
+								 palette[i] = 0x00000000;
+							 break;
+			}
+			}
+
+			// CRC
+			const uint32 crc = rmx::getCRC32(chunkStart + 4, length + 4);
+			mem += length;
+			if (readUint32BE(mem) != crc)
+				RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+			mem += 4;
+		}
+
+		// Check for empty image data
+		if (content.empty())
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+		// This function supports only 8-bit depth, nothing else
+		if (header.bitdepth != 8)
+			RETURN(Bitmap::LoadResult::Error::UNSUPPORTED);
+
+		int bpp = 0;
+		switch (header.colortype)
+		{
+		case 0:  bpp = 1;  break;
+		case 2:  bpp = 3;  break;
+		case 3:  bpp = 1;  break;
+		case 4:  bpp = 2;  break;
+		case 6:  bpp = 4;  break;
+		default:
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+		}
+		const int bytesPerLine = width * bpp;
+
+		// Decompress image data
+#if !defined(USE_ZLIB)
+
+		int outsize = 0;
+		if ((content[0] & 15) != 8)		// Check zlib header for deflate algorithm
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+		uint8* output = Deflate::decode(outsize, &content[2], (int)content.size() - 2);		// Skip the zlib header
+		if (nullptr == output)
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+#else
+
+		std::vector<uint8> outputMemory;
+		outputMemory.reserve(bytesPerLine * height + 0x4000);	// 0x4000 is the internal chunk size used by "ZlibDeflate::decode"
+		if (!ZlibDeflate::decode(outputMemory, &content[0], content.size()))
+			RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+		uint8* output = &outputMemory[0];
+		const int outsize = (int)outputMemory.size();
+
+#endif
+
+		// Create output bitmap
+		bitmap.create(width, height);
+		uint32* data = bitmap.getData();
+
+		// Remove the filter
+		int outpos = 0;
+		uint8* currentLineBuffer = nullptr;		// Pointer to current line
+		for (int line = 0; line < height; ++line)
+		{
+			uint8* previousLineBuffer = currentLineBuffer;
+			if (line == 0)
+			{
+				// Misuse the last line (or parts of it) of the output as a temporary buffer storing zeroes
+				previousLineBuffer = (uint8*)&data[width * (height - 1)];
+				memset(previousLineBuffer, 0, width * bpp);
+			}
+
+			const uint8 filter = output[outpos];
+			currentLineBuffer = &output[outpos + 1];
+			outpos += bytesPerLine + 1;
+			if (outpos > outsize)
+				RETURN(Bitmap::LoadResult::Error::INVALID_FILE);
+
+			if (filter != 0)
+			{
+				uint8* buf = currentLineBuffer;
+				uint8* buf0 = previousLineBuffer;
+				const int leftPixelOffset = -bpp;
+				switch (filter)
+				{
+					// "Sub" filter
+				case 1:
+				{
+						  buf += bpp;
+						  for (int i = bpp; i < bytesPerLine; ++i)
+						  {
+							  *buf += buf[leftPixelOffset];
+							  ++buf;
+						  }
+						  break;
+				}
+
+					// "Up" filter
+				case 2:
+				{
+						  for (int i = 0; i < bytesPerLine; ++i)
+						  {
+							  *buf += *buf0;
+							  ++buf;
+							  ++buf0;
+						  }
+						  break;
+				}
+
+					// "Average" filter
+				case 3:
+				{
+						  for (int i = 0; i < bpp; ++i)
+						  {
+							  *buf += *buf0 / 2;
+							  ++buf;
+							  ++buf0;
+						  }
+						  for (int i = bpp; i < bytesPerLine; ++i)
+						  {
+							  const uint8 left = buf[leftPixelOffset];
+							  const uint8 up = *buf0;
+							  *buf += (left + up) / 2;
+							  ++buf;
+							  ++buf0;
+						  }
+						  break;
+				}
+
+					// "Paeth" filter
+				case 4:
+				{
+						  for (int i = 0; i < bpp; ++i)
+						  {
+							  *buf += *buf0;
+							  ++buf;
+							  ++buf0;
+						  }
+						  for (int i = bpp; i < bytesPerLine; ++i)
+						  {
+							  const uint8 left = buf[leftPixelOffset];
+							  const uint8 up = *buf0;
+							  const uint8 upLeft = buf0[leftPixelOffset];
+							  const int paeth = left + up - upLeft;
+							  const int d1 = abs(paeth - left);
+							  const int d2 = abs(paeth - up);
+							  const int d3 = abs(paeth - upLeft);
+							  if ((d1 <= d2) && (d1 <= d3))
+								  *buf += left;
+							  else if (d2 <= d3)
+								  *buf += up;
+							  else
+								  *buf += upLeft;
+							  ++buf;
+							  ++buf0;
+						  }
+						  break;
+				}
+				}
+			}
+
+			// Convert to 32-bit
+			{
+				const uint8* src = currentLineBuffer;
+				uint32* dst = &data[line*width];
+				switch (header.colortype)
+				{
+					// 8-bit grayscale
+				case 0:
+					for (int i = 0; i < width; ++i)
+						dst[i] = 0xff000000 + (0x010101 * src[i]);
+					break;
+
+					// 24-bit RGB
+				case 2:
+					for (int i = 0; i < width; ++i)
+						dst[i] = 0xff000000 + (readUint32LE(&src[i * 3]) & 0x00ffffff);
+					break;
+
+					// Palette image
+				case 3:
+					for (int i = 0; i < width; ++i)
+						dst[i] = palette[src[i]];
+					break;
+
+					// 16-bit gray + alpha
+				case 4:
+					for (int i = 0; i < width; ++i)
+						dst[i] = (0x010101 * src[i * 2]) + (src[i * 2 + 1] << 24);
+					break;
+
+					// 32-bit RGB + alpha
+				case 6:
+					memcpy(dst, src, width * 4);
+					break;
+				}
+			}
+		}
+
+#if !defined(USE_ZLIB)
+		delete[] output;
+#endif
+		RETURN(Bitmap::LoadResult::Error::OK);
 	}
 
 	bool BitmapCodecPNG::encode(const Bitmap& bitmap, OutputStream& stream)

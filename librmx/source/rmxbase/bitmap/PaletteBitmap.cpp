@@ -11,7 +11,7 @@
 
 namespace
 {
-	#pragma pack(1)
+#pragma pack(1)
 	struct BmpHeader
 	{
 		uint8  signature[2];
@@ -31,7 +31,7 @@ namespace
 		uint32 numColors;
 		uint32 importantColors;
 	};
-	#pragma pack()
+#pragma pack()
 
 	inline uint32 swapRedBlue(uint32 color)
 	{
@@ -111,13 +111,13 @@ void PaletteBitmap::copy(const PaletteBitmap& source, const Recti& rect)
 	int sy = rect.height;
 	if (px < 0)  { sx += px;  px = 0; }
 	if (py < 0)  { sy += py;  py = 0; }
-	if (px + sx > (int)source.mWidth)   sx = source.mWidth - px;
-	if (py + sy > (int)source.mHeight)  sy = source.mHeight - py;
+	if (px + sx >(int)source.mWidth)   sx = source.mWidth - px;
+	if (py + sy >(int)source.mHeight)  sy = source.mHeight - py;
 	if (sx <= 0 || sy <= 0)
 		return;
 
 	create(sx, sy);
-	memcpyRect(mData, mWidth, &source.mData[px+py*source.mWidth], source.mWidth, sx, sy);
+	memcpyRect(mData, mWidth, &source.mData[px + py*source.mWidth], source.mWidth, sx, sy);
 }
 
 void PaletteBitmap::copyRect(const PaletteBitmap& source, const Recti& rect, const Vec2i& destination)
@@ -131,8 +131,8 @@ void PaletteBitmap::copyRect(const PaletteBitmap& source, const Recti& rect, con
 	int sy = rect.height;
 	if (px < 0) { sx += px;  px = 0; }
 	if (py < 0) { sy += py;  py = 0; }
-	if (px + sx > (int)source.mWidth)   sx = source.mWidth - px;
-	if (py + sy > (int)source.mHeight)  sy = source.mHeight - py;
+	if (px + sx >(int)source.mWidth)   sx = source.mWidth - px;
+	if (py + sy >(int)source.mHeight)  sy = source.mHeight - py;
 	if (sx <= 0 || sy <= 0)
 		return;
 
@@ -263,23 +263,23 @@ bool PaletteBitmap::loadBMP(const std::vector<uint8>& bmpContent, std::vector<ui
 	// Load image data
 	for (int y = 0; y < height; ++y)
 	{
-		uint8* dataPtr = &mData[(height-y-1)*width];
+		uint8* dataPtr = &mData[(height - y - 1)*width];
 		switch (bitdepth)
 		{
-			case 1:
-				for (int x = 0; x < width; ++x)
-					dataPtr[x] = (buffer[x/8] >> (x & 0x07)) & 0x01;
-				break;
+		case 1:
+			for (int x = 0; x < width; ++x)
+				dataPtr[x] = (buffer[x / 8] >> (x & 0x07)) & 0x01;
+			break;
 
-			case 4:
-				for (int x = 0; x < width; ++x)
-					dataPtr[x] = (buffer[x/2] >> (4 - (x & 0x01) * 4)) & 0x0f;
-				break;
+		case 4:
+			for (int x = 0; x < width; ++x)
+				dataPtr[x] = (buffer[x / 2] >> (4 - (x & 0x01) * 4)) & 0x0f;
+			break;
 
-			case 8:
-				for (int x = 0; x < width; ++x)
-					dataPtr[x] = buffer[x];
-				break;
+		case 8:
+			for (int x = 0; x < width; ++x)
+				dataPtr[x] = buffer[x];
+			break;
 		}
 		buffer += stride;
 	}
@@ -295,10 +295,10 @@ bool PaletteBitmap::saveBMP(std::vector<uint8>& bmpContent, const uint32* palett
 	BmpHeader header;
 	header.signature[0] = 'B';
 	header.signature[1] = 'M';
-	header.fileSize = sizeof(BmpHeader) + 256 * 4 + stride * mHeight;
+	header.fileSize = sizeof(BmpHeader)+256 * 4 + stride * mHeight;
 	header.creator1 = 0;
 	header.creator2 = 0;
-	header.headerSize = sizeof(BmpHeader) + 256 * 4;
+	header.headerSize = sizeof(BmpHeader)+256 * 4;
 	header.dibHeaderSize = 40;
 	header.width = mWidth;
 	header.height = mHeight;

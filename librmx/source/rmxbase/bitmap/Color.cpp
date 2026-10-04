@@ -1,4 +1,4 @@
-/*
+ï»¿/*
 *	rmx Library
 *	Copyright (C) 2008-2026 by Eukaryot
 *
@@ -9,14 +9,14 @@
 #include "rmxbase.h"
 
 
-const Color Color::BLACK  (0.0f, 0.0f, 0.0f);
-const Color Color::GRAY   (0.5f, 0.5f, 0.5f);
-const Color Color::WHITE  (1.0f, 1.0f, 1.0f);
-const Color Color::RED    (1.0f, 0.0f, 0.0f);
-const Color Color::YELLOW (1.0f, 1.0f, 0.0f);
-const Color Color::GREEN  (0.0f, 1.0f, 0.0f);
-const Color Color::CYAN   (0.0f, 1.0f, 1.0f);
-const Color Color::BLUE   (0.0f, 0.0f, 1.0f);
+const Color Color::BLACK(0.0f, 0.0f, 0.0f);
+const Color Color::GRAY(0.5f, 0.5f, 0.5f);
+const Color Color::WHITE(1.0f, 1.0f, 1.0f);
+const Color Color::RED(1.0f, 0.0f, 0.0f);
+const Color Color::YELLOW(1.0f, 1.0f, 0.0f);
+const Color Color::GREEN(0.0f, 1.0f, 0.0f);
+const Color Color::CYAN(0.0f, 1.0f, 1.0f);
+const Color Color::BLUE(0.0f, 0.0f, 1.0f);
 const Color Color::MAGENTA(1.0f, 0.0f, 1.0f);
 const Color Color::TRANSPARENT(0.0f, 0.0f, 0.0f, 0.0f);
 
@@ -34,34 +34,34 @@ Color Color::interpolateColor(const Color& c0, const Color& c1, float factor)
 uint32 Color::getRGBA32() const
 {
 	return ((uint32)(::saturate(r) * 255) << 24)
-		 + ((uint32)(::saturate(g) * 255) << 16)
-		 + ((uint32)(::saturate(b) * 255) << 8)
-		 + ((uint32)(::saturate(a) * 255));
+		+ ((uint32)(::saturate(g) * 255) << 16)
+		+ ((uint32)(::saturate(b) * 255) << 8)
+		+ ((uint32)(::saturate(a) * 255));
 }
 
 uint32 Color::getARGB32() const
 {
 	return ((uint32)(::saturate(r) * 255) << 16)
-		 + ((uint32)(::saturate(g) * 255) << 8)
-		 + ((uint32)(::saturate(b) * 255))
-		 + ((uint32)(::saturate(a) * 255) << 24);
+		+ ((uint32)(::saturate(g) * 255) << 8)
+		+ ((uint32)(::saturate(b) * 255))
+		+ ((uint32)(::saturate(a) * 255) << 24);
 }
 
 uint32 Color::getABGR32() const
 {
 	return ((uint32)(::saturate(r) * 255))
-		 + ((uint32)(::saturate(g) * 255) << 8)
-		 + ((uint32)(::saturate(b) * 255) << 16)
-		 + ((uint32)(::saturate(a) * 255) << 24);
+		+ ((uint32)(::saturate(g) * 255) << 8)
+		+ ((uint32)(::saturate(b) * 255) << 16)
+		+ ((uint32)(::saturate(a) * 255) << 24);
 }
 
 void Color::setByEncoding(uint32 color, Encoding encoding)
 {
 	switch (encoding)
 	{
-		case Encoding::RGBA_32:  setRGBA32(color);  break;
-		case Encoding::ARGB_32:  setARGB32(color);  break;
-		case Encoding::ABGR_32:  setABGR32(color);  break;
+	case Encoding::RGBA_32:  setRGBA32(color);  break;
+	case Encoding::ARGB_32:  setARGB32(color);  break;
+	case Encoding::ABGR_32:  setABGR32(color);  break;
 	}
 }
 
@@ -69,22 +69,22 @@ void Color::setRGBA32(uint32 colorRGBA)
 {
 	r = (float)((colorRGBA >> 24) & 0xff) / 255.0f;
 	g = (float)((colorRGBA >> 16) & 0xff) / 255.0f;
-	b = (float)((colorRGBA >> 8)  & 0xff) / 255.0f;
-	a = (float)((colorRGBA)       & 0xff) / 255.0f;
+	b = (float)((colorRGBA >> 8) & 0xff) / 255.0f;
+	a = (float)((colorRGBA)& 0xff) / 255.0f;
 }
 
 void Color::setARGB32(uint32 colorARGB)
 {
 	r = (float)((colorARGB >> 16) & 0xff) / 255.0f;
-	g = (float)((colorARGB >> 8)  & 0xff) / 255.0f;
-	b = (float)((colorARGB)       & 0xff) / 255.0f;
+	g = (float)((colorARGB >> 8) & 0xff) / 255.0f;
+	b = (float)((colorARGB)& 0xff) / 255.0f;
 	a = (float)((colorARGB >> 24) & 0xff) / 255.0f;
 }
 
 void Color::setABGR32(uint32 colorABGR)
 {
-	r = (float)((colorABGR)       & 0xff) / 255.0f;
-	g = (float)((colorABGR >> 8)  & 0xff) / 255.0f;
+	r = (float)((colorABGR)& 0xff) / 255.0f;
+	g = (float)((colorABGR >> 8) & 0xff) / 255.0f;
 	b = (float)((colorABGR >> 16) & 0xff) / 255.0f;
 	a = (float)((colorABGR >> 24) & 0xff) / 255.0f;
 }
@@ -136,7 +136,7 @@ Vec3f Color::getHSL() const
 
 	float hue;
 	if (maximum == r)
-		hue = (g - b) / delta * 60.0f + ((g < b) ? 360.0f : 0.0f);	// Purple to red to yellow (crossing the 0° / 360° line)
+		hue = (g - b) / delta * 60.0f + ((g < b) ? 360.0f : 0.0f);	// Purple to red to yellow (crossing the 0ï¿½ / 360ï¿½ line)
 	else if (maximum == g)
 		hue = (b - r) / delta * 60.0f + 120.0f;						// Yellow to green to cyan
 	else
@@ -164,12 +164,12 @@ void Color::setFromHSV(const Vec3f& hsv)
 
 	switch (region)
 	{
-		case 0:   r = maximum;  b = minimum;  g = minimum + delta * fraction;  break;	// Red to yellow
-		case 1:   g = maximum;  b = minimum;  r = maximum - delta * fraction;  break;	// Yellow to green
-		case 2:   g = maximum;  r = minimum;  b = minimum + delta * fraction;  break;	// Green to cyan
-		case 3:   b = maximum;  r = minimum;  g = maximum - delta * fraction;  break;	// Cyan to blue
-		case 4:   b = maximum;  g = minimum;  r = minimum + delta * fraction;  break;	// Blue to purple
-		default:  r = maximum;  g = minimum;  b = maximum - delta * fraction;  break;	// Purple to red
+	case 0:   r = maximum;  b = minimum;  g = minimum + delta * fraction;  break;	// Red to yellow
+	case 1:   g = maximum;  b = minimum;  r = maximum - delta * fraction;  break;	// Yellow to green
+	case 2:   g = maximum;  r = minimum;  b = minimum + delta * fraction;  break;	// Green to cyan
+	case 3:   b = maximum;  r = minimum;  g = maximum - delta * fraction;  break;	// Cyan to blue
+	case 4:   b = maximum;  g = minimum;  r = minimum + delta * fraction;  break;	// Blue to purple
+	default:  r = maximum;  g = minimum;  b = maximum - delta * fraction;  break;	// Purple to red
 	}
 }
 
@@ -189,7 +189,7 @@ Vec3f Color::getHSV() const
 
 	float hue;
 	if (maximum == r)
-		hue = (g - b) / delta * 60.0f + ((g < b) ? 360.0f : 0.0f);	// Purple to red to yellow (crossing the 0° / 360° line)
+		hue = (g - b) / delta * 60.0f + ((g < b) ? 360.0f : 0.0f);	// Purple to red to yellow (crossing the 0ï¿½ / 360ï¿½ line)
 	else if (maximum == g)
 		hue = (b - r) / delta * 60.0f + 120.0f;						// Yellow to green to cyan
 	else

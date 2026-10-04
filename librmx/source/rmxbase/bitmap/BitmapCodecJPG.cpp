@@ -808,9 +808,10 @@ namespace rmx
 
 	bool BitmapCodecJPG::decode(Bitmap& bitmap, InputStream& stream, Bitmap::LoadResult& outResult)
 	{
-		// Load JPEG from memory using stb_image
+		// Load JPEG from memory
 		MemInputStream mstream(stream);
-		return decodeWithStbImage(bitmap, mstream.getCursor(), mstream.getRemaining(), outResult);
+		BitmapJPG codec;
+		return codec.decode(bitmap, mstream.getCursor(), mstream.getSize(), outResult);
 	}
 
 	bool BitmapCodecJPG::encode(const Bitmap& bitmap, OutputStream& stream)
