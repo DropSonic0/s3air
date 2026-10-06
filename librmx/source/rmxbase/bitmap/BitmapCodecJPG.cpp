@@ -716,9 +716,17 @@ namespace rmx
 			// Grayscale image
 			for (int pos = 0; pos < size; ++pos)
 			{
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+				uint8 Y = ptr[0];
+				ptr[0] = 0xff;
+				ptr[1] = Y;
+				ptr[2] = Y;
+				ptr[3] = Y;
+#else
 				ptr[1] = ptr[0];
 				ptr[2] = ptr[0];
 				ptr[3] = 0xff;
+#endif
 				ptr += 4;
 			}
 		}
@@ -730,6 +738,15 @@ namespace rmx
 				int Y = ptr[0];
 				int Cb = ptr[1];
 				int Cr = ptr[2];
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+				ptr[0] = 0xff;
+				value = Y + val_140[Cr];
+				ptr[1] = clamp(value, 0, 255);
+				value = Y - val_034[Cb] - val_071[Cr];
+				ptr[2] = clamp(value, 0, 255);
+				value = Y + val_177[Cb];
+				ptr[3] = clamp(value, 0, 255);
+#else
 				value = Y + val_140[Cr];
 				ptr[0] = clamp(value, 0, 255);
 				value = Y - val_034[Cb] - val_071[Cr];
@@ -737,6 +754,7 @@ namespace rmx
 				value = Y + val_177[Cb];
 				ptr[2] = clamp(value, 0, 255);
 				ptr[3] = 0xff;
+#endif
 				ptr += 4;
 			}
 		}

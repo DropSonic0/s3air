@@ -139,8 +139,13 @@ namespace rmx
 			case PNG_PLTE:
 			{
 							 palette_size = length / 3;
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+							 for (int i = 0; i < palette_size; ++i)
+								 palette[i] = 0xff000000 + ((uint32)mem[i * 3 + 0] << 16) + ((uint32)mem[i * 3 + 1] << 8) + (uint32)mem[i * 3 + 2];
+#else
 							 for (int i = 0; i < palette_size; ++i)
 								 palette[i] = 0xff000000 + (readUint32LE(mem + i * 3) & 0xffffff);
+#endif
 							 for (int i = palette_size; i < 0x100; ++i)
 								 palette[i] = 0x00000000;
 							 break;
@@ -313,14 +318,24 @@ namespace rmx
 				{
 					// 8-bit grayscale
 				case 0:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+					for (int i = 0; i < width; ++i)
+						dst[i] = 0xff000000 + ((uint32)src[i] << 16) + ((uint32)src[i] << 8) + (uint32)src[i];
+#else
 					for (int i = 0; i < width; ++i)
 						dst[i] = 0xff000000 + (0x010101 * src[i]);
+#endif
 					break;
 
 					// 24-bit RGB
 				case 2:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+					for (int i = 0; i < width; ++i)
+						dst[i] = 0xff000000 + ((uint32)src[i * 3 + 0] << 16) + ((uint32)src[i * 3 + 1] << 8) + (uint32)src[i * 3 + 2];
+#else
 					for (int i = 0; i < width; ++i)
 						dst[i] = 0xff000000 + (readUint32LE(&src[i * 3]) & 0x00ffffff);
+#endif
 					break;
 
 					// Palette image
@@ -331,13 +346,23 @@ namespace rmx
 
 					// 16-bit gray + alpha
 				case 4:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+					for (int i = 0; i < width; ++i)
+						dst[i] = ((uint32)src[i * 2 + 1] << 24) + ((uint32)src[i * 2] << 16) + ((uint32)src[i * 2] << 8) + (uint32)src[i * 2];
+#else
 					for (int i = 0; i < width; ++i)
 						dst[i] = (0x010101 * src[i * 2]) + (src[i * 2 + 1] << 24);
+#endif
 					break;
 
 					// 32-bit RGB + alpha
 				case 6:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+					for (int i = 0; i < width; ++i)
+						dst[i] = ((uint32)src[i * 4 + 3] << 24) + ((uint32)src[i * 4 + 0] << 16) + ((uint32)src[i * 4 + 1] << 8) + (uint32)src[i * 4 + 2];
+#else
 					memcpy(dst, src, width * 4);
+#endif
 					break;
 				}
 			}

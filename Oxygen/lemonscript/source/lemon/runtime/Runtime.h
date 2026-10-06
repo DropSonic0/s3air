@@ -164,6 +164,15 @@ namespace lemon
 		AnyBaseValue getGlobalVariableValue(const GlobalVariable& variable);
 		void setGlobalVariableValue(const GlobalVariable& variable, AnyBaseValue value);
 		int64* accessGlobalVariableValue(const GlobalVariable& variable);
+		inline int64* accessGlobalVariableValueTyped(const GlobalVariable& variable, size_t sizeInBytes)
+		{
+			uint8* ptr = (uint8*)accessGlobalVariableValue(variable);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+			if (nullptr != ptr && sizeInBytes < 8)
+				ptr += (8 - sizeInBytes);
+#endif
+			return (int64*)ptr;
+		}
 
 		inline const ControlFlow& getMainControlFlow() const  { return *mControlFlows[0]; }
 		inline const ControlFlow& getSelectedControlFlow() const  { return *mSelectedControlFlow; }

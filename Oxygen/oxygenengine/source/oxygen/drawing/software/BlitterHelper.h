@@ -30,7 +30,11 @@ struct BlitterHelper
 			return;
 
 		// Fill the first line, then copy it into the rest
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		const uint32 rgba = color.getARGB32();
+#else
 		const uint32 rgba = color.getABGR32();
+#endif
 		uint32* firstLine = view.getLinePointer(0);
 		for (int i = 0; i < view.getSize().x; ++i)
 		{
@@ -60,9 +64,15 @@ struct BlitterHelper
 			uint8* dst = (uint8*)view.getLinePointer(line);
 			for (int i = 0; i < view.getSize().x; ++i)
 			{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+				dst[1] = (uint8)(((dst[1] * multiplicator) >> 8) + additions[0]);
+				dst[2] = (uint8)(((dst[2] * multiplicator) >> 8) + additions[1]);
+				dst[3] = (uint8)(((dst[3] * multiplicator) >> 8) + additions[2]);
+#else
 				dst[0] = (uint8)(((dst[0] * multiplicator) >> 8) + additions[0]);
 				dst[1] = (uint8)(((dst[1] * multiplicator) >> 8) + additions[1]);
 				dst[2] = (uint8)(((dst[2] * multiplicator) >> 8) + additions[2]);
+#endif
 				dst += 4;
 			}
 		}
@@ -87,6 +97,16 @@ struct BlitterHelper
 
 	static inline void blendPixelAlpha(uint8* dst, const uint8* src)
 	{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		const int alpha = src[0];
+		if (alpha > 0)
+		{
+			const int oneMinusAlpha = 255 - alpha;
+			dst[1] = (uint8)((src[1] * alpha + dst[1] * oneMinusAlpha) / 255);
+			dst[2] = (uint8)((src[2] * alpha + dst[2] * oneMinusAlpha) / 255);
+			dst[3] = (uint8)((src[3] * alpha + dst[3] * oneMinusAlpha) / 255);
+		}
+#else
 		const int alpha = src[3];
 		if (alpha > 0)
 		{
@@ -95,6 +115,7 @@ struct BlitterHelper
 			dst[1] = (uint8)((src[1] * alpha + dst[1] * oneMinusAlpha) / 255);
 			dst[2] = (uint8)((src[2] * alpha + dst[2] * oneMinusAlpha) / 255);
 		}
+#endif
 	}
 
 	static inline void blendLineAlpha(uint32* dst_, const uint32* src_, size_t numPixels)
@@ -149,6 +170,15 @@ struct BlitterHelper
 
 	static inline void blendPixelAlphaAdditive(uint8* dst, const uint8* src)
 	{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		const int alpha = src[0];
+		if (alpha > 0)
+		{
+			dst[1] = std::min(dst[1] + src[1] * alpha / 255, 0xff);
+			dst[2] = std::min(dst[2] + src[2] * alpha / 255, 0xff);
+			dst[3] = std::min(dst[3] + src[3] * alpha / 255, 0xff);
+		}
+#else
 		const int alpha = src[3];
 		if (alpha > 0)
 		{
@@ -156,6 +186,7 @@ struct BlitterHelper
 			dst[1] = std::min(dst[1] + src[1] * alpha / 255, 0xff);
 			dst[2] = std::min(dst[2] + src[2] * alpha / 255, 0xff);
 		}
+#endif
 	}
 
 	static inline void blendLineAdditive(uint32* dst_, const uint32* src_, size_t numPixels)
@@ -186,6 +217,15 @@ struct BlitterHelper
 
 	static inline void blendPixelAlphaSubtractive(uint8* dst, const uint8* src)
 	{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		const int alpha = src[0];
+		if (alpha > 0)
+		{
+			dst[1] = std::max(dst[1] - src[1] * alpha / 255, 0);
+			dst[2] = std::max(dst[2] - src[2] * alpha / 255, 0);
+			dst[3] = std::max(dst[3] - src[3] * alpha / 255, 0);
+		}
+#else
 		const int alpha = src[3];
 		if (alpha > 0)
 		{
@@ -193,6 +233,7 @@ struct BlitterHelper
 			dst[1] = std::max(dst[1] - src[1] * alpha / 255, 0);
 			dst[2] = std::max(dst[2] - src[2] * alpha / 255, 0);
 		}
+#endif
 	}
 
 	static inline void blendLineSubtractive(uint32* dst_, const uint32* src_, size_t numPixels)
@@ -227,12 +268,21 @@ struct BlitterHelper
 		const uint8* src = (const uint8*)src_;
 		for (size_t x = 0; x < numPixels; ++x)
 		{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			if (src[0] > 0)
+			{
+				dst[1] = (src[1] * dst[1]) / 255;
+				dst[2] = (src[2] * dst[2]) / 255;
+				dst[3] = (src[3] * dst[3]) / 255;
+			}
+#else
 			if (src[3] > 0)
 			{
 				dst[0] = (src[0] * dst[0]) / 255;
 				dst[1] = (src[1] * dst[1]) / 255;
 				dst[2] = (src[2] * dst[2]) / 255;
 			}
+#endif
 			dst += 4;
 			src += 4;
 		}
@@ -244,12 +294,21 @@ struct BlitterHelper
 		const uint8* src = (const uint8*)src_;
 		for (size_t x = 0; x < numPixels; ++x)
 		{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			if (src[0] > 0 && depthTestValue >= *depthBuffer)
+			{
+				dst[1] = (src[1] * dst[1]) / 255;
+				dst[2] = (src[2] * dst[2]) / 255;
+				dst[3] = (src[3] * dst[3]) / 255;
+			}
+#else
 			if (src[3] > 0 && depthTestValue >= *depthBuffer)
 			{
 				dst[0] = (src[0] * dst[0]) / 255;
 				dst[1] = (src[1] * dst[1]) / 255;
 				dst[2] = (src[2] * dst[2]) / 255;
 			}
+#endif
 			dst += 4;
 			src += 4;
 			++depthBuffer;
@@ -262,12 +321,21 @@ struct BlitterHelper
 		const uint8* src = (const uint8*)src_;
 		for (size_t x = 0; x < numPixels; ++x)
 		{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			if (src[0] > 0)
+			{
+				dst[1] = std::min(src[1], dst[1]);
+				dst[2] = std::min(src[2], dst[2]);
+				dst[3] = std::min(src[3], dst[3]);
+			}
+#else
 			if (src[3] > 0)
 			{
 				dst[0] = std::min(src[0], dst[0]);
 				dst[1] = std::min(src[1], dst[1]);
 				dst[2] = std::min(src[2], dst[2]);
 			}
+#endif
 			dst += 4;
 			src += 4;
 		}
@@ -279,12 +347,21 @@ struct BlitterHelper
 		const uint8* src = (const uint8*)src_;
 		for (size_t x = 0; x < numPixels; ++x)
 		{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			if (src[0] > 0 && depthTestValue >= *depthBuffer)
+			{
+				dst[1] = std::min(src[1], dst[1]);
+				dst[2] = std::min(src[2], dst[2]);
+				dst[3] = std::min(src[3], dst[3]);
+			}
+#else
 			if (src[3] > 0 && depthTestValue >= *depthBuffer)
 			{
 				dst[0] = std::min(src[0], dst[0]);
 				dst[1] = std::min(src[1], dst[1]);
 				dst[2] = std::min(src[2], dst[2]);
 			}
+#endif
 			dst += 4;
 			src += 4;
 			++depthBuffer;
@@ -297,12 +374,21 @@ struct BlitterHelper
 		const uint8* src = (const uint8*)src_;
 		for (size_t x = 0; x < numPixels; ++x)
 		{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			if (src[0] > 0)
+			{
+				dst[1] = std::max(src[1], dst[1]);
+				dst[2] = std::max(src[2], dst[2]);
+				dst[3] = std::max(src[3], dst[3]);
+			}
+#else
 			if (src[3] > 0)
 			{
 				dst[0] = std::max(src[0], dst[0]);
 				dst[1] = std::max(src[1], dst[1]);
 				dst[2] = std::max(src[2], dst[2]);
 			}
+#endif
 			dst += 4;
 			src += 4;
 		}
@@ -314,12 +400,21 @@ struct BlitterHelper
 		const uint8* src = (const uint8*)src_;
 		for (size_t x = 0; x < numPixels; ++x)
 		{
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			if (src[0] > 0 && depthTestValue >= *depthBuffer)
+			{
+				dst[1] = std::max(src[1], dst[1]);
+				dst[2] = std::max(src[2], dst[2]);
+				dst[3] = std::max(src[3], dst[3]);
+			}
+#else
 			if (src[3] > 0 && depthTestValue >= *depthBuffer)
 			{
 				dst[0] = std::max(src[0], dst[0]);
 				dst[1] = std::max(src[1], dst[1]);
 				dst[2] = std::max(src[2], dst[2]);
 			}
+#endif
 			dst += 4;
 			src += 4;
 			++depthBuffer;
@@ -354,7 +449,7 @@ struct BlitterHelper
 	static inline int bilinearEval(int pixel00, int pixel01, int pixel10, int pixel11, float fx, float fy)
 	{
 		const float blended = (((float)(pixel00 & 0xff) * (1.0f - fx) + (float)(pixel10 & 0xff) * fx) * (1.0f - fy)
-							+ ((float)(pixel01 & 0xff) * (1.0f - fx) + (float)(pixel11 & 0xff) * fx) * fy);
+			+ ((float)(pixel01 & 0xff) * (1.0f - fx) + (float)(pixel11 & 0xff) * fx) * fy);
 		return roundToInt(blended);
 	}
 
@@ -365,14 +460,22 @@ struct BlitterHelper
 		const float fx = px - (float)ix;
 		const float fy = py - (float)iy;
 		const uint32 pixel00 = pointSampling(bitmap, ix, iy);
-		const uint32 pixel01 = pointSampling(bitmap, ix, iy+1);
-		const uint32 pixel10 = pointSampling(bitmap, ix+1, iy);
-		const uint32 pixel11 = pointSampling(bitmap, ix+1, iy+1);
-		const int r = bilinearEval(pixel00,       pixel01,       pixel10,       pixel11,       fx, fy);
-		const int g = bilinearEval(pixel00 >> 8,  pixel01 >> 8,  pixel10 >> 8,  pixel11 >> 8,  fx, fy);
+		const uint32 pixel01 = pointSampling(bitmap, ix, iy + 1);
+		const uint32 pixel10 = pointSampling(bitmap, ix + 1, iy);
+		const uint32 pixel11 = pointSampling(bitmap, ix + 1, iy + 1);
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		const int b = bilinearEval(pixel00, pixel01, pixel10, pixel11, fx, fy);
+		const int g = bilinearEval(pixel00 >> 8, pixel01 >> 8, pixel10 >> 8, pixel11 >> 8, fx, fy);
+		const int r = bilinearEval(pixel00 >> 16, pixel01 >> 16, pixel10 >> 16, pixel11 >> 16, fx, fy);
+		const int a = bilinearEval(pixel00 >> 24, pixel01 >> 24, pixel10 >> 24, pixel11 >> 24, fx, fy);
+		return b + (g << 8) + (r << 16) + (a << 24);
+#else
+		const int r = bilinearEval(pixel00, pixel01, pixel10, pixel11, fx, fy);
+		const int g = bilinearEval(pixel00 >> 8, pixel01 >> 8, pixel10 >> 8, pixel11 >> 8, fx, fy);
 		const int b = bilinearEval(pixel00 >> 16, pixel01 >> 16, pixel10 >> 16, pixel11 >> 16, fx, fy);
 		const int a = bilinearEval(pixel00 >> 24, pixel01 >> 24, pixel10 >> 24, pixel11 >> 24, fx, fy);
 		return r + (g << 8) + (b << 16) + (a << 24);
+#endif
 	}
 
 	static inline uint32 bilinearSampling(const BitmapView<uint8>& bitmap, const Blitter::PaletteWrapper& palette, float px, float py)
@@ -382,75 +485,83 @@ struct BlitterHelper
 		const float fx = px - (float)ix;
 		const float fy = py - (float)iy;
 		const uint32 pixel00 = pointSampling(bitmap, palette, ix, iy);
-		const uint32 pixel01 = pointSampling(bitmap, palette, ix, iy+1);
-		const uint32 pixel10 = pointSampling(bitmap, palette, ix+1, iy);
-		const uint32 pixel11 = pointSampling(bitmap, palette, ix+1, iy+1);
-		const int r = bilinearEval(pixel00,       pixel01,       pixel10,       pixel11,       fx, fy);
-		const int g = bilinearEval(pixel00 >> 8,  pixel01 >> 8,  pixel10 >> 8,  pixel11 >> 8,  fx, fy);
+		const uint32 pixel01 = pointSampling(bitmap, palette, ix, iy + 1);
+		const uint32 pixel10 = pointSampling(bitmap, palette, ix + 1, iy);
+		const uint32 pixel11 = pointSampling(bitmap, palette, ix + 1, iy + 1);
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		const int b = bilinearEval(pixel00, pixel01, pixel10, pixel11, fx, fy);
+		const int g = bilinearEval(pixel00 >> 8, pixel01 >> 8, pixel10 >> 8, pixel11 >> 8, fx, fy);
+		const int r = bilinearEval(pixel00 >> 16, pixel01 >> 16, pixel10 >> 16, pixel11 >> 16, fx, fy);
+		const int a = bilinearEval(pixel00 >> 24, pixel01 >> 24, pixel10 >> 24, pixel11 >> 24, fx, fy);
+		return b + (g << 8) + (r << 16) + (a << 24);
+#else
+		const int r = bilinearEval(pixel00, pixel01, pixel10, pixel11, fx, fy);
+		const int g = bilinearEval(pixel00 >> 8, pixel01 >> 8, pixel10 >> 8, pixel11 >> 8, fx, fy);
 		const int b = bilinearEval(pixel00 >> 16, pixel01 >> 16, pixel10 >> 16, pixel11 >> 16, fx, fy);
 		const int a = bilinearEval(pixel00 >> 24, pixel01 >> 24, pixel10 >> 24, pixel11 >> 24, fx, fy);
 		return r + (g << 8) + (b << 16) + (a << 24);
+#endif
 	}
 
 	static void mergeIntoOutputDirect(const BitmapViewMutable<uint32>& output, const BitmapView<uint32>& input, const std::vector<Blitter::PixelSegment>& pixelSegments, const Blitter::Options& options)
 	{
 		switch (options.mBlendMode)
 		{
-			case BlendMode::ALPHA:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineAlpha(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::ALPHA:
+		{
+								 for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									 blendLineAlpha(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+								 break;
+		}
 
-			case BlendMode::ONE_BIT:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineOneBit(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::ONE_BIT:
+		{
+								   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									   blendLineOneBit(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+								   break;
+		}
 
-			case BlendMode::ADDITIVE:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineAdditive(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::ADDITIVE:
+		{
+									for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+										blendLineAdditive(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+									break;
+		}
 
-			case BlendMode::SUBTRACTIVE:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineSubtractive(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::SUBTRACTIVE:
+		{
+									   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+										   blendLineSubtractive(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+									   break;
+		}
 
-			case BlendMode::MULTIPLICATIVE:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineMultiplicative(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::MULTIPLICATIVE:
+		{
+										  for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+											  blendLineMultiplicative(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+										  break;
+		}
 
-			case BlendMode::MINIMUM:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineMinimum(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::MINIMUM:
+		{
+								   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									   blendLineMinimum(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+								   break;
+		}
 
-			case BlendMode::MAXIMUM:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineMaximum(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		case BlendMode::MAXIMUM:
+		{
+								   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									   blendLineMaximum(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+								   break;
+		}
 
-			default:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineOpaque(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
-				break;
-			}
+		default:
+		{
+				   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+					   blendLineOpaque(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels);
+				   break;
+		}
 		}
 	}
 
@@ -458,61 +569,61 @@ struct BlitterHelper
 	{
 		switch (options.mBlendMode)
 		{
-			case BlendMode::ALPHA:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineAlphaWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::ALPHA:
+		{
+								 for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									 blendLineAlphaWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+								 break;
+		}
 
-			case BlendMode::ONE_BIT:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineOneBitWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::ONE_BIT:
+		{
+								   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									   blendLineOneBitWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+								   break;
+		}
 
-			case BlendMode::ADDITIVE:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineAdditiveWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::ADDITIVE:
+		{
+									for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+										blendLineAdditiveWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+									break;
+		}
 
-			case BlendMode::SUBTRACTIVE:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineSubtractiveWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::SUBTRACTIVE:
+		{
+									   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+										   blendLineSubtractiveWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+									   break;
+		}
 
-			case BlendMode::MULTIPLICATIVE:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineMultiplicativeWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::MULTIPLICATIVE:
+		{
+										  for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+											  blendLineMultiplicativeWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+										  break;
+		}
 
-			case BlendMode::MINIMUM:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineMinimumWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::MINIMUM:
+		{
+								   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									   blendLineMinimumWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+								   break;
+		}
 
-			case BlendMode::MAXIMUM:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineMaximumWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		case BlendMode::MAXIMUM:
+		{
+								   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+									   blendLineMaximumWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+								   break;
+		}
 
-			default:
-			{
-				for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
-					blendLineOpaqueWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
-				break;
-			}
+		default:
+		{
+				   for (const Blitter::PixelSegment& pixelSegment : pixelSegments)
+					   blendLineOpaqueWithDepth(output.getPixelPointer(pixelSegment.mPosition), input.getPixelPointer(pixelSegment.mPosition), pixelSegment.mNumPixels, depthBuffer.getPixelPointer(pixelSegment.mPosition), options.mDepthTestValue);
+				   break;
+		}
 		}
 	}
 

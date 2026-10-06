@@ -178,12 +178,20 @@ void Blitter::blitRectWithScaling(BitmapViewMutable<uint32>& destBitmap, Recti d
 		if (options.mBlendMode != BlendMode::ALPHA)
 		{
 			// No blending
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			BlitterHelper::blitBitmapWithScaling<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getARGB32());
+#else
 			BlitterHelper::blitBitmapWithScaling<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+#endif
 		}
 		else
 		{
 			// Alpha blending
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			BlitterHelper::blitBitmapWithScaling<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getARGB32());
+#else
 			BlitterHelper::blitBitmapWithScaling<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+#endif
 		}
 	}
 }
@@ -211,12 +219,20 @@ void Blitter::blitRectWithUVs(BitmapViewMutable<uint32>& destBitmap, Recti destR
 		if (options.mBlendMode != BlendMode::ALPHA)
 		{
 			// No blending
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			BlitterHelper::blitBitmapWithUVs<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getARGB32());
+#else
 			BlitterHelper::blitBitmapWithUVs<false, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+#endif
 		}
 		else
 		{
 			// Alpha blending
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+			BlitterHelper::blitBitmapWithUVs<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getARGB32());
+#else
 			BlitterHelper::blitBitmapWithUVs<true, true>(destBitmap, destRect, sourceBitmap, sourceRect, Color(*options.mTintColor).getABGR32());
+#endif
 		}
 	}
 }
@@ -468,6 +484,62 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 			mult[3] = 0x100;
 		}
 
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+		if (nullptr == options.mAddedColor)
+		{
+			// Only apply tint color
+			for (int y = 0; y < bitmap.getSize().y; ++y)
+			{
+				uint8* dst = (uint8*)bitmap.getLinePointer(y);
+				for (int x = 0; x < bitmap.getSize().x; ++x)
+				{
+					dst[0] = (uint8)clamp((dst[0] * mult[3]) >> 8, 0, 0xff); // Alpha
+					dst[1] = (uint8)clamp((dst[1] * mult[0]) >> 8, 0, 0xff); // Red
+					dst[2] = (uint8)clamp((dst[2] * mult[1]) >> 8, 0, 0xff); // Green
+					dst[3] = (uint8)clamp((dst[3] * mult[2]) >> 8, 0, 0xff); // Blue
+					dst += 4;
+				}
+			}
+		}
+		else
+		{
+			// Apply tint & added color
+			const int add[3] =
+			{
+				(int)(options.mAddedColor->r * 0xff + 0.5f),
+				(int)(options.mAddedColor->g * 0xff + 0.5f),
+				(int)(options.mAddedColor->b * 0xff + 0.5f)
+			};
+			for (int y = 0; y < bitmap.getSize().y; ++y)
+			{
+				uint8* dst = (uint8*)bitmap.getLinePointer(y);
+				for (int x = 0; x < bitmap.getSize().x; ++x)
+				{
+					dst[0] = (uint8)clamp(((dst[0] * mult[3]) >> 8),          0, 0xff); // Alpha
+					dst[1] = (uint8)clamp(((dst[1] * mult[0]) >> 8) + add[0], 0, 0xff); // Red
+					dst[2] = (uint8)clamp(((dst[2] * mult[1]) >> 8) + add[1], 0, 0xff); // Green
+					dst[3] = (uint8)clamp(((dst[3] * mult[2]) >> 8) + add[2], 0, 0xff); // Blue
+					dst += 4;
+				}
+			}
+		}
+
+		// Special handling for one-bit alpha if tint color enforces alpha blending
+		if (nullptr != options.mTintColor && options.mTintColor->a < 1.0f && options.mBlendMode == BlendMode::ONE_BIT)
+		{
+			options.mBlendMode = BlendMode::ALPHA;
+			const uint8 alphaValue = (uint8)(options.mTintColor->a * 255.0f + 0.5f);
+			for (int y = 0; y < bitmap.getSize().y; ++y)
+			{
+				uint8* dst = (uint8*)bitmap.getLinePointer(y);
+				for (int x = 0; x < bitmap.getSize().x; ++x)
+				{
+					dst[0] = (dst[0] > 0) ? alphaValue : 0; // Alpha
+					dst += 4;
+				}
+			}
+		}
+#else
 		if (nullptr == options.mAddedColor)
 		{
 			// Only apply tint color
@@ -523,6 +595,7 @@ void Blitter::processIntermediateBitmap(BitmapViewMutable<uint32>& bitmap, Optio
 				}
 			}
 		}
+#endif
 	}
 
 	if (options.mSwapRedBlueChannels)

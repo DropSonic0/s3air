@@ -69,7 +69,7 @@ void Bitmap::copy(const Bitmap& source)
 		mHeight = source.mHeight;
 		mData = allocBitmapData(mWidth*mHeight);
 	}
-	memcpy(mData, source.mData, mWidth*mHeight*4);
+	memcpy(mData, source.mData, mWidth*mHeight * 4);
 }
 
 void Bitmap::copy(const Bitmap& source, const Recti& rect)
@@ -92,7 +92,7 @@ void Bitmap::copy(const Bitmap& source, const Recti& rect)
 	mWidth = sx;
 	mHeight = sy;
 	mData = allocBitmapData(mWidth*mHeight);
-	memcpyRect(mData, mWidth, &source.mData[px+py*source.mWidth], source.mWidth, mWidth, mHeight);
+	memcpyRect(mData, mWidth, &source.mData[px + py*source.mWidth], source.mWidth, mWidth, mHeight);
 }
 
 void Bitmap::copy(const void* source, int wid, int hgt)
@@ -104,7 +104,7 @@ void Bitmap::copy(const void* source, int wid, int hgt)
 	mWidth = wid;
 	mHeight = hgt;
 	mData = allocBitmapData(mWidth*mHeight);
-	memcpy(mData, source, mWidth*mHeight*4);
+	memcpy(mData, source, mWidth*mHeight * 4);
 }
 
 void Bitmap::create(int wid, int hgt)
@@ -161,14 +161,14 @@ void Bitmap::clear(uint32 color)
 
 	if (color == 0)
 	{
-		memset(mData, 0, mWidth*mHeight*4);
+		memset(mData, 0, mWidth*mHeight * 4);
 	}
 	else
 	{
 		for (int x = 0; x < mWidth; ++x)
 			mData[x] = color;
 		for (int y = 1; y < mHeight; ++y)
-			memcpy(&mData[y*mWidth], mData, mWidth*4);
+			memcpy(&mData[y*mWidth], mData, mWidth * 4);
 	}
 }
 
@@ -195,7 +195,11 @@ void Bitmap::clearAlpha(uint8 alpha)
 	if (nullptr == mData)
 		return;
 
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	uint8* dst = (uint8*)mData + 0;
+#else
 	uint8* dst = (uint8*)mData + 3;
+#endif
 	uint8* end = dst + getPixelCount() * 4;
 	for (; dst < end; dst += 4)
 	{
@@ -234,9 +238,9 @@ inline void get_int_frac(float x, int& ix, float& fx, int limit)
 	}
 	ix = (int)x;
 	fx = x - (float)ix;
-	if (ix >= limit-1)
+	if (ix >= limit - 1)
 	{
-		ix = limit-2;
+		ix = limit - 2;
 		fx = 1.0f;
 	}
 }
@@ -249,14 +253,30 @@ uint32 Bitmap::sampleLinear(float x, float y) const
 	get_int_frac(x, ix, fx, mWidth);
 	get_int_frac(y, iy, fy, mHeight);
 	uint32 color = 0;
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	const uint8* p00 = (const uint8*)&mData[ix + iy * mWidth];
+	const uint8* p10 = (const uint8*)&mData[ix + 1 + iy * mWidth];
+	const uint8* p01 = (const uint8*)&mData[ix + (iy + 1) * mWidth];
+	const uint8* p11 = (const uint8*)&mData[ix + 1 + (iy + 1) * mWidth];
+	uint8* dst = (uint8*)&color;
+	for (int i = 0; i < 4; ++i)
+	{
+		const float c = (float)p00[i] * (1.0f - fx) * (1.0f - fy)
+			+ (float)p10[i] * fx * (1.0f - fy)
+			+ (float)p01[i] * (1.0f - fx) * fy
+			+ (float)p11[i] * fx * fy;
+		dst[i] = (uint8)(c + 0.5f);
+	}
+#else
 	for (int i = 0; i < 3; ++i)
 	{
-		const float c = (float)((mData[ix+iy*mWidth]	   >> (i*8)) & 0xff) * (1.0f - fx) * (1.0f - fy)
-					  + (float)((mData[ix+1+iy*mWidth]	   >> (i*8)) & 0xff) * fx * (1.0f - fy)
-					  + (float)((mData[ix+(iy+1)*mWidth]   >> (i*8)) & 0xff) * (1.0f - fx) * fy
-					  + (float)((mData[ix+1+(iy+1)*mWidth] >> (i*8)) & 0xff) * fx * fy;
-		color += (int)(c + 0.5f) << (i*8);
+		const float c = (float)((mData[ix + iy*mWidth] >> (i * 8)) & 0xff) * (1.0f - fx) * (1.0f - fy)
+			+ (float)((mData[ix + 1 + iy*mWidth] >> (i * 8)) & 0xff) * fx * (1.0f - fy)
+			+ (float)((mData[ix + (iy + 1)*mWidth] >> (i * 8)) & 0xff) * (1.0f - fx) * fy
+			+ (float)((mData[ix + 1 + (iy + 1)*mWidth] >> (i * 8)) & 0xff) * fx * fy;
+		color += (int)(c + 0.5f) << (i * 8);
 	}
+#endif
 	return color;
 }
 
@@ -269,10 +289,17 @@ void Bitmap::setPixel(int x, int y, uint32 color)
 
 void Bitmap::setPixel(int x, int y, float red, float green, float blue, float alpha)
 {
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+	setPixel(x, y, ((uint32)(saturate(alpha) * 255.0f) << 24)
+		+ ((uint32)(saturate(red)   * 255.0f) << 16)
+		+ ((uint32)(saturate(green) * 255.0f) << 8)
+		+ ((uint32)(saturate(blue)  * 255.0f)));
+#else
 	setPixel(x, y, (uint32)(saturate(red)   * 255.0f)
-				+ ((uint32)(saturate(green) * 255.0f) << 8)
-				+ ((uint32)(saturate(blue)  * 255.0f) << 16)
-				+ ((uint32)(saturate(alpha) * 255.0f) << 24));
+		+ ((uint32)(saturate(green) * 255.0f) << 8)
+		+ ((uint32)(saturate(blue)  * 255.0f) << 16)
+		+ ((uint32)(saturate(alpha) * 255.0f) << 24));
+#endif
 }
 
 bool Bitmap::decode(InputStream& stream, Bitmap::LoadResult& outResult, const char* format)
@@ -317,92 +344,92 @@ uint8* Bitmap::convert(ColorFormat format, int& size, uint32* palette)
 	switch (format)
 	{
 		// Convert RGBA -> RGB
-		case ColorFormat::RGB24:
-		{
-			size *= 3;
+	case ColorFormat::RGB24:
+	{
+							   size *= 3;
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			output = new uint8[size];
+							   output = new uint8[size];
 #else
-			output = static_cast<uint8*>(memalign(128, size));
+							   output = static_cast<uint8*>(memalign(128, size));
 #endif
-			for (int i = 0; i < pixels; ++i)
-				memcpy(&output[i*3], &mData[i], 3);
-			return output;
-		}
+							   for (int i = 0; i < pixels; ++i)
+								   memcpy(&output[i * 3], &mData[i], 3);
+							   return output;
+	}
 
 		// Reduce to 16-bit
-		case ColorFormat::RGB16:
-		{
-			size *= 2;
+	case ColorFormat::RGB16:
+	{
+							   size *= 2;
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			output = new uint8[size];
+							   output = new uint8[size];
 #else
-			output = static_cast<uint8*>(memalign(128, size));
+							   output = static_cast<uint8*>(memalign(128, size));
 #endif
-			for (int i = 0; i < pixels; ++i)
-			{
-				uint16 color = 0;
-				color += (mData[i] >> 3) & 0x001f;
-				color += (mData[i] >> 5) & 0x07e0;
-				color += (mData[i] >> 8) & 0xf800;
-				*(uint16*)(&output[i*2]) = color;
-			}
-			return output;
-		}
+							   for (int i = 0; i < pixels; ++i)
+							   {
+								   uint16 color = 0;
+								   color += (mData[i] >> 3) & 0x001f;
+								   color += (mData[i] >> 5) & 0x07e0;
+								   color += (mData[i] >> 8) & 0xf800;
+								   *(uint16*)(&output[i * 2]) = color;
+							   }
+							   return output;
+	}
 
 		// Create palette with 256 colors
-		case ColorFormat::INDEXED_256_COLORS:
-		{
-			if (!palette)
-				break;
+	case ColorFormat::INDEXED_256_COLORS:
+	{
+											if (!palette)
+												break;
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			output = new uint8[size];
+											output = new uint8[size];
 #else
-			output = static_cast<uint8*>(memalign(128, size));
+											output = static_cast<uint8*>(memalign(128, size));
 #endif
-			convert2palette(output, 256, palette);
-			return output;
-		}
+											convert2palette(output, 256, palette);
+											return output;
+	}
 
 		// Create palette with 16 colors
-		case ColorFormat::INDEXED_16_COLORS:
-		{
-			if (!palette)
-				break;
+	case ColorFormat::INDEXED_16_COLORS:
+	{
+										   if (!palette)
+											   break;
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			uint8* tmp = new uint8[size];
+										   uint8* tmp = new uint8[size];
 #else
-			uint8* tmp = static_cast<uint8*>(memalign(128, size));
+										   uint8* tmp = static_cast<uint8*>(memalign(128, size));
 #endif
-			convert2palette(tmp, 16, palette);
-			size /= 2;
+										   convert2palette(tmp, 16, palette);
+										   size /= 2;
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			output = new uint8[size];
+										   output = new uint8[size];
 #else
-			output = static_cast<uint8*>(memalign(128, size));
+										   output = static_cast<uint8*>(memalign(128, size));
 #endif
-			for (int i = 0; i < pixels; i += 2)
-				output[i/2] = (tmp[i] << 4) + tmp[i+1];
+										   for (int i = 0; i < pixels; i += 2)
+											   output[i / 2] = (tmp[i] << 4) + tmp[i + 1];
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			delete[] tmp;
+										   delete[] tmp;
 #else
-			free(tmp);
+										   free(tmp);
 #endif
-			return output;
-		}
+										   return output;
+	}
 
 		// No conversion
-		default:
-		{
-			size *= 4;
+	default:
+	{
+			   size *= 4;
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-			output = new uint8[size];
+			   output = new uint8[size];
 #else
-			output = static_cast<uint8*>(memalign(128, size));
+			   output = static_cast<uint8*>(memalign(128, size));
 #endif
-			memcpy(output, mData, size);
-			return output;
-		}
+			   memcpy(output, mData, size);
+			   return output;
+	}
 	}
 
 	size = 0;
@@ -433,9 +460,9 @@ bool Bitmap::load(const WString& filename, LoadResult* outResult)
 
 	// Automatic file type recognition by file extension
 	WString format;
-	const int pos = filename.findChar(L'.', filename.length()-1, -1);
+	const int pos = filename.findChar(L'.', filename.length() - 1, -1);
 	if (pos > 0)
-		format.makeSubString(filename, pos+1, -1);
+		format.makeSubString(filename, pos + 1, -1);
 
 	LoadResult loadResult;
 	bool success = decode(*stream, loadResult, *format.toString());
@@ -454,9 +481,9 @@ bool Bitmap::save(const WString& filename)
 
 	// File extension is the format to save
 	WString format;
-	int pos = filename.findChar(L'.', filename.length()-1, -1);
+	int pos = filename.findChar(L'.', filename.length() - 1, -1);
 	if (pos > 0)
-		format.makeSubString(filename, pos+1, -1);
+		format.makeSubString(filename, pos + 1, -1);
 
 	DynOutputStream stream;
 	bool result = encode(stream, *format.toString());
@@ -502,7 +529,7 @@ void Bitmap::insert(int ax, int ay, const Bitmap& source, const Recti& rect)
 	if (sx <= 0 || sy <= 0)
 		return;
 
-	memcpyRect(&mData[ax+ay*mWidth], mWidth, &source.mData[px+py*source.mWidth], source.mWidth, sx, sy);
+	memcpyRect(&mData[ax + ay*mWidth], mWidth, &source.mData[px + py*source.mWidth], source.mWidth, sx, sy);
 }
 
 void Bitmap::insertBlend(int ax, int ay, const Bitmap& source)
@@ -534,7 +561,7 @@ void Bitmap::insertBlend(int ax, int ay, const Bitmap& source, const Recti& rect
 	if (sx <= 0 || sy <= 0)
 		return;
 
-	memcpyBlend(&mData[ax+ay*mWidth], mWidth, &source.mData[px+py*source.mWidth], source.mWidth, sx, sy);
+	memcpyBlend(&mData[ax + ay*mWidth], mWidth, &source.mData[px + py*source.mWidth], source.mWidth, sx, sy);
 }
 
 void Bitmap::resize(int wid, int hgt)
@@ -560,8 +587,8 @@ void Bitmap::swapRedBlue()
 	for (int i = 0; i < wxh; ++i)
 	{
 		mData[i] = (mData[i] & 0xff00ff00)
-				| ((mData[i] & 0x00ff0000) >> 16)
-				| ((mData[i] & 0x000000ff) << 16);
+			| ((mData[i] & 0x00ff0000) >> 16)
+			| ((mData[i] & 0x000000ff) << 16);
 	}
 }
 
@@ -571,8 +598,8 @@ void Bitmap::mirrorHorizontal()
 		return;
 	uint32* mData2 = allocBitmapData(mWidth*mHeight);
 	for (int y = 0; y < mHeight; ++y)
-		for (int x = 0; x < mWidth; ++x)
-			mData2[x+y*mWidth] = mData[(mWidth-x-1)+y*mWidth];
+	for (int x = 0; x < mWidth; ++x)
+		mData2[x + y*mWidth] = mData[(mWidth - x - 1) + y*mWidth];
 	freeBitmapData(mData);
 	mData = mData2;
 }
@@ -583,7 +610,7 @@ void Bitmap::mirrorVertical()
 		return;
 	uint32* mData2 = allocBitmapData(mWidth*mHeight);
 	for (int y = 0; y < mHeight; ++y)
-		memcpy(&mData2[y*mWidth], &mData[(mHeight-y-1)*mWidth], mWidth*4);
+		memcpy(&mData2[y*mWidth], &mData[(mHeight - y - 1)*mWidth], mWidth * 4);
 	freeBitmapData(mData);
 	mData = mData2;
 }
@@ -593,7 +620,7 @@ void Bitmap::blendBG(uint32 color)
 	int size = mWidth * mHeight;
 	float bg_value[3];
 	for (int c = 0; c < 3; ++c)
-		bg_value[c] = float((color >> (c*8)) & 0xff);
+		bg_value[c] = float((color >> (c * 8)) & 0xff);
 
 	for (int i = 0; i < size; ++i)
 	{
@@ -601,7 +628,7 @@ void Bitmap::blendBG(uint32 color)
 		int output[3];
 		for (int c = 0; c < 3; ++c)
 		{
-			int value = (mData[i] >> (c*8)) & 0xff;
+			int value = (mData[i] >> (c * 8)) & 0xff;
 			output[c] = int(float(value) * alpha + float(bg_value[c]) * (1.0f - alpha) + 0.5f);
 		}
 		mData[i] = 0xff000000 + output[0] + (output[1] << 8) + (output[2] << 16);
@@ -616,17 +643,17 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma)
 		create(source.mWidth, source.mHeight);
 
 	int size = (int)(3.0f * sigma + 0.5f);
-	float* factors = new float[size*2+1];
-	float* factors_alpha = new float[size*2+1];
+	float* factors = new float[size * 2 + 1];
+	float* factors_alpha = new float[size * 2 + 1];
 	for (int j = 0; j <= size; ++j)
 	{
-		factors[size+j] = 0.0f;
+		factors[size + j] = 0.0f;
 		for (int i = -2; i <= 2; ++i)		// Evaluate with 5 samples for a more precise result
 		{
 			float s = ((float)j + (float)i * 0.2f) / sigma;
-			factors[size+j] += exp(-0.5f * s * s);
+			factors[size + j] += exp(-0.5f * s * s);
 		}
-		factors[size-j] = factors[size+j];
+		factors[size - j] = factors[size + j];
 	}
 
 	// Two passes: horizontal and vertical
@@ -638,17 +665,17 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma)
 		uint8* src;
 		uint8* dst;
 		int swid = 4;
-		if (step == 0)	{ maxz = mWidth;  src = (uint8*)source.mData; dst = (uint8*)temp.mData;            }
-				  else	{ maxz = mHeight; src = (uint8*)temp.mData;   dst = (uint8*)mData;  swid *= mWidth; }
+		if (step == 0)	{ maxz = mWidth;  src = (uint8*)source.mData; dst = (uint8*)temp.mData; }
+		else	{ maxz = mHeight; src = (uint8*)temp.mData;   dst = (uint8*)mData;  swid *= mWidth; }
 
 		int wxh = mWidth * mHeight;
 		for (int i = 0; i < wxh; ++i)
 		{
 			int z = (step == 0) ? (i % mWidth) : (i / mWidth);
-			int min_j = (z >= size)     ? -size : -z;
-			int max_j = (z < maxz-size) ? +size : maxz-z-1;
+			int min_j = (z >= size) ? -size : -z;
+			int max_j = (z < maxz - size) ? +size : maxz - z - 1;
 			for (int j = min_j; j <= max_j; ++j)
-				factors_alpha[size+j] = factors[size+j] * (float)(src[j*swid+3]) / 255.0f;
+				factors_alpha[size + j] = factors[size + j] * (float)(src[j*swid + 3]) / 255.0f;
 			for (int c = 0; c < 4; ++c)
 			{
 				float value = 0.0f;
@@ -656,7 +683,7 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma)
 				const float* factor = (c < 3) ? &factors_alpha[size] : &factors[size];
 				for (int j = min_j; j <= max_j; ++j)
 				{
-					value += factor[j] * (float)src[j*swid+c];
+					value += factor[j] * (float)src[j*swid + c];
 					sum += factor[j];
 				}
 				dst[c] = (uint8)(value / sum + 0.5f);
@@ -677,16 +704,16 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma, int channel)
 		copy(source);
 
 	int size = (int)(3.0f * sigma + 0.5f);
-	float* factors = new float[size*2+1];
+	float* factors = new float[size * 2 + 1];
 	for (int j = 0; j <= size; ++j)
 	{
-		factors[size+j] = 0.0f;
+		factors[size + j] = 0.0f;
 		for (int i = -2; i <= 2; ++i)		// Evaluate with 5 samples for a more precise result
 		{
 			float s = ((float)j + (float)i * 0.2f) / sigma;
-			factors[size+j] += exp(-0.5f * s * s);
+			factors[size + j] += exp(-0.5f * s * s);
 		}
-		factors[size-j] = factors[size+j];
+		factors[size - j] = factors[size + j];
 	}
 
 	// Two passes: horizontal and vertical
@@ -698,21 +725,21 @@ void Bitmap::gaussianBlur(const Bitmap& source, float sigma, int channel)
 		uint8* src;
 		uint8* dst;
 		int swid = 4;
-		if (step == 0)	{ maxz = mWidth;  src = (uint8*)mData;     dst = (uint8*)bmp.mData;              }
-				  else	{ maxz = mHeight; src = (uint8*)bmp.mData; dst = (uint8*)mData;  swid *= mWidth; }
+		if (step == 0)	{ maxz = mWidth;  src = (uint8*)mData;     dst = (uint8*)bmp.mData; }
+		else	{ maxz = mHeight; src = (uint8*)bmp.mData; dst = (uint8*)mData;  swid *= mWidth; }
 
 		int wxh = mWidth * mHeight;
 		for (int i = 0; i < wxh; ++i)
 		{
 			int z = (step == 0) ? (i % mWidth) : (i / mWidth);
-			int min_j = (z >= size)     ? -size : -z;
-			int max_j = (z < maxz-size) ? +size : maxz-z-1;
+			int min_j = (z >= size) ? -size : -z;
+			int max_j = (z < maxz - size) ? +size : maxz - z - 1;
 			float value = 0.0f;
 			float sum = 0.0f;
 			const float* factor = &factors[size];
 			for (int j = min_j; j <= max_j; ++j)
 			{
-				value += factor[j] * (float)src[j*swid+channel];
+				value += factor[j] * (float)src[j*swid + channel];
 				sum += factor[j];
 			}
 			dst[channel] = (uint8)(value / sum + 0.5f);
@@ -731,27 +758,27 @@ void Bitmap::sampleDown(const Bitmap& source, bool roundup)
 
 	int sx = source.mWidth;
 	int sy = source.mHeight;
-	int nx = (sx == 1) ? 1 : roundup ? (sx+1)/2 : sx/2;
-	int ny = (sy == 1) ? 1 : roundup ? (sy+1)/2 : sy/2;
-	int max_x = (nx <= sx/2) ? nx : sx/2;
+	int nx = (sx == 1) ? 1 : roundup ? (sx + 1) / 2 : sx / 2;
+	int ny = (sy == 1) ? 1 : roundup ? (sy + 1) / 2 : sy / 2;
+	int max_x = (nx <= sx / 2) ? nx : sx / 2;
 	uint32* newData = allocBitmapData(nx*ny);
 	for (int y = 0; y < ny; ++y)
 	{
-		uint32* src = &source.mData[y*2*sx];
+		uint32* src = &source.mData[y * 2 * sx];
 		uint32* dst = &newData[y*nx];
 		for (int x = 0; x < max_x; ++x)
-			dst[x] = ((src[x*2] & 0xfefefefe) >> 1) + ((src[x*2+1] & 0xfefefefe) >> 1);
-		if (nx*2-1 >= sx)
-			dst[max_x] = src[max_x*2];
-		if (y*2+1 < sy)
+			dst[x] = ((src[x * 2] & 0xfefefefe) >> 1) + ((src[x * 2 + 1] & 0xfefefefe) >> 1);
+		if (nx * 2 - 1 >= sx)
+			dst[max_x] = src[max_x * 2];
+		if (y * 2 + 1 < sy)
 			src += sx;
 		for (int x = 0; x < max_x; ++x)
 		{
-			uint32 color = ((src[x*2] & 0xfefefefe) >> 1) + ((src[x*2+1] & 0xfefefefe) >> 1);
+			uint32 color = ((src[x * 2] & 0xfefefefe) >> 1) + ((src[x * 2 + 1] & 0xfefefefe) >> 1);
 			dst[x] = ((dst[x] & 0xfefefefe) >> 1) + ((color & 0xfefefefe) >> 1);
 		}
-		if (nx*2-1 >= sx)
-			dst[max_x] = ((dst[max_x] & 0xfefefefe) >> 1) + ((src[max_x*2] & 0xfefefefe) >> 1);
+		if (nx * 2 - 1 >= sx)
+			dst[max_x] = ((dst[max_x] & 0xfefefefe) >> 1) + ((src[max_x * 2] & 0xfefefefe) >> 1);
 	}
 	freeBitmapData(mData);
 	mData = newData;
@@ -796,8 +823,8 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 	create(wid, hgt);
 	int swid = source.mWidth;
 	int srcsize, dstsize;
-	if (rescale_x)	{ srcsize = source.mWidth;  dstsize = mWidth;  }
-			  else	{ srcsize = source.mHeight; dstsize = mHeight; }
+	if (rescale_x)	{ srcsize = source.mWidth;  dstsize = mWidth; }
+	else	{ srcsize = source.mHeight; dstsize = mHeight; }
 	int mulz = rescale_x ? 1 : swid;
 	int mulw = rescale_x ? swid : 1;
 	uint32* dst = mData;
@@ -816,9 +843,9 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 				{
 					*dst = source.mData[w*mulw];
 				}
-				else if (fz >= (float)(srcsize-1))
+				else if (fz >= (float)(srcsize - 1))
 				{
-					*dst = source.mData[(srcsize-1)*mulz+w*mulw];
+					*dst = source.mData[(srcsize - 1)*mulz + w*mulw];
 				}
 				else
 				{
@@ -826,7 +853,7 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 					fz -= (float)iz;
 					int offset = iz*mulz + w*mulw;
 					const uint8* color1 = (uint8*)&source.mData[offset];
-					const uint8* color2 = (uint8*)&source.mData[offset+mulz];
+					const uint8* color2 = (uint8*)&source.mData[offset + mulz];
 					for (int c = 0; c < 4; ++c)
 					{
 						((uint8*)dst)[c] = (uint8)((float)color1[c] * (1.0f - fz) + (float)color2[c] * fz + 0.5f);
@@ -847,7 +874,7 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 				int z = rescale_x ? x : y;
 				int w = rescale_x ? y : x;
 				float f1 = (float)z * ratio;
-				float f2 = (float)(z+1) * ratio;
+				float f2 = (float)(z + 1) * ratio;
 				int i1 = (int)f1;  f1 -= (float)i1;
 				int i2 = (int)f2;  f2 -= (float)i2;
 				if (i2 >= srcsize)
@@ -860,9 +887,9 @@ void Bitmap::rescale(const Bitmap& source, int wid, int hgt)
 				{
 					float value = 0.0f;
 					for (int i = i1 + 1; i < i2; ++i)
-						value += (float)src[i*mulz+c];
-					value += (float)src[i1*mulz+c] * (1.0f - f1);
-					value += (float)src[i2*mulz+c] * f2;
+						value += (float)src[i*mulz + c];
+					value += (float)src[i1*mulz + c] * (1.0f - f1);
+					value += (float)src[i2*mulz + c] * f2;
 					((uint8*)dst)[c] = (uint8)(value / ratio + 0.5f);
 				}
 				++dst;
@@ -896,14 +923,23 @@ inline void Bitmap::memcpyBlend(uint32* dst, int dwid, const uint32* src, int sw
 	{
 		for (int x = 0; x < wid; ++x)
 		{
-			uint8* dstPtr = (uint8*)(&dst[x+y*dwid]);
-			const uint8* srcPtr = (const uint8*)(&src[x+y*swid]);
+			uint8* dstPtr = (uint8*)(&dst[x + y*dwid]);
+			const uint8* srcPtr = (const uint8*)(&src[x + y*swid]);
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+			float alpha = (float)srcPtr[0] / 255.0f;
+			float alpha_dst = (float)dstPtr[0] / 255.0f;
+			float A = 1.0f - (1.0f - alpha) * (1.0f - alpha_dst);
+			for (int c = 0; c < 3; ++c)
+				dstPtr[c + 1] = (uint8)(((float)srcPtr[c + 1] * alpha + (float)dstPtr[c + 1] * alpha_dst * (1.0f - alpha)) / A);
+			dstPtr[0] = (uint8)(A * 255.0f);
+#else
 			float alpha = (float)srcPtr[3] / 255.0f;
 			float alpha_dst = (float)dstPtr[3] / 255.0f;
 			float A = 1.0f - (1.0f - alpha) * (1.0f - alpha_dst);
 			for (int c = 0; c < 3; ++c)
 				dstPtr[c] = (uint8)(((float)srcPtr[c] * alpha + (float)dstPtr[c] * alpha_dst * (1.0f - alpha)) / A);
 			dstPtr[3] = (uint8)(A * 255.0f);
+#endif
 		}
 	}
 }
@@ -926,35 +962,35 @@ void Bitmap::convert2palette(uint8* output, int colors, uint32* palette)
 	int leafCount = 0;
 
 	for (int y = 0; y < mHeight; ++y)
-		for (int x = 0; x < mWidth; ++x)
+	for (int x = 0; x < mWidth; ++x)
+	{
+		uint32 color = mData[x + y*mWidth] & 0xffffff;	// Ignore alpha channel
+		OctreeNode* oct = &octreeRoot;
+		for (int j = 0; j < 8; ++j)
 		{
-			uint32 color = mData[x+y*mWidth] & 0xffffff;	// Ignore alpha channel
-			OctreeNode* oct = &octreeRoot;
-			for (int j = 0; j < 8; ++j)
+			const int index = ((color >> 7) & 0x01) + ((color >> 14) & 0x02) + ((color >> 21) & 0x04);
+			if (nullptr != oct->mChild[index])
 			{
-				const int index = ((color >> 7) & 0x01) + ((color >> 14) & 0x02) + ((color >> 21) & 0x04);
-				if (nullptr != oct->mChild[index])
-				{
-					oct = oct->mChild[index];
-				}
-				else
-				{
-					oct->mChild[index] = new OctreeNode();
-					oct = oct->mChild[index];
-				}
-				color <<= 1;
-
-				if ((j == 7) && (oct->mCount == 0))
-				{
-					oct->mIsLeaf = true;
-					++leafCount;
-				}
-				++oct->mCount;
-				oct->mRed   += mData[x+y*mWidth] & 0xff;
-				oct->mGreen += (mData[x+y*mWidth] >> 8) & 0xff;
-				oct->mBlue  += (mData[x+y*mWidth] >> 16) & 0xff;
+				oct = oct->mChild[index];
 			}
+			else
+			{
+				oct->mChild[index] = new OctreeNode();
+				oct = oct->mChild[index];
+			}
+			color <<= 1;
+
+			if ((j == 7) && (oct->mCount == 0))
+			{
+				oct->mIsLeaf = true;
+				++leafCount;
+			}
+			++oct->mCount;
+			oct->mRed += mData[x + y*mWidth] & 0xff;
+			oct->mGreen += (mData[x + y*mWidth] >> 8) & 0xff;
+			oct->mBlue += (mData[x + y*mWidth] >> 16) & 0xff;
 		}
+	}
 
 	// Reduce colors
 	OctreeNode* stack[64];

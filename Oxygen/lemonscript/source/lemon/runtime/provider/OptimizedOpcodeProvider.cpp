@@ -336,7 +336,7 @@ namespace lemon
 						case Variable::Type::GLOBAL:
 						{
 							const GlobalVariable& variable = runtime.getProgram().getGlobalVariableByID(variableId).as<GlobalVariable>();
-							int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValue(variable);
+							int64* value = const_cast<Runtime&>(runtime).accessGlobalVariableValueTyped(variable, BaseTypeHelper::getSizeOfBaseType(opcodes[0].mDataType));
 							runtimeOpcode.setParameter(value);
 
 							switch (BaseTypeHelper::getSizeOfBaseType(opcodes[0].mDataType))

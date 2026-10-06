@@ -540,7 +540,12 @@ namespace
 		for (size_t i = 0; i < numColors; ++i)
 		{
 			// Maintain ABGR32 color format despite endianness change by swapping bytes
+#if defined(PLATFORM_PS3)
+			const uint32 c = colors[i];
+			targetPointer[i] = (c & 0xff00ff00) | ((c & 0x000000ff) << 16) | ((c >> 16) & 0x000000ff);
+#else
 			targetPointer[i] = swapBytes32(colors[i]);
+#endif
 		}
 		return (uint16)numColors;
 	}

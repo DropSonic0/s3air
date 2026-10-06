@@ -836,9 +836,16 @@ bool EngineMain::createWindow()
 		{
 			RMX_LOG_INFO("Creating OpenGL context...");
 		#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+			#define PSGL_INIT_MODE 1	// 0 = como estaba, 1 = sin flags de persistent/transient (defaults de PSGL), 2 = psglInit(NULL) como RSDKv4-PS3
+		#if PSGL_INIT_MODE == 2
+			psglInit(NULL);
+		#else
 			PSGLinitOptions options;
 			memset(&options, 0, sizeof(options));
-			options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE;
+			options.enable = PSGL_INIT_MAX_SPUS | PSGL_INIT_INITIALIZE_SPUS | PSGL_INIT_HOST_MEMORY_SIZE | PSGL_INIT_FIFO_SIZE;
+		#if PSGL_INIT_MODE == 0
+			options.enable |= PSGL_INIT_PERSISTENT_MEMORY_SIZE | PSGL_INIT_TRANSIENT_MEMORY_SIZE;
+		#endif
 			options.maxSPUs = 1;
 			options.initializeSPUs = GL_TRUE;
 			options.persistentMemorySize = 0;
@@ -847,6 +854,7 @@ bool EngineMain::createWindow()
 			options.fifoSize = 16 * 1024 * 1024;
 			options.hostMemorySize = 16 * 1024 * 1024;
 			psglInit(&options);
+		#endif
 
 			PSGLdeviceParameters params;
 			memset(&params, 0, sizeof(params));

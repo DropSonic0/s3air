@@ -607,7 +607,7 @@ namespace genericmanager
 		size_t mSize = 0;
 		size_t mReserved = FIXEDSIZE;
 		ELEMENT* mBuffer[FIXEDSIZE] = { nullptr };
-		ELEMENT** mElements = nullptr;
+		ELEMENT** mElements = mBuffer;
 	};
 
 }

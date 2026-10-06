@@ -143,8 +143,13 @@ namespace rmx
 				break;
 
 			case 24:
+#if defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__) || (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+				for (int x = 0; x < width; ++x)
+					dataPtr[x] = 0xff000000 | ((uint32)buffer[x * 3 + 2] << 16) | ((uint32)buffer[x * 3 + 1] << 8) | ((uint32)buffer[x * 3 + 0]);
+#else
 				for (int x = 0; x < width; ++x)
 					dataPtr[x] = ((uint32)buffer[x * 3] << 16) | ((uint32)buffer[x * 3 + 1] << 8) | ((uint32)buffer[x * 3 + 2]) | 0xff000000;
+#endif
 				break;
 
 			case 32:
