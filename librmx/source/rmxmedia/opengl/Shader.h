@@ -34,9 +34,10 @@ public:
 		ADD
 	};
 
+	struct CgData;	
 #if !defined(__CELLOS_LV2__) && !defined(__SNC__)
-	static inline std::function<void(String&, ShaderType)> mShaderSourcePostProcessCallback;
-	static inline std::function<bool(BlendMode)> mShaderApplyBlendModeCallback;				// Internal application of blend function will only be done if this is not set, or returns false
+	inline std::function<void(String&, ShaderType)> mShaderSourcePostProcessCallback;
+	inline std::function<bool(BlendMode)> mShaderApplyBlendModeCallback;				// Internal application of blend function will only be done if this is not set, or returns false
 #else
 	typedef void (*ShaderSourcePostProcessCallbackFn)(String&, ShaderType);
 	static ShaderSourcePostProcessCallbackFn mShaderSourcePostProcessCallback;
@@ -120,6 +121,8 @@ private:
 	String mVertexSource;
 	String mFragmentSource;
 	String mCompileLog;
+
+	CgData* mCgData = nullptr;
 };
 
 

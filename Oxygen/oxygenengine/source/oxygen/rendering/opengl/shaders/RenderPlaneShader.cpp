@@ -33,11 +33,11 @@ void RenderPlaneShader::initialize(Variation variation)
 	{
 		bindShader();
 
-		mLocActiveRect		= mShader.getUniformLocation("ActiveRect");
-		mLocGameResolution	= mShader.getUniformLocation("GameResolution");
-		mLocPriorityFlag	= mShader.getUniformLocation("PriorityFlag");
-		mLocPaletteOffset	= mShader.getUniformLocation("PaletteOffset");
-		mLocPlayfieldSize	= mShader.getUniformLocation("PlayfieldSize");
+		mLocActiveRect = mShader.getUniformLocation("ActiveRect");
+		mLocGameResolution = mShader.getUniformLocation("GameResolution");
+		mLocPriorityFlag = mShader.getUniformLocation("PriorityFlag");
+		mLocPaletteOffset = mShader.getUniformLocation("PaletteOffset");
+		mLocPlayfieldSize = mShader.getUniformLocation("PlayfieldSize");
 
 		mShader.setParam("PatternCacheTexture", 0);
 		mShader.setParam("PaletteTexture", 1);
@@ -69,20 +69,37 @@ void RenderPlaneShader::draw(const PlaneGeometry& geometry, const Vec2i& gameRes
 	bindShader();
 
 	// Bind textures incl. scroll offsets
+	//  -> On PS3 (Cg) the textures go through Shader::setTexture, as the Cg runtime decides the texture units of the samplers
 	{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		mShader.setTexture("PatternCacheTexture", resources.getPatternCacheTexture().getTextureHandle(), GL_TEXTURE_2D);
+#else
 		glActiveTexture(GL_TEXTURE0);
 		resources.getPatternCacheTexture().bindTexture();
+#endif
 
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		mShader.setTexture("PaletteTexture", resources.getMainPaletteTexture().getHandle(), GL_TEXTURE_2D);
+#else
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, resources.getMainPaletteTexture().getHandle());
+#endif
 
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		mShader.setTexture("IndexTexture", resources.getPlanePatternsTexture(geometry.mPlaneIndex).getTextureHandle(), GL_TEXTURE_2D);
+#else
 		glActiveTexture(GL_TEXTURE2);
 		resources.getPlanePatternsTexture(geometry.mPlaneIndex).bindTexture();
+#endif
 
 		if (mHorizontalScrolling)
 		{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+			mShader.setTexture("HScrollOffsetsTexture", resources.getHScrollOffsetsTexture(geometry.mScrollOffsets).getTextureHandle(), GL_TEXTURE_2D);
+#else
 			glActiveTexture(GL_TEXTURE3);
 			resources.getHScrollOffsetsTexture(geometry.mScrollOffsets).bindTexture();
+#endif
 		}
 		else
 		{
@@ -98,8 +115,12 @@ void RenderPlaneShader::draw(const PlaneGeometry& geometry, const Vec2i& gameRes
 
 		if (mVerticalScrolling)
 		{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+			mShader.setTexture("VScrollOffsetsTexture", resources.getVScrollOffsetsTexture(geometry.mScrollOffsets).getTextureHandle(), GL_TEXTURE_2D);
+#else
 			glActiveTexture(GL_TEXTURE4);
 			resources.getVScrollOffsetsTexture(geometry.mScrollOffsets).bindTexture();
+#endif
 
 			mShader.setParam(mLocVScrollOffsetBias, renderParts.getScrollOffsetsManager().getVerticalScrollOffsetBias());
 		}

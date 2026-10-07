@@ -14,7 +14,7 @@
 
 
 // If buffer textures are not supported, we use normal textures instead
-#if !defined(RMX_USE_GLES2)
+#if !defined(RMX_USE_GLES2) && !defined(PLATFORM_PS3)
 	#define SUPPORTS_BUFFER_TEXTURES
 #endif
 

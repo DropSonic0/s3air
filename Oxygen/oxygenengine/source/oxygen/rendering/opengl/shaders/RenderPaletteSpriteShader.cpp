@@ -24,15 +24,15 @@ void RenderPaletteSpriteShader::initialize(bool alphaTest)
 	{
 		bindShader();
 
-		mLocGameResolution	= mShader.getUniformLocation("GameResolution");
-		mLocWaterLevel		= mShader.getUniformLocation("WaterLevel");
-		mLocPosition		= mShader.getUniformLocation("Position");
-		mLocPivotOffset		= mShader.getUniformLocation("PivotOffset");
-		mLocSize			= mShader.getUniformLocation("Size");
-		mLocTransformation	= mShader.getUniformLocation("Transformation");
-		mLocAtex			= mShader.getUniformLocation("Atex");
-		mLocTintColor		= mShader.getUniformLocation("TintColor");
-		mLocAddedColor		= mShader.getUniformLocation("AddedColor");
+		mLocGameResolution = mShader.getUniformLocation("GameResolution");
+		mLocWaterLevel = mShader.getUniformLocation("WaterLevel");
+		mLocPosition = mShader.getUniformLocation("Position");
+		mLocPivotOffset = mShader.getUniformLocation("PivotOffset");
+		mLocSize = mShader.getUniformLocation("Size");
+		mLocTransformation = mShader.getUniformLocation("Transformation");
+		mLocAtex = mShader.getUniformLocation("Atex");
+		mLocTintColor = mShader.getUniformLocation("TintColor");
+		mLocAddedColor = mShader.getUniformLocation("AddedColor");
 
 		mShader.setParam("SpriteTexture", 0);
 		mShader.setParam("PaletteTexture", 1);
@@ -55,11 +55,17 @@ void RenderPaletteSpriteShader::draw(const renderitems::PaletteSpriteInfo& sprit
 		// Note that this call can internally bind a texture as well, which can mess with previous texture bindings - so we do this before the bindings below
 		const OpenGLTexture& paletteTexture = resources.getPaletteTexture(spriteInfo.mPrimaryPalette, spriteInfo.mSecondaryPalette);
 
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		// PS3 (Cg): the Cg runtime decides the texture units of the samplers
+		mShader.setTexture("SpriteTexture", texture->getTextureHandle(), GL_TEXTURE_2D);
+		mShader.setTexture("PaletteTexture", paletteTexture.getHandle(), GL_TEXTURE_2D);
+#else
 		glActiveTexture(GL_TEXTURE0);
 		texture->bindTexture();
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, paletteTexture.getHandle());
+#endif
 	}
 
 	// Update uniforms

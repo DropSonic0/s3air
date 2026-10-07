@@ -77,6 +77,15 @@ namespace opengldrawer
 		return false;
 	}
 
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+	// PS3: the callbacks are plain function pointers (no std::bind), so the resources pointer is kept in a static
+	static OpenGLDrawerResources* ps3ShaderBlendResources = nullptr;
+	static bool ps3ApplyShaderBlend(Shader::BlendMode blendMode)
+	{
+		return applyShaderBlendMode(blendMode, ps3ShaderBlendResources);
+	}
+#endif
+
 #ifdef USE_OPENGL_MESSAGE_CALLBACK
 	void GLAPIENTRY openGLMessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 	{
@@ -140,7 +149,9 @@ namespace opengldrawer
 			// Also register callback for blend mode changes by shaders
 			Shader::mShaderApplyBlendModeCallback = std::bind(&opengldrawer::applyShaderBlendMode, std::placeholders::_1, &mResources);
 #else
+			ps3ShaderBlendResources = &mResources;
 			Shader::mShaderSourcePostProcessCallback = &opengldrawer::performShaderSourcePostProcessing;
+			Shader::mShaderApplyBlendModeCallback = &ps3ApplyShaderBlend;
 #endif
 
 #ifdef USE_OPENGL_MESSAGE_CALLBACK

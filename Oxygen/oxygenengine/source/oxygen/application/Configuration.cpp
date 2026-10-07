@@ -239,7 +239,7 @@ namespace
 
 Configuration::RenderMethod Configuration::getHighestSupportedRenderMethod()
 {
-#if defined(PLATFORM_WEB) || (defined(PLATFORM_MAC) && defined(__arm64__)) || defined(PLATFORM_VITA) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+#if defined(PLATFORM_WEB) || (defined(PLATFORM_MAC) && defined(__arm64__)) || defined(PLATFORM_VITA)
 	return RenderMethod::OPENGL_SOFT;
 #else
 	// Default is OpenGL Hardware render method (as it's the highest one), but this can be lowered as needed, e.g. for individual platforms or depending on the execution environment

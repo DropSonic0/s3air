@@ -26,6 +26,7 @@
 #include "oxygen/application/Application.h"
 #include "oxygen/application/gameview/GameView.h"
 #include "rmxmedia/opengl/OpenGLFontOutput.h"
+#include "oxygen/rendering/opengl/shaders/SimpleRectTexturedShader.h"
 
 
 namespace fixedfunctiondrawer
@@ -60,7 +61,7 @@ namespace fixedfunctiondrawer
 			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
 			setBlendMode(BlendMode::OPAQUE);
-
+			testFBO();
 			mSetupSuccessful = true;
 		}
 
@@ -193,6 +194,76 @@ namespace fixedfunctiondrawer
 			glDisableClientState(GL_VERTEX_ARRAY);
 			if (textureHandle != 0)
 				glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		}
+
+		// ---- Prueba temporal (Cg + FBO + VAO), se borra cuando funcione ----
+		GLuint mTestTex = 0;
+		SimpleRectTexturedShader mTestShader;
+		opengl::VertexArrayObject mTestVAO;
+		bool mTestShaderReady = false;
+
+		void testFBO()
+		{
+			GLuint fbo = 0, depth = 0;
+
+			glGenTextures(1, &mTestTex);
+			glBindTexture(GL_TEXTURE_2D, mTestTex);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_ARGB_SCE, 400, 224, 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, NULL);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glGenFramebuffers(1, &fbo);
+			glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mTestTex, 0);
+
+			glGenRenderbuffers(1, &depth);
+			glBindRenderbuffer(GL_RENDERBUFFER, depth);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, 400, 224);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depth);
+
+			const GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+			printf("[FBO test] status=0x%x glError=0x%x\n", (unsigned)status, (unsigned)glGetError());
+
+			glViewport(0, 0, 400, 224);
+			glClearColor(1.0f, 0.0f, 0.0f, 1.0f);	// textura roja
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);	// restaurar
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		}
+
+		void drawCgTest()
+		{
+			if (mTestTex == 0)
+				return;
+
+			if (!mTestShaderReady)
+			{
+				printf("[Cg test] initializing shader...\n");
+				mTestShader.initialize(false, "Standard");
+
+				Shader& sh = mTestShader.getShader();
+				printf("[Cg test] vertex source length=%d, fragment source length=%d\n",
+					(int)sh.getVertexSource().length(), (int)sh.getFragmentSource().length());
+				if (sh.getCompileLog().length() > 0)
+					printf("[Cg test] compile log: %s\n", *sh.getCompileLog());
+
+				static const float quad[] = { 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0 };
+				mTestVAO.setup(opengl::VertexArrayObject::Format::P2);
+				mTestVAO.updateVertexData(quad, 6);
+				mTestShaderReady = true;
+				printf("[Cg test] shader + VAO ready\n");
+			}
+
+			static int drawCount = 0;
+			if (drawCount < 3)
+				printf("[Cg test] draw %d\n", drawCount++);
+
+			mTestShader.setup(mTestTex, Vec4f(0.5f, 0.5f, 0.4f, 0.4f));
+			mTestVAO.draw(GL_TRIANGLES);
+
+			Shader::unbindShader();
+			OpenGLShader::resetLastUsedShader();
 		}
 
 		void applyScissor(const Recti& scissorRect)
@@ -579,6 +650,12 @@ void FixedFunctionDrawer::performRendering(const DrawCollection& drawCollection)
 
 void FixedFunctionDrawer::presentScreen()
 {
+	if (mInternal.mTestTex != 0)
+	{
+		mInternal.setBlendMode(BlendMode::OPAQUE);
+		mInternal.drawRect(Recti(0, 0, 100, 56), mInternal.mTestTex, Color::WHITE);   // cuadradito rojo: FBO ok
+		mInternal.drawCgTest();                                                       // cuadrado rojo grande: Cg ok
+	}
 	psglSwap();
 }
 

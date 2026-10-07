@@ -45,6 +45,7 @@
 	#define LOAD_APP_ICON_PNG
 #endif
 
+#define PS3_USE_OPENGL_DRAWER 1
 
 struct EngineMain::Internal
 {
@@ -902,6 +903,19 @@ bool EngineMain::createWindow()
 	// Create drawer depending on render method
 #ifdef RMX_WITH_OPENGL_SUPPORT
 #if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+#if PS3_USE_OPENGL_DRAWER
+	RMX_LOG_INFO("Creating OpenGLDrawer for PS3...");
+	if (!mDrawer.createDrawer<OpenGLDrawer>())
+	{
+		RMX_LOG_INFO("OpenGLDrawer setup failed, trying FixedFunctionDrawer");
+		if (!mDrawer.createDrawer<FixedFunctionDrawer>())
+		{
+			RMX_LOG_INFO("OpenGL drawer setup failed, using software rendering");
+			config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;
+			mDrawer.createDrawer<SoftwareDrawer>();
+		}
+	}
+#else
 	RMX_LOG_INFO("Creating FixedFunctionDrawer for PS3...");
 	if (!mDrawer.createDrawer<FixedFunctionDrawer>())
 	{
@@ -913,6 +927,7 @@ bool EngineMain::createWindow()
 			mDrawer.createDrawer<SoftwareDrawer>();
 		}
 	}
+#endif
 #else
 	if (config.mRenderMethod >= Configuration::RenderMethod::OPENGL_SOFT)
 	{

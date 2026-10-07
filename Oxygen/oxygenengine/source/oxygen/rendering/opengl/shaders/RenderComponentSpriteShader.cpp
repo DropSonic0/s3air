@@ -23,13 +23,13 @@ void RenderComponentSpriteShader::initialize(bool alphaTest)
 	{
 		bindShader();
 
-		mLocGameResolution	= mShader.getUniformLocation("GameResolution");
-		mLocPosition		= mShader.getUniformLocation("Position");
-		mLocPivotOffset		= mShader.getUniformLocation("PivotOffset");
-		mLocSize			= mShader.getUniformLocation("Size");
-		mLocTransformation	= mShader.getUniformLocation("Transformation");
-		mLocTintColor		= mShader.getUniformLocation("TintColor");
-		mLocAddedColor		= mShader.getUniformLocation("AddedColor");
+		mLocGameResolution = mShader.getUniformLocation("GameResolution");
+		mLocPosition = mShader.getUniformLocation("Position");
+		mLocPivotOffset = mShader.getUniformLocation("PivotOffset");
+		mLocSize = mShader.getUniformLocation("Size");
+		mLocTransformation = mShader.getUniformLocation("Transformation");
+		mLocTintColor = mShader.getUniformLocation("TintColor");
+		mLocAddedColor = mShader.getUniformLocation("AddedColor");
 
 		mShader.setParam("SpriteTexture", 0);
 	}
@@ -48,8 +48,13 @@ void RenderComponentSpriteShader::draw(const renderitems::ComponentSpriteInfo& s
 		if (nullptr == texture)
 			return;
 
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		// PS3 (Cg): the Cg runtime decides the texture units of the samplers
+		mShader.setTexture("SpriteTexture", texture->getHandle(), GL_TEXTURE_2D);
+#else
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture->getHandle());
+#endif
 	}
 
 	// Update uniforms

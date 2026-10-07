@@ -12,7 +12,7 @@
 #include "oxygen/application/Configuration.h"
 #include "oxygen/application/EngineMain.h"
 #include "oxygen/drawing/DrawerTexture.h"
-
+#include "oxygen/helper/S3AirCgShaderFiles.h"
 
 // Other platforms than Windows with Visual C++ need to the zlib library dependency into their build separately
 #if defined(PLATFORM_WINDOWS) && defined(_MSC_VER)
@@ -154,6 +154,23 @@ bool FileHelper::loadBitmap(Bitmap& bitmap, const std::wstring& filename, bool s
 	bool FileHelper::loadShader(Shader& shader, const std::wstring& filename, const std::string& techname, const std::string& additionalDefines)
 	{
 #if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		// PS3: Cg shaders embedded in the executable (see S3AirCgShaderFiles.h)
+		const char* embedded = getEmbeddedCgShaderText(filename.c_str());
+		if (embedded != nullptr)
+		{
+			const std::vector<uint8> content(embedded, embedded + strlen(embedded));
+			if (shader.load(content, techname, additionalDefines))
+			{
+				RMX_LOG_INFO("Loaded embedded Cg shader '" << WString(filename).toStdString() << "'");
+			}
+			else
+			{
+				RMX_ERROR("Shader loading failed for '" << WString(filename).toStdString() << "':\n" << shader.getCompileLog().toStdString(), );
+			}
+			return true;
+		}
+
+		// Shaders that are not ported to Cg yet: keep the previous behavior (nothing is loaded)
 		return true;
 #else
 		std::vector<uint8> content;

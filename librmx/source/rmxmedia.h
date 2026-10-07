@@ -25,6 +25,7 @@
 // General includes
 #include "rmxbase.h"
 #include "rmxmedia_externals.h"
+#include "rmxmedia/opengl/PS3GLCompat.h"
 
 // RMX modules
 #include "rmxmedia/file/FileProviderSDL.h"

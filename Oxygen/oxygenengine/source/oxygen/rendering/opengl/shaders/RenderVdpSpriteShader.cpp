@@ -24,12 +24,12 @@ void RenderVdpSpriteShader::initialize()
 		bindShader();
 
 		mLocGameResolution = mShader.getUniformLocation("GameResolution");
-		mLocWaterLevel	   = mShader.getUniformLocation("WaterLevel");
-		mLocPosition	   = mShader.getUniformLocation("Position");
-		mLocSize		   = mShader.getUniformLocation("Size");
-		mLocFirstPattern   = mShader.getUniformLocation("FirstPattern");
-		mLocTintColor	   = mShader.getUniformLocation("TintColor");
-		mLocAddedColor	   = mShader.getUniformLocation("AddedColor");
+		mLocWaterLevel = mShader.getUniformLocation("WaterLevel");
+		mLocPosition = mShader.getUniformLocation("Position");
+		mLocSize = mShader.getUniformLocation("Size");
+		mLocFirstPattern = mShader.getUniformLocation("FirstPattern");
+		mLocTintColor = mShader.getUniformLocation("TintColor");
+		mLocAddedColor = mShader.getUniformLocation("AddedColor");
 
 		mShader.setParam("PatternCacheTexture", 0);
 		mShader.setParam("PaletteTexture", 1);
@@ -42,11 +42,17 @@ void RenderVdpSpriteShader::draw(const renderitems::VdpSpriteInfo& spriteInfo, c
 
 	// Bind textures
 	{
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+		// PS3 (Cg): the Cg runtime decides the texture units of the samplers
+		mShader.setTexture("PatternCacheTexture", resources.getPatternCacheTexture().getTextureHandle(), GL_TEXTURE_2D);
+		mShader.setTexture("PaletteTexture", resources.getMainPaletteTexture().getHandle(), GL_TEXTURE_2D);
+#else
 		glActiveTexture(GL_TEXTURE0);
 		resources.getPatternCacheTexture().bindTexture();
 
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, resources.getMainPaletteTexture().getHandle());
+#endif
 	}
 
 	// Update uniforms

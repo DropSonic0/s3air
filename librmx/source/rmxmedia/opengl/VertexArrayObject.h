@@ -13,6 +13,15 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
+// PS3 (PSGL + Cg): no VAOs, attributes are bound through the Cg vertex program, vertex data is kept in client memory
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+	#ifndef RMX_OPENGL_PS3_CG
+		#define RMX_OPENGL_PS3_CG
+	#endif
+	#include <vector>
+	void ps3DrawArrays(GLenum mode, GLint first, GLsizei count);	// Global function, see PS3GLCompat.h
+#endif
+
 namespace opengl
 {
 	class VertexArrayObject
@@ -56,7 +65,12 @@ namespace opengl
 		size_t mNumVertexAttributes = 0;
 		size_t mFloatsPerVertex = 0;
 
-		std::vector<float> mClientVertexData;
+	#ifdef RMX_OPENGL_PS3_CG
+	private:
+		friend void ::ps3DrawArrays(GLenum mode, GLint first, GLsizei count);
+		static VertexArrayObject* sCurrent;						// The VAO that was bound last (defined in VertexArrayObject.cpp)
+		std::vector<float> mClientData;							// Vertex data in client memory (mVertexBufferObjectHandle is only a "valid" marker on PS3)
+	#endif
 	};
 }
 

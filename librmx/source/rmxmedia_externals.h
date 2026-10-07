@@ -50,6 +50,9 @@ typedef unsigned int Uint32;
 typedef int SDL_Keycode;
 typedef int SDL_bool;
 
+void Shader_unbindCg();     // implementado en Shader_PS3.inl
+inline void glUseProgram(GLuint p) { if (p == 0) Shader_unbindCg(); }
+
 inline unsigned int SDL_GetTicks() {
 	static unsigned int start_ms = 0;
 	sys_time_sec_t sec;
@@ -995,7 +998,6 @@ inline void glUniform3fv(GLint l, GLsizei c, const GLfloat* v) {}
 inline void glUniform4fv(GLint l, GLsizei c, const GLfloat* v) {}
 inline void glUniformMatrix3fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
 inline void glUniformMatrix4fv(GLint l, GLsizei c, unsigned char t, const GLfloat* v) {}
-inline void glUseProgram(GLuint p) {}
 inline GLuint glCreateShader(GLenum t) { return 0; }
 inline void glShaderSource(GLuint s, GLsizei c, const GLchar** st, const GLint* l) {}
 inline void glCompileShader(GLuint s) {}
@@ -1008,8 +1010,8 @@ inline void glLinkProgram(GLuint p) {}
 inline void glGetProgramiv(GLuint p, GLenum n, GLint* v) { if (v) *v = 0; }
 inline void glGetProgramInfoLog(GLuint p, GLsizei b, GLsizei* l, GLchar* i) {}
 inline void glBufferSubData(GLenum target, GLintptr offset, GLsizeiptr size, const void* data) {}
-inline void glClearDepth(float d) {}
-inline void glDepthRange(float n, float f) {}
+inline void glClearDepth(float d) { glClearDepthf(d); }
+inline void glDepthRange(float n, float f) { glDepthRangef(n, f); }
 inline void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void* pointer) {}
 inline void glEnableVertexAttribArray(GLuint index) {}
 inline void glDisableVertexAttribArray(GLuint index) {}

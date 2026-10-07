@@ -10,23 +10,37 @@
 
 #ifdef RMX_WITH_OPENGL_SUPPORT
 
-#if defined(__CELLOS_LV2__) || defined(__SNC__)
-	Shader::ShaderSourcePostProcessCallbackFn Shader::mShaderSourcePostProcessCallback = nullptr;
-	Shader::ShaderApplyBlendModeCallbackFn Shader::mShaderApplyBlendModeCallback = nullptr;
+// PS3 (PSGL + Cg): the GLSL parts of "Shader" are replaced by Shader_PS3.inl; ShaderEffect (.shader parsing) is shared
+#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
+#define RMX_SHADER_PS3_CG
 #endif
+
 
 /* ----- Shader -------------------------------------------------------------------------------------------------- */
 
+#ifdef RMX_SHADER_PS3_CG
+#include "Shader_PS3.inl"
+#endif
+
+// On PS3 the callbacks are plain function pointers (see the "#else" branch in Shader.h), which are not "static inline" and need an actual definition here
+#if defined(__CELLOS_LV2__) || defined(__SNC__)
+Shader::ShaderSourcePostProcessCallbackFn Shader::mShaderSourcePostProcessCallback = nullptr;
+Shader::ShaderApplyBlendModeCallbackFn Shader::mShaderApplyBlendModeCallback = nullptr;
+#endif
+
+#ifndef RMX_SHADER_PS3_CG
 void Shader::unbindShader()
 {
 	glUseProgram(0);
 	glActiveTexture(GL_TEXTURE0);
 }
+#endif
 
 Shader::Shader()
 {
 }
 
+#ifndef RMX_SHADER_PS3_CG
 Shader::~Shader()
 {
 	if (mProgram != 0)
@@ -61,19 +75,19 @@ GLuint Shader::getUniformLocation(const char* name) const
 	RMX_ASSERT(loc != 0xffffffff, "Could not resolve uniform name " << name);
 
 	// Just for debugging uniforms if needed
-/*
+	/*
 	GLint count = 0;
 	glGetObjectParameterivARB(mProgram, GL_OBJECT_ACTIVE_UNIFORMS_ARB, &count);
 	for (GLint k = 0; k < count; ++k)
 	{
-		GLchar buffer[32];
-		GLsizei length = 0;
-		GLint size = 0;
-		GLenum type;
-		glGetActiveUniform(mProgram, k, 32, &length, &size, &type, buffer);
-		_asm nop;
+	GLchar buffer[32];
+	GLsizei length = 0;
+	GLint size = 0;
+	GLenum type;
+	glGetActiveUniform(mProgram, k, 32, &length, &size, &type, buffer);
+	_asm nop;
 	}
-*/
+	*/
 	return loc;
 }
 
@@ -150,12 +164,14 @@ void Shader::setTexture(GLuint loc, GLuint handle, GLenum target)
 	glUniform1i(loc, number);
 	++mTextureCount;
 }
+#endif
 
 void Shader::setTexture(GLuint loc, const Texture& texture)
 {
 	setTexture(loc, texture.getHandle(), texture.getType());
 }
 
+#ifndef RMX_SHADER_PS3_CG
 void Shader::bind()
 {
 	if (mBlendMode != BlendMode::UNDEFINED)
@@ -170,16 +186,17 @@ void Shader::bind()
 		{
 			switch (mBlendMode)
 			{
-				case BlendMode::OPAQUE:	glBlendFunc(GL_ONE, GL_ZERO);  break;
-				case BlendMode::ALPHA:	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  break;
-				case BlendMode::ADD:	glBlendFunc(GL_ONE, GL_ONE);   break;
-				default:				glBlendFunc(GL_ONE, GL_ZERO);  break;
+			case BlendMode::OPAQUE:	glBlendFunc(GL_ONE, GL_ZERO);  break;
+			case BlendMode::ALPHA:	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  break;
+			case BlendMode::ADD:	glBlendFunc(GL_ONE, GL_ONE);   break;
+			default:				glBlendFunc(GL_ONE, GL_ZERO);  break;
 			}
 		}
 	}
 	glUseProgram(mProgram);
 	resetTextureCount();
 }
+#endif
 
 void Shader::unbind()
 {
@@ -205,6 +222,7 @@ bool Shader::load(const std::vector<uint8>& content, const String& techname, con
 	return effect.getShader(*this, techname, additionalDefines);
 }
 
+#ifndef RMX_SHADER_PS3_CG
 bool Shader::compileShader(GLenum shaderType, GLuint& shaderHandle, const String& source)
 {
 	int len = source.length();
@@ -244,9 +262,9 @@ bool Shader::linkProgram(const std::map<int, String>* vertexAttribMap)
 	// Bind vertex atrributes (must be done just before linking)
 	if (nullptr != vertexAttribMap)
 	{
-		for (std::map<int, String>::const_iterator it = vertexAttribMap->begin(); it != vertexAttribMap->end(); ++it)
+		for (const auto&[index, attributeName] : *vertexAttribMap)
 		{
-			glBindAttribLocation(mProgram, it->first, *(it->second));
+			glBindAttribLocation(mProgram, index, *attributeName);
 		}
 	}
 
@@ -273,6 +291,7 @@ bool Shader::linkProgram(const std::map<int, String>* vertexAttribMap)
 	mCompileLog << "\n";
 	return false;
 }
+#endif
 
 
 
@@ -296,8 +315,8 @@ bool ShaderEffect::load(const String& filename)
 	loadFromString(filecontents);
 
 	mIncludeDir = filename;
-	const int k = mIncludeDir.findChars("\\/", mIncludeDir.length()-1, -1);
-	mIncludeDir.remove(k+1, -1);
+	const int k = mIncludeDir.findChars("\\/", mIncludeDir.length() - 1, -1);
+	mIncludeDir.remove(k + 1, -1);
 	return true;
 }
 
@@ -404,7 +423,7 @@ void ShaderEffect::readParts(const String& source)
 			int b = line.findChars("# -", a, +1);
 			mParts.push_back(PartStruct());
 			currPart = &mParts.back();
-			currPart->mTitle.makeSubString(line, a, b-a);
+			currPart->mTitle.makeSubString(line, a, b - a);
 			currPart->mContent.clear();
 		}
 		else if (currPart)
@@ -424,17 +443,17 @@ void ShaderEffect::parseTechniques(String& source)
 		TechniqueStruct& tech = vectorAdd(mTechniques);
 		String inheritedName;
 
-		a = source.skipChars(" \t\n\r", a+9, +1);
+		a = source.skipChars(" \t\n\r", a + 9, +1);
 		b = source.findChars(" \t\n\r:{", a, +1);
-		tech.mName.makeSubString(source, a, b-a);
+		tech.mName.makeSubString(source, a, b - a);
 
 		// Check for inheritance
 		b = source.skipChars(" \t\n\r", b, +1);
 		if (source[b] == ':')
 		{
-			a = source.skipChars(" \t\n\r", b+1, +1);
+			a = source.skipChars(" \t\n\r", b + 1, +1);
 			b = source.findChars(" \t\n\r{", a, +1);
-			inheritedName.makeSubString(source, a, b-a);
+			inheritedName.makeSubString(source, a, b - a);
 
 			TechniqueStruct* parentTech = findTechniqueByName(inheritedName);
 			if (nullptr != parentTech)
@@ -451,8 +470,8 @@ void ShaderEffect::parseTechniques(String& source)
 		a = source.skipChars(" \t\n\r{", b, +1);
 		b = source.findChar('}', a, +1);
 		String techcontents;
-		techcontents.makeSubString(source, a, b-a);
-		source.remove(0, b+1);
+		techcontents.makeSubString(source, a, b - a);
+		source.remove(0, b + 1);
 
 		std::vector<String> techlines;
 		techcontents.split(techlines, ';');
@@ -464,14 +483,14 @@ void ShaderEffect::parseTechniques(String& source)
 				continue;
 
 			a = line.skipChars(" \t\n\r", 0, +1);
-			b = line.skipChars(" \t\n\r", c-1, -1) + 1;
+			b = line.skipChars(" \t\n\r", c - 1, -1) + 1;
 			String identifier;
-			identifier.makeSubString(line, a, b-a);
+			identifier.makeSubString(line, a, b - a);
 			identifier.lowerCase();
-			a = line.skipChars(" \t\n\r", c+1, +1);
-			b = line.skipChars(" \t\n\r", line.length()-1, -1) + 1;
+			a = line.skipChars(" \t\n\r", c + 1, +1);
+			b = line.skipChars(" \t\n\r", line.length() - 1, -1) + 1;
 			String value;
-			value.makeSubString(line, a, b-a);
+			value.makeSubString(line, a, b - a);
 
 			if (identifier == "vs" || identifier == "fs")
 			{
@@ -483,8 +502,8 @@ void ShaderEffect::parseTechniques(String& source)
 				for (const String& include : includes)
 				{
 					a = include.skipChars(" \t\n\r", 0, +1);
-					b = include.skipChars(" \t\n\r", include.length()-1, -1) + 1;
-					parts.push_back(include.getSubString(a, b-a));
+					b = include.skipChars(" \t\n\r", include.length() - 1, -1) + 1;
+					parts.push_back(include.getSubString(a, b - a));
 				}
 			}
 			else if (identifier == "blendfunc")
@@ -503,7 +522,7 @@ void ShaderEffect::parseTechniques(String& source)
 			}
 			else if (identifier.startsWith("vertexattrib[") && identifier.endsWith("]"))
 			{
-				const String numberString = identifier.getSubString(13, identifier.length()-14);
+				const String numberString = identifier.getSubString(13, identifier.length() - 14);
 				const int index = numberString.parseInt();
 				tech.mVertexAttribMap[index] = value;
 			}
@@ -566,39 +585,32 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 	String line;
 
 	// Resolve includes
-	for (int pos = 0; pos < source.length(); )
+	for (int pos = 0; pos < source.length();)
 	{
 		const int start = pos;
 		pos = source.getLine(line, pos);
 		if (line[0] == '#' && line.startsWith("#include"))
 		{
-			source.remove(start, pos-start);
+			source.remove(start, pos - start);
 			pos = start;
 
 			int a = line.skipChars(" \t", 8, +1);
 			if (a >= line.length() || line[a] != '"')
 				continue;
-			int b = line.findChar('"', a+1, +1);
+			int b = line.findChar('"', a + 1, +1);
 			if (b >= line.length())
 				continue;
 
 			String incname;
-			incname.makeSubString(line, a+1, b-a-1);
+			incname.makeSubString(line, a + 1, b - a - 1);
 			if (incname.empty())
 				continue;
-			if (mIncludeDir.nonEmpty())
-			{
-				incname.insert(mIncludeDir, 0);
-			}
-			else if (!incname.startsWith("data/") && !incname.startsWith("data\\"))
-			{
-				incname.insert("data/shader/", 0);
-			}
+			incname.insert(mIncludeDir, 0);
 
 			String content;
 			if (content.loadFile(*incname) && content.nonEmpty())
 			{
-				if (content[content.length()-1] != '\n')
+				if (content[content.length() - 1] != '\n')
 					content << '\n';
 				source.insert(content, pos);
 				pos += content.length();
@@ -606,11 +618,12 @@ void ShaderEffect::preprocessSource(String& source, Shader::ShaderType shaderTyp
 		}
 	}
 
-#if (defined(RMX_USE_GLES2) && !defined(PLATFORM_VITA)) || defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	// GLSL ES 2.0 / PSGL translation
+#if defined(RMX_USE_GLES2) && !defined(PLATFORM_VITA)
+	// GLSL ES 2.0 translation
 	String newSource;
-	for (int pos = 0; pos < source.length(); )
+	for (int pos = 0; pos < source.length();)
 	{
+		const int start = pos;
 		pos = source.getLine(line, pos);
 
 		if (line.startsWith("#version"))
