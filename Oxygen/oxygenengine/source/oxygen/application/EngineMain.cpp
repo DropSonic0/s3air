@@ -527,11 +527,6 @@ bool EngineMain::initConfigAndSettings()
 	if (config.mFailSafeMode)
 	{
 		RMX_LOG_INFO("Using fail-safe mode");
-	#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-		config.mRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
-	#else
-		config.mRenderMethod = Configuration::RenderMethod::SOFTWARE;	// Should already be set actually, but why not play it safe
-	#endif
 	}
 	else if (config.mRenderMethod == Configuration::RenderMethod::UNDEFINED)
 	{
@@ -539,14 +534,10 @@ bool EngineMain::initConfigAndSettings()
 	}
 
 	// Respect the platform's settings for supported render methods
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	config.mRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
-#else
 	if (config.mRenderMethod > Configuration::getHighestSupportedRenderMethod())
 		config.mRenderMethod = Configuration::getHighestSupportedRenderMethod();
-#endif
 
-#if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA)
+#if defined(PLATFORM_ANDROID) || defined(PLATFORM_IOS) || defined(PLATFORM_VITA) || defined(PLATFORM_PS3)
 	// Use fullscreen, with no borders please
 	//  -> Note that this doesn't work for the web version, if running in mobile browsers - we rely on a window with fixed size (see config.json) there
 	config.mWindowMode = Configuration::WindowMode::FULLSCREEN_EXCLUSIVE;
@@ -852,8 +843,8 @@ bool EngineMain::createWindow()
 			options.persistentMemorySize = 0;
 			options.transientMemorySize = 0;
 			options.errorConsole = 0;
-			options.fifoSize = 16 * 1024 * 1024;
-			options.hostMemorySize = 16 * 1024 * 1024;
+			options.fifoSize = 2 * 1024 * 1024;
+			options.hostMemorySize = 8 * 1024 * 1024;
 			psglInit(&options);
 		#endif
 

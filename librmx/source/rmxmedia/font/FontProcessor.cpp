@@ -43,13 +43,13 @@ void ShadowFontProcessor::process(FontProcessingData& data)
 	}
 
 #if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	const uint32 shadowRGB = mShadowColor.getRGBA32() & 0xffffff00;
+	const uint32 shadowRGB = mShadowColor.getARGB32() & 0x00ffffff;
 	if (mShadowColor.a < 1.0f)
 	{
 		uint32* data = bmp.getData();
 		for (int i = 0; i < bmp.getPixelCount(); ++i)
 		{
-			data[i] = shadowRGB + roundToInt((float)(data[i] & 0xff) * mShadowColor.a);
+			data[i] = shadowRGB + (roundToInt((float)(data[i] >> 24) * mShadowColor.a) << 24);
 		}
 	}
 	else
@@ -103,8 +103,8 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 
 #if 1
 #if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	const uint32 outlineColorRGB = mOutlineColor.getRGBA32() & 0xffffff00;
-	const uint32 outlineColorAlpha = mOutlineColor.getRGBA32() & 0xff;
+	const uint32 outlineColorRGB = mOutlineColor.getARGB32() & 0x00ffffff;
+	const uint32 outlineColorAlpha = mOutlineColor.getARGB32() >> 24;
 
 	for (int y = 0; y < bitmap.getHeight(); ++y)
 	{
@@ -128,7 +128,7 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 						if (originalX >= 0 && originalX < data.mBitmap.getWidth())	// TODO: This can be optimized by calculating the correct range for dx
 						{
 							const uint32 color = data.mBitmap.getPixel(originalX, originalY);
-							const uint8 alpha = (color & 0xff);
+							const uint8 alpha = (color >> 24);
 							highestAlpha = std::max(alpha, highestAlpha);
 						}
 					}
@@ -136,7 +136,7 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 			}
 
 			highestAlpha = highestAlpha * outlineColorAlpha / 255;
-			const uint32 outColor = outlineColorRGB + highestAlpha;
+			const uint32 outColor = outlineColorRGB + (highestAlpha << 24);
 			bitmap.setPixel(x, y, outColor);
 		}
 	}
@@ -182,9 +182,9 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 #else
 	// Old simpler implementation, which mostly ignores alpha values
 #if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-	const uint32 outlineColorABGR = mOutlineColor.getRGBA32();
+	const uint32 outlineColorARGB = mOutlineColor.getARGB32();
 #else
-	const uint32 outlineColorABGR = mOutlineColor.getABGR32();
+	const uint32 outlineColorARGB = mOutlineColor.getABGR32();
 #endif
 	for (int y = 0; y < data.mBitmap.getHeight(); ++y)
 	{
@@ -192,17 +192,17 @@ void OutlineFontProcessor::process(FontProcessingData& data)
 		{
 			if (data.mBitmap.getPixel(x, y) & 0xff000000)
 			{
-				bitmap.setPixel(insetX + x - 1, insetY + y, outlineColorABGR);
-				bitmap.setPixel(insetX + x + 1, insetY + y, outlineColorABGR);
-				bitmap.setPixel(insetX + x, insetY + y - 1, outlineColorABGR);
-				bitmap.setPixel(insetX + x, insetY + y + 1, outlineColorABGR);
+				bitmap.setPixel(insetX + x - 1, insetY + y, outlineColorARGB);
+				bitmap.setPixel(insetX + x + 1, insetY + y, outlineColorARGB);
+				bitmap.setPixel(insetX + x, insetY + y - 1, outlineColorARGB);
+				bitmap.setPixel(insetX + x, insetY + y + 1, outlineColorARGB);
 
 				if (mRectangularOutline)
 				{
-					bitmap.setPixel(insetX + x - 1, insetY + y - 1, outlineColorABGR);
-					bitmap.setPixel(insetX + x - 1, insetY + y + 1, outlineColorABGR);
-					bitmap.setPixel(insetX + x + 1, insetY + y - 1, outlineColorABGR);
-					bitmap.setPixel(insetX + x + 1, insetY + y + 1, outlineColorABGR);
+					bitmap.setPixel(insetX + x - 1, insetY + y - 1, outlineColorARGB);
+					bitmap.setPixel(insetX + x - 1, insetY + y + 1, outlineColorARGB);
+					bitmap.setPixel(insetX + x + 1, insetY + y - 1, outlineColorARGB);
+					bitmap.setPixel(insetX + x + 1, insetY + y + 1, outlineColorARGB);
 				}
 			}
 		}
@@ -223,13 +223,13 @@ void GradientFontProcessor::process(FontProcessingData& data)
 		for (int x = 0; x < data.mBitmap.getWidth(); ++x)
 		{
 #if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-			float colorR = (float)((*pixelPtr >> 24) & 0xff);
-			float colorG = (float)((*pixelPtr >> 16) & 0xff);
-			float colorB = (float)((*pixelPtr >> 8) & 0xff);
+			float colorR = (float)((*pixelPtr >> 16) & 0xff);
+			float colorG = (float)((*pixelPtr >> 8) & 0xff);
+			float colorB = (float)((*pixelPtr) & 0xff);
 			colorR *= shadingFactor;
 			colorG *= shadingFactor;
 			colorB *= shadingFactor;
-			*pixelPtr = ((uint32)(colorR + 0.5f) << 24) | ((uint32)(colorG + 0.5f) << 16) | ((uint32)(colorB + 0.5f) << 8) | (*pixelPtr & 0xff);
+			*pixelPtr = (*pixelPtr & 0xff000000) | ((uint32)(colorR + 0.5f) << 16) | ((uint32)(colorG + 0.5f) << 8) | (uint32)(colorB + 0.5f);
 #else
 			float colorR = (float)((*pixelPtr) & 0xff);
 			float colorG = (float)((*pixelPtr >> 8) & 0xff);

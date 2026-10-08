@@ -94,10 +94,10 @@ struct OpenGLRenderer::Internal
 
 
 OpenGLRenderer::OpenGLRenderer(RenderParts& renderParts, DrawerTexture& outputTexture) :
-	Renderer(RENDERER_TYPE_ID, renderParts, outputTexture),
-	mDrawerResources(getDrawerResources()),
-	mRenderResources(renderParts, mDrawerResources),
-	mInternal(*new Internal())
+Renderer(RENDERER_TYPE_ID, renderParts, outputTexture),
+mDrawerResources(getDrawerResources()),
+mRenderResources(renderParts, mDrawerResources),
+mInternal(*new Internal())
 {
 }
 
@@ -345,188 +345,188 @@ void OpenGLRenderer::renderGeometry(const Geometry& geometry)
 {
 	switch (geometry.getType())
 	{
-		case Geometry::Type::UNDEFINED:
-			break;	// This should never happen anyways
+	case Geometry::Type::UNDEFINED:
+		break;	// This should never happen anyways
 
-		case Geometry::Type::PLANE:
-		{
-			const PlaneGeometry& pg = static_cast<const PlaneGeometry&>(geometry);
+	case Geometry::Type::PLANE:
+	{
+								  const PlaneGeometry& pg = static_cast<const PlaneGeometry&>(geometry);
 
-			if (!mIsRenderingToProcessingBuffer)
-			{
-				// Write depth only for planes with priority flag
-				if (pg.mPriorityFlag)
-				{
-					glEnable(GL_DEPTH_TEST);	// Needed for depth write to work at all
-					glDepthFunc(GL_ALWAYS);		// Depth test never rejects anything
-					glDepthMask(GL_TRUE);		// Depth write is enabled
-				}
-				else
-				{
-					glDisable(GL_DEPTH_TEST);	// Disabled both depth test and depth write
-				}
-			}
+								  if (!mIsRenderingToProcessingBuffer)
+								  {
+									  // Write depth only for planes with priority flag
+									  if (pg.mPriorityFlag)
+									  {
+										  glEnable(GL_DEPTH_TEST);	// Needed for depth write to work at all
+										  glDepthFunc(GL_ALWAYS);		// Depth test never rejects anything
+										  glDepthMask(GL_TRUE);		// Depth write is enabled
+									  }
+									  else
+									  {
+										  glDisable(GL_DEPTH_TEST);	// Disabled both depth test and depth write
+									  }
+								  }
 
-			mDrawerResources.setBlendMode(BlendMode::OPAQUE);
+								  mDrawerResources.setBlendMode(BlendMode::OPAQUE);
 
-			// For backmost layer, ignore alpha completely
-			mDrawerResources.setBlendMode(BlendMode::ONE_BIT);
-			ScrollOffsetsManager& som = mRenderParts.getScrollOffsetsManager();
-			const RenderPlaneShader::Variation variation = (pg.mPlaneIndex == PlaneManager::PLANE_W) ? RenderPlaneShader::PS_SIMPLE :
-															som.getHorizontalScrollNoRepeat(pg.mScrollOffsets) ? RenderPlaneShader::PS_NO_REPEAT :
-															som.getVerticalScrolling() ? RenderPlaneShader::PS_VERTICAL_SCROLLING : RenderPlaneShader::PS_HORIZONTAL_SCROLLING;
-			RenderPlaneShader& shader = mInternal.mRenderPlaneShader[variation];
+								  // For backmost layer, ignore alpha completely
+								  mDrawerResources.setBlendMode(BlendMode::ONE_BIT);
+								  ScrollOffsetsManager& som = mRenderParts.getScrollOffsetsManager();
+								  const RenderPlaneShader::Variation variation = (pg.mPlaneIndex == PlaneManager::PLANE_W) ? RenderPlaneShader::PS_SIMPLE :
+									  som.getHorizontalScrollNoRepeat(pg.mScrollOffsets) ? RenderPlaneShader::PS_NO_REPEAT :
+									  som.getVerticalScrolling() ? RenderPlaneShader::PS_VERTICAL_SCROLLING : RenderPlaneShader::PS_HORIZONTAL_SCROLLING;
+								  RenderPlaneShader& shader = mInternal.mRenderPlaneShader[variation];
 
-			shader.draw(pg, mGameResolution, mRenderParts.getPaletteManager().mSplitPositionY, mRenderParts, mRenderResources);
-			mLastRenderedGeometryType = Geometry::Type::PLANE;
-			break;
-		}
+								  shader.draw(pg, mGameResolution, mRenderParts.getPaletteManager().mSplitPositionY, mRenderParts, mRenderResources);
+								  mLastRenderedGeometryType = Geometry::Type::PLANE;
+								  break;
+	}
 
-		case Geometry::Type::SPRITE:
-		{
-			const SpriteGeometry& sg = static_cast<const SpriteGeometry&>(geometry);
+	case Geometry::Type::SPRITE:
+	{
+								   const SpriteGeometry& sg = static_cast<const SpriteGeometry&>(geometry);
 
-			const bool needsRefresh = (mLastRenderedGeometryType != Geometry::Type::SPRITE || mLastRenderedSpriteType != sg.mSpriteInfo.getType());
-			if (needsRefresh)
-			{
-				if (sg.mSpriteInfo.getType() != RenderItem::Type::SPRITE_MASK)
-				{
-					glEnable(GL_DEPTH_TEST);	// Enable depth test
-					glDepthFunc(GL_GEQUAL);		// Lower depth values get rejected
-					glDepthMask(GL_FALSE);		// Disable depth write
-				}
-				else
-				{
-					glDisable(GL_DEPTH_TEST);	// Disable depth test
-				}
+								   const bool needsRefresh = (mLastRenderedGeometryType != Geometry::Type::SPRITE || mLastRenderedSpriteType != sg.mSpriteInfo.getType());
+								   if (needsRefresh)
+								   {
+									   if (sg.mSpriteInfo.getType() != RenderItem::Type::SPRITE_MASK)
+									   {
+										   glEnable(GL_DEPTH_TEST);	// Enable depth test
+										   glDepthFunc(GL_GEQUAL);		// Lower depth values get rejected
+										   glDepthMask(GL_FALSE);		// Disable depth write
+									   }
+									   else
+									   {
+										   glDisable(GL_DEPTH_TEST);	// Disable depth test
+									   }
 
-				mLastRenderedGeometryType = Geometry::Type::SPRITE;
-				mLastRenderedSpriteType = sg.mSpriteInfo.getType();
-			}
+									   mLastRenderedGeometryType = Geometry::Type::SPRITE;
+									   mLastRenderedSpriteType = sg.mSpriteInfo.getType();
+								   }
 
-			switch (sg.mSpriteInfo.getType())
-			{
-				case RenderItem::Type::VDP_SPRITE:
-				{
-					const renderitems::VdpSpriteInfo& spriteInfo = static_cast<const renderitems::VdpSpriteInfo&>(sg.mSpriteInfo);
-					mDrawerResources.setBlendMode(spriteInfo.mBlendMode);
+								   switch (sg.mSpriteInfo.getType())
+								   {
+								   case RenderItem::Type::VDP_SPRITE:
+								   {
+																		const renderitems::VdpSpriteInfo& spriteInfo = static_cast<const renderitems::VdpSpriteInfo&>(sg.mSpriteInfo);
+																		mDrawerResources.setBlendMode(spriteInfo.mBlendMode);
 
-					RenderVdpSpriteShader& shader = mInternal.mRenderVdpSpriteShader;
-					shader.draw(spriteInfo, mGameResolution, mRenderParts.getPaletteManager().mSplitPositionY, mRenderResources);
-					break;
-				}
+																		RenderVdpSpriteShader& shader = mInternal.mRenderVdpSpriteShader;
+																		shader.draw(spriteInfo, mGameResolution, mRenderParts.getPaletteManager().mSplitPositionY, mRenderResources);
+																		break;
+								   }
 
-				case RenderItem::Type::PALETTE_SPRITE:
-				{
-					const renderitems::PaletteSpriteInfo& spriteInfo = static_cast<const renderitems::PaletteSpriteInfo&>(sg.mSpriteInfo);
-					if (spriteInfo.mSize.x == 0 || spriteInfo.mSize.y == 0)
-					{
-						// Do not render sprites that you cannot see. Trying to render a sprite with no size
-						// breaks the depth buffer on macOS causing any sprites rendered afterward to not appear.
-						break;
-					}
+								   case RenderItem::Type::PALETTE_SPRITE:
+								   {
+																			const renderitems::PaletteSpriteInfo& spriteInfo = static_cast<const renderitems::PaletteSpriteInfo&>(sg.mSpriteInfo);
+																			if (spriteInfo.mSize.x == 0 || spriteInfo.mSize.y == 0)
+																			{
+																				// Do not render sprites that you cannot see. Trying to render a sprite with no size
+																				// breaks the depth buffer on macOS causing any sprites rendered afterward to not appear.
+																				break;
+																			}
 
-					mDrawerResources.setBlendMode(spriteInfo.mBlendMode);
-					const bool useAlphaTest = (spriteInfo.mBlendMode != BlendMode::OPAQUE);
+																			mDrawerResources.setBlendMode(spriteInfo.mBlendMode);
+																			const bool useAlphaTest = (spriteInfo.mBlendMode != BlendMode::OPAQUE);
 
-					RenderPaletteSpriteShader& shader = mInternal.mRenderPaletteSpriteShader[useAlphaTest ? 1 : 0];
-					shader.draw(spriteInfo, mGameResolution, mRenderParts.getPaletteManager().mSplitPositionY, mRenderResources);
-					break;
-				}
+																			RenderPaletteSpriteShader& shader = mInternal.mRenderPaletteSpriteShader[useAlphaTest ? 1 : 0];
+																			shader.draw(spriteInfo, mGameResolution, mRenderParts.getPaletteManager().mSplitPositionY, mRenderResources);
+																			break;
+								   }
 
-				case RenderItem::Type::COMPONENT_SPRITE:
-				{
-					const renderitems::ComponentSpriteInfo& spriteInfo = static_cast<const renderitems::ComponentSpriteInfo&>(sg.mSpriteInfo);
-					mDrawerResources.setBlendMode(spriteInfo.mBlendMode);
-					const bool useAlphaTest = (spriteInfo.mBlendMode != BlendMode::OPAQUE);
+								   case RenderItem::Type::COMPONENT_SPRITE:
+								   {
+																			  const renderitems::ComponentSpriteInfo& spriteInfo = static_cast<const renderitems::ComponentSpriteInfo&>(sg.mSpriteInfo);
+																			  mDrawerResources.setBlendMode(spriteInfo.mBlendMode);
+																			  const bool useAlphaTest = (spriteInfo.mBlendMode != BlendMode::OPAQUE);
 
-					RenderComponentSpriteShader& shader = mInternal.mRenderComponentSpriteShader[useAlphaTest ? 1 : 0];
-					shader.draw(spriteInfo, mGameResolution, mRenderResources);
-					break;
-				}
+																			  RenderComponentSpriteShader& shader = mInternal.mRenderComponentSpriteShader[useAlphaTest ? 1 : 0];
+																			  shader.draw(spriteInfo, mGameResolution, mRenderResources);
+																			  break;
+								   }
 
-				case RenderItem::Type::SPRITE_MASK:
-				{
-					const renderitems::SpriteMaskInfo& mask = static_cast<const renderitems::SpriteMaskInfo&>(sg.mSpriteInfo);
-					mDrawerResources.setBlendMode(BlendMode::OPAQUE);
+								   case RenderItem::Type::SPRITE_MASK:
+								   {
+																		 const renderitems::SpriteMaskInfo& mask = static_cast<const renderitems::SpriteMaskInfo&>(sg.mSpriteInfo);
+																		 mDrawerResources.setBlendMode(BlendMode::OPAQUE);
 
-					mInternal.mSimpleRectOverdrawShader.draw(mProcessingTexture.getHandle(), Recti(mask.mPosition, mask.mSize), mGameResolution);
-					break;
-				}
+																		 mInternal.mSimpleRectOverdrawShader.draw(mProcessingTexture.getHandle(), Recti(mask.mPosition, mask.mSize), mGameResolution);
+																		 break;
+								   }
 
-				case RenderItem::Type::RECTANGLE:
-				case RenderItem::Type::TEXT:
-				case RenderItem::Type::VIEWPORT:
-				case RenderItem::Type::INVALID:
-					break;
-			}
+								   case RenderItem::Type::RECTANGLE:
+								   case RenderItem::Type::TEXT:
+								   case RenderItem::Type::VIEWPORT:
+								   case RenderItem::Type::INVALID:
+									   break;
+								   }
 
-			break;
-		}
+								   break;
+	}
 
-		case Geometry::Type::RECT:
-		{
-			const RectGeometry& rg = static_cast<const RectGeometry&>(geometry);
+	case Geometry::Type::RECT:
+	{
+								 const RectGeometry& rg = static_cast<const RectGeometry&>(geometry);
 
-			const bool needsRefresh = (mLastRenderedGeometryType != Geometry::Type::RECT);
-			if (needsRefresh)
-			{
-				glDisable(GL_DEPTH_TEST);
-				mLastRenderedGeometryType = Geometry::Type::RECT;
-			}
-			mDrawerResources.setBlendMode(BlendMode::ALPHA);
+								 const bool needsRefresh = (mLastRenderedGeometryType != Geometry::Type::RECT);
+								 if (needsRefresh)
+								 {
+									 glDisable(GL_DEPTH_TEST);
+									 mLastRenderedGeometryType = Geometry::Type::RECT;
+								 }
+								 mDrawerResources.setBlendMode(BlendMode::ALPHA);
 
-			SimpleRectColoredShader& shader = mDrawerResources.getSimpleRectColoredShader();
-			shader.setup(rg.mRect, mGameResolution, rg.mColor);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			break;
-		}
+								 SimpleRectColoredShader& shader = mDrawerResources.getSimpleRectColoredShader();
+								 shader.setup(rg.mRect, mGameResolution, rg.mColor);
+								 glDrawArrays(GL_TRIANGLES, 0, 6);
+								 break;
+	}
 
-		case Geometry::Type::TEXTURED_RECT:
-		{
-			const TexturedRectGeometry& tg = static_cast<const TexturedRectGeometry&>(geometry);
+	case Geometry::Type::TEXTURED_RECT:
+	{
+										  const TexturedRectGeometry& tg = static_cast<const TexturedRectGeometry&>(geometry);
 
-			OpenGLDrawerTexture* texture = tg.mDrawerTexture.getImplementation<OpenGLDrawerTexture>();
-			if (nullptr == texture)
-				break;
+										  OpenGLDrawerTexture* texture = tg.mDrawerTexture.getImplementation<OpenGLDrawerTexture>();
+										  if (nullptr == texture)
+											  break;
 
-			const bool needsRefresh = (mLastRenderedGeometryType != Geometry::Type::TEXTURED_RECT);
-			if (needsRefresh)
-			{
-				glDisable(GL_DEPTH_TEST);
-				mLastRenderedGeometryType = Geometry::Type::TEXTURED_RECT;
-			}
-			mDrawerResources.setBlendMode(BlendMode::ALPHA);
+										  const bool needsRefresh = (mLastRenderedGeometryType != Geometry::Type::TEXTURED_RECT);
+										  if (needsRefresh)
+										  {
+											  glDisable(GL_DEPTH_TEST);
+											  mLastRenderedGeometryType = Geometry::Type::TEXTURED_RECT;
+										  }
+										  mDrawerResources.setBlendMode(BlendMode::ALPHA);
 
-			SimpleRectTexturedShader& shader = mDrawerResources.getSimpleRectTexturedShader(true, true);
-			shader.setup(tg.mRect, mGameResolution, texture->getTextureHandle(), tg.mTintColor, tg.mAddedColor);
-			glDrawArrays(GL_TRIANGLES, 0, 6);
-			break;
-		}
+										  SimpleRectTexturedShader& shader = mDrawerResources.getSimpleRectTexturedShader(true, true);
+										  shader.setup(tg.mRect, mGameResolution, texture->getTextureHandle(), tg.mTintColor, tg.mAddedColor);
+										  glDrawArrays(GL_TRIANGLES, 0, 6);
+										  break;
+	}
 
-		case Geometry::Type::EFFECT_BLUR:
-		{
-			const EffectBlurGeometry& ebg = static_cast<const EffectBlurGeometry&>(geometry);
+	case Geometry::Type::EFFECT_BLUR:
+	{
+										const EffectBlurGeometry& ebg = static_cast<const EffectBlurGeometry&>(geometry);
 
-			mIsRenderingToProcessingBuffer = false;
-			glBindFramebuffer(GL_FRAMEBUFFER, mGameScreenBuffer.getHandle());
-			mDrawerResources.setBlendMode(BlendMode::OPAQUE);
+										mIsRenderingToProcessingBuffer = false;
+										glBindFramebuffer(GL_FRAMEBUFFER, mGameScreenBuffer.getHandle());
+										mDrawerResources.setBlendMode(BlendMode::OPAQUE);
 
-			const Vec2f texelOffset(1.0f / mGameResolution.x, 1.0f / mGameResolution.y);
-			const Vec4f kernel = getBlurKernel(ebg.mBlurValue);
-			mInternal.mPostFxBlurShader.draw(mProcessingTexture.getHandle(), texelOffset, kernel);
+										const Vec2f texelOffset(1.0f / mGameResolution.x, 1.0f / mGameResolution.y);
+										const Vec4f kernel = getBlurKernel(ebg.mBlurValue);
+										mInternal.mPostFxBlurShader.draw(mProcessingTexture.getHandle(), texelOffset, kernel);
 
-			mLastRenderedGeometryType = Geometry::Type::UNDEFINED;
-			break;
-		}
+										mLastRenderedGeometryType = Geometry::Type::UNDEFINED;
+										break;
+	}
 
-		case Geometry::Type::VIEWPORT:
-		{
-			const ViewportGeometry& vg = static_cast<const ViewportGeometry&>(geometry);
-			glEnable(GL_SCISSOR_TEST);
-			glScissor(vg.mRect.x, vg.mRect.y, vg.mRect.width, vg.mRect.height);
-			break;
-		}
+	case Geometry::Type::VIEWPORT:
+	{
+									 const ViewportGeometry& vg = static_cast<const ViewportGeometry&>(geometry);
+									 glEnable(GL_SCISSOR_TEST);
+									 glScissor(vg.mRect.x, vg.mRect.y, vg.mRect.width, vg.mRect.height);
+									 break;
+	}
 	}
 
 #ifdef DEBUG

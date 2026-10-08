@@ -15,7 +15,7 @@
 
 // If buffer textures are not supported, we use normal textures instead
 #if !defined(RMX_USE_GLES2) && !defined(PLATFORM_PS3)
-	#define SUPPORTS_BUFFER_TEXTURES
+#define SUPPORTS_BUFFER_TEXTURES
 #endif
 
 
@@ -73,6 +73,14 @@ void BufferTexture::create(PixelFormat pixelFormat, int width, int height, const
 #else
 	const GLint internalFormat = (mPixelFormat == PixelFormat::UINT_8) ? GL_LUMINANCE : GL_LUMINANCE_ALPHA;
 	glBindTexture(GL_TEXTURE_2D, mTextureHandle);
+
+#ifdef GL_TEXTURE_ALLOCATION_HINT_SCE
+	if (mPixelFormat == PixelFormat::UINT_8)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_ALLOCATION_HINT_SCE, GL_TEXTURE_LINEAR_SYSTEM_SCE);
+	}
+#endif
+
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);

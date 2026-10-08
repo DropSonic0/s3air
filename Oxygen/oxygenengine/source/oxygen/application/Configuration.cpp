@@ -139,13 +139,6 @@ namespace
 			}
 		}
 
-#if defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__)
-		// PS3 PSGL requires OpenGL rendering (OPENGL_SOFT).
-		outRenderMethod = Configuration::RenderMethod::OPENGL_SOFT;
-		outAutoDetect = false;
-		return;
-#endif
-
 		if (failSafeMode)
 		{
 			outRenderMethod = Configuration::RenderMethod::SOFTWARE;

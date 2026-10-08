@@ -10,10 +10,16 @@
 #include "oxygen/application/audio/EmulationAudioSource.h"
 #include "oxygen/application/Configuration.h"
 
-#if defined(PLATFORM_VITA) // For the emergency unloads
-	#include "oxygen/application/audio/AudioOutBase.h"
-	#include "oxygen/application/audio/AudioPlayer.h"
-	#include "oxygen/application/EngineMain.h"
+#if defined(PLATFORM_VITA) || defined(PLATFORM_PS3) || defined(__CELLOS_LV2__) || defined(__SNC__) || defined(__PPU__)
+#define LIMITED_RAM_PLATFORM
+#if defined(PLATFORM_VITA)
+#define EMERGENCY_UNLOAD_MB 80.0f
+#else
+#define EMERGENCY_UNLOAD_MB 10.0f
+#endif
+#include "oxygen/application/audio/AudioOutBase.h"
+#include "oxygen/application/audio/AudioPlayer.h"
+#include "oxygen/application/EngineMain.h"
 #endif
 
 
@@ -96,41 +102,33 @@ bool EmulationAudioSource::checkForUnload(float timestamp)
 {
 	bool mayUnload = false;
 
-#if defined(PLATFORM_VITA)
-	// PSVITA has limited RAM, so...
-	if (((float)EngineMain::instance().getAudioOut().getAudioPlayer().getMemoryUsage() / 1048576.0f) >= 80.0f) // 80 MB
+#if defined(LIMITED_RAM_PLATFORM)
+	if (((float)EngineMain::instance().getAudioOut().getAudioPlayer().getMemoryUsage() / 1048576.0f) >= EMERGENCY_UNLOAD_MB)
 	{
-		// Let's make an emergency forced unload since the buffer is getting too big
-		mayUnload = (timestamp - mLastUsedTimestamp > 10.0f); // Everything not used in the past 10 seconds
+		mayUnload = (timestamp - mLastUsedTimestamp > 10.0f);
 	}
-	if (EngineMain::instance().getAudioOut().getAudioPlayer().getNumPlayingSounds() == 0) // No sound playing
+	if (EngineMain::instance().getAudioOut().getAudioPlayer().getNumPlayingSounds() == 0)
 	{
-		// Since it's silenced, lets take the chance to unload stuff
-		mayUnload = (timestamp - mLastUsedTimestamp > 30.0f); // Everything not used in the past 30 seconds
+		mayUnload = mayUnload || (timestamp - mLastUsedTimestamp > 30.0f);
 	}
 #endif
 
 	if (isDynamic())
 	{
-		// Ignore tracks not loaded
 		if (mAudioBuffer.getLengthInSec() > 0.2f)
 		{
-			// Unload after a few seconds already
-			mayUnload = (timestamp - mLastUsedTimestamp > 10.0f);
+			mayUnload = mayUnload || (timestamp - mLastUsedTimestamp > 10.0f);
 		}
 	}
 	else
 	{
-		// Ignore short sounds, and tracks not loaded
 		if (mAudioBuffer.getLengthInSec() > 5.0f)
 		{
-			// Unload after 3 minutes
-		#if !defined(PLATFORM_VITA)
+#if !defined(LIMITED_RAM_PLATFORM)
 			mayUnload = (timestamp - mLastUsedTimestamp > 180.0f);
-		#else
-			// PSVITA has limited RAM, so...
-			mayUnload = (timestamp - mLastUsedTimestamp > 60.0f); // 60 seconds and unload
-		#endif
+#else
+			mayUnload = mayUnload || (timestamp - mLastUsedTimestamp > 60.0f);
+#endif
 		}
 	}
 

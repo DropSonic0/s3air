@@ -181,10 +181,12 @@ namespace
 
 		uint8* pointer = getEmulatorInterface().getMemoryPointer(startAddress, true, bytes);
 
-		value = (value << 8) + (value >> 8);
+		const uint8 b0 = (uint8)(value >> 8);    // 68k big-endian: byte alto primero
+		const uint8 b1 = (uint8)(value & 0xff);
 		for (uint32 i = 0; i < bytes; i += 2)
 		{
-			*(uint16*)(&pointer[i]) = value;
+			pointer[i] = b0;
+			pointer[i + 1] = b1;
 		}
 	}
 
@@ -195,17 +197,18 @@ namespace
 
 		uint8* pointer = getEmulatorInterface().getMemoryPointer(startAddress, true, bytes);
 
-		value = ((value & 0x000000ff) << 24)
-			  + ((value & 0x0000ff00) << 8)
-			  + ((value & 0x00ff0000) >> 8)
-			  + ((value & 0xff000000) >> 24);
-
+		const uint8 b0 = (uint8)(value >> 24);
+		const uint8 b1 = (uint8)(value >> 16);
+		const uint8 b2 = (uint8)(value >> 8);
+		const uint8 b3 = (uint8)(value);
 		for (uint32 i = 0; i < bytes; i += 4)
 		{
-			*(uint32*)(&pointer[i]) = value;
+			pointer[i] = b0;
+			pointer[i + 1] = b1;
+			pointer[i + 2] = b2;
+			pointer[i + 3] = b3;
 		}
 	}
-
 
 	void push(uint32 value)
 	{

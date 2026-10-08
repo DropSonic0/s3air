@@ -158,7 +158,11 @@ namespace rmx
 		int portRes = cellAudioPortOpen(&params, &mCellAudioPort);
 		if (portRes == CELL_OK)
 		{
-			pthread_mutex_init(&mCellAudioMutex, nullptr);
+			pthread_mutexattr_t attr;
+			pthread_mutexattr_init(&attr);
+			pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+			pthread_mutex_init(&mCellAudioMutex, &attr);
+			pthread_mutexattr_destroy(&attr);
 			mCellAudioQuit = false;
 			cellAudioPortStart(mCellAudioPort);
 			pthread_create(&mCellAudioThread, nullptr, cellAudioEventLoopStatic, this);
@@ -232,29 +236,26 @@ namespace rmx
 
 	void AudioManager::lockAudio()
 	{
-		if (mAudioLocks == 0)
-		{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
-			SDL_LockAudioDevice(mAudioDeviceID);
-#else
-			if (mCellAudioPort != 0) pthread_mutex_lock(&mCellAudioMutex);
-#endif
-		}
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		if (mCellAudioPort != 0) pthread_mutex_lock(&mCellAudioMutex);
 		++mAudioLocks;
+#else
+		if (mAudioLocks == 0)
+			SDL_LockAudioDevice(mAudioDeviceID);
+		++mAudioLocks;
+#endif
 	}
 
 	void AudioManager::unlockAudio()
 	{
 		RMX_ASSERT(mAudioLocks > 0, "Called 'AudioManager::unlockAudio' without locking");
 		--mAudioLocks;
-		if (mAudioLocks == 0)
-		{
-#if !defined(__CELLOS_LV2__) && !defined(__SNC__) && !defined(PLATFORM_PS3) && !defined(RMX_PLATFORM_PS3)
-			SDL_UnlockAudioDevice(mAudioDeviceID);
+#if defined(__CELLOS_LV2__) || defined(__SNC__) || defined(PLATFORM_PS3) || defined(RMX_PLATFORM_PS3)
+		if (mCellAudioPort != 0) pthread_mutex_unlock(&mCellAudioMutex);
 #else
-			if (mCellAudioPort != 0) pthread_mutex_unlock(&mCellAudioMutex);
+		if (mAudioLocks == 0)
+			SDL_UnlockAudioDevice(mAudioDeviceID);
 #endif
-		}
 	}
 
 	void AudioManager::regularUpdate(float deltaSeconds)

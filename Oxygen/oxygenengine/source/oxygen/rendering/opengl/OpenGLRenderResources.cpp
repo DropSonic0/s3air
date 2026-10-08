@@ -147,7 +147,7 @@ void OpenGLRenderResources::refresh()
 				// Should we merge them?
 				//  -> This means we ignore small gaps between the changes, in order to keep the number of single upload calls lows,
 				//      even if that means re-uploading non-changed data in between the changes as well
-				if (currentChanges.mFirst - pendingChanges.mLast <= 0x20)
+				if (currentChanges.mFirst - pendingChanges.mLast <= 0x20 || !BufferTexture::supportsBufferTextures())
 				{
 					pendingChanges.mLast = currentChanges.mLast;
 				}
@@ -191,22 +191,36 @@ void OpenGLRenderResources::refresh()
 		}
 	}
 
-	// Update scroll offset textures
+	// Update scroll offset textures (solo si cambiaron)
 	{
 		const ScrollOffsetsManager& scrollOffsetsManager = mRenderParts.getScrollOffsetsManager();
 
-		// Horizontal scroll offsets
+		static uint8 sLastH[4][0x200];
+		static bool sValidH[4] = { false, false, false, false };
 		for (int index = 0; index < 4; ++index)
 		{
-			mHScrollOffsetsTexture[index].bufferData(scrollOffsetsManager.getScrollOffsetsH(index), 0x100, 1);
+			const void* src = scrollOffsetsManager.getScrollOffsetsH(index);
+			if (!sValidH[index] || memcmp(sLastH[index], src, 0x200) != 0)
+			{
+				memcpy(sLastH[index], src, 0x200);
+				sValidH[index] = true;
+				mHScrollOffsetsTexture[index].bufferData(src, 0x100, 1);
+			}
 		}
 
-		// Vertical scroll offsets
 		if (scrollOffsetsManager.getVerticalScrolling())
 		{
+			static uint8 sLastV[4][0x40];
+			static bool sValidV[4] = { false, false, false, false };
 			for (int index = 0; index < 4; ++index)
 			{
-				mVScrollOffsetsTexture[index].bufferData(scrollOffsetsManager.getScrollOffsetsV(index), 0x20, 1);
+				const void* src = scrollOffsetsManager.getScrollOffsetsV(index);
+				if (!sValidV[index] || memcmp(sLastV[index], src, 0x40) != 0)
+				{
+					memcpy(sLastV[index], src, 0x40);
+					sValidV[index] = true;
+					mVScrollOffsetsTexture[index].bufferData(src, 0x20, 1);
+				}
 			}
 		}
 	}
