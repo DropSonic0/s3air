@@ -75,13 +75,12 @@ void BufferTexture::create(PixelFormat pixelFormat, int width, int height, const
 	glBindTexture(GL_TEXTURE_2D, mTextureHandle);
 
 #ifdef GL_TEXTURE_ALLOCATION_HINT_SCE
-	if (mPixelFormat == PixelFormat::UINT_8)
-	{
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_ALLOCATION_HINT_SCE, GL_TEXTURE_LINEAR_SYSTEM_SCE);
-	}
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_ALLOCATION_HINT_SCE, GL_TEXTURE_LINEAR_SYSTEM_SCE);
 #endif
 
 	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
+	mAllocWidth = width;
+	mAllocHeight = height;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -133,7 +132,17 @@ void BufferTexture::bufferData(const void* data, int width, int height)
 #else
 	const GLint internalFormat = (mPixelFormat == PixelFormat::UINT_8) ? GL_LUMINANCE : GL_LUMINANCE_ALPHA;
 	glBindTexture(GL_TEXTURE_2D, mTextureHandle);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
+	if (width == mAllocWidth && height == mAllocHeight)
+	{
+		if (nullptr != data)
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, internalFormat, GL_UNSIGNED_BYTE, data);
+	}
+	else
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, internalFormat, GL_UNSIGNED_BYTE, data);
+		mAllocWidth = width;
+		mAllocHeight = height;
+	}
 	glBindTexture(GL_TEXTURE_2D, 0);
 #endif
 }

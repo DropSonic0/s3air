@@ -257,7 +257,7 @@ bool OpenGLDrawerResources::updatePalette(PaletteData& data, const PaletteBase& 
 
 	// Upload changes to the GPU (la textura es chica, así que siempre se sube completa)
 	glBindTexture(GL_TEXTURE_2D, data.mTexture.getHandle());
-	glTexImage2D(GL_TEXTURE_2D, 0, rmx::OpenGLHelper::FORMAT_RGBA, data.mBitmap.getWidth(), data.mBitmap.getHeight(), 0, GL_ARGB_SCE, GL_UNSIGNED_BYTE, data.mBitmap.getData());
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, data.mBitmap.getWidth(), data.mBitmap.getHeight(), GL_ARGB_SCE, GL_UNSIGNED_BYTE, data.mBitmap.getData());
 	return true;
 }
 

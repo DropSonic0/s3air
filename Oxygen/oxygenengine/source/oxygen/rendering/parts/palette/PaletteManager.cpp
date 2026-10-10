@@ -73,6 +73,13 @@ const Palette& PaletteManager::getMainPalette(int paletteIndex) const
 void PaletteManager::writePaletteEntry(int paletteIndex, uint16 colorIndex, uint32 color)
 {
 	RMX_CHECK(colorIndex < MAIN_PALETTE_SIZE, "Invalid color index " << colorIndex, return);
+
+#if defined(__PS3__) || defined(RMX_PLATFORM_PS3)
+	// Scripts pass colors as 0xAABBGGRR (ABGR32), but on PS3 palette entries are stored as 0xAARRGGBB
+	//  (see the PS3 branch in writePaletteEntryPacked) -> swap the R and B channels
+	color = (color & 0xff00ff00) | ((color & 0x000000ff) << 16) | ((color >> 16) & 0x000000ff);
+#endif
+
 	if (paletteIndex == 0)
 	{
 		mMainPalette[0].setPaletteEntry(colorIndex, color);

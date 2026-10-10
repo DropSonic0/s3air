@@ -50,6 +50,8 @@ private:
 	GLuint mTexBuffer = (GLuint)~0;
 	PixelFormat mPixelFormat = PixelFormat::UINT_8;
 	Vec2i mSize;
+	int mAllocWidth = 0;
+	int mAllocHeight = 0;
 };
 
 #endif

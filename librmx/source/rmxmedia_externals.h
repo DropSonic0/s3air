@@ -54,13 +54,10 @@ void Shader_unbindCg();     // implementado en Shader_PS3.inl
 inline void glUseProgram(GLuint p) { if (p == 0) Shader_unbindCg(); }
 
 inline unsigned int SDL_GetTicks() {
-	static unsigned int start_ms = 0;
-	sys_time_sec_t sec;
-	sys_time_nsec_t nsec;
-	sys_time_get_current_time(&sec, &nsec);
-	unsigned int current_ms = (unsigned int)(sec * 1000 + nsec / 1000000);
-	if (start_ms == 0) start_ms = current_ms;
-	return current_ms - start_ms;
+	static unsigned long long start_us = 0;
+	const unsigned long long now_us = (unsigned long long)sys_time_get_system_time();
+	if (start_us == 0) start_us = now_us;
+	return (unsigned int)((now_us - start_us) / 1000ULL);
 }
 typedef pthread_mutex_t SDL_mutex;
 typedef pthread_cond_t SDL_cond;
@@ -136,10 +133,32 @@ inline int  SDL_CondWaitTimeout(SDL_cond* c, SDL_mutex* m, unsigned int ms) {
 	if (ts.tv_nsec >= 1000000000) { ts.tv_sec++; ts.tv_nsec -= 1000000000; }
 	return pthread_cond_timedwait(c, m, &ts);
 }
+struct _SDL_PS3_ThreadStart { int(*f)(void*); void* d; };
+
+static inline void* _SDL_PS3_ThreadTrampoline(void* p) {
+	_SDL_PS3_ThreadStart s = *(_SDL_PS3_ThreadStart*)p;
+	delete (_SDL_PS3_ThreadStart*)p;
+	s.f(s.d);
+	return NULL;
+}
+
 inline SDL_Thread* SDL_CreateThread(int(*f)(void*), const char* n, void* d) {
 	SDL_Thread* t = new SDL_Thread;
-	typedef void* (*pthread_func)(void*);
-	if (pthread_create(t, NULL, (pthread_func)f, d) != 0) { delete t; return nullptr; }
+	_SDL_PS3_ThreadStart* start = new _SDL_PS3_ThreadStart;
+	start->f = f;
+	start->d = d;
+
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_attr_setstacksize(&attr, 1024 * 1024);
+
+	const int ret = pthread_create(t, &attr, _SDL_PS3_ThreadTrampoline, start);
+	pthread_attr_destroy(&attr);
+	if (ret != 0) {
+		delete start;
+		delete t;
+		return nullptr;
+	}
 	return t;
 }
 inline void SDL_WaitThread(SDL_Thread* t, int* s) { pthread_join(*t, NULL); delete t; }
